@@ -1,0 +1,8 @@
+# TODO: replace with confirmed colony types from business_analysis.md §7
+- name: example_colony
+  base_complacency: 20
+  base_order: 20
+  base_productivity: 20
+  base_piety: 20
+  base_size: 10
+  resource_exploit_bonus: 0

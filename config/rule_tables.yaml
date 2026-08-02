@@ -1,0 +1,28 @@
+# TODO: replace with confirmed rule tables from business_analysis.md §7
+size_to_profit_factor:
+  - size: 1
+    profit_factor: 1
+  - size: 2
+    profit_factor: 2
+leadership_modifier:
+  - stat_bonus: 0
+    modifier: -3
+  - stat_bonus: 1
+    modifier: -2
+  - stat_bonus: 2
+    modifier: -1
+lore_thresholds:
+  complacency:
+    placated: true
+    stable: true
+  order:
+    anarchy: true
+    stable: true
+  productivity:
+    productive: true
+    halted: true
+    stable: true
+  piety:
+    pious: true
+    heretical: true
+    stable: true

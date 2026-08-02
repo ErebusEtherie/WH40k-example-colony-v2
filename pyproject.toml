@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wh40k-colony-manager"
+version = "0.1.0"
+description = "Rogue Trader Colony Manager prototype"
+readme = "README.md"
+requires-python = ">=3.12,<4"
+license = "MIT"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "pydantic>=2.6,<3",
+  "pydantic-settings>=2.0,<3",
+  "sqlalchemy>=2.0,<3",
+  "pyyaml>=6.0,<7",
+  "typer>=0.10,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0,<9",
+  "hypothesis>=6.0,<8",
+  "ruff>=0.0,<1",
+  "mypy>=1.9,<2",
+]
+
+[project.scripts]
+wh40k-colony-manager = "colony_manager.adapters.cli.main:cli"
+
+[tool.setuptools]
+packages = {find = {where = ["src"]}}
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = ["build", "dist", ".venv", "venv", ".mypy_cache", ".pytest_cache"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+files = ["src"]

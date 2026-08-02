@@ -1,0 +1,4 @@
+# TODO: replace with confirmed personality list from business_analysis.md §7
+- name: example_personality
+  description: Placeholder personality used for initial loader testing.
+  effect: Placeholder effect.
