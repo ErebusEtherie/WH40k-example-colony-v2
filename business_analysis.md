@@ -1,0 +1,264 @@
+# Business Analysis — Rogue Trader Colony Manager (V1 Prototype)
+
+## 1. Purpose & Scope
+
+This document captures the business requirements for the first working
+prototype of the Colony Manager. It is a living document — sections marked
+**[TBD]** or **[Needs confirmation]** are known gaps to close before or
+during implementation, not oversights.
+
+**V1 goal:** a working Colony + Representative model with real stat
+calculations (Base → Current), Profit Factor, and persistence (save/load).
+No Infrastructure, Support Upgrades, or Resources yet — those are deferred
+to later phases (see §6).
+
+**Source of domain truth:** the reference Excel workbook (Colony /
+Representative / Data / Calculations sheets) is treated as validated
+domain knowledge — it was used and tested by the players/GM against the
+core rulebook. Where this document derives a rule directly from that sheet,
+it's noted, since the sheet itself doesn't document *why* — only the
+computed result.
+
+---
+
+## 2. Glossary
+
+| Term | Meaning |
+|---|---|
+| Base stat | Starting value, fixed by Colony Type, never edited directly |
+| Current / Actual stat | Base + applicable modifiers, clamped ≥ 0, always calculated |
+| Lore state | Short textual label for a stat's current condition (e.g. "Anarchy", "Placated"), derived from thresholds |
+| Modifier | A discrete, typed adjustment to a stat, with a source, value, and description |
+| Profit Factor (PF) | Colony's economic output value; integer ≥ 0 |
+| Leadership Modifier | PF adjustment derived from the Representative's highest of Int/Per/Fel bonus |
+
+---
+
+## 3. Entities
+
+### 3.1 Colony
+
+| Field | Type | Editable? | Notes |
+|---|---|---|---|
+| `id` | identifier | no | |
+| `name` | string | yes | Set at creation, changeable later |
+| `owner` | string | yes | Rogue Trader Dynasty or member name; changeable later |
+| `colony_type` | reference | **no**, after creation | Set at creation from config (see §6). Changing it post-creation is disallowed outside of an explicit testing/admin path — too many downstream calculations depend on it |
+| `age_days` | integer ≥ 0 | yes | Source of truth for colony age. Advances with in-game time (e.g. "5 days spent traveling" → +5). Manually updated by players |
+| `age_years` / `age_months` / `age_days_remainder` | integer | no | Computed display breakdown of `age_days` |
+| `age_last_updated` | date (`yyyy-mm-dd`) | **no** (system-set) | Audit field — auto-set whenever `age_days` changes. Exists so the GM can detect "a session happened but age wasn't updated" |
+| `event_roll_interval_days` | integer | yes (config) | Default 60. How often a GM event roll occurs |
+| `development_roll_interval_days` | integer | yes (config) | Default 90. How often a colony growth/decay roll occurs |
+| `base_complacency` / `base_order` / `base_productivity` / `base_piety` | integer | no | Derived from `colony_type`, fixed |
+| `base_size` | integer | no | Derived from `colony_type` at creation |
+| `actual_size` | integer ≥ 0 | no (calculated) | `base_size` + applicable modifiers, clamped at 0 |
+| `current_complacency` / `current_order` / `current_productivity` / `current_piety` | integer ≥ 0 | no (calculated) | Base + applicable modifiers, clamped at 0 |
+| `lore_state_complacency` / `..._order` / `..._productivity` / `..._piety` | string (enum) | no (calculated) | See §4.3 |
+| `current_profit_factor` | integer ≥ 0 | no (calculated) | See §4.4 |
+| `representative_id` | reference (nullable) | yes (assignment) | Representative is an independent entity, not owned by Colony — see §3.2. Nothing prevents the same Representative being referenced by more than one Colony (mechanically possible, though not meaningful lore-wise) |
+| `modifiers` | list of Modifier | — | See §3.3 |
+
+**V1 explicitly excludes:** current-event free-text field, pending/upcoming
+event indicators. Per your note, event *rolling* logic (60/90-day cadence)
+exists as config now, but surfacing "an event is pending" or "roll due in
+N days" is deferred.
+
+### 3.2 Representative
+
+| Field | Type | Editable? | Notes |
+|---|---|---|---|
+| `id` | identifier | no | |
+| `name` | string | yes | Representative is a standalone entity — it can exist unassigned to any Colony, and can in principle be referenced by more than one Colony (Colony holds the reference, not the other way round; see §3.1) |
+| `type` | enum | yes | Exactly one. Fixed list (from reference sheet): Satrap, Judge, Cardinal, Colonist Representative, Military Commander — each with one fixed mechanical bonus. List is **extensible** later |
+| `personalities` | list of Personality | yes | **At least 1, multiple allowed.** Each has name, description, effect. Full fixed list: **[Needs table from user]** |
+| `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
+| `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
+| `skills` | list of Skill | yes | `{name, level: known|+10|+20|+30, description}` — **reference only, no mechanical effect** |
+| `talents` | list of Talent | yes | `{name, description}` — **reference only, no mechanical effect** |
+| `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.4). This is the **only** confirmed mechanical link from Representative to Colony stats in V1 — Type's bonus, Personality effects, Skills, and Talents are not wired into calculations yet (Type's bonus text exists per the reference sheet but its mechanical hook isn't specified — **[Needs confirmation]**) |
+
+### 3.3 Modifier (generic)
+
+A single, reusable structure representing any discrete adjustment to a
+Colony stat.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | identifier | |
+| `colony_id` | reference | |
+| `modifier_source_type` | enum | See table below |
+| `modifier_stat` | enum | `size`, `complacency`, `order`, `productivity`, `piety`, `profit_factor` |
+| `modifier_value` | integer | Signed (+/-) |
+| `modifier_description` | string | Free text |
+| `is_active` | boolean | Allows disabling without deleting (e.g. GM toggles a temporary penalty off) |
+
+**`modifier_source_type` values (per your direction — typed by source):**
+
+| Value | Active in V1? | Notes |
+|---|---|---|
+| `gm_custom` | **Yes** | Manually added by GM, any stat including `profit_factor` |
+| `growth_decay` | **Yes** | System-generated from the 90-day development roll, targets `size` only |
+| `representative_leadership` | **Yes** | System-generated from Representative's Leadership Modifier, targets `profit_factor` only |
+| `resource` | No (reserved) | Future — Resources module |
+| `infrastructure` | No (reserved) | Future — Hard Infrastructure module |
+| `support_upgrade` | No (reserved) | Future — Support Upgrades module |
+
+Reserved values exist in the enum now so the modifier list/history is
+forward-compatible, but nothing writes them in V1.
+
+**Explicitly deferred for V1:** modifier expiry/duration. GM custom
+modifiers are toggled via `is_active` manually; there's no automatic
+time-based expiry yet. Flagging since you mentioned "temporary" bonuses —
+worth revisiting once Infrastructure/Events are in scope.
+
+---
+
+## 4. Calculation Rules
+
+### 4.1 Age
+
+- `age_days` is edited directly by players as in-game time passes.
+- On any change to `age_days`, `age_last_updated` is set to the current
+  real-world date automatically. Not directly editable by players.
+- `age_years/months/days_remainder` are a pure display breakdown of
+  `age_days` — no independent meaning.
+- Event/development roll cadence (`event_roll_interval_days`,
+  `development_roll_interval_days`) exist as configurable colony fields but
+  **do not drive any automatic behavior in V1** (no notifications, no
+  pending-roll indicators).
+
+### 4.2 Stat Calculation (Complacency / Order / Productivity / Piety)
+
+```
+current_stat = clamp( base_stat (from colony_type)
+                       + sum(active modifiers where modifier_stat == this stat),
+                       min = 0 )
+```
+
+In V1, the only modifier source affecting these four stats is `gm_custom`
+(Infrastructure/Support Upgrades/Resources are deferred, and
+Representative's mechanical effect is confirmed to target `profit_factor`
+only, not these four directly).
+
+### 4.3 Size Calculation
+
+```
+actual_size = clamp( base_size
+                      + sum(active modifiers where modifier_stat == 'size'),
+                      min = 0 )
+```
+
+Active source types affecting size in V1: `growth_decay`, `gm_custom`.
+Integer only.
+
+### 4.4 Lore State (per stat)
+
+Derived from thresholds relative to `actual_size`. **[Derived from
+reference spreadsheet — confirm before implementing]**:
+
+| Stat | Condition: `stat > size` | Condition: `stat == 0` | Otherwise |
+|---|---|---|---|
+| Complacency | Placated | *(sheet shows "Riots and unrests" — confirm)* | Stable |
+| Order | *(sheet shows a label here — confirm, likely "Orderly")* | Anarchy | Stable |
+| Productivity | Productive | Halted | Stable |
+| Piety | Pious | Heretical | Stable |
+
+### 4.5 Profit Factor
+
+**[Derived from reference spreadsheet — confirm before implementing]**
+
+```
+pf_base = lookup(actual_size)            # Size → PF table, from reference "Data" sheet
+pf_raw  = pf_base
+        + (1 if current_complacency > actual_size else 0)
+        + (2 if current_productivity > actual_size else 0)
+        + sum(active gm_custom modifiers where modifier_stat == 'profit_factor')
+        + leadership_modifier            # from Representative, see below
+
+if current_order == 0:
+    profit_factor = 0                    # zero-forcing takes priority over everything
+elif current_productivity == 0:
+    profit_factor = round_half_up(pf_raw / 2)   # halving applies after all numeric bonuses/penalties
+else:
+    profit_factor = pf_raw
+
+profit_factor = max(profit_factor, 0)    # integer, ≥ 0
+```
+
+**Rounding rule (global):** round-half-up for every halving/rounding
+calculation in the system (e.g. `1.5 → 2`), not just Profit Factor. Applies
+system-wide unless a specific future rule explicitly states otherwise.
+
+**Leadership Modifier lookup:** `max(Int_bonus, Per_bonus, Fel_bonus) →
+modifier`. Partial table visible in the reference sheet (value 2 → −2,
+3 → −1, 4 → 0, 5 → +1, 6 → +2). **[Needs full table from user — the visible
+range doesn't cover all possible stat-bonus values (0–9+)]**.
+
+### 4.6 Representative Stat Bonus
+
+```
+stat_bonus = floor(stat_value / 10)
+```
+
+E.g. stat value 42 → bonus 4; value 29 → bonus 2.
+
+---
+
+## 5. Business Rules Summary (priority order, applies generally)
+
+1. **Zero-forcing conditions always take priority** over any numeric
+   bonus/penalty (e.g. Order == 0 forces PF to 0 regardless of other
+   modifiers).
+2. **Halving conditions apply after all numeric bonuses/penalties**, using
+   round-half-up.
+3. **Stats can never go below 0.** Where relevant (Size, the four core
+   stats, PF), clamp at 0 after all modifiers are applied.
+4. **Colony Type is immutable** post-creation outside of an explicit
+   testing/admin path.
+
+---
+
+## 6. Explicitly Out of Scope for V1
+
+- Hard Infrastructure module (build/operational states, partial capacity,
+  stat bonuses)
+- Support Upgrades module
+- Planetary Resources module
+- Event system beyond raw config values (no pending/upcoming/current-event
+  UI or logic)
+- Colony Type change after creation (outside testing)
+- Skills/Talents mechanical effects (reference-only for now)
+- Representative Type/Personality mechanical effects beyond the confirmed
+  Leadership Modifier path
+- Modifier expiry/duration (temporary modifiers are manual via `is_active`)
+
+---
+
+## 7. Open Items — Config / Data Needed Before Implementation
+
+| Item | Status |
+|---|---|
+| Colony Type config (types, base stats, base size, resource exploit bonuses) | Pending — you'll provide |
+| Representative Type list + mechanical bonuses | Complete per reference sheet, extensible later |
+| Personality list (name, description, effect) | Pending — you'll provide |
+| Lore state threshold labels (exact wording for Order>Size and Complacency==0 cases) | Needs confirmation against reference sheet |
+| Size → base PF lookup table | Present in reference sheet ("Data" tab) — needs to be confirmed as authoritative and transcribed to config |
+| Leadership Modifier full lookup table (all stat-bonus values, not just the visible 2–6 range) | Pending — you'll provide or confirm extrapolation rule |
+
+---
+
+## 8. Assumptions Log
+
+- Representative's `type` bonus text exists in the reference sheet but its
+  precise mechanical trigger isn't specified — treated as descriptive-only
+  until confirmed otherwise.
+- `event_roll_interval_days` / `development_roll_interval_days` are
+  modeled as **per-colony** fields (not global config), since you described
+  them as "configurable" without specifying scope — flagged for
+  confirmation.
+- Representative is independent of Colony (not 1:1 ownership) — confirmed
+  during technical analysis, supersedes the earlier draft.
+- If a Representative assigned to a Colony is deleted, the Colony's
+  reference is cleared rather than blocking the delete or deleting the
+  Colony. Flagged as a default in `technical_analysis.md` §3.6 — revisit if
+  you'd rather block deletion instead.
