@@ -49,7 +49,27 @@ coverage.xml
 *.py.cover
 .hypothesis/
 .pytest_cache/
+.pytype/
 cover/
+
+# Local test artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.code-workspace
 
 # Translations
 *.mo
