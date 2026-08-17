@@ -1,8 +1,15 @@
 # Technical Analysis — Rogue Trader Colony Manager (V1 Prototype)
 
-Builds directly on `business_analysis.md`. Scope: Colony + Representative,
-real calculations, SQLite persistence, JSON/YAML import/export. No
-Infrastructure/Upgrades/Resources/API yet (see business analysis §6).
+Builds directly on `business_analysis.md`. 
+
+**V1 scope (Phase 1-2):** Colony + Representative, real calculations, SQLite
+persistence, JSON/YAML import/export. No Infrastructure/Upgrades/Resources/API.
+
+**Phase 3b scope:** Support Upgrades module and Planetary Resources module
+implemented with core rulebook rules. Hard Infrastructure (buildings with
+build/operational states, partial capacity) remains deferred.
+
+See business analysis §6 for full deferred list.
 
 ---
 
@@ -37,14 +44,18 @@ colony_manager/
 │       │   ├── models/
 │       │   │   ├── colony.py
 │       │   │   ├── representative.py
-│       │   │   └── modifier.py
+│       │   │   ├── modifier.py
+│       │   │   └── support_upgrade.py       # Phase 3b
 │       │   ├── enums.py
 │       │   ├── rules/
 │       │   │   ├── stat_calculator.py
 │       │   │   ├── size_calculator.py
 │       │   │   ├── profit_factor_calculator.py
 │       │   │   ├── lore_state_resolver.py
-│       │   │   └── leadership_modifier_resolver.py
+│       │   │   ├── leadership_modifier_resolver.py
+│       │   │   ├── state_effects.py         # Phase 3b: Orderly, Pious, Anarchy, locks
+│       │   │   ├── colony_type_effects.py   # Phase 3b: Ecclesiastical, Agricultural, etc.
+│       │   │   └── upgrade_validation.py    # Phase 3b: Support upgrade limits
 │       │   ├── ports/
 │       │   │   ├── colony_repository.py
 │       │   │   ├── representative_repository.py
@@ -75,11 +86,19 @@ colony_manager/
 ├── config/
 │   ├── colony_types.yaml
 │   ├── rule_tables.yaml                   # PF size table, leadership modifier table, lore thresholds
-│   └── personalities.yaml
+│   ├── personalities.yaml
+│   ├── support_upgrades.yaml              # Phase 3b: All upgrade definitions
+│   └── upgrade_limits.json                # Phase 3b: Per-type limits
 ├── tools/
 │   └── excel_migration.py                 # one-off, not part of the app proper
 └── tests/
     ├── domain/
+    │   ├── rules/
+    │   │   ├── test_stat_calculator.py
+    │   │   ├── test_profit_factor_calculator.py
+    │   │   ├── test_state_effects.py      # Phase 3b
+    │   │   ├── test_colony_type_effects.py # Phase 3b
+    │   │   └── test_upgrade_validation.py  # Phase 3b
     ├── application/
     └── adapters/
 ```
@@ -161,6 +180,8 @@ class Modifier(BaseModel):
 from datetime import date
 from pydantic import BaseModel, Field, field_validator
 from colony_manager.domain.models.modifier import Modifier
+from colony_manager.domain.models.support_upgrade import SupportUpgrade
+from colony_manager.domain.enums import ResourceType
 
 class Colony(BaseModel):
     id: int | None = None
@@ -183,6 +204,16 @@ class Colony(BaseModel):
 
     modifiers: list[Modifier] = Field(default_factory=list)
     representative_id: int | None = None  # reference only — see §3.6, Representative is a standalone entity
+    
+    # Phase 3b: Support upgrades and planetary resources
+    support_upgrades: list[SupportUpgrade] = Field(default_factory=list)
+    planetary_resources: list[ResourceType] = Field(default_factory=list)
+    
+    # Phase 3b: Lock flags for stat crises (Complacency=0, Piety=0)
+    complacency_locked: bool = False  # prevents Order/Productivity increases
+    order_locked: bool = False        # prevents increases when Piety=0
+    productivity_locked: bool = False # prevents increases when Complacency=0
+    piety_locked: bool = False        # prevents increases when Piety=0
 
     @field_validator("age_days")
     @classmethod
@@ -325,6 +356,45 @@ Similar shape for `size_calculator.py`, `lore_state_resolver.py`,
 `leadership_modifier_resolver.py` — each a small, independently-testable
 pure function, matching the hypothesis-first testing strategy already
 agreed in `04-testing-strategy.md`.
+
+**Phase 3b additions:** `state_effects.py`, `colony_type_effects.py`,
+`upgrade_validation.py` — see code examples below.
+
+```python
+# domain/rules/state_effects.py — Phase 3b
+from dataclasses import dataclass
+from colony_manager.domain.models.colony import Colony
+
+@dataclass(frozen=True)
+class StateEffects:
+    """Result of applying state-based effects (Orderly, Pious, Anarchy, crises)."""
+    complacency_modifier: int = 0
+    order_modifier: int = 0
+    productivity_modifier: int = 0
+    piety_modifier: int = 0
+    size_change: int = 0
+    complacency_lock: bool = False
+    order_lock: bool = False
+    productivity_lock: bool = False
+    piety_lock: bool = False
+
+def apply_state_effects(colony: Colony, actual_size: int, dice_rolls: dict[str, int] | None = None) -> StateEffects:
+    """Apply state-based effects per business_analysis.md §4.7. Dice rolls optional for testing."""
+    # Implementation applies Orderly, Pious, Crisis, and Anarchy effects
+```
+
+```python
+# domain/rules/colony_type_effects.py — Phase 3b
+# Functions: apply_ecclesiastical_protection(), check_agricultural_resilience(),
+# get_mining_industry_resource_bonus(), get_research_mission_resource_bonus()
+# Per business_analysis.md §4.8
+```
+
+```python
+# domain/rules/upgrade_validation.py — Phase 3b
+# Functions: load_upgrade_limits(), validate_upgrade_limits()
+# Per business_analysis.md §4.9 — global limit (upgrades <= Size) and per-type limits
+```
 
 ### 3.4 Ports (`domain/ports/`) — interfaces owned by the domain
 
@@ -545,5 +615,22 @@ semantics when a Representative assigned to a Colony is deleted. Default:
 `representative_id` on the Colony is set to `None` (soft dissociation, not
 a blocked delete or cascading colony deletion). Flag if you want deletion
 blocked instead while a Representative is assigned to any Colony.
+
+5. **Phase 3b: Dice rolls passed as parameters** — state effects that require
+   dice rolls (1d5 for crises, 1d10 for Agricultural resilience, Anarchy decay)
+   receive them as optional `dice_rolls: dict[str, int]` parameters. This makes
+   the rule engine pure and testable; callers (CLI/service layer) generate
+   actual random rolls in production. Default values (e.g. 3 for 1d5) are used
+   only when `None` is passed, primarily for testing.
+
+6. **Phase 3b: Lock flags are manual GM actions** — when Complacency or Piety
+   reach 0, lock flags are set automatically, but clearing them requires
+   explicit GM command (e.g. `colony clear-locks --type order`). No automatic
+   recovery mechanic is implemented.
+
+7. **Phase 3b: Infrastructure split** — `INFANTRY_GARRISON` and
+   `IMPERIAL_NAVY_STATION` are separate upgrade types (not a single "Garrison"
+   type). This matches the core rulebook's distinction between permanent
+   garrison (1) and naval station (1).
 
 None of this blocks starting scaffolding.

@@ -204,6 +204,102 @@ E.g. stat value 42 → bonus 4; value 29 → bonus 2.
 
 ---
 
+### 4.7 State-Based Effects (Phase 3b)
+
+These effects apply automatically based on colony stat thresholds. They are
+**pure functions** — no I/O, no mutation, deterministic given inputs.
+
+**Orderly State** (Order > Size):
+- Effect: +2 Productivity bonus
+- Applied: Continuously while condition holds
+- Source: Rogue Trader Colony Rules
+
+**Pious State** (Piety > Size):
+- Effect: +1 Order, +1 Complacency bonus
+- Applied: Continuously while condition holds
+- Source: Rogue Trader Colony Rules
+
+**Complacency = 0 Crisis**:
+- Immediate effect: Order and Productivity each decrease by 1d5
+- Ongoing effect: Order and Productivity **cannot increase** (locked)
+- Resolution: GM action/event required to clear locks
+- Source: Rogue Trader Colony Rules
+
+**Piety = 0 Crisis (Heretical)**:
+- Immediate effect: Order and Complacency each decrease by 1d5
+- Ongoing effect: Order and Complacency **cannot increase** (locked)
+- Resolution: GM action/event required to clear locks
+- Source: Rogue Trader Colony Rules
+
+**Anarchy State** (Order = 0):
+- Trigger: End of every 90-day development cycle
+- Effect: Complacency, Productivity, and Piety each decrease by 1d5; Size decreases by 1
+- Agricultural resilience: Roll 1d10; on 8+, Size decrease is prevented
+- Source: Rogue Trader Colony Rules
+
+**Lock Flag Mechanics**:
+- Locks prevent **increases only** — penalties can still reduce stats further
+- Locks are cleared manually by GM command (not automatic)
+- Stats remain clamped at minimum 0 regardless of penalties
+
+---
+
+### 4.8 Colony Type Special Rules (Phase 3b)
+
+Certain colony types have unique abilities per Rogue Trader rules:
+
+**Ecclesiastical Colony**:
+- Ability: "If an Ecclesiastical Colony's Order would decrease by any amount,
+  its owners can choose to have its Piety decrease by that amount instead."
+- Implementation: `apply_ecclesiastical_protection(colony, order_decrease, use_protection)`
+- Choice: Player/GM decides whether to use protection each time
+
+**Agricultural Colony**:
+- Ability: "Any time an Agricultural Colony's Size would decrease, roll 1d10;
+  on a result of 8 or higher, it does not decrease."
+- Implementation: `check_agricultural_resilience(dice_roll: int) -> bool`
+- Applies to: Anarchy decay, events, or any other Size decrease
+
+**Mining Colony / Industry Colony / Mining & Industry Colony**:
+- Condition: Colony must be exploiting **Mineral** resources
+- Effect: +2 Productivity, +2 Profit Factor
+- Implementation: `get_mining_industry_resource_bonus(colony)`
+
+**Research Mission Colony**:
+- Condition: Colony must be exploiting **Organic Compound**, **Archeotech Cache**,
+  or **Xenos Ruins** resources
+- Effect: +2 Productivity, +1 Profit Factor
+- Implementation: `get_research_mission_resource_bonus(colony)`
+
+---
+
+### 4.9 Upgrade Validation Rules (Phase 3b)
+
+**Global Limit**:
+- Rule: "A Colony cannot have more Support Upgrades than its Size."
+- Validation: `len(support_upgrades) <= base_size`
+- Error: Cannot add upgrade if it would exceed limit
+
+**Per-Type Limits**:
+| Upgrade Type | Limit | Notes |
+|---|---|---|
+| Mechanicum Station | 1 | Unique facility |
+| Infantry Garrison | 1 | One permanent garrison |
+| Imperial Navy Station | 1 | One naval presence |
+| Personal Lodgings | 1 | No benefit after first |
+| Cultural Improvement | 5 | One per stat (C, O, P, Piety, +1) |
+| Arbites Precinct | Unlimited | Can purchase multiple |
+| Ecclesiarchy Mission | Unlimited | Can purchase multiple |
+| Industrial Facility | Unlimited | Can purchase multiple |
+| Contacts | Unlimited | Each adds 1d5 NPCs |
+| Trappings | Unlimited | Can purchase multiple |
+
+**Validation Function**: `validate_upgrade_limits(colony, new_upgrade) -> list[str]`
+- Returns empty list if valid
+- Returns list of error messages if limits exceeded
+
+---
+
 ## 5. Business Rules Summary (priority order, applies generally)
 
 1. **Zero-forcing conditions always take priority** over any numeric
@@ -222,8 +318,6 @@ E.g. stat value 42 → bonus 4; value 29 → bonus 2.
 
 - Hard Infrastructure module (build/operational states, partial capacity,
   stat bonuses)
-- Support Upgrades module
-- Planetary Resources module
 - Event system beyond raw config values (no pending/upcoming/current-event
   UI or logic)
 - Colony Type change after creation (outside testing)
@@ -231,6 +325,10 @@ E.g. stat value 42 → bonus 4; value 29 → bonus 2.
 - Representative Type/Personality mechanical effects beyond the confirmed
   Leadership Modifier path
 - Modifier expiry/duration (temporary modifiers are manual via `is_active`)
+
+**Note:** Support Upgrades and Planetary Resources modules have been
+implemented in Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9
+for details.
 
 ---
 
