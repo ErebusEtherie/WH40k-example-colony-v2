@@ -1,8 +1,91 @@
-# TODO: replace with confirmed colony types from business_analysis.md §7
-- name: example_colony
-  base_complacency: 20
-  base_order: 20
-  base_productivity: 20
-  base_piety: 20
-  base_size: 10
-  resource_exploit_bonus: 0
+# Colony Types for WH40k Colony Manager
+# Source: Rogue Trader Colony Rules
+# All colonies start at Size 1
+
+# =============================================================================
+# Research Mission
+# Founded to study notable flora, fauna, or ancient ruins.
+# Often established by Rogue Traders entangled with the Adeptus Mechanicus.
+# =============================================================================
+- name: "research_mission"
+  display_name: "Research Mission"
+  description: "Founded to study notable flora, fauna, or ancient ruins. Often established by Rogue Traders entangled with the Adeptus Mechanicus."
+  initial_investment_pf: "1d5+2"
+  base_stats:
+    size: 1
+    complacency: 2
+    productivity: 1
+    order: 1
+    piety: 1
+  special_effects:
+    - name: "resource_experts"
+      description: "When exploiting Organic Compounds, Archeotech, or Xenos Ruins, Productivity increases by 2 and it generates +1 additional Profit Factor."
+      resource_types: ["organic_compounds", "archeotech", "xenos_ruins"]
+      productivity_bonus: 2
+      additional_pf: 1
+
+# =============================================================================
+# Mining and Industry
+# The economic backbone of many dynasties. Mining colonies extract raw ores,
+# while Industrial colonies manufacture finished goods.
+# =============================================================================
+- name: "mining_and_industry"
+  display_name: "Mining and Industry"
+  description: "The economic backbone of many dynasties. Mining colonies focus on extracting raw ores and precious metals, while Industrial colonies focus on manufacturing finished goods."
+  initial_investment_pf: "1d5+5"
+  base_stats:
+    size: 1
+    complacency: 1
+    productivity: 2
+    order: 1
+    piety: 1
+  special_effects:
+    - name: "industrial_powerhouse"
+      description: "Starts with either a Mining or Manufactorum Upgrade. When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor."
+      starts_with_upgrade: true
+      upgrade_choices: ["mining", "manufactorum"]
+      resource_types: ["mineral_resources"]
+      productivity_bonus: 2
+      additional_pf: 2
+
+# =============================================================================
+# Ecclesiastical
+# Founded solely to spread the word of the God-Emperor.
+# Popular among pious Rogue Traders looking to gain favor with the Ecclesiarchy.
+# =============================================================================
+- name: "ecclesiastical"
+  display_name: "Ecclesiastical"
+  description: "Founded solely to spread the word of the God-Emperor. While they produce few physical goods, they are popular among pious Rogue Traders."
+  initial_investment_pf: "1d5+3"
+  base_stats:
+    size: 1
+    complacency: 1
+    productivity: 1
+    order: 2
+    piety: 2
+  special_effects:
+    - name: "shield_of_faith"
+      description: "Starts with a Cultural District Upgrade (e.g., chapel, cloister). If Order would decrease, the owner can choose to decrease Piety instead."
+      starts_with_upgrade: true
+      upgrade_type: "cultural_district"
+      order_piety_swap: true
+
+# =============================================================================
+# Agricultural
+# Established on verdant worlds to provide food for export.
+# Highly automated nature means relatively few inhabitants.
+# =============================================================================
+- name: "agricultural"
+  display_name: "Agricultural"
+  description: "Established on verdant worlds to provide food for export. Despite their large scale, they have relatively few inhabitants due to automation."
+  initial_investment_pf: "1d5+4"
+  base_stats:
+    size: 1
+    complacency: 1
+    productivity: 1
+    order: 2
+    piety: 1
+  special_effects:
+    - name: "resilient_to_famine"
+      description: "If the colony Size would decrease due to growth rolls, the player rolls 1d10; on a result of 8 or higher, the size does not decrease."
+      famine_resilience_roll: 8

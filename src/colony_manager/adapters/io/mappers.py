@@ -13,10 +13,15 @@ from colony_manager.adapters.io.save_file_schema import (
     SaveSkill,
     SaveTalent,
 )
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat, RepresentativeType, SkillLevel
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.models.representative import Personality, Representative, RepresentativeStats, Skill, Talent
+from colony_manager.domain.models.representative import (
+    Personality,
+    Representative,
+    RepresentativeStats,
+    Skill,
+    Talent,
+)
 
 
 def domain_to_save_file(colony: Colony, representative: Representative | None = None) -> ColonySaveFile:

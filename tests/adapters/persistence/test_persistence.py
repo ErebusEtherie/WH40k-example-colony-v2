@@ -1,11 +1,24 @@
 from datetime import date
 
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.representative_repository_impl import SqlAlchemyRepresentativeRepository
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat, RepresentativeType, SkillLevel
+from colony_manager.adapters.persistence.representative_repository_impl import (
+    SqlAlchemyRepresentativeRepository,
+)
+from colony_manager.domain.enums import (
+    ModifierSourceType,
+    ModifierStat,
+    RepresentativeType,
+    SkillLevel,
+)
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.models.representative import Personality, Representative, RepresentativeStats, Skill, Talent
+from colony_manager.domain.models.representative import (
+    Personality,
+    Representative,
+    RepresentativeStats,
+    Skill,
+    Talent,
+)
 
 
 def test_colony_repository_round_trip():
@@ -13,7 +26,7 @@ def test_colony_repository_round_trip():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="example",
+        colony_type="research_mission",
         age_days=5,
         age_last_updated=date(2024, 1, 1),
         base_complacency=10,

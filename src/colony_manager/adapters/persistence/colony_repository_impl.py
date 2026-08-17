@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from colony_manager.adapters.persistence.mappers import domain_to_orm_colony, orm_to_domain_colony
 from colony_manager.adapters.persistence.orm_models import Base, ColonyORM
@@ -27,6 +27,10 @@ class SqlAlchemyColonyRepository(ColonyRepository):
     def get(self, colony_id: int) -> Colony | None:
         with Session(self._engine) as session:
             orm = session.get(ColonyORM, colony_id)
+            if orm is None:
+                return None
+            # Eager load relationships
+            session.refresh(orm, ["modifiers", "infrastructure", "support_upgrades"])
             if orm is None:
                 return None
             return orm_to_domain_colony(orm)
@@ -56,10 +60,14 @@ class SqlAlchemyColonyRepository(ColonyRepository):
     def delete(self, colony_id: int) -> None:
         with Session(self._engine) as session:
             orm = session.get(ColonyORM, colony_id)
+            if orm is None:
+                return
+            # Eager load relationships
+            session.refresh(orm, ["modifiers", "infrastructure", "support_upgrades"])
             if orm is not None:
                 session.delete(orm)
                 session.commit()
 
     def list(self) -> list[Colony]:
         with Session(self._engine) as session:
-            return [orm_to_domain_colony(orm) for orm in session.query(ColonyORM).all()]
+            return [orm_to_domain_colony(orm) for orm in session.query(ColonyORM).options(joinedload(ColonyORM.modifiers), joinedload(ColonyORM.infrastructure), joinedload(ColonyORM.support_upgrades)).all()]

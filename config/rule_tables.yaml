@@ -1,28 +1,144 @@
-# TODO: replace with confirmed rule tables from business_analysis.md §7
+# Rule Tables for WH40k Colony Manager
+# Source: Rogue Trader Colony Rules (reference Excel workbook)
+
+# =============================================================================
+# Table 3-2: Colony Size to Profit Factor
+# =============================================================================
 size_to_profit_factor:
+  - size: 0
+    profit_factor: 0
+    description: "Ghost Town"
   - size: 1
     profit_factor: 1
+    description: "Settlement"
   - size: 2
     profit_factor: 2
+    description: "Outpost"
+  - size: 3
+    profit_factor: 3
+    description: "Freehold"
+  - size: 4
+    profit_factor: 4
+    description: "Demesne"
+  - size: 5
+    profit_factor: 6
+    description: "Holding"
+  - size: 6
+    profit_factor: 8
+    description: "Dominion"
+  - size: 7
+    profit_factor: 10
+    description: "Territory"
+  - size: 8
+    profit_factor: 12
+    description: "City"
+  - size: 9
+    profit_factor: 14
+    description: "Metropolis"
+  - size: 10
+    profit_factor: 18
+    description: "Hive"
+
+# =============================================================================
+# Table 3-4: Colonial Leadership Modifier
+# Based on highest of leader's Int, Per, or Fel bonus (stat / 10, floor)
+# Capped at +2 for stat bonus 6 and above
+# =============================================================================
 leadership_modifier:
   - stat_bonus: 0
     modifier: -3
   - stat_bonus: 1
     modifier: -2
   - stat_bonus: 2
+    modifier: -2
+  - stat_bonus: 3
     modifier: -1
+  - stat_bonus: 4
+    modifier: 0
+  - stat_bonus: 5
+    modifier: 1
+  - stat_bonus: 6
+    modifier: 2
+
+# =============================================================================
+# Table 3-3: Colony Growth Roll Thresholds
+# Roll 1d10 at end of each 90-day cycle
+# =============================================================================
+colony_growth:
+  roll_interval_days: 90
+  thresholds:
+    - min_roll: 1
+      max_roll: 2
+      effect: "decrease"
+      description: "Colony Size decreases by one"
+    - min_roll: 3
+      max_roll: 7
+      effect: "no_change"
+      description: "No Change"
+    - min_roll: 8
+      max_roll: 10
+      effect: "increase"
+      description: "Colony Size increases by one"
+  modifiers:
+    profit_factor_investment:
+      description: "Per PF permanently expended"
+      bonus_per_point: 1
+    resource_bonus:
+      description: "When using harvested resources"
+      bonus_dice: "1d5"
+  size_decrease_penalty:
+    dice: "1d5"
+    subtract: 3
+    minimum: 1
+    target: "random_stat_excluding_size"
+
+# =============================================================================
+# Lore State Thresholds
+# Determines textual state labels based on stat values relative to Size
+# =============================================================================
 lore_thresholds:
   complacency:
-    placated: true
-    stable: true
+    placated_threshold: "greater_than_size"
+    zero_state: "riots_and_unrest"
+    default: "stable"
   order:
-    anarchy: true
-    stable: true
+    zero_state: "anarchy"
+    orderly_threshold: "greater_than_size"
+    default: "stable"
   productivity:
-    productive: true
-    halted: true
-    stable: true
+    zero_state: "halted"
+    productive_threshold: "greater_than_size"
+    default: "stable"
   piety:
-    pious: true
-    heretical: true
-    stable: true
+    zero_state: "heretical"
+    pious_threshold: "greater_than_size"
+    default: "stable"
+
+# =============================================================================
+# Stat Loss Mitigation by Representative Type
+# Certain Representative types reduce specific stat losses by 1 (to minimum 1)
+# =============================================================================
+stat_loss_mitigation:
+  judge:
+    stat: "order"
+    reduction: 1
+    minimum: 1
+  cardinal:
+    stat: "piety"
+    reduction: 1
+    minimum: 1
+  colonist_representative:
+    stat: "complacency"
+    reduction: 1
+    minimum: 1
+  military_commander:
+    stat: "productivity"
+    reduction: 1
+    minimum: 1
+
+# =============================================================================
+# Table 3-9: Calamitous Events Base
+# =============================================================================
+calamitous_events:
+  roll_interval_days: 90
+  base_roll: "1d10"

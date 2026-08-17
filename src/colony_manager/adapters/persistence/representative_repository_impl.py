@@ -5,7 +5,10 @@ from __future__ import annotations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_representative, orm_to_domain_representative
+from colony_manager.adapters.persistence.mappers import (
+    domain_to_orm_representative,
+    orm_to_domain_representative,
+)
 from colony_manager.adapters.persistence.orm_models import Base, RepresentativeORM
 from colony_manager.domain.models.representative import Representative
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository

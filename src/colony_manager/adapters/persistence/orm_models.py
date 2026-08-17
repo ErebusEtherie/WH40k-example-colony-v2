@@ -27,6 +27,8 @@ class ColonyORM(Base):
     representative_id = Column(Integer, ForeignKey("representatives.id"), nullable=True)
 
     modifiers = relationship("ModifierORM", back_populates="colony", cascade="all, delete-orphan")
+    infrastructure = relationship("InfrastructureORM", back_populates="colony", cascade="all, delete-orphan")
+    support_upgrades = relationship("SupportUpgradeORM", back_populates="colony", cascade="all, delete-orphan")
 
 
 class RepresentativeORM(Base):
@@ -53,3 +55,27 @@ class ModifierORM(Base):
     is_active = Column(Boolean, nullable=False, default=True)
 
     colony = relationship("ColonyORM", back_populates="modifiers")
+
+
+class InfrastructureORM(Base):
+    __tablename__ = 'infrastructure'
+
+    id = Column(Integer, primary_key=True)
+    colony_id = Column(Integer, ForeignKey('colonies.id', ondelete='CASCADE'), nullable=False)
+    infrastructure_type = Column(String(255), nullable=False)
+    state = Column(String(255), nullable=False, default='planned')
+
+    colony = relationship('ColonyORM', back_populates='infrastructure')
+
+
+class SupportUpgradeORM(Base):
+    __tablename__ = 'support_upgrades'
+
+    id = Column(Integer, primary_key=True)
+    colony_id = Column(Integer, ForeignKey('colonies.id', ondelete='CASCADE'), nullable=False)
+    upgrade_type = Column(String(255), nullable=False)
+    custom_stat_choice = Column(String(255), nullable=True)
+    custom_product = Column(String(255), nullable=True)
+    affiliated_group = Column(String(255), nullable=True)
+
+    colony = relationship('ColonyORM', back_populates='support_upgrades')

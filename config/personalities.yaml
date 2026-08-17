@@ -1,4 +1,201 @@
-# TODO: replace with confirmed personality list from business_analysis.md §7
-- name: example_personality
-  description: Placeholder personality used for initial loader testing.
-  effect: Placeholder effect.
+# Representative Personalities for WH40k Colony Manager
+# Source: Rogue Trader Colony Rules - Table 3-6
+# Roll or choose personalities to determine specific influence on the colony
+
+# =============================================================================
+# Standard Personalities
+# =============================================================================
+- name: "beloved"
+  display_name: "Beloved"
+  description: "A well-liked figure the colonists are less likely to rebel against."
+  stat_effects:
+    - stat: "complacency"
+      value: 1
+  calamitous_modifier: 0
+
+- name: "military_minded"
+  display_name: "Military-Minded"
+  description: "Focused on martial matters, defense plans, and militia rotations."
+  stat_effects:
+    - stat: "order"
+      value: 1
+    - stat: "productivity"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "corrupt"
+  display_name: "Corrupt"
+  description: "Profitable on the surface, but wealth 'mysteriously' goes missing."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+    - stat: "order"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "idle"
+  display_name: "Idle"
+  description: "Takes a long time to perform tasks due to slothful ways."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+    - stat: "complacency"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "ambitious"
+  display_name: "Ambitious"
+  description: "Pursues any means to accomplish goals; driven but unpopular."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+    - stat: "complacency"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "zealous"
+  display_name: "Zealous"
+  description: "Fanatical faith; focuses on shrines, pilgrimages, and small crusades."
+  stat_effects:
+    - stat: "piety"
+      value: 1
+  calamitous_modifier: 0
+
+- name: "patron_of_the_arts"
+  display_name: "Patron of the Arts"
+  description: "Provides personal income to artists to reach perfection in their fields."
+  stat_effects:
+    - stat: "complacency"
+      value: 2
+    - stat: "piety"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "unlucky"
+  display_name: "Unlucky"
+  description: "Misfortune haunts them, and they are prone to bad luck."
+  stat_effects:
+    - stat: "piety"
+      value: 2
+  calamitous_modifier: 4
+
+- name: "ties_with"
+  display_name: "Ties With..."
+  description: "Friendly links with a particular group (e.g., Adeptus Arbites, mercenaries)."
+  stat_effects:
+    - stat: "custom_choice"
+      value: 1
+      choices: ["complacency", "order", "productivity", "piety"]
+      condition: "based_on_organization"
+  calamitous_modifier: 0
+
+- name: "administrative_expert"
+  display_name: "Administrative Expert"
+  description: "Skilled at administration, making it much easier to run the colony."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+      condition: "order_greater_than_size"
+  calamitous_modifier: 0
+
+- name: "cruel"
+  display_name: "Cruel"
+  description: "Uses wholesome desires or efficiency-improving policies as harsh punishments."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+    - stat: "complacency"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "spymaster"
+  display_name: "Spymaster"
+  description: "Maintains informants to retain tight control and knowledge of all events."
+  stat_effects:
+    - stat: "order"
+      value: 2
+    - stat: "complacency"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "generalissimo"
+  display_name: "Generalissimo"
+  description: "Conducts themselves as high military rank with a large standing army."
+  stat_effects:
+    - stat: "order"
+      value: 2
+    - stat: "piety"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "paranoid"
+  display_name: "Paranoid"
+  description: "Suspicious of everyone; unlikely to be toppled but other governance suffers."
+  stat_effects:
+    - stat: "order"
+      value: 2
+    - stat: "productivity"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "mad"
+  display_name: "Mad"
+  description: "Eccentric and erratic; might hold war-councils with pet grox or servo-skulls."
+  stat_effects:
+    - stat: "complacency"
+      value: 1
+    - stat: "piety"
+      value: 1
+    - stat: "productivity"
+      value: 1
+    - stat: "order"
+      value: "variable"
+      dice: "-1d5"
+  calamitous_modifier: 0
+
+- name: "charitable"
+  display_name: "Charitable"
+  description: "Kind-hearted and generous; interested in the welfare of the populace."
+  stat_effects:
+    - stat: "complacency"
+      value: 1
+    - stat: "piety"
+      value: 1
+    - stat: "productivity"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "vainglorious"
+  display_name: "Vainglorious"
+  description: "Obsessed with personal accomplishment and appearance."
+  stat_effects:
+    - stat: "productivity"
+      value: 2
+    - stat: "piety"
+      value: -1
+  calamitous_modifier: 0
+
+- name: "scholarly"
+  display_name: "Scholarly"
+  description: "Considers themselves an academic; keeps the colony stable above all else."
+  stat_effects:
+    - stat: "custom_choice"
+      value: 1
+      choices: ["complacency", "productivity", "order", "piety"]
+      condition: "lowest_characteristic_when_installed"
+  calamitous_modifier: 0
+
+- name: "avaricious"
+  display_name: "Avaricious"
+  description: "Obsessively chases wealth for their own sake."
+  stat_effects:
+    - stat: "productivity"
+      value: 1
+  calamitous_modifier: 0
+
+- name: "quite_a_character"
+  display_name: "Quite a character"
+  description: "This representative is uniquely complex."
+  stat_effects: []
+  special_rule: "Roll twice more on this table and apply both results."
+  calamitous_modifier: 0

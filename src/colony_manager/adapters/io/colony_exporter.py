@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from colony_manager.adapters.io.mappers import domain_to_save_file

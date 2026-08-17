@@ -4,7 +4,6 @@ from typer.testing import CliRunner
 
 from colony_manager.adapters.cli.main import app
 
-
 runner = CliRunner()
 
 
@@ -12,15 +11,15 @@ def _write_test_config(tmp_path: Path) -> Path:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
     (config_dir / "colony_types.yaml").write_text(
-        "- name: example\n  base_complacency: 10\n  base_order: 10\n  base_productivity: 10\n  base_piety: 10\n  base_size: 5\n  resource_exploit_bonus: 0\n",
+        "- name: research_mission\n  display_name: Research Mission\n  description: A colony focused on scientific research\n  initial_investment_pf: 1d5+2\n  base_stats:\n    size: 5\n    complacency: 10\n    order: 10\n    productivity: 10\n    piety: 10\n  resource_exploit_bonus: 0\n",
         encoding="utf-8",
     )
     (config_dir / "personalities.yaml").write_text(
-        "- name: example_personality\n  description: desc\n  effect: effect\n",
+        "- name: example_personality\n  description: desc\n  stat_effects: []\n",
         encoding="utf-8",
     )
     (config_dir / "rule_tables.yaml").write_text(
-        "size_to_profit_factor:\n  - size: 5\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated: true\n    stable: true\n  order:\n    anarchy: true\n    stable: true\n  productivity:\n    productive: true\n    halted: true\n    stable: true\n  piety:\n    pious: true\n    heretical: true\n    stable: true\n",
+        "size_to_profit_factor:\n  - size: 5\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: \"> size\"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: \"> size\"\n    default: stable\n  productivity:\n    productive_threshold: \"> size\"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: \"> size\"\n    zero_state: heretical\n    default: stable\n",
         encoding="utf-8",
     )
     return config_dir
@@ -31,7 +30,7 @@ def test_cli_create_and_show_colony(tmp_path):
 
     result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "example"],
+        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "research_mission"],
     )
     assert result.exit_code == 0
 
@@ -47,14 +46,14 @@ def test_cli_list_colonies(tmp_path):
 
     result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "example"],
+        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "research_mission"],
     )
     assert result.exit_code == 0
 
     result = runner.invoke(app, ["--config-dir", str(config_dir), "colony", "list"])
     assert result.exit_code == 0
     assert "Example Colony" in result.stdout
-    assert "example" in result.stdout
+    assert "research_mission" in result.stdout
 
 
 def test_cli_representative_and_import_export_flow(tmp_path):
@@ -62,7 +61,7 @@ def test_cli_representative_and_import_export_flow(tmp_path):
 
     create_result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Export Colony", "Owner", "example"],
+        ["--config-dir", str(config_dir), "colony", "create", "Export Colony", "Owner", "research_mission"],
     )
     assert create_result.exit_code == 0
 

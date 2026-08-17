@@ -6,20 +6,29 @@ from pathlib import Path
 
 import typer
 
-from colony_manager.adapters.persistence.db import build_database_url
-
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
 from colony_manager.adapters.io.colony_exporter import ColonyExporter
 from colony_manager.adapters.io.colony_importer import ColonyImporter
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.representative_repository_impl import SqlAlchemyRepresentativeRepository
+from colony_manager.adapters.persistence.db import build_database_url
+from colony_manager.adapters.persistence.representative_repository_impl import (
+    SqlAlchemyRepresentativeRepository,
+)
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat, RepresentativeType, SkillLevel
+from colony_manager.domain.enums import (
+    RepresentativeType,
+    SkillLevel,
+)
 from colony_manager.domain.errors import ColonyManagerError
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.models.representative import Personality, Representative, RepresentativeStats, Skill, Talent
+from colony_manager.domain.models.representative import (
+    Personality,
+    Representative,
+    RepresentativeStats,
+    Skill,
+    Talent,
+)
 
 app = typer.Typer(add_completion=False)
 colony_app = typer.Typer(help="Colony commands")
@@ -97,7 +106,6 @@ def show_colony(colony_id: int) -> None:
 @colony_app.command("list")
 def list_colonies() -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
-    representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
     colonies = colony_repo.list()
     if not colonies:
         typer.echo("No colonies found")
@@ -140,10 +148,7 @@ def assign_representative(colony_id: int, representative_id: int) -> None:
 
 @colony_app.command("export")
 def export_colony(colony_id: int, path: str) -> None:
-    provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
-    representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
-    service = ColonyService(colony_repo, representative_repo, provider)
     colony = colony_repo.get(colony_id)
     if colony is None:
         typer.echo(f"Colony {colony_id} not found")

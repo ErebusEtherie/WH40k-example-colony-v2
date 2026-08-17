@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, datetime
 
+from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
-from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 
 
 class ColonyService:
@@ -35,7 +35,7 @@ class ColonyService:
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
         colony.age_days = age_days
-        colony.age_last_updated = date.today()
+        colony.age_last_updated = datetime.now(UTC).date()
         return self._colony_repository.update(colony)
 
     def add_modifier(self, colony_id: int, modifier: Modifier) -> Colony:

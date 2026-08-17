@@ -1,4 +1,3 @@
-import pytest
 
 from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.modifier import Modifier

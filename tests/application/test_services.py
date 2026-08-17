@@ -1,14 +1,25 @@
-from datetime import date
+from datetime import UTC, datetime
 
 import pytest
 
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat, RepresentativeType, SkillLevel
+from colony_manager.domain.enums import (
+    ModifierSourceType,
+    ModifierStat,
+    RepresentativeType,
+    SkillLevel,
+)
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.models.representative import Personality, Representative, RepresentativeStats, Skill, Talent
+from colony_manager.domain.models.representative import (
+    Personality,
+    Representative,
+    RepresentativeStats,
+    Skill,
+    Talent,
+)
 
 
 class InMemoryColonyRepository:
@@ -82,9 +93,9 @@ def test_colony_service_update_age_sets_last_updated():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="example",
+        colony_type="research_mission",
         age_days=0,
-        age_last_updated=date.today(),
+        age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
         base_order=10,
         base_productivity=10,
@@ -96,7 +107,7 @@ def test_colony_service_update_age_sets_last_updated():
     updated = service.update_age(colony.id, 30)
 
     assert updated.age_days == 30
-    assert updated.age_last_updated == date.today()
+    assert updated.age_last_updated == datetime.now(UTC).date()
 
 
 def test_colony_service_add_modifier_updates_colony():
@@ -106,9 +117,9 @@ def test_colony_service_add_modifier_updates_colony():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="example",
+        colony_type="research_mission",
         age_days=0,
-        age_last_updated=date.today(),
+        age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
         base_order=10,
         base_productivity=10,
@@ -137,9 +148,9 @@ def test_colony_service_get_state_returns_state():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="example",
+        colony_type="research_mission",
         age_days=0,
-        age_last_updated=date.today(),
+        age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
         base_order=10,
         base_productivity=10,
@@ -172,9 +183,9 @@ def test_representative_service_assigns_colony():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="example",
+        colony_type="research_mission",
         age_days=0,
-        age_last_updated=date.today(),
+        age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
         base_order=10,
         base_productivity=10,

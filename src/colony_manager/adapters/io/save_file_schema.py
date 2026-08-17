@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat, RepresentativeType, SkillLevel
+from colony_manager.domain.enums import (
+    ModifierSourceType,
+    ModifierStat,
+    RepresentativeType,
+    SkillLevel,
+)
 
 
 class SaveModifier(BaseModel):
@@ -32,7 +37,9 @@ class SaveRepresentativeStats(BaseModel):
 class SavePersonality(BaseModel):
     name: str
     description: str
-    effect: str
+    stat_effects: list[dict] = Field(default_factory=list)
+    calamitous_modifier: int = 0
+    special_rule: str | None = None
 
 
 class SaveSkill(BaseModel):

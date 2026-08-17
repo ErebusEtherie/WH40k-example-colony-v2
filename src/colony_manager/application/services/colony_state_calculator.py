@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.rules.leadership_modifier_resolver import resolve_leadership_modifier
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 from colony_manager.domain.rules.size_calculator import calculate_size

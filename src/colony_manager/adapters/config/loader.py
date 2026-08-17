@@ -7,23 +7,25 @@ from typing import Any
 
 import yaml
 
+from colony_manager.adapters.config.schemas import (
+    ColonyTypeConfig,
+    PersonalityConfig,
+    RuleTablesConfig,
+)
 from colony_manager.domain.enums import LoreState, ModifierStat
 from colony_manager.domain.errors import ConfigurationError
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
-from colony_manager.adapters.config.schemas import (
-    ColonyTypeConfig,
-    LeadershipModifierEntry,
-    PersonalityConfig,
-    ProfitFactorSizeEntry,
-    RuleTablesConfig,
-)
 
 
 class FileRuleConfigProvider(RuleConfigProvider):
     """Load rule config from YAML files and expose it via the protocol."""
 
     def __init__(self, config_dir: str | Path | None = None) -> None:
-        self.config_dir = Path(config_dir or Path(__file__).resolve().parents[3] / "config")
+        if config_dir is None:
+            # Default to project root config directory
+            self.config_dir = Path(__file__).resolve().parents[4] / "config"
+        else:
+            self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         self._colony_types = self._load_colony_types()
         self._personalities = self._load_personalities()
@@ -50,32 +52,10 @@ class FileRuleConfigProvider(RuleConfigProvider):
         return closest.modifier
 
     def get_lore_state_for_stat(self, stat: ModifierStat, value: int, size: int) -> LoreState:
-        thresholds = self._rule_tables.lore_thresholds
-        if stat == ModifierStat.COMPLACENCY:
-            if value > size:
-                return LoreState.PLACATED
-            if value == 0:
-                raise NotImplementedError("Complacency == 0 label is not confirmed")
-            return LoreState.STABLE
-        if stat == ModifierStat.ORDER:
-            if value == 0:
-                return LoreState.ANARCHY
-            if value > size:
-                raise NotImplementedError("Order > size label is not confirmed")
-            return LoreState.STABLE
-        if stat == ModifierStat.PRODUCTIVITY:
-            if value > size:
-                return LoreState.PRODUCTIVE
-            if value == 0:
-                return LoreState.HALTED
-            return LoreState.STABLE
-        if stat == ModifierStat.PIETY:
-            if value > size:
-                return LoreState.PIOUS
-            if value == 0:
-                return LoreState.HERETICAL
-            return LoreState.STABLE
-        raise ConfigurationError(f"Unsupported stat for lore state lookup: {stat}")
+        """Get lore state for a stat - delegates to domain rules for consistency."""
+        from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
+        
+        return resolve_lore_state(stat, value, size)
 
     @property
     def colony_types(self) -> list[ColonyTypeConfig]:
