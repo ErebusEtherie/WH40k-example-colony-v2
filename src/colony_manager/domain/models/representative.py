@@ -83,6 +83,8 @@ class Representative(BaseModel):
     dynasty_outcome: DynastyOutcome | None = None
     # Cumulative calamitous events modifier from all sources
     calamitous_modifier: int = 0
+    # Colony this representative is assigned to (if any)
+    assigned_to_colony_id: int | None = None
     
     @property
     def loss_mitigation_stat(self) -> ModifierStat | None:

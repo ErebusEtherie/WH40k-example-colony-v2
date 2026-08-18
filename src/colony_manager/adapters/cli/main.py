@@ -48,6 +48,19 @@ def main(config_dir: str | None = typer.Option(None, "--config-dir", help="Direc
     _config_dir = Path(config_dir or Path(__file__).resolve().parents[3] / "config")
     global _db_path
     _db_path = _config_dir.parent / "colony_manager.sqlite"
+@app.command("serve")
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind the API server"),
+    port: int = typer.Option(8000, "--port", help="Port to bind the API server"),
+) -> None:
+    """Start the REST API server."""
+    import uvicorn
+
+    from colony_manager.adapters.api.app import create_app
+
+    typer.echo(f"Starting API server on {host}:{port}")
+    typer.echo("API docs available at http://localhost:8000/docs")
+    uvicorn.run(create_app(), host=host, port=port, log_level="info")
 
 
 @colony_app.command("create")

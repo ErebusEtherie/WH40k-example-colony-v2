@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, joinedload
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_colony, orm_to_domain_colony
+from colony_manager.adapters.persistence.mappers import domain_to_orm_colony, domain_to_orm_modifier, orm_to_domain_colony
 from colony_manager.adapters.persistence.orm_models import Base, ColonyORM
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.ports.colony_repository import ColonyRepository
@@ -53,7 +53,7 @@ class SqlAlchemyColonyRepository(ColonyRepository):
             orm.base_piety = colony.base_piety
             orm.base_size = colony.base_size
             orm.representative_id = colony.representative_id
-            orm.modifiers = [domain_to_orm_colony(colony).modifiers[0]] if False else []
+            orm.modifiers = [domain_to_orm_modifier(modifier) for modifier in colony.modifiers]
             session.commit()
             return orm_to_domain_colony(orm)
 

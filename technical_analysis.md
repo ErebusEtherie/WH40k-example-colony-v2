@@ -27,9 +27,7 @@ See business analysis §6 for full deferred list.
 | Testing | `pytest` + `hypothesis` | Confirmed earlier |
 | Lint/format/type-check | `ruff`, `mypy` | Confirmed earlier, suggested |
 
-**Deferred, not installed in V1:** `fastapi`, `uvicorn` — the API adapter
-is architected for (see §3) but not built until Infrastructure/Upgrades
-work begins, per your phased approach.
+**Phase 4a:** `fastapi`, `uvicorn` — REST API adapter implemented as Phase 4a.
 
 ---
 
@@ -634,3 +632,28 @@ blocked instead while a Representative is assigned to any Colony.
    garrison (1) and naval station (1).
 
 None of this blocks starting scaffolding.
+
+None of this blocks starting scaffolding.
+
+---
+
+## 8. Phase 4a: REST API Notes
+
+### Authentication (TODO for Production)
+
+The Phase 4a REST API implementation does **not** include authentication or
+authorization. This is a deliberate decision to focus on core functionality
+first. For production use, the following must be added:
+
+- **Authentication middleware** — JWT tokens, API keys, or session-based auth
+- **Authorization checks** — ensure users can only access their own colonies
+- **Rate limiting** — prevent abuse
+- **HTTPS enforcement** — required for any production deployment
+
+The API is designed to make adding auth straightforward:
+- All business logic is in the `application/services` layer
+- The API routers (`adapters/api/routers/`) can have auth dependencies injected
+- The `dependencies.py` module is the right place to add auth checks
+
+Until auth is implemented, the API should only be run on localhost or behind
+a secure reverse proxy.
