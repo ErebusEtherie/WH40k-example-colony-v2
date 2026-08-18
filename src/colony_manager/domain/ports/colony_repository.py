@@ -11,7 +11,7 @@ class ColonyRepository(Protocol):
     def create(self, colony: Colony) -> Colony:
         ...
 
-    def get(self, colony_id: int) -> Colony:
+    def get(self, colony_id: int) -> Colony | None:
         ...
 
     def update(self, colony: Colony) -> Colony:

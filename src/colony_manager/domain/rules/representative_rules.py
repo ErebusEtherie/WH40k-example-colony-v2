@@ -11,8 +11,8 @@ Per Rogue Trader Colony Rules:
 - Calamitous modifiers accumulate from personalities and dynasty outcomes
 """
 
-from colony_manager.domain.enums import ModifierStat
-from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
+from colony_manager.domain.enums import ModifierStat, ModifierSourceType
+from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import Representative
 
 
@@ -59,7 +59,7 @@ def get_personality_modifiers(
             modifiers.append(
                 Modifier(
                     modifier_source_type=ModifierSourceType.GM_CUSTOM,  # Personality effects are GM-managed
-                    modifier_stat=effect.stat,
+                    modifier_stat=ModifierStat(effect.stat),
                     modifier_value=effect.value,
                     description=f"Personality: {personality.name}",
                     is_active=True,

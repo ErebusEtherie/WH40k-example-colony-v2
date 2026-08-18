@@ -14,6 +14,7 @@ Additionally, certain upgrades have per-type limits:
 
 import json
 from pathlib import Path
+from typing import Any
 
 from colony_manager.domain.enums import SupportUpgradeType
 from colony_manager.domain.models.colony import Colony
@@ -23,10 +24,10 @@ from colony_manager.domain.models.support_upgrade import SupportUpgrade
 _CONFIG_PATH = Path(__file__).parent.parent.parent / "config" / "upgrade_limits.json"
 
 
-def _load_upgrade_limits() -> dict:
+def _load_upgrade_limits() -> dict[str, Any]:
     """Load upgrade limits from config file."""
     with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        return json.load(f)  # type: ignore[no-any-return]
 
 
 def validate_upgrade_limits(
@@ -81,7 +82,7 @@ def validate_upgrade_limits(
     return errors
 
 
-def check_upgrade_limits(colony: Colony) -> dict[str, bool]:
+def check_upgrade_limits(colony: Colony) -> dict[str, Any]:
     """
     Check current upgrade limit status for a colony.
     
@@ -108,7 +109,7 @@ def check_upgrade_limits(colony: Colony) -> dict[str, bool]:
     
     # Check per-type limits
     per_type_limits = limits.get("per_type_limits", {})
-    per_type_ok = {}
+    per_type_ok: dict[str, bool] = {}
     
     for upgrade_type_str, max_count in per_type_limits.items():
         if max_count is None:

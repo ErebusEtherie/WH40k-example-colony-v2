@@ -13,6 +13,7 @@ from colony_manager.adapters.io.save_file_schema import (
     SaveSkill,
     SaveTalent,
 )
+from colony_manager.domain.enums import ColonyType
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
@@ -57,7 +58,7 @@ def save_file_to_domain(save_file: ColonySaveFile) -> tuple[Colony, Representati
     colony = Colony(
         name=save_file.name,
         owner=save_file.owner,
-        colony_type=save_file.colony_type,
+        colony_type=ColonyType(save_file.colony_type),
         age_days=save_file.age_days,
         age_last_updated=date.fromisoformat(save_file.age_last_updated),
         event_roll_interval_days=save_file.event_roll_interval_days,
@@ -74,7 +75,7 @@ def save_file_to_domain(save_file: ColonySaveFile) -> tuple[Colony, Representati
                 modifier_source_type=modifier.modifier_source_type,
                 modifier_stat=modifier.modifier_stat,
                 modifier_value=modifier.modifier_value,
-                modifier_description=modifier.modifier_description,
+                description=modifier.modifier_description,
                 is_active=modifier.is_active,
             )
             for modifier in save_file.modifiers

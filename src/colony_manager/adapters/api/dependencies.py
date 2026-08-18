@@ -18,7 +18,6 @@ from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 
-
 # Default paths - config is at project root, not src/config
 DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3].parent / "config"
 DEFAULT_DB_PATH = DEFAULT_CONFIG_DIR.parent / "colony_manager.sqlite"

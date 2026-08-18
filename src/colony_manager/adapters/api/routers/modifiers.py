@@ -21,6 +21,7 @@ async def list_all_modifiers(
     colonies = service._colony_repository.list()
     all_modifiers = []
     for colony in colonies:
+        assert colony.id is not None
         for mod in colony.modifiers:
             all_modifiers.append(
                 ModifierResponse(
@@ -44,6 +45,7 @@ async def get_modifier(
     """Get a specific modifier by ID (searches across all colonies)."""
     colonies = service._colony_repository.list()
     for colony in colonies:
+        assert colony.id is not None
         for mod in colony.modifiers:
             if mod.id == modifier_id:
                 return ModifierResponse(

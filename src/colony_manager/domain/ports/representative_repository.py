@@ -11,7 +11,7 @@ class RepresentativeRepository(Protocol):
     def create(self, representative: Representative) -> Representative:
         ...
 
-    def get(self, representative_id: int) -> Representative:
+    def get(self, representative_id: int) -> Representative | None:
         ...
 
     def update(self, representative: Representative) -> Representative:

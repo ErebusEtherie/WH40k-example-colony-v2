@@ -196,7 +196,7 @@ def test_representative_service_assigns_colony():
     representative = Representative(
         name="Test Rep",
         type=RepresentativeType.JUDGE,
-        personalities=[Personality(name="Calm", description="desc", effect="effect")],
+        personalities=[Personality(name="Calm", description="desc", stat_effects=[])],
         stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         skills=[Skill(name="Skill", level=SkillLevel.KNOWN, description="desc")],
         talents=[Talent(name="Talent", description="desc")],
@@ -205,4 +205,4 @@ def test_representative_service_assigns_colony():
 
     updated = representative_service.assign_to_colony(created_colony.id, created_rep.id)
 
-    assert updated.representative_id == created_rep.id
+    assert updated.assigned_to_colony_id == created_colony.id

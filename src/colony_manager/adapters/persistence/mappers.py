@@ -4,8 +4,15 @@ from __future__ import annotations
 
 import json
 
-from colony_manager.adapters.persistence.orm_models import ColonyORM, ModifierORM, RepresentativeORM
+from colony_manager.adapters.persistence.orm_models import (
+    ColonyORM,
+    InfrastructureORM,
+    ModifierORM,
+    RepresentativeORM,
+    SupportUpgradeORM,
+)
 from colony_manager.domain.enums import (
+    ColonyType,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -29,7 +36,7 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
         id=orm.id,
         name=orm.name,
         owner=orm.owner,
-        colony_type=orm.colony_type,
+        colony_type=ColonyType(orm.colony_type),
         age_days=orm.age_days,
         age_last_updated=orm.age_last_updated,
         event_roll_interval_days=orm.event_roll_interval_days,
@@ -51,7 +58,7 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
         id=domain.id,
         name=domain.name,
         owner=domain.owner,
-        colony_type=domain.colony_type,
+        colony_type=domain.colony_type.value,
         age_days=domain.age_days,
         age_last_updated=domain.age_last_updated,
         event_roll_interval_days=domain.event_roll_interval_days,
@@ -69,6 +76,14 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
 
 
 def orm_to_domain_representative(orm: RepresentativeORM) -> Representative:
+    """Convert a RepresentativeORM to a Representative domain model.
+    
+    Args:
+        orm: The SQLAlchemy ORM model instance.
+        
+    Returns:
+        The corresponding domain Representative object.
+    """
     return Representative(
         id=orm.id,
         name=orm.name,
@@ -77,10 +92,19 @@ def orm_to_domain_representative(orm: RepresentativeORM) -> Representative:
         stats=RepresentativeStats(**json.loads(orm.stats)),
         skills=[Skill(name=item["name"], level=SkillLevel(item["level"]), description=item["description"]) for item in json.loads(orm.skills)],
         talents=[Talent(**item) for item in json.loads(orm.talents)],
+        assigned_to_colony_id=orm.assigned_to_colony_id,
     )
 
 
 def domain_to_orm_representative(domain: Representative) -> RepresentativeORM:
+    """Convert a Representative domain model to a RepresentativeORM.
+    
+    Args:
+        domain: The domain Representative object.
+        
+    Returns:
+        The corresponding SQLAlchemy ORM model instance.
+    """
     return RepresentativeORM(
         id=domain.id,
         name=domain.name,
@@ -89,6 +113,7 @@ def domain_to_orm_representative(domain: Representative) -> RepresentativeORM:
         stats=json.dumps(domain.stats.model_dump()),
         skills=json.dumps([{"name": item.name, "level": item.level.value, "description": item.description} for item in domain.skills]),
         talents=json.dumps([item.model_dump() for item in domain.talents]),
+        assigned_to_colony_id=domain.assigned_to_colony_id,
     )
 
 
@@ -99,7 +124,7 @@ def orm_to_domain_modifier(orm: ModifierORM) -> Modifier:
         modifier_source_type=ModifierSourceType(orm.modifier_source_type),
         modifier_stat=ModifierStat(orm.modifier_stat),
         modifier_value=orm.modifier_value,
-        modifier_description=orm.modifier_description,
+        description=orm.modifier_description,
         is_active=orm.is_active,
     )
 
@@ -116,7 +141,7 @@ def domain_to_orm_modifier(domain: Modifier) -> ModifierORM:
     )
 
 
-def orm_to_domain_infrastructure(orm) -> Infrastructure:
+def orm_to_domain_infrastructure(orm: InfrastructureORM) -> Infrastructure:
     from colony_manager.domain.enums import InfrastructureState, InfrastructureType
     return Infrastructure(
         id=orm.id,
@@ -126,8 +151,7 @@ def orm_to_domain_infrastructure(orm) -> Infrastructure:
     )
 
 
-def domain_to_orm_infrastructure(domain: Infrastructure):
-    from colony_manager.adapters.persistence.orm_models import InfrastructureORM
+def domain_to_orm_infrastructure(domain: Infrastructure) -> InfrastructureORM:
     return InfrastructureORM(
         id=domain.id,
         colony_id=domain.colony_id,
@@ -136,7 +160,7 @@ def domain_to_orm_infrastructure(domain: Infrastructure):
     )
 
 
-def orm_to_domain_support_upgrade(orm) -> SupportUpgrade:
+def orm_to_domain_support_upgrade(orm: SupportUpgradeORM) -> SupportUpgrade:
     from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
     return SupportUpgrade(
         id=orm.id,
@@ -148,8 +172,7 @@ def orm_to_domain_support_upgrade(orm) -> SupportUpgrade:
     )
 
 
-def domain_to_orm_support_upgrade(domain: SupportUpgrade):
-    from colony_manager.adapters.persistence.orm_models import SupportUpgradeORM
+def domain_to_orm_support_upgrade(domain: SupportUpgrade) -> SupportUpgradeORM:
     return SupportUpgradeORM(
         id=domain.id,
         colony_id=domain.colony_id,

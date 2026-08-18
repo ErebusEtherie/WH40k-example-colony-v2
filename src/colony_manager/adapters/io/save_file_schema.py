@@ -37,7 +37,7 @@ class SaveRepresentativeStats(BaseModel):
 class SavePersonality(BaseModel):
     name: str
     description: str
-    stat_effects: list[dict] = Field(default_factory=list)
+    stat_effects: dict[str, int] = Field(default_factory=dict)
     calamitous_modifier: int = 0
     special_rule: str | None = None
 

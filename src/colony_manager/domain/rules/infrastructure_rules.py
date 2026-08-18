@@ -38,8 +38,8 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
     return [
         Modifier(
             modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
-            modifier_stat=ModifierStat(mod["stat"]),
-            modifier_value=mod["value"],
+            modifier_stat=ModifierStat(str(mod["stat"])),
+            modifier_value=int(mod["value"]),  # type: ignore[call-overload]
             description=f"{infrastructure.infrastructure_type.value} ({infrastructure.state.value})",
             is_active=True,
         )
@@ -50,7 +50,7 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
 def _get_modifiers_for_type(
     infra_type: InfrastructureType,
     state: InfrastructureState,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     """Get modifier data for a specific infrastructure type and state."""
     modifiers_map = {
         InfrastructureType.TRANSPORT: {

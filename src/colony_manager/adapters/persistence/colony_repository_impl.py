@@ -5,7 +5,11 @@ from __future__ import annotations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, joinedload
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_colony, domain_to_orm_modifier, orm_to_domain_colony
+from colony_manager.adapters.persistence.mappers import (
+    domain_to_orm_colony,
+    domain_to_orm_modifier,
+    orm_to_domain_colony,
+)
 from colony_manager.adapters.persistence.orm_models import Base, ColonyORM
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.ports.colony_repository import ColonyRepository

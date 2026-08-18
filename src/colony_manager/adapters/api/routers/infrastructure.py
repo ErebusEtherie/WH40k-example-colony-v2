@@ -1,0 +1,167 @@
+"""Infrastructure API router."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from colony_manager.adapters.api import dependencies
+from colony_manager.adapters.api.schemas.infrastructure import (
+    InfrastructureCreate,
+    InfrastructureListItem,
+    InfrastructureResponse,
+    InfrastructureUpdate,
+)
+from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
+from colony_manager.adapters.persistence.infrastructure_repository_impl import (
+    SqlAlchemyInfrastructureRepository,
+)
+from colony_manager.application.services.infrastructure_service import InfrastructureService
+from colony_manager.domain.errors import NotFoundError
+
+router = APIRouter(prefix="/colonies/{colony_id}/infrastructure", tags=["infrastructure"])
+
+
+def get_infrastructure_service(colony_id: int, db_path: str = Depends(dependencies.get_db_path)) -> InfrastructureService:
+    """Get infrastructure service instance with proper repositories."""
+    from colony_manager.adapters.persistence.db import build_database_url
+    db_url = build_database_url(db_path)
+    colony_repo = SqlAlchemyColonyRepository(db_url)
+    infra_repo = SqlAlchemyInfrastructureRepository(db_url)
+    return InfrastructureService(infra_repo, colony_repo)
+
+
+def _check_colony_exists(service: InfrastructureService, colony_id: int) -> None:
+    """Check if colony exists, raise HTTPException if not."""
+    colony = service._colony_repository.get(colony_id)
+    if colony is None:
+        raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
+
+
+@router.get("", response_model=list[InfrastructureListItem])
+async def list_infrastructure(
+    colony_id: int,
+    service: InfrastructureService = Depends(get_infrastructure_service),
+) -> list[InfrastructureListItem]:
+    """List all infrastructure for a colony."""
+    _check_colony_exists(service, colony_id)
+    infrastructure = service.list_by_colony(colony_id)
+    return [
+        InfrastructureListItem(
+            id=infra.id,
+            infrastructure_type=infra.infrastructure_type,
+            state=infra.state,
+            has_effect=infra.has_effect,
+            is_working=infra.is_working,
+            is_disrupted=infra.is_disrupted,
+        )
+        for infra in infrastructure
+    ]
+
+
+@router.post("", response_model=InfrastructureResponse, status_code=status.HTTP_201_CREATED)
+async def create_infrastructure(
+    colony_id: int,
+    infra_data: InfrastructureCreate,
+    service: InfrastructureService = Depends(get_infrastructure_service),
+) -> InfrastructureResponse:
+    """Add new infrastructure to a colony."""
+    _check_colony_exists(service, colony_id)
+    from colony_manager.domain.models.infrastructure import Infrastructure
+
+    infrastructure = Infrastructure(
+        colony_id=colony_id,
+        infrastructure_type=infra_data.infrastructure_type,
+        state=infra_data.state,
+    )
+    created = service.create_infrastructure(infrastructure)
+    assert created.id is not None
+    return InfrastructureResponse(
+        id=created.id,
+        colony_id=colony_id,
+        infrastructure_type=created.infrastructure_type,
+        state=created.state,
+        has_effect=created.has_effect,
+        is_working=created.is_working,
+        is_disrupted=created.is_disrupted,
+    )
+
+
+@router.get("/{infrastructure_id}", response_model=InfrastructureResponse)
+async def get_infrastructure(
+    colony_id: int,
+    infrastructure_id: int,
+    service: InfrastructureService = Depends(get_infrastructure_service),
+) -> InfrastructureResponse:
+    """Get a specific infrastructure by ID."""
+    _check_colony_exists(service, colony_id)
+    try:
+        infrastructure = service.get_infrastructure(infrastructure_id)
+        if infrastructure.colony_id != colony_id:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Infrastructure {infrastructure_id} not found in colony {colony_id}",
+            )
+        assert infrastructure.id is not None
+        return InfrastructureResponse(
+            id=infrastructure.id,
+            colony_id=infrastructure.colony_id,
+            infrastructure_type=infrastructure.infrastructure_type,
+            state=infrastructure.state,
+            has_effect=infrastructure.has_effect,
+            is_working=infrastructure.is_working,
+            is_disrupted=infrastructure.is_disrupted,
+        )
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")
+
+
+@router.patch("/{infrastructure_id}", response_model=InfrastructureResponse)
+async def update_infrastructure(
+    colony_id: int,
+    infrastructure_id: int,
+    infra_data: InfrastructureUpdate,
+    service: InfrastructureService = Depends(get_infrastructure_service),
+) -> InfrastructureResponse:
+    """Update infrastructure state."""
+    _check_colony_exists(service, colony_id)
+    try:
+        if infra_data.state is not None:
+            infrastructure = service.update_infrastructure_state(infrastructure_id, infra_data.state)
+        else:
+            infrastructure = service.get_infrastructure(infrastructure_id)
+        
+        if infrastructure.colony_id != colony_id:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Infrastructure {infrastructure_id} not found in colony {colony_id}",
+            )
+        assert infrastructure.id is not None
+        return InfrastructureResponse(
+            id=infrastructure.id,
+            colony_id=infrastructure.colony_id,
+            infrastructure_type=infrastructure.infrastructure_type,
+            state=infrastructure.state,
+            has_effect=infrastructure.has_effect,
+            is_working=infrastructure.is_working,
+            is_disrupted=infrastructure.is_disrupted,
+        )
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")
+
+
+@router.delete("/{infrastructure_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_infrastructure(
+    colony_id: int,
+    infrastructure_id: int,
+    service: InfrastructureService = Depends(get_infrastructure_service),
+) -> None:
+    """Remove infrastructure from a colony."""
+    _check_colony_exists(service, colony_id)
+    try:
+        infrastructure = service.get_infrastructure(infrastructure_id)
+        if infrastructure.colony_id != colony_id:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Infrastructure {infrastructure_id} not found in colony {colony_id}",
+            )
+        service.delete_infrastructure(infrastructure_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")

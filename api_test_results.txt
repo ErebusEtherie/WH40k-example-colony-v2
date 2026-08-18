@@ -1,0 +1,5 @@
+F.........F...........                                                   [100%]
+=========================== short test summary info ===========================
+FAILED tests/adapters/api/test_infrastructure_api.py::TestInfrastructureAPI::test_list_infrastructure_empty
+FAILED tests/adapters/api/test_support_upgrades_api.py::TestSupportUpgradesAPI::test_list_upgrades_empty
+2 failed, 20 passed in 2.86s

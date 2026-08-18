@@ -16,3 +16,6 @@ class RuleConfigProvider(Protocol):
 
     def get_lore_state_for_stat(self, stat: ModifierStat, value: int, size: int) -> LoreState:
         ...
+
+    def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
+        ...

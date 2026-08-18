@@ -137,6 +137,36 @@ stat_loss_mitigation:
     minimum: 1
 
 # =============================================================================
+# Table 1-18: Resource Abundance Levels
+# Used to display descriptive labels for resource abundance values
+# =============================================================================
+resource_abundance_levels:
+  - min_value: 0
+    max_value: 15
+    label: "Minimal"
+    description: "Trace amounts, not enough for sustained operation"
+  - min_value: 16
+    max_value: 40
+    label: "Limited"
+    description: "Modest supply, several years of exploitation"
+  - min_value: 41
+    max_value: 65
+    label: "Sustainable"
+    description: "Extensive reserves, viable long-term source"
+  - min_value: 66
+    max_value: 85
+    label: "Significant"
+    description: "Rich and accessible, wide variety of approaches"
+  - min_value: 86
+    max_value: 98
+    label: "Major"
+    description: "Vast potential, requires significant investment"
+  - min_value: 99
+    max_value: 999
+    label: "Plentiful"
+    description: "Seemingly limitless, decade+ to deplete"
+
+# =============================================================================
 # Table 3-9: Calamitous Events Base
 # =============================================================================
 calamitous_events:

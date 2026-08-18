@@ -46,7 +46,7 @@ class RepresentativeStats(BaseModel):
 
 class PersonalityEffect(BaseModel):
     """A single stat effect from a personality."""
-    stat: ModifierStat
+    stat: str
     value: int
     condition: str | None = None
 

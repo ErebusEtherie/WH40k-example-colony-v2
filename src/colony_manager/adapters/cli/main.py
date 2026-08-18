@@ -17,11 +17,13 @@ from colony_manager.adapters.persistence.representative_repository_impl import (
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.enums import (
+    ColonyType,
     RepresentativeType,
     SkillLevel,
 )
 from colony_manager.domain.errors import ColonyManagerError
 from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
     Personality,
     Representative,
@@ -72,7 +74,7 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     colony = Colony(
         name=name,
         owner=owner,
-        colony_type=colony_type,
+        colony_type=ColonyType(colony_type),
         age_days=0,
         age_last_updated=__import__("datetime").date.today(),
         base_complacency=10,
@@ -113,7 +115,7 @@ def show_colony(colony_id: int) -> None:
     typer.echo(f"  Piety: {state['piety']}")
     typer.echo(f"  Leadership modifier: {state['leadership_modifier']}")
     typer.echo(f"  Profit factor: {state['profit_factor']}")
-    typer.echo(f"  Lore state: {state['lore_state'].value}")
+    typer.echo(f"  Lore state: {state['lore_state']}")
 
 
 @colony_app.command("list")
@@ -129,6 +131,52 @@ def list_colonies() -> None:
         typer.echo(f"- #{colony.id}: {colony.name} ({colony.colony_type}) — owner: {colony.owner}")
 
 
+@colony_app.command("set-age")
+def set_colony_age(colony_id: int, days: int) -> None:
+    """Set the age of a colony in days."""
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
+    service = ColonyService(colony_repo, representative_repo, provider)
+    try:
+        updated = service.update_age(colony_id, days)
+    except ColonyManagerError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Set colony {colony_id} age to {updated.age_days} days (last updated: {updated.age_last_updated})")
+
+
+@colony_app.command("add-modifier")
+def add_colony_modifier(
+    colony_id: int,
+    modifier_source_type: str,
+    modifier_stat: str,
+    modifier_value: int,
+    modifier_description: str = typer.Option("", "--description", "-d", help="Description of the modifier"),
+) -> None:
+    """Add a modifier to a colony."""
+    from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
+    service = ColonyService(colony_repo, representative_repo, provider)
+    try:
+        modifier = Modifier(
+            colony_id=colony_id,
+            modifier_source_type=ModifierSourceType(modifier_source_type),
+            modifier_stat=ModifierStat(modifier_stat),
+            modifier_value=modifier_value,
+            description=modifier_description,
+            is_active=True,
+        )
+        service.add_modifier(colony_id, modifier)
+    except ColonyManagerError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Added modifier to colony {colony_id}: {modifier_description} ({modifier_stat} {modifier_value:+d})")
+
+
 @representative_app.command("create")
 def create_representative(name: str, representative_type: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
@@ -137,7 +185,7 @@ def create_representative(name: str, representative_type: str) -> None:
     representative = Representative(
         name=name,
         type=RepresentativeType(representative_type),
-        personalities=[Personality(name="Example", description="desc", effect="effect")],
+        personalities=[Personality(name="Example", description="desc", stat_effects=[])],
         stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         skills=[Skill(name="Skill", level=SkillLevel.KNOWN, description="desc")],
         talents=[Talent(name="Talent", description="desc")],
@@ -156,7 +204,7 @@ def assign_representative(colony_id: int, representative_id: int) -> None:
     except ColonyManagerError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
-    typer.echo(f"Assigned representative {representative_id} to colony {colony_id}: {updated.representative_id}")
+    typer.echo(f"Assigned representative {representative_id} to colony {colony_id}: colony_id={updated.assigned_to_colony_id}")
 
 
 @colony_app.command("export")
@@ -176,6 +224,156 @@ def import_colony(path: str) -> None:
     importer = ColonyImporter()
     colony, representative = importer.import_from_path(path)
     typer.echo(f"Imported colony {colony.name} with representative {representative.name if representative else 'None'}")
+
+
+# =============================================================================
+# Resource Commands
+# =============================================================================
+
+@colony_app.command("add-resource")
+def add_resource(
+    colony_id: int,
+    resource_type: str,
+    abundance: int,
+    name: str = typer.Option(..., "--name", help="Custom name for this resource deposit"),
+    notes: str = typer.Option("", "--notes", help="Optional notes about the resource"),
+) -> None:
+    """Add a planetary resource to a colony."""
+    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.application.services.resource_service import ResourceService
+    from colony_manager.domain.enums import ResourceType
+
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
+    service = ResourceService(resource_repo, colony_repo)
+
+    try:
+        resource = service.add_resource(
+            colony_id=colony_id,
+            resource_type=resource_type,
+            name=name,
+            abundance=abundance,
+            notes=notes,
+        )
+    except ColonyManagerError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Added resource to colony {colony_id}: {resource.name} ({resource.resource_type.value})")
+    typer.echo(f"  Abundance: {resource.abundance} ({resource.abundance_level})")
+    if resource.notes:
+        typer.echo(f"  Notes: {resource.notes}")
+
+
+@colony_app.command("list-resources")
+def list_resources(colony_id: int) -> None:
+    """List all planetary resources for a colony."""
+    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.application.services.resource_service import ResourceService
+
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
+    service = ResourceService(resource_repo, colony_repo)
+
+    # Verify colony exists
+    colony = colony_repo.get(colony_id)
+    if colony is None:
+        typer.echo(f"Colony {colony_id} not found")
+        raise typer.Exit(code=1)
+
+    resources = service.list_resources(colony_id)
+    if not resources:
+        typer.echo(f"Colony {colony_id} has no resources.")
+        return
+
+    typer.echo(f"Resources for colony {colony_id} ({colony.name}):")
+    typer.echo("-" * 60)
+    for resource in resources:
+        typer.echo(f"  {resource.name}")
+        typer.echo(f"    Type: {resource.resource_type.value}")
+        typer.echo(f"    Abundance: {resource.abundance} ({resource.abundance_level})")
+        if resource.notes:
+            typer.echo(f"    Notes: {resource.notes}")
+        typer.echo()
+
+
+@colony_app.command("update-resource")
+def update_resource(
+    colony_id: int,
+    resource_name: str,
+    abundance: int | None = typer.Option(None, "--abundance", help="New abundance value"),
+    notes: str | None = typer.Option(None, "--notes", help="New notes (use empty string to clear)"),
+) -> None:
+    """Update a planetary resource's abundance or notes."""
+    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.application.services.resource_service import ResourceService
+
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
+    service = ResourceService(resource_repo, colony_repo)
+
+    # Find the resource by name
+    resources = service.list_resources(colony_id)
+    resource = None
+    for r in resources:
+        if r.name.lower() == resource_name.lower():
+            resource = r
+            break
+
+    if resource is None:
+        typer.echo(f"Resource '{resource_name}' not found for colony {colony_id}")
+        raise typer.Exit(code=1)
+
+    assert resource.id is not None
+    if abundance is None and notes is None:
+        typer.echo("No changes specified. Use --abundance or --notes to update.")
+        raise typer.Exit(code=1)
+
+    try:
+        updated = service.update_resource(
+            resource_id=resource.id,
+            abundance=abundance,
+            notes=notes,
+        )
+    except ColonyManagerError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Updated resource '{updated.name}' for colony {colony_id}:")
+    typer.echo(f"  Abundance: {updated.abundance} ({updated.abundance_level})")
+    if updated.notes:
+        typer.echo(f"  Notes: {updated.notes}")
+
+
+@colony_app.command("remove-resource")
+def remove_resource(colony_id: int, resource_name: str) -> None:
+    """Remove a planetary resource from a colony."""
+    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.application.services.resource_service import ResourceService
+
+    provider = FileRuleConfigProvider(config_dir=_config_dir)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
+    resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
+    service = ResourceService(resource_repo, colony_repo)
+
+    # Find the resource by name
+    resources = service.list_resources(colony_id)
+    resource = None
+    for r in resources:
+        if r.name.lower() == resource_name.lower():
+            resource = r
+            break
+
+    if resource is None:
+        typer.echo(f"Resource '{resource_name}' not found for colony {colony_id}")
+        raise typer.Exit(code=1)
+
+    assert resource.id is not None
+    service.remove_resource(resource.id)
+    typer.echo(f"Removed resource '{resource.name}' from colony {colony_id}")
 
 
 _config_dir = Path(__file__).resolve().parents[3] / "config"

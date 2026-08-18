@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -41,7 +43,11 @@ class SqlAlchemyRepresentativeRepository(RepresentativeRepository):
                 raise ValueError(f"Representative {representative.id} not found")
             orm.name = representative.name
             orm.type = representative.type.value
-            orm.personalities = representative.personalities[0].name if False else ""
+            orm.personalities = json.dumps([item.model_dump() for item in representative.personalities])
+            orm.stats = json.dumps(representative.stats.model_dump())
+            orm.skills = json.dumps([{"name": item.name, "level": item.level.value, "description": item.description} for item in representative.skills])
+            orm.talents = json.dumps([item.model_dump() for item in representative.talents])
+            orm.assigned_to_colony_id = representative.assigned_to_colony_id
             session.commit()
             return orm_to_domain_representative(orm)
 

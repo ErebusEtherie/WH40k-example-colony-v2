@@ -1,0 +1,99 @@
+"""Infrastructure API integration tests."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+from colony_manager.adapters.api.app import create_app
+from colony_manager.adapters.persistence.db import init_db
+
+
+@pytest.fixture
+def test_client(tmp_path):
+    """Create test client with isolated database."""
+    db_path = tmp_path / "test.db"
+    import colony_manager.adapters.api.dependencies as deps
+    original_get_db_path = deps.get_db_path
+    deps.get_db_path = lambda: db_path
+    init_db(db_path)
+    app = create_app()
+    client = TestClient(app)
+    yield client
+    deps.get_db_path = original_get_db_path
+
+
+@pytest.fixture
+def colony(test_client):
+    create_data = {"name": "Test Colony", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = test_client.post("/api/v1/colonies", json=create_data)
+    return response.json()
+
+
+class TestInfrastructureAPI:
+    def test_list_infrastructure_empty(self, test_client, colony):
+        response = test_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure")
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_create_infrastructure(self, test_client, colony):
+        create_data = {"infrastructure_type": "power_network", "state": "working"}
+        response = test_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        assert response.status_code == 201
+        data = response.json()
+        assert data["infrastructure_type"] == "power_network"
+        assert data["state"] == "working"
+        assert data["has_effect"] is True
+        assert data["is_working"] is True
+
+    def test_create_infrastructure_for_missing_colony_raises(self, test_client):
+        create_data = {"infrastructure_type": "power_network", "state": "working"}
+        response = test_client.post("/api/v1/colonies/9999/infrastructure", json=create_data)
+        assert response.status_code == 404
+        assert "Colony 9999 not found" in response.json()["detail"]
+
+    def test_get_infrastructure(self, test_client, colony):
+        create_data = {"infrastructure_type": "power_network", "state": "working"}
+        create_response = test_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        infra_id = create_response.json()["id"]
+        response = test_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}")
+        assert response.status_code == 200
+        assert response.json()["id"] == infra_id
+
+    def test_get_infrastructure_missing_raises(self, test_client, colony):
+        response = test_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure/9999")
+        assert response.status_code == 404
+        assert "Infrastructure 9999 not found" in response.json()["detail"]
+
+    def test_update_infrastructure_state(self, test_client, colony):
+        create_data = {"infrastructure_type": "power_network", "state": "planned"}
+        create_response = test_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        infra_id = create_response.json()["id"]
+        update_data = {"state": "disrupted"}
+        response = test_client.patch(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}", json=update_data)
+        assert response.status_code == 200
+        assert response.json()["state"] == "disrupted"
+        assert response.json()["is_disrupted"] is True
+
+    def test_update_infrastructure_missing_raises(self, test_client, colony):
+        update_data = {"state": "working"}
+        response = test_client.patch(f"/api/v1/colonies/{colony['id']}/infrastructure/9999", json=update_data)
+        assert response.status_code == 404
+
+    def test_delete_infrastructure(self, test_client, colony):
+        create_data = {"infrastructure_type": "power_network", "state": "working"}
+        create_response = test_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        infra_id = create_response.json()["id"]
+        response = test_client.delete(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}")
+        assert response.status_code == 204
+        get_response = test_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}")
+        assert get_response.status_code == 404
+
+    def test_delete_infrastructure_missing_raises(self, test_client, colony):
+        response = test_client.delete(f"/api/v1/colonies/{colony['id']}/infrastructure/9999")
+        assert response.status_code == 404
+
+    def test_infrastructure_state_defaults_to_planned(self, test_client, colony):
+        create_data = {"infrastructure_type": "transport"}
+        response = test_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        assert response.status_code == 201
+        assert response.json()["state"] == "planned"
+        assert response.json()["has_effect"] is False

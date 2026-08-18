@@ -61,7 +61,7 @@ class FileRuleConfigProvider(RuleConfigProvider):
     def colony_types(self) -> list[ColonyTypeConfig]:
         return self._colony_types
 
-    def get_colony_type_config(self, colony_type_name: str) -> dict:
+    def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
         """Get colony type configuration by name."""
         for ct in self._colony_types:
             if ct.name == colony_type_name:

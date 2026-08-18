@@ -1,6 +1,7 @@
 """Colony API schemas."""
 
 from datetime import date
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +50,7 @@ class ColonyUpdate(BaseModel):
 class ColonyListItem(BaseModel):
     """Summary information for colony list."""
 
-    id: int
+    id: int | None
     name: str
     owner: str
     colony_type: ColonyType
