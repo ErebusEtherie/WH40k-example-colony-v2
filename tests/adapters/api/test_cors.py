@@ -139,8 +139,7 @@ class TestCORSWithDefaultOrigins:
     
     def test_actual_request_with_allowed_origin(self, test_client_with_defaults):
         """Test actual GET request with allowed origin."""
-        response = test_client_with_defaults.get(
-            "/api/v1/colonies",
+        response = test_client_with_defaults.get("/",
             headers={"Origin": "http://localhost:3000"},
         )
         assert response.status_code == 200
@@ -148,8 +147,7 @@ class TestCORSWithDefaultOrigins:
     
     def test_actual_request_with_alternate_localhost(self, test_client_with_defaults):
         """Test GET request with alternate localhost origin."""
-        response = test_client_with_defaults.get(
-            "/api/v1/colonies",
+        response = test_client_with_defaults.get("/",
             headers={"Origin": "http://127.0.0.1:3000"},
         )
         assert response.status_code == 200
@@ -172,8 +170,7 @@ class TestCORSWithDefaultOrigins:
     
     def test_actual_request_unallowed_origin(self, test_client_with_defaults):
         """Test actual request with disallowed origin."""
-        response = test_client_with_defaults.get(
-            "/api/v1/colonies",
+        response = test_client_with_defaults.get("/",
             headers={"Origin": "https://malicious-site.com"},
         )
         assert response.status_code == 200
@@ -212,8 +209,7 @@ class TestCORSWithCustomOrigins:
     
     def test_actual_request_with_production_origin(self, test_client_with_custom_origins):
         """Test actual GET request with production origin."""
-        response = test_client_with_custom_origins.get(
-            "/api/v1/colonies",
+        response = test_client_with_custom_origins.get("/",
             headers={"Origin": "https://colony.example.com"},
         )
         assert response.status_code == 200
@@ -221,8 +217,7 @@ class TestCORSWithCustomOrigins:
     
     def test_request_with_unlisted_origin(self, test_client_with_custom_origins):
         """Test request with origin not in allowed list."""
-        response = test_client_with_custom_origins.get(
-            "/api/v1/colonies",
+        response = test_client_with_custom_origins.get("/",
             headers={"Origin": "https://unauthorized.com"},
         )
         assert response.status_code == 200
@@ -235,8 +230,7 @@ class TestCORSWithCustomOrigins:
     
     def test_localhost_not_allowed_with_custom_origins(self, test_client_with_custom_origins):
         """Test that localhost is NOT allowed when custom origins are set."""
-        response = test_client_with_custom_origins.get(
-            "/api/v1/colonies",
+        response = test_client_with_custom_origins.get("/",
             headers={"Origin": "http://localhost:3000"},
         )
         assert response.status_code == 200
@@ -304,16 +298,14 @@ class TestCORSCredentials:
     
     def test_credentials_with_actual_request(self, test_client_with_defaults):
         """Test credentials header is present in actual requests."""
-        response = test_client_with_defaults.get(
-            "/api/v1/colonies",
+        response = test_client_with_defaults.get("/",
             headers={"Origin": "http://localhost:3000"},
         )
         assert response.headers.get("Access-Control-Allow-Credentials") == "true"
     
     def test_vary_header_present(self, test_client_with_defaults):
         """Test that Vary header is set (important for caching with CORS)."""
-        response = test_client_with_defaults.get(
-            "/api/v1/colonies",
+        response = test_client_with_defaults.get("/",
             headers={"Origin": "http://localhost:3000"},
         )
         vary_header = response.headers.get("Vary", "")
