@@ -225,4 +225,83 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-\[WH40k_RT] \[Team RT6] Colony Sheet.xlsx
+
+# ============================================
+# WH40k Colony Manager - Project Specific
+# ============================================
+
+# Original source files (keep reference locally, don't commit)
+[WH40k_RT] [Team RT6] Colony Sheet.xlsx
+*.xlsx
+*.xls
+
+# Database files (development and test)
+*.sqlite
+*.sqlite3
+*.db
+!config/*.db
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# API keys and secrets
+secrets.json
+secrets.yaml
+secrets.yml
+*.key
+*.pem
+
+# Log files
+*.log
+logs/
+
+# Temporary and scratch files
+*.tmp
+*.bak
+*.swp
+*~
+._*
+Thumbs.db
+
+# Test artifacts (keep test code, not outputs)
+test_*.txt
+*_test.txt
+*_results.txt
+*_output.txt
+*_log.txt
+coverage/
+.coverage
+htmlcov/
+
+# Debug scripts (one-time use)
+test_debug.py
+tmp_debug.py
+*_debug.py
+
+# PDF extraction artifacts (data already in config/)
+extract_pdf.py
+extracted_pdf_*.txt
+extract_*.txt
+
+# Migration scripts (one-time use)
+migrate_*.py
+import_*.py
+export_*.py
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
