@@ -18,6 +18,7 @@ from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
     Personality,
+    PersonalityEffect,
     Representative,
     RepresentativeStats,
     Skill,
@@ -32,8 +33,7 @@ def domain_to_save_file(colony: Colony, representative: Representative | None = 
         colony_type=colony.colony_type,
         age_days=colony.age_days,
         age_last_updated=colony.age_last_updated.isoformat(),
-        event_roll_interval_days=colony.event_roll_interval_days,
-        development_roll_interval_days=colony.development_roll_interval_days,
+        current_event=colony.current_event,
         base_complacency=colony.base_complacency,
         base_order=colony.base_order,
         base_productivity=colony.base_productivity,
@@ -61,8 +61,7 @@ def save_file_to_domain(save_file: ColonySaveFile) -> tuple[Colony, Representati
         colony_type=ColonyType(save_file.colony_type),
         age_days=save_file.age_days,
         age_last_updated=date.fromisoformat(save_file.age_last_updated),
-        event_roll_interval_days=save_file.event_roll_interval_days,
-        development_roll_interval_days=save_file.development_roll_interval_days,
+        current_event=save_file.current_event,
         base_complacency=save_file.base_complacency,
         base_order=save_file.base_order,
         base_productivity=save_file.base_productivity,
@@ -93,10 +92,22 @@ def domain_to_save_representative(representative: Representative) -> SaveReprese
         stats_payload["int"] = stats_payload.pop("int_value")
     else:
         stats_payload["int"] = None
+    
+    def personality_to_save(p: Personality) -> SavePersonality:
+        # Convert list[PersonalityEffect] to dict[str, int]
+        stat_effects_dict = {effect.stat: effect.value for effect in p.stat_effects}
+        return SavePersonality(
+            name=p.name,
+            description=p.description,
+            stat_effects=stat_effects_dict,
+            calamitous_modifier=p.calamitous_modifier,
+            special_rule=p.special_rule,
+        )
+    
     return SaveRepresentative(
         name=representative.name,
         type=representative.type,
-        personalities=[SavePersonality(**personality.model_dump()) for personality in representative.personalities],
+        personalities=[personality_to_save(p) for p in representative.personalities],
         stats=SaveRepresentativeStats(**stats_payload),
         skills=[SaveSkill(name=skill.name, level=skill.level, description=skill.description) for skill in representative.skills],
         talents=[SaveTalent(**talent.model_dump()) for talent in representative.talents],
@@ -109,10 +120,25 @@ def save_file_to_domain_representative(representative: SaveRepresentative) -> Re
         stats_payload["int"] = stats_payload.pop("int")
     if "int_value" in stats_payload:
         stats_payload["int"] = stats_payload.pop("int_value")
+    
+    def save_to_personality(p: SavePersonality) -> Personality:
+        # Convert dict[str, int] to list[PersonalityEffect]
+        stat_effects_list = [
+            PersonalityEffect(stat=stat, value=value)
+            for stat, value in p.stat_effects.items()
+        ]
+        return Personality(
+            name=p.name,
+            description=p.description,
+            stat_effects=stat_effects_list,
+            calamitous_modifier=p.calamitous_modifier,
+            special_rule=p.special_rule,
+        )
+    
     return Representative(
         name=representative.name,
         type=representative.type,
-        personalities=[Personality(**personality.model_dump()) for personality in representative.personalities],
+        personalities=[save_to_personality(p) for p in representative.personalities],
         stats=RepresentativeStats(**stats_payload),
         skills=[Skill(name=skill.name, level=skill.level, description=skill.description) for skill in representative.skills],
         talents=[Talent(**talent.model_dump()) for talent in representative.talents],

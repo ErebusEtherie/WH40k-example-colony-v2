@@ -1,5 +1,7 @@
 """Infrastructure API integration tests."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,13 +14,21 @@ def test_client(tmp_path):
     """Create test client with isolated database."""
     db_path = tmp_path / "test.db"
     import colony_manager.adapters.api.dependencies as deps
-    original_get_db_path = deps.get_db_path
-    deps.get_db_path = lambda: db_path
+    
+    def override_get_db_path() -> Path:
+        return db_path
+    
     init_db(db_path)
     app = create_app()
+    
+    # Override the dependency after app creation
+    app.dependency_overrides[deps.get_db_path] = override_get_db_path
+    
     client = TestClient(app)
     yield client
-    deps.get_db_path = original_get_db_path
+    
+    # Cleanup
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture

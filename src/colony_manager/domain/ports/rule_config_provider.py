@@ -19,3 +19,11 @@ class RuleConfigProvider(Protocol):
 
     def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
         ...
+
+    def get_event_roll_interval_days(self) -> int:
+        """Get the global event roll interval in days (default: 60)."""
+        ...
+
+    def get_development_roll_interval_days(self) -> int:
+        """Get the global development roll interval in days (default: 90)."""
+        ...

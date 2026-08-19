@@ -1,16 +1,17 @@
 """FastAPI application factory for the Colony Manager API."""
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 
-from colony_manager.adapters.api.dependencies import get_db_path
+from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.routers import (
+    auth_router,
     colonies_router,
     infrastructure_router,
     modifiers_router,
@@ -22,6 +23,13 @@ from colony_manager.adapters.persistence.db import init_db
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 
 logger = logging.getLogger(__name__)
+
+# Security scheme for JWT Bearer token authentication
+security = HTTPBearer(
+    scheme_name="JWT",
+    description="Enter your JWT token in the format: Bearer <token>",
+    auto_error=False,
+)
 
 
 def get_allowed_origins() -> list[str]:
@@ -44,7 +52,7 @@ def get_allowed_origins() -> list[str]:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize database on startup."""
     # Initialize database tables
-    db_path = get_db_path()
+    db_path = dependencies.get_db_path()
     init_db(db_path)
     yield
     # Cleanup on shutdown (if needed)
@@ -57,7 +65,46 @@ def create_app() -> FastAPI:
         description="REST API for managing Warhammer 40k Rogue Trader colonies",
         version="0.1.0",
         lifespan=lifespan,
+        openapi_tags=[
+            {"name": "root", "description": "Root endpoint and API info"},
+            {"name": "auth", "description": "User authentication and authorization"},
+            {"name": "colonies", "description": "Colony management operations"},
+            {"name": "representatives", "description": "Representative (governor) management"},
+            {"name": "infrastructure", "description": "Hard infrastructure buildings"},
+            {"name": "support", "description": "Support upgrades and services"},
+            {"name": "modifiers", "description": "Colony stat modifiers"},
+            {"name": "resources", "description": "Resource production and management"},
+        ],
     )
+    
+    # Store original openapi method
+    original_openapi = app.openapi
+    
+    def custom_openapi() -> dict[str, object]:
+        """Customize OpenAPI schema with JWT security scheme."""
+        if app.openapi_schema:
+            return app.openapi_schema
+        
+        openapi_schema = original_openapi()
+        
+        # Add JWT Bearer security scheme
+        openapi_schema["components"]["securitySchemes"] = {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)"
+            }
+        }
+        
+        # Apply security requirement globally (can be overridden per-endpoint)
+        # Note: Auth endpoints don't require auth, so they override this
+        openapi_schema["security"] = [{"BearerAuth": []}]
+        
+        app.openapi_schema = openapi_schema
+        return openapi_schema
+    
+    app.openapi = custom_openapi  # type: ignore[method-assign]
 
     # CORS middleware - configurable via ALLOWED_ORIGINS environment variable
     allowed_origins = get_allowed_origins()
@@ -70,6 +117,7 @@ def create_app() -> FastAPI:
     )
 
     # Include routers
+    app.include_router(auth_router, prefix="/api/v1")
     app.include_router(colonies_router, prefix="/api/v1")
     app.include_router(infrastructure_router, prefix="/api/v1")
     app.include_router(representatives_router, prefix="/api/v1")

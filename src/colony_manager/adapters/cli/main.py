@@ -71,17 +71,19 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
     service = ColonyService(colony_repo, representative_repo, provider)
+    colony_type_config = provider.get_colony_type_config(ColonyType(colony_type))
+    base_stats = colony_type_config["base_stats"]
     colony = Colony(
         name=name,
         owner=owner,
         colony_type=ColonyType(colony_type),
         age_days=0,
         age_last_updated=__import__("datetime").date.today(),
-        base_complacency=10,
-        base_order=10,
-        base_productivity=10,
-        base_piety=10,
-        base_size=5,
+        base_complacency=base_stats["complacency"],  # type: ignore[index]
+        base_order=base_stats["order"],  # type: ignore[index]
+        base_productivity=base_stats["productivity"],  # type: ignore[index]
+        base_piety=base_stats["piety"],  # type: ignore[index]
+        base_size=base_stats["size"],  # type: ignore[index]
     )
     created = service.create_colony(colony)
     typer.echo(f"Created colony {created.id}: {created.name}")
@@ -239,11 +241,11 @@ def add_resource(
     notes: str = typer.Option("", "--notes", help="Optional notes about the resource"),
 ) -> None:
     """Add a planetary resource to a colony."""
-    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.adapters.persistence.resource_repository_impl import (
+        SqlAlchemyResourceRepository,
+    )
     from colony_manager.application.services.resource_service import ResourceService
-    from colony_manager.domain.enums import ResourceType
 
-    provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
     service = ResourceService(resource_repo, colony_repo)
@@ -269,10 +271,11 @@ def add_resource(
 @colony_app.command("list-resources")
 def list_resources(colony_id: int) -> None:
     """List all planetary resources for a colony."""
-    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.adapters.persistence.resource_repository_impl import (
+        SqlAlchemyResourceRepository,
+    )
     from colony_manager.application.services.resource_service import ResourceService
 
-    provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
     service = ResourceService(resource_repo, colony_repo)
@@ -307,10 +310,11 @@ def update_resource(
     notes: str | None = typer.Option(None, "--notes", help="New notes (use empty string to clear)"),
 ) -> None:
     """Update a planetary resource's abundance or notes."""
-    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.adapters.persistence.resource_repository_impl import (
+        SqlAlchemyResourceRepository,
+    )
     from colony_manager.application.services.resource_service import ResourceService
 
-    provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
     service = ResourceService(resource_repo, colony_repo)
@@ -351,10 +355,11 @@ def update_resource(
 @colony_app.command("remove-resource")
 def remove_resource(colony_id: int, resource_name: str) -> None:
     """Remove a planetary resource from a colony."""
-    from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+    from colony_manager.adapters.persistence.resource_repository_impl import (
+        SqlAlchemyResourceRepository,
+    )
     from colony_manager.application.services.resource_service import ResourceService
 
-    provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     resource_repo = SqlAlchemyResourceRepository(build_database_url(_db_path))
     service = ResourceService(resource_repo, colony_repo)

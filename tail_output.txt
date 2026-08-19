@@ -1,0 +1,9 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-8.4.2, pluggy-1.6.0
+rootdir: d:\Projekty\WH40k_Colony_Manager
+configfile: pyproject.toml
+plugins: anyio-4.14.2, hypothesis-6.165.0
+collected 163 items
+
+tests\adapters\api\test_api.py .............                             [  7%]
+tests\adapters\api\test_auth.py .

@@ -21,14 +21,14 @@ class Colony(BaseModel):
     colony_type: ColonyType
     age_days: int = Field(ge=0)
     age_last_updated: date
-    event_roll_interval_days: int = 60
-    development_roll_interval_days: int = 90
     base_complacency: int
     base_order: int
     base_productivity: int
     base_piety: int
     base_size: int
     representative_id: int | None = None
+    # Current active event (GM-defined, optional)
+    current_event: str | None = None
     # Infrastructure and upgrades owned by this colony
     infrastructure: list[Infrastructure] = Field(default_factory=list)
     support_upgrades: list[SupportUpgrade] = Field(default_factory=list)
@@ -50,3 +50,25 @@ class Colony(BaseModel):
         if value < 0:
             raise ValueError("age_days cannot be negative")
         return value
+    
+    def get_cycle_info(self, event_interval: int, development_interval: int) -> dict[str, int]:
+        """Calculate days since/until next rolls.
+        
+        Args:
+            event_interval: Global event roll interval in days (typically 60)
+            development_interval: Global development roll interval in days (typically 90)
+        
+        Returns:
+            Dict with keys: days_since_event_roll, days_until_event_roll,
+                           days_since_development_roll, days_until_development_roll
+        """
+        days_since_event = self.age_days % event_interval
+        days_until_event = event_interval - days_since_event
+        days_since_dev = self.age_days % development_interval
+        days_until_dev = development_interval - days_since_dev
+        return {
+            "days_since_event_roll": days_since_event,
+            "days_until_event_roll": days_until_event,
+            "days_since_development_roll": days_since_dev,
+            "days_until_development_roll": days_until_dev,
+        }

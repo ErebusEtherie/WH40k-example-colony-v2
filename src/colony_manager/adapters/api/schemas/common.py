@@ -1,10 +1,8 @@
 """Common API schemas."""
 
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
-
-T = TypeVar("T")
 
 
 class ErrorResponse(BaseModel):
@@ -21,7 +19,10 @@ class MessageResponse(BaseModel):
     message: str
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+T = TypeVar("T")
+
+
+class PaginatedResponse[T](BaseModel):
     """Paginated list response."""
 
     items: list[T]

@@ -167,8 +167,23 @@ resource_abundance_levels:
     description: "Seemingly limitless, decade+ to deplete"
 
 # =============================================================================
-# Table 3-9: Calamitous Events Base
+# Game Cycles - Global Configuration
+# These intervals define the cadence for colony events and growth rolls.
+# The app tracks elapsed days and displays "next roll in X days" — actual
+# rolling and application is done manually by players/GM.
+# =============================================================================
+game_cycles:
+  event_roll_interval_days: 60
+  development_roll_interval_days: 90
+
+# =============================================================================
+# Table 3-9: Calamitous Events
+# The app does not auto-roll or enforce event outcomes. GM defines custom
+# events with their own penalties/bonuses as needed.
 # =============================================================================
 calamitous_events:
-  roll_interval_days: 90
-  base_roll: "1d10"
+  description: "GM-defined events only. No automatic rolling or enforcement."
+  notes:
+    - "Track current active event via colony.current_event field"
+    - "Apply custom modifiers manually via colony.modifiers"
+    - "Clear event when resolved by GM action"

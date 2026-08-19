@@ -186,10 +186,17 @@ class StatLossMitigationEntry(BaseModel):
     minimum: int = 1
 
 
+class GameCyclesConfig(BaseModel):
+    """Global configuration for game cycle intervals."""
+    event_roll_interval_days: int = 60
+    development_roll_interval_days: int = 90
+
+
 class RuleTablesConfig(BaseModel):
     size_to_profit_factor: list[ProfitFactorSizeEntry]
     leadership_modifier: list[LeadershipModifierEntry]
     colony_growth: dict[str, Any] | None = None
     lore_thresholds: LoreThresholdsConfig
     stat_loss_mitigation: dict[str, StatLossMitigationEntry] = Field(default_factory=dict)
+    game_cycles: GameCyclesConfig | None = None
     calamitous_events: dict[str, Any] | None = None

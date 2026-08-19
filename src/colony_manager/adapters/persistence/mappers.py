@@ -10,6 +10,7 @@ from colony_manager.adapters.persistence.orm_models import (
     ModifierORM,
     RepresentativeORM,
     SupportUpgradeORM,
+    UserORM,
 )
 from colony_manager.domain.enums import (
     ColonyType,
@@ -29,6 +30,7 @@ from colony_manager.domain.models.representative import (
     Talent,
 )
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
+from colony_manager.domain.models.user import User, UserRole
 
 
 def orm_to_domain_colony(orm: ColonyORM) -> Colony:
@@ -39,8 +41,7 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
         colony_type=ColonyType(orm.colony_type),
         age_days=orm.age_days,
         age_last_updated=orm.age_last_updated,
-        event_roll_interval_days=orm.event_roll_interval_days,
-        development_roll_interval_days=orm.development_roll_interval_days,
+        current_event=orm.current_event,
         base_complacency=orm.base_complacency,
         base_order=orm.base_order,
         base_productivity=orm.base_productivity,
@@ -61,8 +62,7 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
         colony_type=domain.colony_type.value,
         age_days=domain.age_days,
         age_last_updated=domain.age_last_updated,
-        event_roll_interval_days=domain.event_roll_interval_days,
-        development_roll_interval_days=domain.development_roll_interval_days,
+        current_event=domain.current_event,
         base_complacency=domain.base_complacency,
         base_order=domain.base_order,
         base_productivity=domain.base_productivity,
@@ -180,5 +180,53 @@ def domain_to_orm_support_upgrade(domain: SupportUpgrade) -> SupportUpgradeORM:
         custom_stat_choice=domain.custom_stat_choice.value if domain.custom_stat_choice else None,
         custom_product=domain.custom_product,
         affiliated_group=domain.affiliated_group,
+    )
+
+
+def orm_to_domain_user(orm: UserORM) -> User:
+    """Convert a UserORM to a User domain model.
+    
+    Args:
+        orm: The SQLAlchemy ORM model instance.
+        
+    Returns:
+        The corresponding domain User object.
+    """
+    from datetime import datetime
+    
+    return User(
+        id=orm.id,
+        username=orm.username,
+        email=orm.email,
+        password_hash=orm.password_hash,
+        role=UserRole(orm.role),
+        is_active=orm.is_active,
+        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
+        updated_at=datetime.combine(orm.updated_at, datetime.min.time()) if orm.updated_at else None,
+        managed_colony_id=orm.managed_colony_id,
+    )
+
+
+def domain_to_orm_user(domain: User) -> UserORM:
+    """Convert a User domain model to a UserORM.
+    
+    Args:
+        domain: The domain User object.
+        
+    Returns:
+        The corresponding SQLAlchemy ORM model instance.
+    """
+    from datetime import date
+    
+    return UserORM(
+        id=domain.id,
+        username=domain.username,
+        email=domain.email,
+        password_hash=domain.password_hash,
+        role=domain.role.value if hasattr(domain.role, "value") else domain.role,
+        is_active=domain.is_active,
+        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
+        updated_at=date(domain.updated_at.year, domain.updated_at.month, domain.updated_at.day) if domain.updated_at else None,
+        managed_colony_id=domain.managed_colony_id,
     )
 

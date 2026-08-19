@@ -1,10 +1,13 @@
 """Tests for the infrastructure service."""
 
-import pytest
 from datetime import date
 
+import pytest
+
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.infrastructure_repository_impl import SqlAlchemyInfrastructureRepository
+from colony_manager.adapters.persistence.infrastructure_repository_impl import (
+    SqlAlchemyInfrastructureRepository,
+)
 from colony_manager.application.services.infrastructure_service import InfrastructureService
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType
 from colony_manager.domain.errors import NotFoundError

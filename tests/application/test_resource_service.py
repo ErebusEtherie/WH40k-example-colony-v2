@@ -3,12 +3,13 @@
 from datetime import date
 
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+from colony_manager.adapters.persistence.resource_repository_impl import (
+    SqlAlchemyResourceRepository,
+)
 from colony_manager.application.services.resource_service import ResourceService
 from colony_manager.domain.enums import ResourceType
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.models.resource import ColonyResource
 
 
 class TestResourceService:

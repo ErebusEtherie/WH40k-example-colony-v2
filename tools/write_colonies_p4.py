@@ -15,8 +15,7 @@ async def update_colony(colony_id: int, colony_data: ColonyUpdate, service: Colo
     return ColonyResponse(
         id=updated.id, name=updated.name, owner=updated.owner, colony_type=updated.colony_type,
         age_days=updated.age_days, age_last_updated=updated.age_last_updated,
-        event_roll_interval_days=updated.event_roll_interval_days,
-        development_roll_interval_days=updated.development_roll_interval_days,
+        current_event=updated.current_event,
         base_complacency=updated.base_complacency, base_order=updated.base_order,
         base_productivity=updated.base_productivity, base_piety=updated.base_piety, base_size=updated.base_size,
         representative_id=updated.representative_id, dynasty_outcome=updated.dynasty_outcome,

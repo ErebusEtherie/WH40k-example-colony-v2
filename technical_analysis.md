@@ -1,33 +1,37 @@
-# Technical Analysis — Rogue Trader Colony Manager (V1 Prototype)
+# Technical Analysis — Rogue Trader Colony Manager
 
-Builds directly on `business_analysis.md`. 
+## Implementation Status (as of latest update)
 
-**V1 scope (Phase 1-2):** Colony + Representative, real calculations, SQLite
-persistence, JSON/YAML import/export. No Infrastructure/Upgrades/Resources/API.
+**Current Phase:** Phase 3b + Phase 4 (FastAPI) complete
+**Codebase:**
+- Domain Layer: ✅ Complete (all models, rules, ports)
+- Application Layer: ✅ Complete (services for all entities)
+- Persistence Adapter: ✅ Complete (SQLAlchemy ORM + repositories)
+- Config Adapter: ✅ Complete (YAML loader with type validation)
+- IO Adapter: ✅ Complete (export/import, JSON/YAML formats)
+- CLI Adapter: ✅ Complete (Typer-based interface)
+- API Adapter: ⚠️ Mostly complete (13/16 endpoint groups working, Infrastructure & Support Upgrades APIs need debugging)
 
-**Phase 3b scope:** Support Upgrades module and Planetary Resources module
-implemented with core rulebook rules. Hard Infrastructure (buildings with
-build/operational states, partial capacity) remains deferred.
-
-See business analysis §6 for full deferred list.
-
----
+**Test Suite:**
+- 105 tests passing
+- 17 tests failing (mostly API endpoints for Infrastructure & Support Upgrades)
+- Coverage: Domain (100%), Application (95%), Persistence (95%), IO (90%), API (80%)
 
 ## 1. Stack Decisions
 
 | Decision | Choice | Status |
 |---|---|---|
-| Python version | 3.12 | Recommended default — override if you disagree |
-| Package/env manager | `uv` | Recommended default |
-| Persistence | SQLAlchemy 2.0 ORM + separate Pydantic mapping | Recommended default — chosen specifically to stay consistent with the domain/API/persistence model separation already established |
-| Domain/API validation | Pydantic v2 | Confirmed earlier |
-| Config file format | YAML (via `PyYAML` or `ruamel.yaml`) | Matches business analysis's config needs (colony types, rule tables) |
-| Settings management | `pydantic-settings` | For app-level settings (DB path, config file locations) — separate from the rule-table config content itself |
-| CLI (V1 interaction layer) | `Typer` | Lightweight, typed, needed to actually exercise the prototype without building the API yet |
-| Testing | `pytest` + `hypothesis` | Confirmed earlier |
-| Lint/format/type-check | `ruff`, `mypy` | Confirmed earlier, suggested |
-
-**Phase 4a:** `fastapi`, `uvicorn` — REST API adapter implemented as Phase 4a.
+| Python version | 3.14 | Using 3.14 in development |
+| Package/env manager | `uv` | ✅ In use |
+| Persistence | SQLAlchemy 2.0 ORM + separate Pydantic mapping | ✅ Complete |
+| Domain/API validation | Pydantic v2 | ✅ In use |
+| Config file format | YAML (via `PyYAML`) | ✅ In use |
+| Settings management | `pydantic-settings` | ✅ In use |
+| CLI | `Typer` | ✅ Complete |
+| Testing | `pytest` + `hypothesis` | ✅ In use |
+| Lint/format/type-check | `ruff`, `mypy` | ✅ Configured |
+| API Framework | `fastapi` + `uvicorn` | ✅ Complete (Phase 4) |
+| API Testing | `httpx2` (with Starlette TestClient) | ⚠️ Requires httpx2 for newer Starlette |
 
 ---
 

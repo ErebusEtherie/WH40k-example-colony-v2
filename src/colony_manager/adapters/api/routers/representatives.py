@@ -1,8 +1,11 @@
 """Representative API router."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_representative_service
+from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.schemas.representative import (
     PersonalityCreate,
     RepresentativeCreate,
@@ -13,11 +16,13 @@ from colony_manager.adapters.api.schemas.representative import (
     parse_personality_effect,
 )
 from colony_manager.application.services.representative_service import RepresentativeService
+from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 from colony_manager.domain.models.representative import (
     Personality,
     Representative,
     RepresentativeStats,
 )
+from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/representatives", tags=["representatives"])
 
@@ -60,7 +65,10 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
 
 
 @router.get("", response_model=list[RepresentativeListItem])
-async def list_representatives(service: RepresentativeService = Depends(get_representative_service)) -> list[RepresentativeListItem]:
+async def list_representatives(
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> list[RepresentativeListItem]:
     """List all representatives."""
     representatives = service._representative_repository.list()
     return [RepresentativeListItem(
@@ -71,7 +79,11 @@ async def list_representatives(service: RepresentativeService = Depends(get_repr
 
 
 @router.post("", response_model=RepresentativeResponse, status_code=status.HTTP_201_CREATED)
-async def create_representative(rep_data: RepresentativeCreate, service: RepresentativeService = Depends(get_representative_service)) -> RepresentativeResponse:
+async def create_representative(
+    rep_data: RepresentativeCreate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
     """Create a new representative."""
     personalities = _convert_personalities(rep_data.personalities)
     representative = Representative(
@@ -89,7 +101,11 @@ async def create_representative(rep_data: RepresentativeCreate, service: Represe
 
 
 @router.get("/{rep_id}", response_model=RepresentativeResponse)
-async def get_representative(rep_id: int, service: RepresentativeService = Depends(get_representative_service)) -> RepresentativeResponse:
+async def get_representative(
+    rep_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
     """Get a representative by ID."""
     representative = _check_representative_exists(service, rep_id)
     return RepresentativeResponse(
@@ -103,7 +119,12 @@ async def get_representative(rep_id: int, service: RepresentativeService = Depen
 
 
 @router.put("/{rep_id}", response_model=RepresentativeResponse)
-async def update_representative(rep_id: int, rep_data: RepresentativeUpdate, service: RepresentativeService = Depends(get_representative_service)) -> RepresentativeResponse:
+async def update_representative(
+    rep_id: int,
+    rep_data: RepresentativeUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
     """Update a representative (partial update)."""
     representative = _check_representative_exists(service, rep_id)
     update_data = rep_data.model_dump(exclude_unset=True)
@@ -121,19 +142,30 @@ async def update_representative(rep_id: int, rep_data: RepresentativeUpdate, ser
 
 
 @router.delete("/{rep_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_representative(rep_id: int, service: RepresentativeService = Depends(get_representative_service)) -> None:
+async def delete_representative(
+    rep_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> None:
     """Delete a representative."""
     _check_representative_exists(service, rep_id)
     service._representative_repository.delete(rep_id)
 
 
 @router.post("/{rep_id}/assign", response_model=RepresentativeResponse)
-async def assign_to_colony(rep_id: int, colony_id: int, service: RepresentativeService = Depends(get_representative_service)) -> RepresentativeResponse:
+async def assign_to_colony(
+    rep_id: int,
+    colony_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
     """Assign a representative to a colony."""
     try:
         updated = service.assign_to_colony(colony_id, rep_id)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ColonyManagerError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return RepresentativeResponse(
         id=updated.id, name=updated.name, type=updated.type, personalities=updated.personalities,
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
@@ -144,12 +176,18 @@ async def assign_to_colony(rep_id: int, colony_id: int, service: RepresentativeS
 
 
 @router.post("/{rep_id}/unassign", response_model=RepresentativeResponse)
-async def unassign_from_colony(rep_id: int, service: RepresentativeService = Depends(get_representative_service)) -> RepresentativeResponse:
+async def unassign_from_colony(
+    rep_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
     """Unassign a representative from their colony."""
     try:
         updated = service.unassign_from_colony(rep_id)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ColonyManagerError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return RepresentativeResponse(
         id=updated.id, name=updated.name, type=updated.type, personalities=updated.personalities,
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),

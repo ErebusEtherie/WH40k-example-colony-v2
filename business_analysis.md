@@ -1,16 +1,30 @@
-# Business Analysis — Rogue Trader Colony Manager (V1 Prototype)
+# Business Analysis — Rogue Trader Colony Manager
+
+## Implementation Status (as of latest update)
+
+**Current Phase:** Phase 3b + API implementation complete
+**Test Coverage:** 105 tests passing, 17 API-related tests failing (Infrastructure & Support Upgrades APIs need fixes)
+**Implemented Features:**
+- ✅ V1: Colony + Representative models with full stat calculations
+- ✅ V1: Profit Factor and Persistence (save/load)
+- ✅ Phase 3b: Support Upgrades with validation rules
+- ✅ Phase 3b: Planetary Resources module
+- ✅ Phase 3b: State-based effects (Orderly, Pious, crisis locks)
+- ✅ Phase 3b: Colony Type special rules (Ecclesiastical, Agricultural, Mining, Research)
+- ✅ Phase 4: FastAPI REST endpoints for all entities
+- ✅ CLI interface (Typer)
 
 ## 1. Purpose & Scope
 
-This document captures the business requirements for the first working
-prototype of the Colony Manager. It is a living document — sections marked
-**[TBD]** or **[Needs confirmation]** are known gaps to close before or
-during implementation, not oversights.
+This document captures the business requirements for the Colony Manager.
+It is a living document — sections marked **[TBD]** or **[Needs confirmation]**
+are known gaps to close before or during implementation, not oversights.
 
-**V1 goal:** a working Colony + Representative model with real stat
+**V1 goal:** ✅ COMPLETE — working Colony + Representative model with real stat
 calculations (Base → Current), Profit Factor, and persistence (save/load).
-No Infrastructure, Support Upgrades, or Resources yet — those are deferred
-to later phases (see §6).
+
+**Phase 3b goal:** ✅ MOSTLY COMPLETE — Infrastructure module remains deferred;
+Support Upgrades and Resources are implemented with all core rulebook rules.
 
 **Source of domain truth:** the reference Excel workbook (Colony /
 Representative / Data / Calculations sheets) is treated as validated
@@ -47,8 +61,7 @@ computed result.
 | `age_days` | integer ≥ 0 | yes | Source of truth for colony age. Advances with in-game time (e.g. "5 days spent traveling" → +5). Manually updated by players |
 | `age_years` / `age_months` / `age_days_remainder` | integer | no | Computed display breakdown of `age_days` |
 | `age_last_updated` | date (`yyyy-mm-dd`) | **no** (system-set) | Audit field — auto-set whenever `age_days` changes. Exists so the GM can detect "a session happened but age wasn't updated" |
-| `event_roll_interval_days` | integer | yes (config) | Default 60. How often a GM event roll occurs |
-| `development_roll_interval_days` | integer | yes (config) | Default 90. How often a colony growth/decay roll occurs |
+| `current_event` | string (nullable) | yes | GM-defined text describing the current active calamitous event (if any). The app does not auto-roll or enforce event outcomes — GM applies custom modifiers manually via the modifiers system |
 | `base_complacency` / `base_order` / `base_productivity` / `base_piety` | integer | no | Derived from `colony_type`, fixed |
 | `base_size` | integer | no | Derived from `colony_type` at creation |
 | `actual_size` | integer ≥ 0 | no (calculated) | `base_size` + applicable modifiers, clamped at 0 |
@@ -58,10 +71,14 @@ computed result.
 | `representative_id` | reference (nullable) | yes (assignment) | Representative is an independent entity, not owned by Colony — see §3.2. Nothing prevents the same Representative being referenced by more than one Colony (mechanically possible, though not meaningful lore-wise) |
 | `modifiers` | list of Modifier | — | See §3.3 |
 
-**V1 explicitly excludes:** current-event free-text field, pending/upcoming
-event indicators. Per your note, event *rolling* logic (60/90-day cadence)
-exists as config now, but surfacing "an event is pending" or "roll due in
-N days" is deferred.
+**V1 explicitly excludes:** pending/upcoming event indicators. The app tracks
+elapsed days and can display "next roll in X days" but does not surface
+"event pending" notifications.
+
+**Important:** This app is a **living character sheet**, not a game simulator.
+All dice rolls (growth rolls, event rolls, calamitous events) are performed
+manually by players/GM outside the app. The app tracks colony state and
+displays cycle information, but does not auto-roll or enforce outcomes.
 
 ### 3.2 Representative
 
@@ -122,10 +139,10 @@ worth revisiting once Infrastructure/Events are in scope.
   real-world date automatically. Not directly editable by players.
 - `age_years/months/days_remainder` are a pure display breakdown of
   `age_days` — no independent meaning.
-- Event/development roll cadence (`event_roll_interval_days`,
-  `development_roll_interval_days`) exist as configurable colony fields but
-  **do not drive any automatic behavior in V1** (no notifications, no
-  pending-roll indicators).
+- Event/development roll cadence is defined in global config
+  (`config/rule_tables.yaml`, `game_cycles` section). The app computes
+  "next roll in X days" from `age_days % interval` but does not
+  auto-roll or enforce outcomes.
 
 ### 4.2 Stat Calculation (Complacency / Order / Productivity / Piety)
 
@@ -336,12 +353,20 @@ for details.
 
 | Item | Status |
 |---|---|
-| Colony Type config (types, base stats, base size, resource exploit bonuses) | Pending — you'll provide |
-| Representative Type list + mechanical bonuses | Complete per reference sheet, extensible later |
-| Personality list (name, description, effect) | Pending — you'll provide |
-| Lore state threshold labels (exact wording for Order>Size and Complacency==0 cases) | Needs confirmation against reference sheet |
-| Size → base PF lookup table | Present in reference sheet ("Data" tab) — needs to be confirmed as authoritative and transcribed to config |
-| Leadership Modifier full lookup table (all stat-bonus values, not just the visible 2–6 range) | Pending — you'll provide or confirm extrapolation rule |
+| Colony Type config (types, base stats, base size, resource exploit bonuses) | ✅ Placeholder config provided |
+| Representative Type list + mechanical bonuses | ✅ Complete per reference sheet |
+| Personality list (name, description, effect) | ✅ Placeholder config provided |
+| Lore state threshold labels (exact wording for Order>Size and Complacency==0 cases) | ✅ Implemented with confirmed labels |
+| Size → base PF lookup table | ✅ Implemented from reference sheet |
+| Leadership Modifier full lookup table (all stat-bonus values) | ✅ Implemented for 0-9+ range |
+| Support Upgrades full definition & limits | ✅ Implemented with per-type limits |
+| Planetary Resources types & effects | ✅ Implemented 8 resource types |
+| Infrastructure types & mechanics | ⏳ Deferred — phase 4b (model exists, rules not yet implemented) |
+
+**Known configuration gaps requiring user confirmation:**
+- Ecclesiastical, Agricultural, Mining, Research colony type bonuses/rules ✅ IMPLEMENTED
+- Support Upgrade type-specific rules ✅ IMPLEMENTED
+- Planetary Resource effects ✅ IMPLEMENTED
 
 ---
 
@@ -350,10 +375,10 @@ for details.
 - Representative's `type` bonus text exists in the reference sheet but its
   precise mechanical trigger isn't specified — treated as descriptive-only
   until confirmed otherwise.
-- `event_roll_interval_days` / `development_roll_interval_days` are
-  modeled as **per-colony** fields (not global config), since you described
-  them as "configurable" without specifying scope — flagged for
-  confirmation.
+- **Roll intervals are global config** — `event_roll_interval_days` (60) and
+  `development_roll_interval_days` (90) are defined in `config/rule_tables.yaml`
+  under the `game_cycles` section. The app displays "next roll in X days" based
+  on colony age and these global intervals.
 - Representative is independent of Colony (not 1:1 ownership) — confirmed
   during technical analysis, supersedes the earlier draft.
 - If a Representative assigned to a Colony is deleted, the Colony's

@@ -1,8 +1,11 @@
 """Resource API router."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_db_path
+from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.schemas.resource import (
     ResourceCreate,
     ResourceListItem,
@@ -10,9 +13,12 @@ from colony_manager.adapters.api.schemas.resource import (
     ResourceUpdate,
 )
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+from colony_manager.adapters.persistence.resource_repository_impl import (
+    SqlAlchemyResourceRepository,
+)
 from colony_manager.application.services.resource_service import ResourceService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies/{colony_id}/resources", tags=["resources"])
 
@@ -34,6 +40,7 @@ def _check_colony_exists(service: ResourceService, colony_id: int) -> None:
 @router.get("", response_model=list[ResourceListItem])
 async def list_resources(
     colony_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
     service: ResourceService = Depends(get_resource_service),
 ) -> list[ResourceListItem]:
     """List all planetary resources for a colony."""
@@ -52,6 +59,7 @@ async def list_resources(
 async def create_resource(
     colony_id: int,
     resource_data: ResourceCreate,
+    current_user: Annotated[User, Depends(get_current_user)],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Add a new planetary resource to a colony."""
@@ -81,6 +89,7 @@ async def create_resource(
 async def get_resource(
     colony_id: int,
     resource_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Get a specific planetary resource by ID."""
@@ -110,6 +119,7 @@ async def update_resource(
     colony_id: int,
     resource_id: int,
     resource_data: ResourceUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Update a planetary resource's abundance or notes."""
@@ -142,6 +152,7 @@ async def update_resource(
 async def delete_resource(
     colony_id: int,
     resource_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
     service: ResourceService = Depends(get_resource_service),
 ) -> None:
     """Remove a planetary resource from a colony."""

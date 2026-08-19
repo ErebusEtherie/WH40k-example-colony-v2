@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-8.4.2, pluggy-1.6.0
+rootdir: d:\Projekty\WH40k_Colony_Manager
+configfile: pyproject.toml
+plugins: anyio-4.14.2, hypothesis-6.165.10
+collected 122 items
+
+tests\adapters\api\test_api.py .............                             [ 10%]
+tests\adapters\api\test_infrastructure_api.py ..........                 [ 18%]
+tests\adapters\api\test_support_upgrades_api.py ............             [ 28%]
+tests\adapters\cli\test_cli.py ...                                       [ 31%]
+tests\adapters\config\test_loader.py ...                                 [ 33%]
+tests\adapters\io\test_io.py .                                           [ 34%]
+tests\adapters\persistence\test_infrastructure_and_upgrades_repository.py . [ 35%]
+............                                                             [ 45%]
+tests\adapters\persistence\test_persistence.py ..                        [ 46%]
+tests\adapters\persistence\test_resource_repository.py ............      [ 56%]
+tests\application\test_infrastructure_service.py ..........              [ 64%]
+tests\application\test_resource_service.py .......                       [ 70%]
+tests\application\test_services.py .....                                 [ 74%]
+tests\application\test_support_upgrade_service.py ............           [ 84%]
+tests\domain\rules\test_leadership_modifier_resolver.py ..               [ 86%]
+tests\domain\rules\test_lore_state_resolver.py ......                    [ 90%]
+tests\domain\rules\test_profit_factor_calculator.py ...                  [ 93%]
+tests\domain\rules\test_size_calculator.py ...                           [ 95%]
+tests\domain\rules\test_stat_calculator.py ...                           [ 98%]
+tests\domain\util\test_rounding.py ..                                    [100%]
+
+============================= 122 passed in 4.14s =============================

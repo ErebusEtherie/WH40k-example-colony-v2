@@ -1,0 +1,60 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-8.4.2, pluggy-1.6.0
+rootdir: d:\Projekty\WH40k_Colony_Manager
+configfile: pyproject.toml
+plugins: anyio-4.14.2, hypothesis-6.165.0
+collected 19 items
+
+tests\adapters\api\test_auth.py ...........F......F                      [100%]
+
+================================== FAILURES ===================================
+____________ TestTokenRefresh.test_refresh_token_deactivated_user _____________
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+tests\adapters\api\test_auth.py:190: in test_refresh_token_deactivated_user
+    user = user_repo.get_by_username("testuser")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\colony_manager\adapters\persistence\user_repository_impl.py:73: in get_by_username
+    orm_user = session.execute(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2373: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv\Lib\site-packages\sqlalchemy\orm\context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1421: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+E   [SQL: SELECT users.id, users.username, users.email, users.password_hash, users.role, users.is_active, users.created_at, users.updated_at, users.managed_colony_id 
+E   FROM users 
+E   WHERE users.username = ?]
+E   [parameters: ('testuser',)]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+___ TestRoleBasedAuthorization.test_protected_infrastructure_requires_auth ____
+tests\adapters\api\test_auth.py:339: in test_protected_infrastructure_requires_auth
+    colony_id = colony_response.json()["id"]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'id'
+=========================== short test summary info ===========================
+FAILED tests/adapters/api/test_auth.py::TestTokenRefresh::test_refresh_token_deactivated_user
+FAILED tests/adapters/api/test_auth.py::TestRoleBasedAuthorization::test_protected_infrastructure_requires_auth
+======================== 2 failed, 17 passed in 7.61s =========================

@@ -50,3 +50,20 @@ class ColonyService:
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
         return self._state_calculator.calculate(colony)
+
+    def get_colony(self, colony_id: int) -> Colony:
+        """Get a colony by ID.
+        
+        Args:
+            colony_id: The ID of the colony to retrieve.
+            
+        Returns:
+            The colony domain object.
+            
+        Raises:
+            NotFoundError: If the colony does not exist.
+        """
+        colony = self._colony_repository.get(colony_id)
+        if colony is None:
+            raise NotFoundError(f"Colony {colony_id} not found")
+        return colony

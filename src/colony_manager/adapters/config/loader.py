@@ -57,6 +57,18 @@ class FileRuleConfigProvider(RuleConfigProvider):
         
         return resolve_lore_state(stat, value, size)
 
+    def get_event_roll_interval_days(self) -> int:
+        """Get the global event roll interval in days (default: 60)."""
+        if self._rule_tables.game_cycles:
+            return self._rule_tables.game_cycles.event_roll_interval_days
+        return 60
+
+    def get_development_roll_interval_days(self) -> int:
+        """Get the global development roll interval in days (default: 90)."""
+        if self._rule_tables.game_cycles:
+            return self._rule_tables.game_cycles.development_roll_interval_days
+        return 90
+
     @property
     def colony_types(self) -> list[ColonyTypeConfig]:
         return self._colony_types

@@ -1,10 +1,13 @@
 """Tests for the support upgrade service."""
 
-import pytest
 from datetime import date
 
+import pytest
+
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.adapters.persistence.support_upgrade_repository_impl import SqlAlchemySupportUpgradeRepository
+from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
+    SqlAlchemySupportUpgradeRepository,
+)
 from colony_manager.application.services.support_upgrade_service import SupportUpgradeService
 from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
 from colony_manager.domain.errors import NotFoundError

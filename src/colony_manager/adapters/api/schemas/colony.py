@@ -1,7 +1,6 @@
 """Colony API schemas."""
 
 from datetime import date
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -29,6 +28,15 @@ class ColonyStateNested(BaseModel):
     lore_state: dict[str, str]
 
 
+class ColonyCycleInfo(BaseModel):
+    """Computed information about upcoming rolls."""
+
+    days_since_event_roll: int
+    days_until_event_roll: int
+    days_since_development_roll: int
+    days_until_development_roll: int
+
+
 class ColonyCreate(BaseModel):
     """Schema for creating a new colony."""
 
@@ -43,8 +51,7 @@ class ColonyUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
     owner: str | None = Field(None, min_length=1, max_length=100)
     age_days: int | None = Field(None, ge=0)
-    event_roll_interval_days: int | None = Field(None, ge=1)
-    development_roll_interval_days: int | None = Field(None, ge=1)
+    current_event: str | None = None
 
 
 class ColonyListItem(BaseModel):
@@ -72,8 +79,7 @@ class ColonyResponse(BaseModel):
     colony_type: ColonyType
     age_days: int
     age_last_updated: date
-    event_roll_interval_days: int
-    development_roll_interval_days: int
+    current_event: str | None
     base_complacency: int
     base_order: int
     base_productivity: int

@@ -68,8 +68,7 @@ class ColonySaveFile(BaseModel):
     colony_type: str
     age_days: int = Field(ge=0)
     age_last_updated: str
-    event_roll_interval_days: int = 60
-    development_roll_interval_days: int = 90
+    current_event: str | None = None
     base_complacency: int
     base_order: int
     base_productivity: int

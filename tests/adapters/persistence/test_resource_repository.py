@@ -2,7 +2,9 @@
 
 from datetime import date
 
-from colony_manager.adapters.persistence.resource_repository_impl import SqlAlchemyResourceRepository
+from colony_manager.adapters.persistence.resource_repository_impl import (
+    SqlAlchemyResourceRepository,
+)
 from colony_manager.domain.enums import ResourceType
 from colony_manager.domain.models.resource import ColonyResource
 

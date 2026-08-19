@@ -1,6 +1,6 @@
 """Infrastructure API schemas."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType
 

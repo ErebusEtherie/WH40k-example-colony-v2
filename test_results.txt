@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-8.4.2, pluggy-1.6.0 -- d:\Projekty\WH40k_Colony_Manager\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: d:\Projekty\WH40k_Colony_Manager
+configfile: pyproject.toml
+plugins: anyio-4.14.2, hypothesis-6.165.0
+collecting ... collected 19 items
+
+tests/adapters/api/test_auth.py::TestUserRegistration::test_register_new_user PASSED [  5%]
+tests/adapters/api/test_auth.py::TestUserRegistration::test_register_duplicate_username PASSED [ 10%]
+tests/adapters/api/test_auth.py::TestUserRegistration::test_register_duplicate_email PASSED [ 15%]
+tests/adapters/api/test_auth.py::TestUserLogin::test_login_success PASSED [ 21%]
+tests/adapters/api/test_auth.py::TestUserLogin::test_login_wrong_password PASSED [ 26%]
+tests/adapters/api/test_auth.py::TestUserLogin::test_login_nonexistent_user PASSED [ 31%]
+tests/adapters/api/test_auth.py::TestProtectedEndpoints::test_get_current_user_without_token PASSED [ 36%]
+tests/adapters/api/test_auth.py::TestProtectedEndpoints::test_get_current_user_with_valid_token PASSED [ 42%]
+tests/adapters/api/test_auth.py::TestProtectedEndpoints::test_get_current_user_with_invalid_token PASSED [ 47%]
+tests/adapters/api/test_auth.py::TestTokenRefresh::test_refresh_token_success PASSED [ 52%]
+tests/adapters/api/test_auth.py::TestTokenRefresh::test_refresh_token_invalid PASSED [ 57%]
+tests/adapters/api/test_auth.py::TestTokenRefresh::test_refresh_token_deactivated_user FAILED [ 63%]
+tests/adapters/api/test_auth.py::TestChangePassword::test_change_password_success PASSED [ 68%]
+tests/adapters/api/test_auth.py::TestChangePassword::test_change_password_wrong_current 
