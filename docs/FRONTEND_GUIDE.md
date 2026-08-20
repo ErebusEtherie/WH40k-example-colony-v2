@@ -13,9 +13,11 @@ A comprehensive guide for frontend developers integrating with the Warhammer 40k
 7. [CORS Configuration](#cors-configuration)
 8. [Example Requests](#example-requests)
 9. [Interactive Documentation](#interactive-documentation)
-10. [Questions for Frontend Planning](#questions-for-frontend-planning)
-11. [User Story Template](#user-story-template)
-12. [Next Steps](#next-steps)
+10. [UI Design Specifications](#ui-design-specifications)
+11. [In-Depth Frontend Requirements](#in-depth-frontend-requirements)
+12. [Questions for Frontend Planning](#questions-for-frontend-planning)
+13. [User Story Template](#user-story-template)
+14. [Next Steps](#next-steps)
 
 ---
 
@@ -462,9 +464,82 @@ For issues or questions:
 {
 ---
 
-## Questions for Frontend Planning
+## Frontend Requirements - ANSWERED
 
-Before starting frontend development, the following questions need to be answered to create comprehensive user stories and define the UX/UI requirements.
+**Stakeholder answers have been collected and are available in:** [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md)
+
+This document contains comprehensive answers to all frontend planning questions, including:
+
+- User personas and roles (Owner, GM, Party Member, Viewer)
+- Core use cases and top tasks
+- UX/UI preferences (Grimdark theme, dark mode, collapsible sections)
+- Data flow and state management requirements
+- Authentication and multi-user collaboration model
+- Performance and scale expectations
+- Internationalization (English/Polish)
+- Analytics and feedback requirements
+
+**Key highlights:**
+- Desktop-only web app (Chrome/Firefox)
+- Dual-mode UI for 4-hour game sessions and longer planning sessions
+- Real-time collaboration between GM and player (see saved changes)
+- Auto-save with manual save option
+- 4 permission levels with different access rights
+- JSON export for backup
+- Version history tracking (audit trail)
+- **Cult Mechanicus theme:** Deep crimson, burnished copper, bronze, plasma blue
+- **Typography:** Cinzel (headers), Rajdhani (data/body)
+
+Refer to [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md) for complete details and examples.
+
+---
+
+## UI Design Specifications
+
+For detailed UI design specifications including color palette, typography, component patterns, and layout guidelines, see the [UI Design Specifications section](FRONTEND_REQUIREMENTS_ANSWERED.md#ui-design-specifications--based-on-reference-examples) in `FRONTEND_REQUIREMENTS_ANSWERED.md`.
+
+### Key Visual Themes
+
+- **Cult Mechanicus Aesthetic:** Deep crimson, burnished copper, bronze, and plasma blue accents on dark backgrounds
+- **Typography:** Cinzel for headers (all caps, letter-spaced), Rajdhani for body text and data values
+- **Component Style:** Industrial panel-like cards with copper borders, subtle glow effects, and binary code decorative elements
+- **Status Indicators:** Color-coded progress bars and labels (green/blue for stable, amber for warning, red for critical/degraded)
+- **Interactive Elements:** Checkbox toggles for infrastructure status, command buttons with WH40k icons, collapsible sections
+
+### Reference Mockups Analyzed
+
+The specifications are based on analysis of the following UI examples:
+1. **Adeptus Mechanicus Dashboard** - System status panels, progress bars, command interface
+2. **Colony Administration** - Profit Factor display, colony metrics grid, representative stats
+3. **Infrastructure & Support** - Checkbox toggles, territory cards, resource tracking
+4. **Dark Heresy Character Sheet** - Characteristic tables, skill advancement tracking
+
+---
+
+## In-Depth Frontend Requirements
+
+For comprehensive frontend requirements including:
+- Detailed user flows (10 core flows documented)
+- Permission matrix by role
+- Screen layouts and mockups
+- Component library specifications
+- State management requirements
+- Backend API gaps and required changes
+
+See [`FRONTEND_REQUIREMENTS_INDEPTH.md`](FRONTEND_REQUIREMENTS_INDEPTH.md)
+
+**Key Backend Implications Identified:**
+- 13 new API endpoints needed (export, import, events, development plans, version history, etc.)
+- 4 new database models (Event, DevelopmentPlan, AuditLog, Colony-User junction)
+- 4 existing models need extension (Colony, Infrastructure, SupportUpgrade, Modifier)
+- Permission system overhaul required (colony-specific roles)
+- Real-time collaboration support (WebSocket or polling)
+
+---
+
+## Questions for Frontend Planning (Reference)
+
+The original questions are preserved below for reference. See [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md) for the answers.
 
 ### User Personas & Roles
 
