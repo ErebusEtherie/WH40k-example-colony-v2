@@ -5,7 +5,12 @@ from __future__ import annotations
 import json
 
 from colony_manager.adapters.persistence.orm_models import (
+    AuditLogORM,
     ColonyORM,
+    ColonyUserORM,
+    DevelopmentPlanORM,
+    EventModifierORM,
+    EventORM,
     InfrastructureORM,
     ModifierORM,
     RepresentativeORM,
@@ -19,7 +24,11 @@ from colony_manager.domain.enums import (
     RepresentativeType,
     SkillLevel,
 )
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
+from colony_manager.domain.models.development_plan import DevelopmentPlan, DevelopmentPlanStatus
+from colony_manager.domain.models.event import Event, EventModifier
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
@@ -230,5 +239,167 @@ def domain_to_orm_user(domain: User) -> UserORM:
         created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
         updated_at=date(domain.updated_at.year, domain.updated_at.month, domain.updated_at.day) if domain.updated_at else None,
         managed_colony_id=domain.managed_colony_id,
+    )
+
+
+# Phase 4+ mappers - Event
+
+def orm_to_domain_event(orm: EventORM) -> Event:
+    """Convert an EventORM to an Event domain model."""
+    from datetime import datetime
+    
+    return Event(
+        id=orm.id,
+        colony_id=orm.colony_id,
+        name=orm.name,
+        description=orm.description,
+        created_by=orm.created_by,
+        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
+        is_active=orm.is_active,
+        modifiers=[orm_to_domain_event_modifier(mod) for mod in orm.modifiers],
+    )
+
+
+def domain_to_orm_event(domain: Event) -> EventORM:
+    """Convert an Event domain model to an EventORM."""
+    from datetime import date
+    
+    orm = EventORM(
+        id=domain.id,
+        colony_id=domain.colony_id,
+        name=domain.name,
+        description=domain.description,
+        created_by=domain.created_by,
+        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
+        is_active=domain.is_active,
+    )
+    return orm
+
+
+def orm_to_domain_event_modifier(orm: EventModifierORM) -> EventModifier:
+    """Convert an EventModifierORM to an EventModifier domain model."""
+    return EventModifier(
+        stat=ModifierStat(orm.stat),
+        value=orm.value,
+        description=orm.description,
+    )
+
+
+def domain_to_orm_event_modifier(domain: EventModifier) -> EventModifierORM:
+    """Convert an EventModifier domain model to an EventModifierORM."""
+    return EventModifierORM(
+        stat=domain.stat.value,
+        value=domain.value,
+        description=domain.description,
+    )
+
+
+# Phase 4+ mappers - Development Plan
+
+def orm_to_domain_development_plan(orm: DevelopmentPlanORM) -> DevelopmentPlan:
+    """Convert a DevelopmentPlanORM to a DevelopmentPlan domain model."""
+    from datetime import datetime
+    
+    return DevelopmentPlan(
+        id=orm.id,
+        colony_id=orm.colony_id,
+        upgrade_type=orm.upgrade_type,
+        target_name=orm.target_name,
+        priority=orm.priority,
+        description=orm.description,
+        acquisition_plan=orm.acquisition_plan,
+        progress=orm.progress,
+        status=DevelopmentPlanStatus(orm.status),
+        created_by=orm.created_by,
+        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
+        completed_at=datetime.combine(orm.completed_at, datetime.min.time()) if orm.completed_at else None,
+    )
+
+
+def domain_to_orm_development_plan(domain: DevelopmentPlan) -> DevelopmentPlanORM:
+    """Convert a DevelopmentPlan domain model to a DevelopmentPlanORM."""
+    from datetime import date
+    
+    return DevelopmentPlanORM(
+        id=domain.id,
+        colony_id=domain.colony_id,
+        upgrade_type=domain.upgrade_type,
+        target_name=domain.target_name,
+        priority=domain.priority,
+        description=domain.description,
+        acquisition_plan=domain.acquisition_plan,
+        progress=domain.progress,
+        status=domain.status.value if hasattr(domain.status, "value") else domain.status,
+        created_by=domain.created_by,
+        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
+        completed_at=date(domain.completed_at.year, domain.completed_at.month, domain.completed_at.day) if domain.completed_at else None,
+    )
+
+
+# Phase 4+ mappers - Audit Log
+
+def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
+    """Convert an AuditLogORM to an AuditLog domain model."""
+    from datetime import datetime
+    
+    return AuditLog(
+        id=orm.id,
+        entity_type=orm.entity_type,
+        entity_id=orm.entity_id,
+        action=AuditLogAction(orm.action),
+        field=orm.field,
+        old_value=orm.old_value,
+        new_value=orm.new_value,
+        changed_by=orm.changed_by,
+        changed_at=datetime.combine(orm.changed_at, datetime.min.time()) if orm.changed_at else None,
+        colony_id=orm.colony_id,
+    )
+
+
+def domain_to_orm_audit_log(domain: AuditLog) -> AuditLogORM:
+    """Convert an AuditLog domain model to an AuditLogORM."""
+    from datetime import date
+    
+    return AuditLogORM(
+        id=domain.id,
+        entity_type=domain.entity_type,
+        entity_id=domain.entity_id,
+        action=domain.action.value if hasattr(domain.action, "value") else domain.action,
+        field=domain.field,
+        old_value=domain.old_value,
+        new_value=domain.new_value,
+        changed_by=domain.changed_by,
+        changed_at=date(domain.changed_at.year, domain.changed_at.month, domain.changed_at.day) if domain.changed_at else None,
+        colony_id=domain.colony_id,
+    )
+
+
+# Phase 4+ mappers - Colony User
+
+def orm_to_domain_colony_user(orm: ColonyUserORM) -> ColonyUser:
+    """Convert a ColonyUserORM to a ColonyUser domain model."""
+    from datetime import datetime
+    
+    return ColonyUser(
+        id=orm.id,
+        colony_id=orm.colony_id,
+        user_id=orm.user_id,
+        role=ColonyUserRole(orm.role),
+        joined_at=datetime.combine(orm.joined_at, datetime.min.time()) if orm.joined_at else None,
+        invited_by=orm.invited_by,
+    )
+
+
+def domain_to_orm_colony_user(domain: ColonyUser) -> ColonyUserORM:
+    """Convert a ColonyUser domain model to a ColonyUserORM."""
+    from datetime import date
+    
+    return ColonyUserORM(
+        id=domain.id,
+        colony_id=domain.colony_id,
+        user_id=domain.user_id,
+        role=domain.role.value if hasattr(domain.role, "value") else domain.role,
+        joined_at=date(domain.joined_at.year, domain.joined_at.month, domain.joined_at.day) if domain.joined_at else None,
+        invited_by=domain.invited_by,
     )
 

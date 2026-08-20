@@ -17,6 +17,7 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
 from colony_manager.adapters.api.routers import (
     auth_router,
     colonies_router,
+    events_router,
     infrastructure_router,
     modifiers_router,
     representatives_router,
@@ -77,6 +78,7 @@ def create_app() -> FastAPI:
             {"name": "root", "description": "Root endpoint and API info"},
             {"name": "auth", "description": "User authentication and authorization"},
             {"name": "colonies", "description": "Colony management operations"},
+            {"name": "events", "description": "Event management operations"},
             {"name": "representatives", "description": "Representative (governor) management"},
             {"name": "infrastructure", "description": "Hard infrastructure buildings"},
             {"name": "support", "description": "Support upgrades and services"},
@@ -132,6 +134,7 @@ def create_app() -> FastAPI:
     # Include routers
     app.include_router(auth_router, prefix=API_V1_PREFIX)
     app.include_router(colonies_router, prefix=API_V1_PREFIX)
+    app.include_router(events_router, prefix=API_V1_PREFIX)
     app.include_router(infrastructure_router, prefix=API_V1_PREFIX)
     app.include_router(representatives_router, prefix=API_V1_PREFIX)
     app.include_router(modifiers_router, prefix=API_V1_PREFIX)

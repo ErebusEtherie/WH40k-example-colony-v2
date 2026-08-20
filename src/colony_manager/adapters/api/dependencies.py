@@ -8,13 +8,30 @@ from fastapi import Depends
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.db import build_database_url
+from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
+    SqlAlchemyAuditLogRepository,
+)
+from colony_manager.adapters.persistence.repositories.colony_user_repository_impl import (
+    SqlAlchemyColonyUserRepository,
+)
+from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import (
+    SqlAlchemyDevelopmentPlanRepository,
+)
+from colony_manager.adapters.persistence.repositories.event_repository_impl import SqlAlchemyEventRepository
 from colony_manager.adapters.persistence.representative_repository_impl import (
     SqlAlchemyRepresentativeRepository,
 )
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
 from colony_manager.application.services.colony_service import ColonyService
+from colony_manager.application.services.colony_user_service import ColonyUserService
+from colony_manager.application.services.development_plan_service import DevelopmentPlanService
+from colony_manager.application.services.event_service import EventService
 from colony_manager.application.services.representative_service import RepresentativeService
+from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
+from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
+from colony_manager.domain.ports.development_plan_repository import DevelopmentPlanRepository
+from colony_manager.domain.ports.event_repository import EventRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 from colony_manager.domain.ports.user_repository import UserRepository
@@ -69,3 +86,47 @@ def get_representative_service(
 def get_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> UserRepository:
     """Get user repository instance."""
     return SqlAlchemyUserRepository(build_database_url(db_path))
+
+
+def get_event_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> EventRepository:
+    """Get event repository instance."""
+    return SqlAlchemyEventRepository(build_database_url(db_path))
+
+
+def get_development_plan_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> DevelopmentPlanRepository:
+    """Get development plan repository instance."""
+    return SqlAlchemyDevelopmentPlanRepository(build_database_url(db_path))
+
+
+def get_audit_log_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> AuditLogRepository:
+    """Get audit log repository instance."""
+    return SqlAlchemyAuditLogRepository(build_database_url(db_path))
+
+
+def get_colony_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> ColonyUserRepository:
+    """Get colony user repository instance."""
+    return SqlAlchemyColonyUserRepository(build_database_url(db_path))
+
+
+def get_event_service(
+    event_repository: Annotated[EventRepository, Depends(get_event_repository)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+) -> EventService:
+    """Get event service instance with dependencies."""
+    return EventService(event_repository, audit_log_repository)
+
+
+def get_development_plan_service(
+    plan_repository: Annotated[DevelopmentPlanRepository, Depends(get_development_plan_repository)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+) -> DevelopmentPlanService:
+    """Get development plan service instance with dependencies."""
+    return DevelopmentPlanService(plan_repository, audit_log_repository)
+
+
+def get_colony_user_service(
+    membership_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+) -> ColonyUserService:
+    """Get colony user service instance with dependencies."""
+    return ColonyUserService(membership_repository, audit_log_repository)
