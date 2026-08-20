@@ -36,17 +36,17 @@ def test_client(tmp_path):
 @pytest.fixture
 def auth_client(test_client):
     """Create authenticated test client with a test user."""
-    # Register a test user
+    # Register a test user (password must meet complexity requirements)
     register_data = {
         "username": "testuser",
         "email": "test@example.com",
-        "password": "testpassword123",
+        "password": "TestPass123!",
     }
     response = test_client.post("/api/v1/auth/register", json=register_data)
     assert response.status_code == 201
     
     # Login to get token
-    login_data = {"username": "testuser", "password": "testpassword123"}
+    login_data = {"username": "testuser", "password": "TestPass123!"}
     login_response = test_client.post("/api/v1/auth/login", json=login_data)
     assert login_response.status_code == 200
     access_token = login_response.json()["access_token"]

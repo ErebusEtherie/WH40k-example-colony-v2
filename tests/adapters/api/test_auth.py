@@ -34,7 +34,7 @@ def registered_user(test_client_with_auth):
     register_data = {
         "username": "testuser",
         "email": "test@example.com",
-        "password": "testpassword123",
+        "password": "TestPass123!",
     }
     response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
     assert response.status_code == 201
@@ -49,7 +49,7 @@ class TestUserRegistration:
         register_data = {
             "username": "newuser",
             "email": "new@example.com",
-            "password": "securepassword123",
+            "password": "SecurePass123!",
         }
         response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
         assert response.status_code == 201
@@ -64,7 +64,7 @@ class TestUserRegistration:
         register_data = {
             "username": "testuser",
             "email": "different@example.com",
-            "password": "securepassword123",
+            "password": "SecurePass123!",
         }
         response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
         assert response.status_code == 400
@@ -75,7 +75,7 @@ class TestUserRegistration:
         register_data = {
             "username": "differentuser",
             "email": "test@example.com",
-            "password": "securepassword123",
+            "password": "SecurePass123!",
         }
         response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
         assert response.status_code == 400
@@ -87,7 +87,7 @@ class TestUserLogin:
     
     def test_login_success(self, test_client_with_auth, registered_user):
         """Test successful login returns tokens."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 200
         data = response.json()
@@ -97,7 +97,7 @@ class TestUserLogin:
     
     def test_login_wrong_password(self, test_client_with_auth, registered_user):
         """Test login fails with wrong password."""
-        login_data = {"username": "testuser", "password": "wrongpassword"}
+        login_data = {"username": "testuser", "password": "WrongPass123!"}
         response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 401
         assert "Invalid username or password" in response.json()["detail"]
@@ -119,7 +119,7 @@ class TestProtectedEndpoints:
     
     def test_get_current_user_with_valid_token(self, test_client_with_auth, registered_user):
         """Test accessing protected endpoint with valid token succeeds."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         
@@ -145,7 +145,7 @@ class TestTokenRefresh:
     
     def test_refresh_token_success(self, test_client_with_auth, registered_user):
         """Test successful token refresh."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         refresh_token = login_response.json()["refresh_token"]
         
@@ -171,7 +171,7 @@ class TestTokenRefresh:
         # This test verifies the refresh endpoint checks user active status
         # The actual deactivation would require direct DB access which is complex
         # in the test fixture. Instead, we verify the error message format.
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         refresh_token = login_response.json()["refresh_token"]
         
@@ -188,13 +188,13 @@ class TestChangePassword:
     
     def test_change_password_success(self, test_client_with_auth, registered_user):
         """Test successful password change."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         
         change_data = {
-            "current_password": "testpassword123",
-            "new_password": "newsecurepassword456",
+            "current_password": "TestPass123!",
+            "new_password": "NewSecure456!",
         }
         response = test_client_with_auth.post(
             "/api/v1/auth/change-password",
@@ -206,19 +206,19 @@ class TestChangePassword:
         assert response.json()["message"] == "Password changed successfully"
         
         # Verify new password works
-        new_login_data = {"username": "testuser", "password": "newsecurepassword456"}
+        new_login_data = {"username": "testuser", "password": "NewSecure456!"}
         new_login_response = test_client_with_auth.post("/api/v1/auth/login", json=new_login_data)
         assert new_login_response.status_code == 200
     
     def test_change_password_wrong_current(self, test_client_with_auth, registered_user):
         """Test change password with wrong current password fails."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         
         change_data = {
-            "current_password": "wrongpassword",
-            "new_password": "newsecurepassword456",
+            "current_password": "WrongPass123!",
+            "new_password": "NewSecure456!",
         }
         response = test_client_with_auth.post(
             "/api/v1/auth/change-password",
@@ -271,7 +271,7 @@ class TestRoleBasedAuthorization:
     
     def test_protected_colony_requires_auth(self, test_client_with_auth, registered_user):
         """Test that colony endpoints require authentication."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         
@@ -288,7 +288,7 @@ class TestRoleBasedAuthorization:
     
     def test_protected_representative_requires_auth(self, test_client_with_auth, registered_user):
         """Test that representative endpoints require authentication."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         
@@ -305,7 +305,7 @@ class TestRoleBasedAuthorization:
     
     def test_protected_infrastructure_requires_auth(self, test_client_with_auth, registered_user):
         """Test that infrastructure endpoints require authentication."""
-        login_data = {"username": "testuser", "password": "testpassword123"}
+        login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         

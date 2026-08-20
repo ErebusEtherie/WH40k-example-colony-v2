@@ -4,12 +4,14 @@ This module provides FastAPI dependencies for protecting routes with JWT
 authentication. It extracts and validates tokens from the Authorization header.
 """
 
+import os
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from colony_manager.adapters.api.dependencies import get_user_repository
+from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.token import TokenError, get_user_id_from_token
@@ -18,10 +20,17 @@ from colony_manager.domain.util.token import TokenError, get_user_id_from_token
 security = HTTPBearer(auto_error=False)
 
 
-def get_secret_key() -> str:
-    """Get JWT secret key from environment."""
-    import os
-    return os.getenv("JWT_SECRET_KEY", "dev-secret-key-change-in-production")
+def get_jwt_secret_key() -> str:
+    """Get JWT secret key from settings.
+    
+    Returns:
+        JWT secret key from environment/settings
+        
+    Raises:
+        HTTPException: If JWT secret is not properly configured
+    """
+    settings = get_security_settings()
+    return settings.jwt_secret_key
 
 
 def get_current_user(
@@ -51,7 +60,7 @@ def get_current_user(
         )
     
     token = credentials.credentials
-    secret_key = get_secret_key()
+    secret_key = get_jwt_secret_key()
     
     try:
         user_id = get_user_id_from_token(token, secret_key)

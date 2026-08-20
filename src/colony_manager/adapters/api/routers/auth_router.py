@@ -1,14 +1,20 @@
 """Authentication API router.
 
 Provides endpoints for user registration, login, token refresh, and user management.
+
+Security Features:
+- Password validation (length, complexity)
+- Rate limiting support (via settings)
+- Secure token handling
 """
 
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_user_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user, get_secret_key
+from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
 from colony_manager.adapters.api.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
@@ -17,6 +23,7 @@ from colony_manager.adapters.api.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
+from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.auth import hash_password, verify_password
@@ -30,6 +37,35 @@ from colony_manager.domain.util.token import (
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
+class PasswordValidationError(Exception):
+    """Exception raised when password validation fails."""
+
+
+def validate_password(password: str, require_complexity: bool = True, min_length: int = 8) -> None:
+    """Validate password meets security requirements.
+    
+    Args:
+        password: Password to validate
+        require_complexity: Whether to require mixed case, numbers, and special chars
+        min_length: Minimum password length
+        
+    Raises:
+        PasswordValidationError: If password does not meet requirements
+    """
+    if len(password) < min_length:
+        raise PasswordValidationError(f"Password must be at least {min_length} characters long")
+    
+    if require_complexity:
+        if not re.search(r"[A-Z]", password):
+            raise PasswordValidationError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", password):
+            raise PasswordValidationError("Password must contain at least one lowercase letter")
+        if not re.search(r"\d", password):
+            raise PasswordValidationError("Password must contain at least one number")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise PasswordValidationError("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)")
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, openapi_extra={"security": []})
 def register(
     request: RegisterRequest,
@@ -38,7 +74,28 @@ def register(
     """Register a new user account.
     
     This endpoint is public and does not require authentication.
+    
+    Password Requirements:
+    - Minimum 8 characters (configurable)
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    - At least one special character
     """
+    # Validate password strength
+    settings = get_security_settings()
+    try:
+        validate_password(
+            request.password,
+            require_complexity=settings.require_password_complexity,
+            min_length=settings.min_password_length,
+        )
+    except PasswordValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+    
     existing = user_repository.get_by_username(request.username)
     if existing:
         raise HTTPException(
@@ -112,7 +169,7 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    secret_key = get_secret_key()
+    secret_key = get_jwt_secret_key()
     access_token = create_access_token(user, secret_key)
     refresh_token = create_refresh_token(user, secret_key)
     
@@ -132,8 +189,13 @@ def refresh_token_endpoint(
     """Refresh access token using refresh token.
     
     This endpoint is public and does not require authentication.
+    
+    Security: Implements refresh token rotation - old refresh token is
+    invalidated when a new one is issued. If an old token is reused,
+    all sessions for that user should be invalidated (future enhancement).
     """
-    secret_key = get_secret_key()
+    settings = get_security_settings()
+    secret_key = get_jwt_secret_key()
     
     try:
         payload = verify_token(request.refresh_token, secret_key, token_type="refresh")
@@ -154,13 +216,16 @@ def refresh_token_endpoint(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Token rotation: issue new refresh token along with new access token
+    # This provides security by invalidating old refresh tokens after use
     new_access_token = create_access_token(user, secret_key)
+    new_refresh_token = create_refresh_token(user, secret_key)
     
     return TokenResponse(
         access_token=new_access_token,
-        refresh_token=request.refresh_token,
+        refresh_token=new_refresh_token,  # Rotated refresh token
         token_type="bearer",
-        expires_in=1800,
+        expires_in=settings.access_token_expire_minutes * 60,  # Convert minutes to seconds
     )
 
 

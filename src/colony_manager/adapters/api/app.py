@@ -20,6 +20,7 @@ from colony_manager.adapters.api.routers import (
     support_upgrades_router,
 )
 from colony_manager.adapters.persistence.db import init_db
+from colony_manager.config.settings import get_cors_settings, get_security_settings
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 
 logger = logging.getLogger(__name__)
@@ -33,19 +34,18 @@ security = HTTPBearer(
 
 
 def get_allowed_origins() -> list[str]:
-    """Get allowed CORS origins from environment variable.
+    """Get allowed CORS origins from settings.
     
     Returns:
         List of allowed origins. Defaults to localhost for development.
         Set ALLOWED_ORIGINS env var to comma-separated list for production.
+        
+    Note:
+        This function uses the CORSSettings class which loads from environment.
+        For production, ensure ALLOWED_ORIGINS is set to your frontend domain(s).
     """
-    import os
-    
-    allowed = os.getenv("ALLOWED_ORIGINS", "")
-    if allowed:
-        return [origin.strip() for origin in allowed.split(",") if origin.strip()]
-    # Default to localhost for development
-    return ["http://localhost:3000", "http://127.0.0.1:3000"]
+    settings = get_cors_settings()
+    return settings.get_origins_list()
 
 
 @asynccontextmanager

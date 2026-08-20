@@ -2,6 +2,10 @@
 
 Provides functions for creating and verifying JWT tokens. This module
 handles token creation, validation, and extraction of user claims.
+
+Token expiration times are configurable via settings:
+- Access tokens: 30 minutes (default)
+- Refresh tokens: 7 days (default)
 """
 
 from datetime import UTC, datetime, timedelta
@@ -10,6 +14,10 @@ from typing import Any
 import jwt
 
 from colony_manager.domain.models.user import User
+
+# Token expiration defaults (can be overridden via settings)
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 class TokenError(Exception):
@@ -35,7 +43,7 @@ def create_access_token(
         Encoded JWT token string
     """
     if expires_delta is None:
-        expires_delta = timedelta(minutes=30)
+        expires_delta = timedelta(minutes=DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES)
     
     expire = datetime.now(UTC) + expires_delta
     
@@ -74,7 +82,7 @@ def create_refresh_token(
         Encoded JWT token string
     """
     if expires_delta is None:
-        expires_delta = timedelta(days=7)
+        expires_delta = timedelta(days=DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS)
     
     expire = datetime.now(UTC) + expires_delta
     
