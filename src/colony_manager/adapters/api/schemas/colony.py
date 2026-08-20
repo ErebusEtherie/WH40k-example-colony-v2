@@ -7,6 +7,19 @@ from pydantic import BaseModel, Field
 from colony_manager.domain.enums import ColonyType, DynastyOutcome, ResourceType
 
 
+class ColonyRollStatus(BaseModel):
+    """Response schema for colony roll status."""
+
+    event_roll_due: bool
+    development_roll_due: bool
+    days_since_event_roll: int
+    days_until_event_roll: int
+    days_since_development_roll: int
+    days_until_development_roll: int
+    event_interval_days: int
+    development_interval_days: int
+
+
 class ColonyStateStat(BaseModel):
     """Nested stat information with base, current, and lore state."""
 

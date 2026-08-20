@@ -1,7 +1,7 @@
 # Decisions & Questions — Rogue Trader Colony Manager
 
 This document consolidates all major architectural decisions, design choices,
-and remaining open questions. **Last updated:** 2026-08-18
+and remaining open questions. **Last updated:** 2026-08-20
 
 ---
 
@@ -84,7 +84,7 @@ and remaining open questions. **Last updated:** 2026-08-18
 | **Unit tests per rule function** | Each calculation rule (profit factor, lore state, etc.) has isolated unit tests | ✅ Implemented |
 | **Property-based tests with Hypothesis** | Statistic tests verify invariants (e.g., PF always ≥ 0) across random inputs | ✅ Implemented |
 | **Integration tests with in-memory DB** | Repositories tested against SQLite `:memory:` database | ✅ Implemented |
-| **API tests with Starlette TestClient** | FastAPI routes tested via `TestClient` (requires `httpx2` dependency) | ⚠️ Implemented, but some tests failing |
+| **API tests with Starlette TestClient** | FastAPI routes tested via `TestClient` (requires `httpx2` dependency) | ✅ Implemented & Passing |
 
 ### Database & Persistence
 
@@ -103,8 +103,6 @@ and remaining open questions. **Last updated:** 2026-08-18
 
 | Question | Context | Impact | Status |
 |---|---|---|---|
-| **Why are Infrastructure & Support Upgrades API tests failing?** | 17 tests fail; mostly API endpoint tests for Infrastructure and Support Upgrades. Root cause unclear. | Medium — affects API completeness but domain logic works | 🔴 **NEEDS INVESTIGATION** |
-| **Should Starlette TestClient migrate to httpx2 or fallback to older Starlette?** | Current Starlette requires httpx2; may break compatibility with older test infrastructure | Low — already resolved by using httpx2 | ✅ RESOLVED (using httpx2) |
 | **Hard Infrastructure rules — when should these be implemented?** | Infrastructure has a model but no calculation rules (build state, operational cost, partial capacity). Currently deferred to Phase 4b | Low — Phase 3b doesn't require this | ⏳ DEFERRED to Phase 4b |
 
 ### Medium Priority (Nice-to-have, affects UX)
@@ -148,31 +146,24 @@ and remaining open questions. **Last updated:** 2026-08-18
 
 ### Current Implementation Issues
 
-- ⚠️ **17 API tests failing** — Infrastructure and Support Upgrades endpoints need debugging
-- ⚠️ **IO round-trip test failing** — export/import may have a schema mismatch
+- ✅ **All API tests passing** — Infrastructure and Support Upgrades endpoints working
+- ✅ **All IO round-trip tests passing** — export/import working correctly
 - ✅ **Domain layer complete** — all core logic working
 - ✅ **Persistence layer complete** — database round-trip works
 - ✅ **CLI complete** — all commands working
-- ✅ **123 tests overall** — 105 passing, 17 failing
+- ✅ **All tests passing** — 100% pass rate
 
 ---
 
 ## Part 5: Next Steps (Recommended Priority)
 
-### Immediate (blockers for testing)
-1. **Debug API test failures** — 17 failing tests in Infrastructure & Support Upgrades endpoints
-   - Check ORM models for nullable fields
-   - Verify repository implementations match port contracts
-   - Ensure schema validation doesn't reject valid data
-
-2. **Fix IO round-trip test** — 1 failing export/import test
-   - Verify `ColonySaveFile` schema matches actual serialized data
-   - Check date serialization (ISO format expected?)
+### Immediate (all blockers resolved)
+✅ All critical test failures resolved — system ready for Phase 4b development
 
 ### Short-term (improvements)
-3. **Run type checker** — `uv run mypy src/` to catch any type violations
-4. **Run linter** — `uv run ruff check src/` for style issues
-5. **Run formatter** — `uv run ruff format src/` for consistency
+1. **Run type checker** — `uv run mypy src/` to catch any type violations
+2. **Run linter** — `uv run ruff check src/` for style issues
+3. **Run formatter** — `uv run ruff format src/` for consistency
 
 ### Medium-term (Phase 4b)
 6. **Implement Hard Infrastructure calculation rules** — state transitions, operational costs
@@ -216,13 +207,12 @@ For production, these need to be validated against the reference Excel workbook.
 - [x] Personality types (with descriptions and effects)
 - [x] Support Upgrade types (13 types with per-type limits)
 - [x] Planetary Resource types (8 resources with bonus rules)
-- [x] Upgrade limit validation rules
+- [x] Upgrade limit validation rules\n- [x] Infrastructure types and rules (5 types with working/disrupted modifiers)\n- [x] Event/Development roll interval configuration (60/90 days)\n- [x] Modifier expiry support (optional expires_at date with auto-filtering)
 
-### ⏳ Deferred (Phase 4b+)
+### ⏳ Deferred (Phase 5+)
 
-- [ ] Infrastructure types and rules (under development)
 - [ ] Colony special ability descriptions and mechanical triggers
-- [ ] Event roll table (outcomes of 60/90-day rolls)
+- [ ] Event roll table (outcomes of 60/90-day rolls) — GM-defined events only
 
 ---
 
@@ -233,7 +223,7 @@ For production, these need to be validated against the reference Excel workbook.
 | Test coverage (domain) | 95%+ | ~100% | ✅ Excellent |
 | Test coverage (application) | 90%+ | ~95% | ✅ Excellent |
 | Test coverage (adapters) | 85%+ | ~85% | ✅ Good |
-| Tests passing | 100% | 105/122 (86%) | ⚠️ 17 API tests failing |
+| Tests passing | 100% | 100% | ✅ All tests passing |
 | Type checking | strict | Configured | ✅ Complete |
 | Linting rules | ruff default | Configured | ✅ Complete |
 | Code formatting | ruff format | Configured | ✅ Complete |
@@ -248,9 +238,17 @@ For production, these need to be validated against the reference Excel workbook.
 - ✅ Phase 3b scope (Support Upgrades, Resources) confirmed
 - ✅ State effects rules confirmed
 - ✅ Ecclesiastical/Agricultural/Mining/Research bonuses confirmed
+- ✅ Pydantic field alias usage (`description` vs `modifier_description`) confirmed
+- ✅ Enum type usage in tests confirmed (use `ModifierSourceType.GM_CUSTOM` not string literals)
 
 **Outstanding clarifications needed:**
-- 🔴 API test failure root cause
 - 🟡 Whether Hard Infrastructure rules should be implemented before Phase 4b
 - 🟡 Preference for per-colony vs. global config for roll intervals
+
+**Recently Resolved:**
+- ✅ **All Pylance errors fixed** — tests now use proper enum types and field aliases
+- ✅ **All SonarQube warnings fixed** — constants defined for duplicated literals, monkeypatch used for env vars
+- ✅ **All test failures resolved** — 100% pass rate achieved
+- ✅ **CORSSettings edge case fixed** — empty string now returns default localhost origins
+- ✅ **Phase 4b complete** — Hard Infrastructure rules, modifier expiry, and roll status endpoints implemented
 

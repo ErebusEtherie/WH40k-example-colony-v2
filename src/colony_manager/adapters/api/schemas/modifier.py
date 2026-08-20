@@ -1,5 +1,7 @@
 """Modifier API schemas."""
 
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 from colony_manager.domain.enums import ModifierSourceType, ModifierStat
@@ -13,6 +15,7 @@ class ModifierCreate(BaseModel):
     modifier_value: int
     modifier_description: str = Field(..., min_length=1, max_length=200)
     is_active: bool = True
+    expires_at: date | None = None
 
 
 class ModifierResponse(BaseModel):
@@ -25,3 +28,4 @@ class ModifierResponse(BaseModel):
     modifier_value: int
     modifier_description: str
     is_active: bool
+    expires_at: date | None = None

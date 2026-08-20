@@ -61,11 +61,15 @@ class Colony(BaseModel):
         Returns:
             Dict with keys: days_since_event_roll, days_until_event_roll,
                            days_since_development_roll, days_until_development_roll
+        
+        Note:
+            When a roll is exactly due (age_days is a multiple of the interval),
+            days_since is 0 and days_until is also 0 (not the full interval).
         """
         days_since_event = self.age_days % event_interval
-        days_until_event = event_interval - days_since_event
+        days_until_event = 0 if days_since_event == 0 else event_interval - days_since_event
         days_since_dev = self.age_days % development_interval
-        days_until_dev = development_interval - days_since_dev
+        days_until_dev = 0 if days_since_dev == 0 else development_interval - days_since_dev
         return {
             "days_since_event_roll": days_since_event,
             "days_until_event_roll": days_until_event,

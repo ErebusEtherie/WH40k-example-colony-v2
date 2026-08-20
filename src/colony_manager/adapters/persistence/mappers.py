@@ -126,6 +126,7 @@ def orm_to_domain_modifier(orm: ModifierORM) -> Modifier:
         modifier_value=orm.modifier_value,
         description=orm.modifier_description,
         is_active=orm.is_active,
+        expires_at=orm.expires_at,
     )
 
 
@@ -138,6 +139,7 @@ def domain_to_orm_modifier(domain: Modifier) -> ModifierORM:
         modifier_value=domain.modifier_value,
         modifier_description=domain.modifier_description,
         is_active=domain.is_active,
+        expires_at=domain.expires_at,
     )
 
 

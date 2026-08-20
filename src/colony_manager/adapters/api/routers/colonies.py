@@ -10,6 +10,7 @@ from colony_manager.adapters.api.schemas.colony import (
     ColonyCreate,
     ColonyListItem,
     ColonyResponse,
+    ColonyRollStatus,
     ColonyStateNested,
     ColonyStateStat,
     ColonyUpdate,
@@ -282,3 +283,20 @@ async def remove_colony_modifier(
         raise HTTPException(status_code=404, detail=f"Modifier {modifier_id} not found")
     colony.modifiers.remove(modifier_to_remove)
     service._colony_repository.update(colony)
+
+
+@router.get("/{colony_id}/roll-status", response_model=ColonyRollStatus)
+async def get_colony_roll_status(
+    colony_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    service: ColonyService = Depends(get_colony_service),
+) -> ColonyRollStatus:
+    """
+    Get the roll status for a colony.
+    
+    Returns information about when the next event and development rolls are due.
+    Event rolls occur every 60 days, development rolls every 90 days.
+    """
+    _check_colony_exists(service, colony_id)
+    roll_status = service.get_roll_status(colony_id)
+    return ColonyRollStatus(**roll_status)
