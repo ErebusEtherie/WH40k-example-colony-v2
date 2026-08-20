@@ -68,6 +68,17 @@ class FileRuleConfigProvider(RuleConfigProvider):
         if self._rule_tables.game_cycles:
             return self._rule_tables.game_cycles.development_roll_interval_days
         return 90
+    
+    def get_pf_state_bonuses(self) -> dict[str, int]:
+        """Get Profit Factor bonuses for colony states."""
+        if self._rule_tables.pf_state_bonuses:
+            return {
+                "placated": self._rule_tables.pf_state_bonuses.placated,
+                "productive": self._rule_tables.pf_state_bonuses.productive,
+                "orderly": self._rule_tables.pf_state_bonuses.orderly,
+            }
+        # Default values per Rogue Trader Colony Rules
+        return {"placated": 1, "productive": 2, "orderly": 2}
 
     @property
     def colony_types(self) -> list[ColonyTypeConfig]:

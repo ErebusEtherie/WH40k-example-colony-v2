@@ -43,6 +43,26 @@ from colony_manager.domain.models.user import User, UserRole
 
 
 def orm_to_domain_colony(orm: ColonyORM) -> Colony:
+    from colony_manager.domain.enums import DynastyOutcome, ResourceType
+    import json
+    
+    # Parse planetary_resources from JSON
+    planetary_resources = []
+    if orm.planetary_resources:
+        try:
+            resource_strings = json.loads(orm.planetary_resources)
+            planetary_resources = [ResourceType(r) for r in resource_strings]
+        except (json.JSONDecodeError, ValueError):
+            planetary_resources = []
+    
+    # Parse dynasty_outcome
+    dynasty_outcome = None
+    if orm.dynasty_outcome:
+        try:
+            dynasty_outcome = DynastyOutcome(orm.dynasty_outcome)
+        except ValueError:
+            dynasty_outcome = None
+    
     return Colony(
         id=orm.id,
         name=orm.name,
@@ -57,6 +77,11 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
         base_piety=orm.base_piety,
         base_size=orm.base_size,
         representative_id=orm.representative_id,
+        dynasty_outcome=dynasty_outcome,
+        complacency_locked=orm.complacency_locked,
+        order_locked=orm.order_locked,
+        productivity_locked=orm.productivity_locked,
+        planetary_resources=planetary_resources,
         modifiers=[orm_to_domain_modifier(modifier) for modifier in orm.modifiers],
         infrastructure=[orm_to_domain_infrastructure(inf) for inf in orm.infrastructure],
         support_upgrades=[orm_to_domain_support_upgrade(upg) for upg in orm.support_upgrades],
@@ -64,6 +89,13 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
 
 
 def domain_to_orm_colony(domain: Colony) -> ColonyORM:
+    import json
+    
+    # Serialize planetary_resources to JSON
+    planetary_resources_json = None
+    if domain.planetary_resources:
+        planetary_resources_json = json.dumps([r.value for r in domain.planetary_resources])
+    
     return ColonyORM(
         id=domain.id,
         name=domain.name,
@@ -78,6 +110,11 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
         base_piety=domain.base_piety,
         base_size=domain.base_size,
         representative_id=domain.representative_id,
+        dynasty_outcome=domain.dynasty_outcome.value if domain.dynasty_outcome else None,
+        complacency_locked=domain.complacency_locked,
+        order_locked=domain.order_locked,
+        productivity_locked=domain.productivity_locked,
+        planetary_resources=planetary_resources_json,
         modifiers=[domain_to_orm_modifier(modifier) for modifier in domain.modifiers],
         infrastructure=[domain_to_orm_infrastructure(inf) for inf in domain.infrastructure],
         support_upgrades=[domain_to_orm_support_upgrade(upg) for upg in domain.support_upgrades],

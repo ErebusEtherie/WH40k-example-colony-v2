@@ -27,3 +27,7 @@ class RuleConfigProvider(Protocol):
     def get_development_roll_interval_days(self) -> int:
         """Get the global development roll interval in days (default: 90)."""
         ...
+    
+    def get_pf_state_bonuses(self) -> dict[str, int]:
+        """Get Profit Factor bonuses for colony states (placated, productive, orderly)."""
+        ...

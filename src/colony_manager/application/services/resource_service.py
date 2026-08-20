@@ -74,3 +74,7 @@ class ResourceService:
     def remove_resource(self, resource_id: int) -> None:
         """Remove a resource from a colony."""
         self._resource_repository.delete(resource_id)
+    
+    def colony_exists(self, colony_id: int) -> bool:
+        """Check if a colony exists."""
+        return self._colony_repository.get(colony_id) is not None

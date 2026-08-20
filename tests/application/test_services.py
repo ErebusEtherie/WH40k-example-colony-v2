@@ -84,6 +84,10 @@ class FakeRuleConfigProvider:
 
     def get_leadership_table(self) -> list[object]:
         return []
+    
+    def get_pf_state_bonuses(self) -> dict[str, int]:
+        """Get Profit Factor bonuses for colony states."""
+        return {"placated": 1, "productive": 2, "orderly": 2}
 
 
 def test_colony_service_update_age_sets_last_updated():
@@ -162,7 +166,7 @@ def test_colony_service_get_state_returns_state():
     state = service.get_state(colony.id)
 
     assert state["size"] == 5
-    assert state["profit_factor"] == 6
+    assert state["profit_factor"] == 8  # Base(2)+Placated(1)+Productive(2)+Orderly(2)+Leadership(1)
 
 
 def test_colony_service_raises_for_missing_colony():

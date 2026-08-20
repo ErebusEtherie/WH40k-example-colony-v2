@@ -34,8 +34,7 @@ def get_infrastructure_service(colony_id: int, db_path: str = Depends(dependenci
 
 def _check_colony_exists(service: InfrastructureService, colony_id: int) -> None:
     """Check if colony exists, raise HTTPException if not."""
-    colony = service._colony_repository.get(colony_id)
-    if colony is None:
+    if not service.colony_exists(colony_id):
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 

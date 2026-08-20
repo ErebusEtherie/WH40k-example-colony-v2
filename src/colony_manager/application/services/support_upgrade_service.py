@@ -43,3 +43,7 @@ class SupportUpgradeService:
     def list_by_colony(self, colony_id: int) -> list[SupportUpgrade]:
         """List all support upgrades for a colony."""
         return self._repository.list_by_colony(colony_id)
+    
+    def colony_exists(self, colony_id: int) -> bool:
+        """Check if a colony exists."""
+        return self._colony_repository.get(colony_id) is not None

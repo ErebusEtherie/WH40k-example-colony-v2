@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, MappedColumn
 
 
 class Base(DeclarativeBase):
@@ -28,6 +28,14 @@ class ColonyORM(Base):
     base_piety: Mapped[int] = mapped_column(Integer, nullable=False)
     base_size: Mapped[int] = mapped_column(Integer, nullable=False)
     representative_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("representatives.id"), nullable=True)
+    # Dynasty outcome for Dynasty Member representatives
+    dynasty_outcome: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Lock flags - prevent stat increases until resolved
+    complacency_locked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    order_locked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    productivity_locked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Planetary resources as JSON array
+    planetary_resources: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     modifiers: Mapped[list[ModifierORM]] = relationship("ModifierORM", back_populates="colony", cascade="all, delete-orphan")
     infrastructure: Mapped[list[InfrastructureORM]] = relationship("InfrastructureORM", back_populates="colony", cascade="all, delete-orphan")

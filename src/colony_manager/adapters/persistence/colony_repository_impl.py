@@ -56,6 +56,16 @@ class SqlAlchemyColonyRepository(ColonyRepository):
             orm.base_piety = colony.base_piety
             orm.base_size = colony.base_size
             orm.representative_id = colony.representative_id
+            orm.dynasty_outcome = colony.dynasty_outcome.value if colony.dynasty_outcome else None
+            orm.complacency_locked = colony.complacency_locked
+            orm.order_locked = colony.order_locked
+            orm.productivity_locked = colony.productivity_locked
+            # Serialize planetary_resources to JSON
+            import json
+            if colony.planetary_resources:
+                orm.planetary_resources = json.dumps([r.value for r in colony.planetary_resources])
+            else:
+                orm.planetary_resources = None
             orm.modifiers = [domain_to_orm_modifier(modifier) for modifier in colony.modifiers]
             session.commit()
             return orm_to_domain_colony(orm)

@@ -51,6 +51,13 @@ class Colony(BaseModel):
             raise ValueError("age_days cannot be negative")
         return value
     
+    @field_validator("base_complacency", "base_order", "base_productivity", "base_piety", "base_size")
+    @classmethod
+    def _validate_base_stats(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("Base stats cannot be negative")
+        return value
+    
     def get_cycle_info(self, event_interval: int, development_interval: int) -> dict[str, int]:
         """Calculate days since/until next rolls.
         

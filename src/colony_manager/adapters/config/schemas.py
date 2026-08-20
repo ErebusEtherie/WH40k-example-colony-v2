@@ -192,6 +192,13 @@ class GameCyclesConfig(BaseModel):
     development_roll_interval_days: int = 90
 
 
+class PFStateBonusesConfig(BaseModel):
+    """Profit Factor bonuses for colony states."""
+    placated: int = 1
+    productive: int = 2
+    orderly: int = 2
+
+
 class RuleTablesConfig(BaseModel):
     size_to_profit_factor: list[ProfitFactorSizeEntry]
     leadership_modifier: list[LeadershipModifierEntry]
@@ -200,3 +207,4 @@ class RuleTablesConfig(BaseModel):
     stat_loss_mitigation: dict[str, StatLossMitigationEntry] = Field(default_factory=dict)
     game_cycles: GameCyclesConfig | None = None
     calamitous_events: dict[str, Any] | None = None
+    pf_state_bonuses: PFStateBonusesConfig | None = None

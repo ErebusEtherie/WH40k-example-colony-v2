@@ -48,3 +48,7 @@ class InfrastructureService:
     def list_by_colony(self, colony_id: int) -> list[Infrastructure]:
         """List all infrastructure for a colony."""
         return self._repository.list_by_colony(colony_id)
+    
+    def colony_exists(self, colony_id: int) -> bool:
+        """Check if a colony exists."""
+        return self._colony_repository.get(colony_id) is not None

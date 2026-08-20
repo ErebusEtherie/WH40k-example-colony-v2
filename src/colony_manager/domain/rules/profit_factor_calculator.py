@@ -26,6 +26,7 @@ def calculate_profit_factor(
     modifiers: list[Modifier],
     leadership_modifier: int,
     is_orderly: bool = False,
+    state_bonuses: dict[str, int] | None = None,
 ) -> int:
     """
     Calculate a colony's profit factor based on the current state.
@@ -41,19 +42,24 @@ def calculate_profit_factor(
         leadership_modifier: Leadership bonus from Representative.
         is_orderly: If True, apply Orderly bonus (+2 PF).
             This is determined by checking if Order > Size.
+        state_bonuses: Dict with 'placated', 'productive', 'orderly' bonus values.
+            Defaults to standard values if not provided.
     
     Returns:
         Final Profit Factor value (minimum 0).
     """
+    # Use config-driven bonuses or defaults per Rogue Trader Colony Rules
+    bonuses = state_bonuses or {"placated": 1, "productive": 2, "orderly": 2}
+    
     pf_raw = base_profit_factor
     
     # State bonuses
     if current_complacency > actual_size:
-        pf_raw += 1  # Placated
+        pf_raw += bonuses.get("placated", 1)  # Placated
     if current_productivity > actual_size:
-        pf_raw += 2  # Productive
+        pf_raw += bonuses.get("productive", 2)  # Productive
     if is_orderly:
-        pf_raw += 2  # Orderly (per rulebook)
+        pf_raw += bonuses.get("orderly", 2)  # Orderly (per rulebook)
     
     # Leadership modifier
     pf_raw += leadership_modifier

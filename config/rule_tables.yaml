@@ -177,6 +177,18 @@ game_cycles:
   development_roll_interval_days: 90
 
 # =============================================================================
+# Profit Factor State Bonuses
+# Per Rogue Trader Colony Rules:
+# - Placated (Complacency > Size): +1 PF
+# - Productive (Productivity > Size): +2 PF
+# - Orderly (Order > Size): +2 PF
+# =============================================================================
+pf_state_bonuses:
+  placated: 1
+  productive: 2
+  orderly: 2
+
+# =============================================================================
 # Table 3-9: Calamitous Events
 # The app does not auto-roll or enforce event outcomes. GM defines custom
 # events with their own penalties/bonuses as needed.

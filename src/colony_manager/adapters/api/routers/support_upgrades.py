@@ -36,8 +36,7 @@ def get_support_upgrade_service(
 
 def _check_colony_exists(service: SupportUpgradeService, colony_id: int) -> None:
     """Check if colony exists, raise HTTPException if not."""
-    colony = service._colony_repository.get(colony_id)
-    if colony is None:
+    if not service.colony_exists(colony_id):
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 

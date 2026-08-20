@@ -80,6 +80,8 @@ class ColonyStateCalculator:
             current_size,
             active_modifiers,
             leadership_modifier,
+            current_order > current_size,
+            self._config_provider.get_pf_state_bonuses(),
         )
         return {
             "size": current_size,
@@ -89,5 +91,11 @@ class ColonyStateCalculator:
             "piety": current_piety,
             "leadership_modifier": leadership_modifier,
             "profit_factor": profit_factor,
-            "lore_state": resolve_lore_state(ModifierStat.COMPLACENCY, current_complacency, current_size),
+            "lore_state": {
+                "size": "stable",
+                "complacency": resolve_lore_state(ModifierStat.COMPLACENCY, current_complacency, current_size).value,
+                "order": resolve_lore_state(ModifierStat.ORDER, current_order, current_size).value,
+                "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, current_productivity, current_size).value,
+                "piety": resolve_lore_state(ModifierStat.PIETY, current_piety, current_size).value,
+            },
         }
