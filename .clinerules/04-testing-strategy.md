@@ -39,6 +39,74 @@ of input, e.g.:
   you — test the interesting edge cases, not every field).
 - CLI argument parsing.
 
+
+## Test execution — hard constraints
+
+Tests are not considered executed or passed until the test process has **completed**.
+
+When running tests through `run_commands`:
+
+1. Start the complete requested test command.
+2. WAIT for the command/process to terminate.
+3. Do not assume success from partial or intermediate output.
+4. Do not continue implementation work while the test process is still running.
+5. Inspect the FINAL process exit code.
+6. Inspect the FINAL test summary/output.
+7. Only after completion may you conclude that tests passed or failed.
+
+### Test result rules
+
+- Exit code `0` does not replace inspection of the final test output.
+- A test run is **PASSING** only when the process has terminated and the final result indicates success.
+- A test run is **FAILING** when the process has terminated with a failure exit code or the final test summary reports failures/errors.
+- If the command was interrupted, terminated prematurely, timed out, or its final status cannot be determined, the test result is **UNKNOWN**, not PASSING.
+- Partial output such as `10 passed` while additional tests are still running is NOT a completed test result.
+- Never report "tests pass" based only on tests that have completed so far.
+
+### Long-running test commands
+
+Some test suites may take a significant amount of time.
+
+Do NOT replace a complete test run with an arbitrarily shortened run merely because it takes time.
+
+If the command is still running, wait for completion.
+
+If the execution environment imposes a timeout or otherwise prevents waiting for completion:
+
+1. Report that the complete test result could not be established.
+2. Do not claim that the tests passed.
+3. Ask the user how to proceed if further action is required.
+
+### pytest
+
+When running pytest, intermediate output such as:
+
+    1 passed
+    2 passed
+    3 passed
+
+is NOT the final result.
+
+Wait until pytest terminates and inspect its final summary, for example:
+
+    123 passed in 45.67s
+
+or:
+
+    120 passed, 3 failed in 45.67s
+
+Only the completed pytest run determines the test result.
+
+### Validation workflow
+
+When tests are used to validate a change, follow this sequence:
+
+`run tests → WAIT FOR COMPLETION → inspect final result → decide next action`
+
+Never:
+
+`run tests → observe first successful tests → assume success → modify code`
+
 ## Test code follows the same anti-abstraction guardrail
 
 Don't build shared fixtures, factories, or test helpers until duplication
