@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ModifierStat
+from colony_manager.domain.enums import ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 
@@ -32,10 +32,10 @@ def test_profit_factor_halved_when_productivity_zero():
             Modifier(
                 id=1,
                 colony_id=1,
-                modifier_source_type="gm_custom",
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=3,
-                modifier_description="PF bonus",
+                description="PF bonus",
                 is_active=True,
             )
         ],
@@ -56,10 +56,10 @@ def test_profit_factor_does_not_go_negative():
             Modifier(
                 id=1,
                 colony_id=1,
-                modifier_source_type="gm_custom",
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=-10,
-                modifier_description="PF penalty",
+                description="PF penalty",
                 is_active=True,
             )
         ],
@@ -86,10 +86,10 @@ def test_profit_factor_zero_when_order_is_zero_property(
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            modifier_description="Custom PF modifier",
+            description="Custom PF modifier",
             is_active=True,
         )
     ]
@@ -124,10 +124,10 @@ def test_profit_factor_halved_when_productivity_zero_property(
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            modifier_description="Custom PF modifier",
+            description="Custom PF modifier",
             is_active=True,
         )
     ]
@@ -163,10 +163,10 @@ def test_profit_factor_never_negative_property(
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            modifier_description="Custom PF modifier",
+            description="Custom PF modifier",
             is_active=True,
         )
     ]

@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ModifierStat
+from colony_manager.domain.enums import ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.size_calculator import calculate_size
 
@@ -12,10 +12,10 @@ def test_calculate_size_with_active_modifiers():
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=3,
-            modifier_description="Growth",
+            description="Growth",
             is_active=True,
         ),
     ]
@@ -29,10 +29,10 @@ def test_calculate_size_ignores_non_size_modifiers():
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.ORDER,
             modifier_value=10,
-            modifier_description="Misapplied",
+            description="Misapplied",
             is_active=True,
         ),
     ]
@@ -46,10 +46,10 @@ def test_calculate_size_never_negative():
         Modifier(
             id=1,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=-5,
-            modifier_description="Shrink",
+            description="Shrink",
             is_active=True,
         ),
     ]
@@ -67,10 +67,10 @@ def test_calculate_size_never_negative_property(base_size, modifier_values):
         Modifier(
             id=i,
             colony_id=1,
-            modifier_source_type="gm_custom",
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=value,
-            modifier_description=f"Modifier {i}",
+            description=f"Modifier {i}",
             is_active=True,
         )
         for i, value in enumerate(modifier_values)

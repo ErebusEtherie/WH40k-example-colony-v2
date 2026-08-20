@@ -25,6 +25,9 @@ from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
+# API version prefix constant
+API_V1_PREFIX = "/api/v1"
+
 # Security scheme for JWT Bearer token authentication
 security = HTTPBearer(
     scheme_name="JWT",
@@ -117,13 +120,13 @@ def create_app() -> FastAPI:
     )
 
     # Include routers
-    app.include_router(auth_router, prefix="/api/v1")
-    app.include_router(colonies_router, prefix="/api/v1")
-    app.include_router(infrastructure_router, prefix="/api/v1")
-    app.include_router(representatives_router, prefix="/api/v1")
-    app.include_router(modifiers_router, prefix="/api/v1")
-    app.include_router(resources_router, prefix="/api/v1")
-    app.include_router(support_upgrades_router, prefix="/api/v1")
+    app.include_router(auth_router, prefix=API_V1_PREFIX)
+    app.include_router(colonies_router, prefix=API_V1_PREFIX)
+    app.include_router(infrastructure_router, prefix=API_V1_PREFIX)
+    app.include_router(representatives_router, prefix=API_V1_PREFIX)
+    app.include_router(modifiers_router, prefix=API_V1_PREFIX)
+    app.include_router(resources_router, prefix=API_V1_PREFIX)
+    app.include_router(support_upgrades_router, prefix=API_V1_PREFIX)
 
     # Exception handlers
     @app.exception_handler(NotFoundError)
