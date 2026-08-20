@@ -7,7 +7,11 @@ from colony_manager.adapters.api.routers.auth_router import (
     validate_password,
 )
 from colony_manager.config.settings import get_security_settings
-from colony_manager.domain.util.token import TokenError, create_access_token, create_refresh_token, verify_token
+from colony_manager.domain.util.token import (
+    TokenError,
+    create_access_token,
+    verify_token,
+)
 
 
 class TestPasswordValidation:

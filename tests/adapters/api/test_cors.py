@@ -5,22 +5,22 @@ Verifies that the API correctly handles preflight requests, allowed origins,
 and credentials.
 """
 
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 
 from colony_manager.adapters.api.app import create_app, get_allowed_origins
+from colony_manager.config.settings import get_cors_settings
 from colony_manager.adapters.persistence.db import init_db
 
 
 @pytest.fixture
-def test_client_with_defaults(tmp_path):
+def test_client_with_defaults(tmp_path, monkeypatch):
     """Create test client with default CORS settings (localhost)."""
     db_path = tmp_path / "test.db"
     
-    # Ensure ALLOWED_ORIGINS is not set for default tests
-    original = os.environ.pop("ALLOWED_ORIGINS", None)
+    # Clear cache and ensure ALLOWED_ORIGINS is not set for default tests
+    get_cors_settings.cache_clear()
+    monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
     
     import colony_manager.adapters.api.dependencies as deps
     
@@ -32,8 +32,6 @@ def test_client_with_defaults(tmp_path):
     yield client
     
     app.dependency_overrides.clear()
-    if original:
-        os.environ["ALLOWED_ORIGINS"] = original
 
 
 @pytest.fixture
@@ -41,7 +39,8 @@ def test_client_with_custom_origins(tmp_path, monkeypatch):
     """Create test client with custom CORS origins."""
     db_path = tmp_path / "test.db"
     
-    # Set custom origins for production-like testing
+    # Clear cache and set custom origins for production-like testing
+    get_cors_settings.cache_clear()
     monkeypatch.setenv(
         "ALLOWED_ORIGINS",
         "https://colony.example.com, https://admin.colony.example.com"
@@ -62,18 +61,16 @@ def test_client_with_custom_origins(tmp_path, monkeypatch):
 class TestGetAllowedOrigins:
     """Tests for the get_allowed_origins utility function."""
     
-    def test_default_origins_when_env_not_set(self):
+    def test_default_origins_when_env_not_set(self, monkeypatch):
         """Test default localhost origins when ALLOWED_ORIGINS is not set."""
-        original = os.environ.pop("ALLOWED_ORIGINS", None)
-        try:
-            origins = get_allowed_origins()
-            assert origins == ["http://localhost:3000", "http://127.0.0.1:3000"]
-        finally:
-            if original:
-                os.environ["ALLOWED_ORIGINS"] = original
+        get_cors_settings.cache_clear()
+        monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+        origins = get_allowed_origins()
+        assert origins == ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     def test_custom_origins_from_env(self, monkeypatch):
         """Test custom origins parsed from environment variable."""
+        get_cors_settings.cache_clear()
         monkeypatch.setenv(
             "ALLOWED_ORIGINS",
             "https://prod.example.com, https://staging.example.com"
@@ -83,6 +80,7 @@ class TestGetAllowedOrigins:
     
     def test_origins_with_whitespace(self, monkeypatch):
         """Test that whitespace around origins is stripped."""
+        get_cors_settings.cache_clear()
         monkeypatch.setenv(
             "ALLOWED_ORIGINS",
             "https://example.com ,  https://test.com  ,https://another.com"
@@ -96,12 +94,14 @@ class TestGetAllowedOrigins:
     
     def test_empty_env_var_returns_default(self, monkeypatch):
         """Test that empty ALLOWED_ORIGINS returns defaults."""
+        get_cors_settings.cache_clear()
         monkeypatch.setenv("ALLOWED_ORIGINS", "")
         origins = get_allowed_origins()
         assert origins == ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     def test_single_origin(self, monkeypatch):
         """Test single origin without commas."""
+        get_cors_settings.cache_clear()
         monkeypatch.setenv("ALLOWED_ORIGINS", "https://single.example.com")
         origins = get_allowed_origins()
         assert origins == ["https://single.example.com"]

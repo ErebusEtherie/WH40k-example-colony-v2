@@ -53,7 +53,7 @@ def auth_client(test_client):
     
     # Return client with auth header
     test_client.headers["Authorization"] = f"Bearer {access_token}"
-    yield test_client
+    return test_client
 
 
 def test_root_endpoint(test_client):
@@ -74,7 +74,11 @@ def test_list_colonies_empty(auth_client):
 
 def test_create_and_get_colony(auth_client):
     """Test creating and retrieving a colony."""
-    create_data = {"name": "Test Colony", "owner": "Test Rogue Trader", "colony_type": "mining_and_industry"}
+    create_data = {
+        "name": "Test Colony",
+        "owner": "Test Rogue Trader",
+        "colony_type": "mining_and_industry",
+    }
     response = auth_client.post("/api/v1/colonies", json=create_data)
     assert response.status_code == 201
     colony = response.json()
@@ -169,9 +173,19 @@ def test_create_representative(auth_client):
         "name": "Test Rep",
         "type": "satrap",
         "personalities": [{"name": "Bold", "description": "Bold personality", "effect": "+1 Fel"}],
-        "stats": {"ws": 30, "bs": 30, "s": 30, "t": 30, "ag": 30, "int": 45, "per": 35, "wp": 40, "fel": 50},
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 45,
+            "per": 35,
+            "wp": 40,
+            "fel": 50,
+        },
         "skills": [],
-        "talents": []
+        "talents": [],
     }
     response = auth_client.post("/api/v1/representatives", json=create_data)
     assert response.status_code == 201
@@ -196,23 +210,39 @@ def test_assign_representative(auth_client):
         "name": "Assigned Rep",
         "type": "satrap",
         "personalities": [{"name": "Bold", "description": "Bold personality", "effect": "+1 Fel"}],
-        "stats": {"ws": 30, "bs": 30, "s": 30, "t": 30, "ag": 30, "int": 45, "per": 35, "wp": 40, "fel": 50},
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 45,
+            "per": 35,
+            "wp": 40,
+            "fel": 50,
+        },
         "skills": [],
-        "talents": []
+        "talents": [],
     }
     response = auth_client.post("/api/v1/representatives", json=rep_data)
     rep_id = response.json()["id"]
-    
-    response = auth_client.post(f"/api/v1/representatives/{rep_id}/assign", params={"colony_id": colony_id})
+
+    response = auth_client.post(
+        f"/api/v1/representatives/{rep_id}/assign", params={"colony_id": colony_id}
+    )
     assert response.status_code == 200
     assert response.json()["assigned_to_colony_id"] == colony_id
 def test_list_all_modifiers(auth_client):
     """Test listing all modifiers across colonies."""
     for i in range(2):
-        colony_data = {"name": f"Colony {i}", "owner": "Owner", "colony_type": "mining_and_industry"}
+        colony_data = {
+            "name": f"Colony {i}",
+            "owner": "Owner",
+            "colony_type": "mining_and_industry",
+        }
         response = auth_client.post("/api/v1/colonies", json=colony_data)
         colony_id = response.json()["id"]
-        
+
         modifier_data = {
             "modifier_source_type": "infrastructure",
             "modifier_stat": "order",

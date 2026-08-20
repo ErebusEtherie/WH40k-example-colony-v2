@@ -78,8 +78,15 @@ class CORSSettings(BaseSettings):
     )
 
     def get_origins_list(self) -> list[str]:
-        """Parse allowed origins into a list."""
-        return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+        """Parse allowed origins into a list.
+        
+        Returns default localhost origins if allowed_origins is empty or whitespace-only.
+        """
+        origins = [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+        # Return defaults if no valid origins provided
+        if not origins:
+            return ["http://localhost:3000", "http://127.0.0.1:3000"]
+        return origins
 
 
 class DatabaseSettings(BaseSettings):
