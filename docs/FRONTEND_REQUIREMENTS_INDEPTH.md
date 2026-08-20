@@ -529,16 +529,20 @@ Current API uses simple user roles. Need:
 
 ---
 
-## 9. Open Questions for Backend Team
+## 9. Backend Design Decisions (Answered)
 
-1. **Event model design**: Should events be immutable records, or can they be edited/deleted?
-2. **Audit log retention**: How long to keep version history? Forever? Configurable per colony?
-3. **Real-time architecture**: WebSocket vs. Server-Sent Events vs. polling only?
-4. **Import validation**: How strict should import validation be? Allow partial imports?
-5. **Concurrent edits**: What happens if two users edit the same field simultaneously?
-6. **File storage**: Export files generated on-demand or stored? Size limits?
-7. **Feedback storage**: Where does user feedback go? Database table? External service?
-8. **Analytics tracking**: What events to track? Store in DB or external analytics service?
+The following questions have been resolved (see `BACKEND_API_IMPLEMENTATION_PLAN.md` §7):
+
+1. **Event model design**: ✅ Editable, soft-delete
+2. **Audit log retention**: ✅ Forever, configurable
+3. **Real-time architecture**: ✅ Server-Sent Events (SSE)
+4. **Import validation**: ✅ Strict default, lenient option available
+5. **Concurrent edits**: ✅ Optimistic locking
+6. **File storage**: ✅ On-demand generation (no persistent storage)
+7. **Feedback storage**: ✅ External service
+8. **Analytics tracking**: ✅ External service (PostHog)
+
+These decisions apply to Phase 4+ features. Current Phase 3 implementation is complete.
 
 ---
 

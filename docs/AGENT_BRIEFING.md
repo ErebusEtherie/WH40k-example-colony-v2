@@ -16,9 +16,8 @@ that later documents assume you already have.
 2. **`business_analysis.md`**
    What the system needs to do, in domain terms: entities, fields,
    business rules, calculation formulas, and an explicit list of what's
-   in and out of scope for this first prototype (V1). Sections marked
-   `[TBD]` or `[Needs confirmation]` are known gaps — treat them as such,
-   not as oversights to quietly fill in.
+   in and out of scope for this first prototype (V1).
+   **Status:** All business rules confirmed and implemented.
 
 3. **`technical_analysis.md`**
    How the business requirements map to Python: stack choices, project

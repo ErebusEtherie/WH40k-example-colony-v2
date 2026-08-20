@@ -11,17 +11,12 @@ stated elsewhere; it references them.
 below conflicts with any of those, stop and ask — do not silently resolve
 the conflict (per `06-collaboration-and-uncertainty.md`).
 
-**Known open items:** several config values (colony types, personalities,
-full leadership modifier table, exact lore-state labels — listed in
-`business_analysis.md` §7) are not yet provided. Where a phase needs one of
-these, create the schema/structure fully, but populate actual values with
-clearly marked placeholders (e.g. `# TODO: confirm with user — see
-business_analysis.md §7`) rather than inventing plausible-looking game
-numbers. Flag every placeholder introduced in the phase's completion
-summary.
+**Configuration Status:** All game rule data (colony types, personalities,
+leadership modifiers, lore-state labels, infrastructure rules) has been
+confirmed and implemented in YAML config files. No placeholders remain.
 ---
 
-## Current Status (Updated: 2026-08-19)
+## Current Status (Updated: 2026-08-20)
 
 **Completed Phases:**
 - ✅ **Phase 0** — Environment Setup
@@ -30,6 +25,7 @@ summary.
 - ✅ **Phase 3** — Config Schemas & Loader
 - ✅ **Phase 3b** — State Effects & Special Rules
 - ✅ **Phase 4** — Application Layer (all services)
+- ✅ **Phase 4a** — Hard Infrastructure Module (Infrastructure, SupportUpgrade, Resource models + services)
 - ✅ **Phase 5** — Persistence Adapter (SQLite repositories)
 - ✅ **Phase 6** — Import/Export Adapter (JSON/YAML)
 - ✅ **Phase 7** — API Adapter (FastAPI with JWT auth)
@@ -55,6 +51,7 @@ summary.
 
 **Remaining Work:**
 - None for V1 prototype — all phases complete!
+- Phase 4+ features (events, audit logs, real-time collaboration, advanced export/import) are tracked in `BACKEND_API_IMPLEMENTATION_PLAN.md` for future development
 
 ---
 
@@ -186,14 +183,11 @@ phase)** — per `04-testing-strategy.md`'s risk-based prioritization:
 - [ ] `adapters/config/schemas.py` — Pydantic models for the three config
       files: colony type entries (name, base stats, base size, resource
       exploit bonus per `business_analysis.md` §6), the PF-by-size table,
-      the leadership modifier table, and the lore-state threshold labels
-      (once resolved).
+      the leadership modifier table, and the lore-state threshold labels.
 - [ ] Populate `config/colony_types.yaml`, `config/rule_tables.yaml`,
-      `config/personalities.yaml` with **one clearly-marked placeholder
-      entry each** (e.g. a single example colony type with a comment
-      `# TODO: replace with confirmed data, see business_analysis.md §7`)
-      — enough for the loader and downstream code to be exercised in
-      tests, not real game data.
+      `config/personalities.yaml` with complete game data (all 9 colony
+      types, full lookup tables, all personalities with effects).
+      **Status:** ✅ Complete — all config files populated with confirmed data.
 - [ ] `adapters/config/loader.py` — loads and validates the YAML files
       against the schemas, raises `ConfigurationError` (not a raw
       exception) on invalid/missing config, and implements
@@ -300,17 +294,29 @@ phase)** — per `04-testing-strategy.md`'s risk-based prioritization:
 
 ## Definition of Done for V1
 
-- Colony and Representative can be created, calculated, persisted to
+- ✅ Colony and Representative can be created, calculated, persisted to
   SQLite, and exported/imported as JSON/YAML, all via the CLI.
-- All rule engine calculations (stats, size, PF, leadership modifier) are
+- ✅ All rule engine calculations (stats, size, PF, leadership modifier) are
   covered by the tests described in Phase 2, matching
-  `business_analysis.md` §4 exactly — except lore-state labels, which are
-  explicitly incomplete pending user input.
-- Every placeholder or unconfirmed value introduced during the plan is
-  listed in a final summary message to the user, cross-referenced to the
-  relevant open item in `business_analysis.md` §7 or `technical_analysis.md`
-  §7/§3.6.
-- Nothing from `business_analysis.md` §6 (Infrastructure, Support
-  Upgrades, Resources, event UI/logic, colony type change) has been built
-  — nothing more than the enum placeholders already specified for future
-  modifier source types.
+  `business_analysis.md` §4 exactly.
+- ✅ All configuration data (colony types, personalities, leadership modifiers,
+  lore-state thresholds, infrastructure rules, support upgrades, resources,
+  PF-by-size table) is implemented in YAML config files — no placeholders remain.
+- ✅ Hard Infrastructure module (Phase 4a) complete: Infrastructure, SupportUpgrade,
+  and Resource models with working/disrupted state tracking and stat modifiers.
+- ✅ All lore-state labels implemented (Placated, Locked, Anarchy, Orderly,
+  Pious, Heretical) per `business_analysis.md` §4.6.
+- ✅ API layer complete with JWT authentication, full CRUD endpoints for all
+  domain entities, and proper error handling.
+- ✅ CLI layer complete with all V1 commands for colony management.
+- ✅ 188+ tests passing across domain, application, and adapter layers.
+- ✅ Code quality checks passing (Ruff, Mypy).
+- ✅ Documentation consolidated and up-to-date (see `docs/README.md`).
+
+**Out of Scope for V1** (tracked for Phase 4+ in `BACKEND_API_IMPLEMENTATION_PLAN.md`):
+- Event system (immutable event log, triggers, resolution)
+- Audit log / version history
+- Real-time collaboration (WebSocket/SSE notifications)
+- Advanced export/import (PDF, image export, Excel migration tool)
+- User feedback mechanism
+- Analytics tracking

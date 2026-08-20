@@ -464,6 +464,193 @@ responsive breakpoints.
 
 ---
 
+### 4.7: Infrastructure Card
+
+Hard Infrastructure items are displayed as cards with operational state toggles.
+
+```html
+<div class="infrastructure-card">
+  <div class="infrastructure-card__header">
+    <span class="infrastructure-card__type-icon">🛣️</span>
+    <h3 class="infrastructure-card__title">Drogi</h3>
+    <span class="infrastructure-card__type-badge">Transportation</span>
+  </div>
+  <div class="infrastructure-card__status">
+    <label class="toggle-switch">
+      <input type="checkbox" checked class="toggle-switch__input">
+      <span class="toggle-switch__slider"></span>
+      <span class="toggle-switch__label">Operational</span>
+    </label>
+  </div>
+  <div class="infrastructure-card__bonuses">
+    <div class="bonus-row bonus-row--active">
+      <span class="bonus-icon">↑</span>
+      <span class="bonus-text">+1 Productivity, +1 Complacency</span>
+    </div>
+    <div class="bonus-row bonus-row--inactive">
+      <span class="bonus-icon">↓</span>
+      <span class="bonus-text">-2 Productivity, -2 Order (if disrupted)</span>
+    </div>
+  </div>
+  <div class="infrastructure-card__meta">
+    <span class="meta-item">Installed: Day 130</span>
+  </div>
+  <div class="infrastructure-card__notes">
+    <p>Bandyci napadają na podróżnych, dopóki nie zorganizujemy patroli...</p>
+  </div>
+</div>
+```
+
+```css
+.infrastructure-card {
+  background: var(--gradient-panel);
+  border: 2px solid var(--steel);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.infrastructure-card--disrupted {
+  border-color: var(--blood-red);
+  box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+}
+
+.infrastructure-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.infrastructure-card__type-icon {
+  font-size: 24px;
+}
+
+.infrastructure-card__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--copper-light);
+  margin: 0;
+}
+
+.infrastructure-card__type-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--steel-dark);
+  color: var(--plasma-blue);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--steel);
+}
+
+.infrastructure-card__status {
+  margin-bottom: 1rem;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.toggle-switch__input {
+  display: none;
+}
+
+.toggle-switch__slider {
+  width: 40px;
+  height: 20px;
+  background: var(--steel);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.toggle-switch__slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--text-primary);
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s ease;
+}
+
+.toggle-switch__input:checked + .toggle-switch__slider {
+  background: var(--void-green);
+}
+
+.toggle-switch__input:checked + .toggle-switch__slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-switch__input:not(:checked) + .toggle-switch__slider {
+  background: var(--blood-red);
+}
+
+.infrastructure-card__bonuses {
+  margin-bottom: 1rem;
+}
+
+.bonus-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 0.25rem 0;
+}
+
+.bonus-row--active {
+  color: var(--void-green);
+}
+
+.bonus-row--inactive {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.bonus-icon {
+  font-weight: bold;
+}
+
+.infrastructure-card__meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.infrastructure-card__notes {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--void-black);
+  padding: 0.75rem;
+  border: 1px solid var(--steel);
+}
+
+.infrastructure-card__notes p {
+  margin: 0;
+}
+```
+
+**Infrastructure Type Icons:**
+- Transportation: 🛣️
+- Power Network: ⚡
+- Water Management: 💧
+- Food Production: 🌾
+- Communications: 📡
+
+**State Indicators:**
+- Operational (green toggle): Shows active bonuses
+- Disrupted (red toggle): Shows penalty warnings, card border glows red
+
+---
+---
+
 ## 6. Decorative Elements
 
 ### 6.1: Binary Data Strip

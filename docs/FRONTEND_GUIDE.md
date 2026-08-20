@@ -14,8 +14,8 @@ A comprehensive guide for frontend developers integrating with the Warhammer 40k
 8. [Example Requests](#example-requests)
 9. [Interactive Documentation](#interactive-documentation)
 10. [UI Design Specifications](#ui-design-specifications)
-11. [In-Depth Frontend Requirements](#in-depth-frontend-requirements)
-12. [Questions for Frontend Planning](#questions-for-frontend-planning)
+11. [Frontend Requirements (Answered)](#frontend-requirements-answered)
+12. [Design Decisions & Business Rules (Confirmed)](#design-decisions--business-rules-confirmed)
 13. [User Story Template](#user-story-template)
 14. [Next Steps](#next-steps)
 
@@ -464,39 +464,88 @@ For issues or questions:
 {
 ---
 
-## Frontend Requirements - ANSWERED
+## Frontend Requirements (Answered)
 
-**Stakeholder answers have been collected and are available in:** [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md)
+### User Personas & Roles
 
-This document contains comprehensive answers to all frontend planning questions, including:
+**Primary Users:** Both players and Game Masters use the app with similar permissions. GMs typically manage more colonies.
 
-- User personas and roles (Owner, GM, Party Member, Viewer)
-- Core use cases and top tasks
-- UX/UI preferences (Grimdark theme, dark mode, collapsible sections)
-- Data flow and state management requirements
-- Authentication and multi-user collaboration model
-- Performance and scale expectations
-- Internationalization (English/Polish)
-- Analytics and feedback requirements
+**All Users Can:**
+- Increase colony time
+- Add/remove modifiers
+- Apply growth
+- Build or change status of upgrades
+- Add talents to representative
+- Increase representative stats
+- Full colony management access
 
-**Key highlights:**
-- Desktop-only web app (Chrome/Firefox)
-- Dual-mode UI for 4-hour game sessions and longer planning sessions
-- Real-time collaboration between GM and player (see saved changes)
+**GM Additional Permissions:**
+- Remove colony
+- Change colony status to read-only
+
+**Devices:** Desktop web browsers only (Chrome/Firefox)
+
+**Session Length:** Dual-mode support:
+- **During gameplay:** Quick reference during 4-hour sessions
+- **Between games:** Extended planning sessions
+
+### Core Use Cases
+
+**Top Tasks:**
+1. **View colony current state** — age, pending events, profit factor, development plan
+2. **Apply event modifiers** — add lore event name, description, stat modifiers
+3. **Develop Representative** — add/upgrade skills, talents, increase stats
+4. **Manage infrastructure** — install upgrades, toggle working/disrupted status
+5. **Track development plans** — notes on progress, acquisition requirements, priorities
+
+### UX/UI Preferences
+
+**Visual Theme:** Cult Mechanicus aesthetic
+- Deep crimson, burnished copper, bronze, plasma blue accents
+- Dark backgrounds with industrial panel-like cards
+- Binary code decorative elements
+
+**Typography:**
+- **Headers:** Cinzel (all caps, letter-spaced)
+- **Body/Data:** Rajdhani, Share Tech Mono for numbers
+
+**Layout:**
+- High-density dashboards with collapsible sections
+- Dark mode required
 - Auto-save with manual save option
-- 4 permission levels with different access rights
-- JSON export for backup
-- Version history tracking (audit trail)
-- **Cult Mechanicus theme:** Deep crimson, burnished copper, bronze, plasma blue
-- **Typography:** Cinzel (headers), Rajdhani (data/body)
+- Real-time visibility of changes for collaboration
 
-Refer to [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md) for complete details and examples.
+### Data Flow & State Management
+
+**Persistence:** Auto-save on every change with manual save option
+
+**Export/Import:** JSON export for backup and sharing
+
+**Collaboration:** Single-user editing with occasional sharing (no real-time sync required)
+
+### Authentication & Permissions
+
+**Model:** Email/password authentication with 4 permission levels (Owner, GM, Party Member, Viewer)
+
+**Colony Sharing:** Private by default, shareable with specific users
+
+### Performance & Scale
+
+**Expected Load:** 
+- Multiple colonies per user (typically 1-5 for players, 10+ for GMs)
+- Load times under 2 seconds for colony dashboard
+
+**Calculation Visibility:** Show breakdown of stat calculations on request (tooltips, detail views)
+
+### Internationalization
+
+**Languages:** English primary, Polish secondary (WH40k terminology varies by translation)
 
 ---
 
 ## UI Design Specifications
 
-For detailed UI design specifications including color palette, typography, component patterns, and layout guidelines, see the [UI Design Specifications section](FRONTEND_REQUIREMENTS_ANSWERED.md#ui-design-specifications--based-on-reference-examples) in `FRONTEND_REQUIREMENTS_ANSWERED.md`.
+For detailed UI design specifications including color palette, typography, component patterns, and layout guidelines, see [`UI_DESIGN_SYSTEM.md`](UI_DESIGN_SYSTEM.md) and [`UI_QUICK_REFERENCE.md`](UI_QUICK_REFERENCE.md).
 
 ### Key Visual Themes
 
@@ -518,176 +567,110 @@ The specifications are based on analysis of the following UI examples:
 
 ## In-Depth Frontend Requirements
 
-For comprehensive frontend requirements including:
-- Detailed user flows (10 core flows documented)
-- Permission matrix by role
-- Screen layouts and mockups
-- Component library specifications
-- State management requirements
-- Backend API gaps and required changes
-
-See [`FRONTEND_REQUIREMENTS_INDEPTH.md`](FRONTEND_REQUIREMENTS_INDEPTH.md)
+For comprehensive frontend requirements including detailed user flows, permission matrix, screen layouts, and component library specifications, see [`FRONTEND_REQUIREMENTS_INDEPTH.md`](FRONTEND_REQUIREMENTS_INDEPTH.md).
 
 **Key Backend Implications Identified:**
 - 13 new API endpoints needed (export, import, events, development plans, version history, etc.)
 - 4 new database models (Event, DevelopmentPlan, AuditLog, Colony-User junction)
 - 4 existing models need extension (Colony, Infrastructure, SupportUpgrade, Modifier)
 - Permission system overhaul required (colony-specific roles)
-- Real-time collaboration support (WebSocket or polling)
+- Real-time collaboration infrastructure (WebSocket or SSE)
+
+---boration support (WebSocket or polling)
 
 ---
 
-## Questions for Frontend Planning (Reference)
+---
 
-The original questions are preserved below for reference. See [`FRONTEND_REQUIREMENTS_ANSWERED.md`](FRONTEND_REQUIREMENTS_ANSWERED.md) for the answers.
+## Design Decisions & Business Rules (Confirmed)
 
-### User Personas & Roles
+The following decisions have been confirmed and should guide frontend implementation:
 
-1. **Who are the primary users?**
-   - Solo players managing their own colony?
-   - Game Masters managing multiple colonies for different players?
-   - Both (with different permission levels)?
+### Hard Infrastructure Implementation
 
-2. **What devices will users access the app on?**
-   - Desktop only?
-   - Tablet support needed (for tabletop play)?
-   - Mobile responsive required?
+**Implementation Timing:** Hard Infrastructure rules should be implemented **before Phase 4b**.
 
-3. **What is the typical session length?**
-   - Quick reference during gameplay (5-10 min sessions)?
-   - Long planning sessions between games (1-2 hours)?
-   - Both use cases need to be supported?
+**Infrastructure Types (5 total):**
 
-### Core Use Cases
+| Type | Working Bonus | Disrupted Penalty |
+|------|---------------|-------------------|
+| **Transportation** | +1 Productivity, +1 Complacency | -2 Productivity, -2 Order |
+| **Power Network** | +2 Productivity | -3 Productivity, -1 Complacency |
+| **Water Management** | +1 Order, +1 Complacency | -2 Order, -2 Complacency |
+| **Food Production & Distribution** | +1 Productivity, +1 Complacency | -2 Productivity, -2 Complacency |
+| **Communications** | +1 Productivity, +1 Order | -2 Productivity, -2 Order |
 
-4. **What are the top 3-5 tasks users perform most often?**
-   - View colony stats at a glance?
-   - Add/remove infrastructure during gameplay?
-   - Calculate Profit Factor after changes?
-   - Track colony age and cycle events?
-   - Compare different colony configurations?
+**Infrastructure Data Model Fields:**
+- `custom_name` (string) — e.g., "Drogi"
+- `type` (enum) — one of the 5 types above
+- `installation_date` (integer) — colony age in days when installed
+- `is_working` (boolean) — FALSE if disrupted/damaged
+- `player_notes` (string) — GM/player notes about the infrastructure state
 
-5. **During gameplay, what information needs to be visible at all times?**
-   - Current stat values (Size, Complacency, Order, Productivity, Piety)?
-   - Profit Factor?
-   - Active modifiers?
-   - Colony lore states (Anarchy, Placated, etc.)?
+**Modifier Duration:** Infrastructure modifiers do **not** have automatic duration. They are toggled on/off manually (working ↔ disrupted state).
 
-6. **What actions need to be quick/one-click during active play?**
-   - Toggle infrastructure state (working/disrupted)?
-   - Add temporary modifiers?
-   - Advance colony age?
-   - Mark events as resolved?
+### Configuration & Roll Intervals
 
-### UX/UI Preferences
+**Roll Interval Configuration:** Default values come from **global config**, but can be overridden per-colony by the GM or Colony Owner.
 
-7. **What visual theme is expected?**
-   - Grimdark/Warhammer 40k aesthetic?
-   - Clean/minimalist functional design?
-   - Customizable themes?
-### Data Flow & State Management
+### Representative Mechanics
 
-11. **Real-time updates needed?**
-    - Multiple users viewing/editing the same colony simultaneously?
-    - Or single-user with occasional sharing?
+**Representative Type Bonus:** Representative Type is **descriptive only**. It does not provide mechanical bonuses to colony stats or Profit Factor. Any occasional bonuses are situational and applied manually by the GM.
 
-12. **Offline capability required?**
-    - Should the app work without internet (local-first)?
-    - Sync when connection restored?
-    - Or always-online is acceptable?
+**Personality Mechanical Effects:** Personalities **do** have mechanical effects on colony stats. The following personalities are supported:
 
-13. **Data persistence preferences?**
-    - Auto-save on every change?
-    - Manual save with confirmation?
-    - Version history/undo capability?
+| Personality | Effect |
+|-------------|--------|
+| **Beloved** | +1 Complacency |
+| **Military-Minded** | +1 Order |
+| **Corrupt** | +2 Productivity, -1 Order |
+| **Idle** | +2 Complacency, -1 Productivity |
+| **Ambitious** | +2 Productivity, -1 Complacency |
+| **Zealous** | +1 Piety |
+| **Patron of the Arts** | +2 Complacency, -1 Piety |
+| **Unlucky** | +2 Piety |
+| **Ties With…** | +1 to one stat (Complacency, Order, Productivity, or Piety — chosen by GM and saved) |
+| **Administrative Expert** | +2 Productivity (only when Order > Size) |
+| **Cruel** | +2 Productivity, -1 Complacency |
+| **Spymaster** | +2 Order, -1 Complacency |
+| **Generalissimo** | +2 Order, -1 Piety |
+| **Paranoid** | +2 Order, -1 Productivity |
+| **Mad** | +1 Complacency, +1 Piety, +1 Productivity, -1d5 Order (roll saved with personality) |
+| **Charitable** | +1 Complacency, +1 Piety, -1 Productivity |
+| **Vainglorious** | +2 Productivity, -1 Piety |
+| **Scholarly** | +1 to lowest stat at time of installation (stat choice saved with personality) |
+| **Avaricious** | +1 Productivity |
 
-14. **Export/Import needs?**
-    - Export colony to PDF for printing?
-    - Export to image for sharing?
-    - Import from existing Excel sheets (one-time migration)?
-    - Share colony JSON with other players?
+**Skills & Talents:** Skills and Talents are **reference only**. They do not affect calculations.
 
-### Authentication & Multi-User
+### Colony Age Display
 
-15. **Authentication flow preferences?**
-    - Email/password only?
-    - Social login (Google, Discord)?
-    - Guest mode without account?
+**API Field:** Colony age is stored as a single `age_days` integer field (source of truth for calculations and event timing).
 
-16. **Colony sharing model?**
-    - Private colonies (owner only)?
-    - Shareable view-only links?
-    - Collaborative editing (multiple editors)?
-    - Public gallery of example colonies?
+**Display Format:** Frontend should display age in a climatic format: **X years, Y months, Z days** (computed from `age_days` for display purposes only).
 
-### Performance & Scale
+### Event System
 
-17. **Expected scale?**
-    - How many colonies per user typically?
-    - How many infrastructure/upgrades per colony?
-    - Performance expectations for load times?
+**Event Tracking:** The system tracks events but does **not** auto-roll or enforce outcomes. Event table structure:
 
-18. **Calculation visibility?**
-    - Show the math behind stat calculations?
-    - Tooltip explanations for each modifier?
-    - Audit trail of what changed and why?
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Event name |
+| `when` | integer | Colony age in days when event occurred |
+| `state` | enum | `Past` or `Active` |
+| `description` | string | Lore-wise description |
 
-8. **Are there existing UI references or inspiration?**
-   - Specific apps or websites that have the right feel?
-   - Official WH40k apps or tools to match/avoid?
-### Accessibility & Internationalization
+**GM Responsibility:** The GM manually applies any custom modifiers from events via the modifiers system. The app does not auto-calculate event outcomes.
 
-19. **Accessibility requirements?**
-    - WCAG 2.1 compliance level (A, AA, AAA)?
-    - Screen reader support?
-    - Keyboard navigation?
-    - Color blindness considerations?
+### Colony Type
 
-20. **Internationalization needed?**
-    - English only initially?
-    - Plan for other languages (Polish, German, French)?
-    - WH40k terminology varies by translation - which to use?
+**Changeability:** Colony Type is **not changeable** after creation (outside of testing/admin tools). Too many downstream calculations depend on it.
 
-### Integration & Extensions
-
-21. **Future integration plans?**
-    - Foundry VTT integration?
-    - Other virtual tabletops?
-    - Discord bot for dice rolls?
-    - Character sheet integration?
-
-22. **Print-friendly views needed?**
-    - One-page colony summary for printing?
-    - Printer-friendly CSS?
-    - PDF generation server-side?
-
-### Analytics & Feedback
-
-23. **Usage analytics?**
-    - Track feature usage?
-    - Error reporting (Sentry, etc.)?
-    - User feedback mechanism in-app?
-
-24. **Onboarding needs?**
-    - Tutorial for first-time users?
-    - Tooltips for WH40k-specific terms?
-    - Example colonies to explore?
-
-9. **What level of data density is preferred?**
-   - High-density dashboards (all info on one screen)?
-   - Guided workflows with focused screens?
-   - Collapsible/expandable sections?
-
-10. **Dark mode required?**
-    - Many gamers prefer dark themes
-    - Accessibility considerations?
-  "detail": "Error message description",
-  "path": "/api/v1/colonies/1"
 ---
 
 ## User Story Template
 
-Once the above questions are answered, user stories should follow this format:
+User stories should follow this format:
 
 ```
 As a [user role],
@@ -700,7 +683,7 @@ Acceptance Criteria:
 - [Criterion 3]
 ```
 
-### Example User Stories (Pending Answers)
+### Example User Stories
 
 **Example 1: Quick Stat Check**
 ```
@@ -718,6 +701,37 @@ Acceptance Criteria:
 **Example 2: Infrastructure Toggle**
 ```
 As a player managing colony disruptions,
+I want to quickly toggle infrastructure between working/disrupted,
+So that I can track temporary damage during events.
+
+Acceptance Criteria:
+- One-click toggle from working <-> disrupted
+- Visual indicator of state change
+- Affected stats update immediately
+- Change is auto-saved
+```
+
+**Example 3: Profit Factor Calculator**
+```
+As a player planning colony development,
+I want to see how adding infrastructure affects Profit Factor,
+So that I can make informed build decisions.
+
+Acceptance Criteria:
+- "What-if" mode to preview changes before committing
+- PF calculation updates in real-time
+- Breakdown of PF contributors shown
+- Reset to actual state option
+```
+
+---
+
+## Next Steps
+
+1. **Wireframes** - Create low-fidelity mockups for key screens
+2. **Technical Spike** - Validate frontend framework choice (React, Vue, Svelte, etc.)
+3. **Architecture Decision** - State management, routing, component library
+4. **Sprint Planning** - Break stories into tasks for first development sprint
 I want to quickly toggle infrastructure between working/disrupted,
 So that I can track temporary damage during events.
 

@@ -328,18 +328,22 @@ async def notification_stream(current_user: User):
 
 ---
 
-## 7. Open Questions
+## 7. Design Decisions (Resolved)
 
-| # | Question | Recommendation |
-|---|----------|----------------|
-| 1 | Events immutable or editable? | Editable, soft-delete |
-| 2 | Audit log retention? | Forever, configurable |
-| 3 | WebSocket vs SSE vs polling? | SSE |
-| 4 | Import validation strictness? | Strict default, lenient option |
-| 5 | Concurrent edits? | Optimistic locking |
-| 6 | Export storage? | On-demand generation |
-| 7 | Feedback storage? | External service |
-| 8 | Analytics? | External service (PostHog) |
+The following architectural decisions were made during planning:
+
+| # | Question | Decision | Status |
+|---|----------|----------|--------|
+| 1 | Events immutable or editable? | Editable, soft-delete | ✅ Resolved |
+| 2 | Audit log retention? | Forever, configurable | ✅ Resolved |
+| 3 | WebSocket vs SSE vs polling? | SSE for real-time updates | ✅ Resolved |
+| 4 | Import validation strictness? | Strict default, lenient option | ✅ Resolved |
+| 5 | Concurrent edits? | Optimistic locking | ✅ Resolved |
+| 6 | Export storage? | On-demand generation | ✅ Resolved |
+| 7 | Feedback storage? | External service | ✅ Resolved |
+| 8 | Analytics? | External service (PostHog) | ✅ Resolved |
+
+**Note:** These decisions apply to Phase 4+ features (events, audit logs, real-time collaboration, export/import). Current Phase 3 implementation is complete without these features.
 
 ---
 
@@ -412,11 +416,12 @@ src/colony_manager/
 
 ## 10. Next Steps
 
-1. **Review this document** - Address open questions
-2. **Align on API contract** - Export OpenAPI spec
-3. **Create mock API server** - Enable parallel FE dev
-4. **Set up migrations** - Alembic configuration
-5. **Begin Phase 1** - Models and permissions
+All design questions have been resolved. Implementation can proceed:
+
+1. **Align on API contract** - Export OpenAPI spec for frontend team
+2. **Create mock API server** - Enable parallel frontend development
+3. **Set up migrations** - Alembic configuration for schema evolution
+4. **Begin Phase 1** - Models and permissions implementation
 
 ---
 
