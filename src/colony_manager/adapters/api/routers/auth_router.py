@@ -4,17 +4,25 @@ Provides endpoints for user registration, login, token refresh, and user managem
 
 Security Features:
 - Password validation (length, complexity)
-- Rate limiting support (via settings)
+- Rate limiting (prevents brute force attacks)
 - Secure token handling
+- Refresh token rotation
 """
 
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from colony_manager.adapters.api.dependencies import get_user_repository
 from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
+from colony_manager.adapters.api.middleware.rate_limiter import (
+    get_limiter,
+    login_rate_limit,
+    password_change_rate_limit,
+    register_rate_limit,
+    refresh_token_rate_limit,
+)
 from colony_manager.adapters.api.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
@@ -35,6 +43,7 @@ from colony_manager.domain.util.token import (
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+limiter = get_limiter()
 
 
 class PasswordValidationError(Exception):
@@ -67,8 +76,10 @@ def validate_password(password: str, require_complexity: bool = True, min_length
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, openapi_extra={"security": []})
+@limiter.limit(register_rate_limit())
 def register(
-    request: RegisterRequest,
+    request: Request,
+    register_request: RegisterRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> UserResponse:
     """Register a new user account.
@@ -86,7 +97,7 @@ def register(
     settings = get_security_settings()
     try:
         validate_password(
-            request.password,
+            register_request.password,
             require_complexity=settings.require_password_complexity,
             min_length=settings.min_password_length,
         )
@@ -96,24 +107,24 @@ def register(
             detail=str(e),
         ) from e
     
-    existing = user_repository.get_by_username(request.username)
+    existing = user_repository.get_by_username(register_request.username)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists",
         )
     
-    existing = user_repository.get_by_email(request.email)
+    existing = user_repository.get_by_email(register_request.email)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
     
-    password_hash = hash_password(request.password)
+    password_hash = hash_password(register_request.password)
     user = User(
-        username=request.username,
-        email=request.email,
+        username=register_request.username,
+        email=register_request.email,
         password_hash=password_hash,
         role=UserRole.VIEWER,
         is_active=True,
@@ -138,15 +149,17 @@ def register(
 
 
 @router.post("/login", response_model=TokenResponse, openapi_extra={"security": []})
+@limiter.limit(login_rate_limit())
 def login(
-    request: LoginRequest,
+    request: Request,
+    login_request: LoginRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> TokenResponse:
     """Authenticate user and return JWT tokens.
     
     This endpoint is public and does not require authentication.
     """
-    user = user_repository.get_by_username(request.username)
+    user = user_repository.get_by_username(login_request.username)
     
     if user is None:
         raise HTTPException(
@@ -162,7 +175,7 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if not verify_password(request.password, user.password_hash):
+    if not verify_password(login_request.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -182,8 +195,10 @@ def login(
 
 
 @router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []})
+@limiter.limit(refresh_token_rate_limit())
 def refresh_token_endpoint(
-    request: RefreshTokenRequest,
+    request: Request,
+    refresh_request: RefreshTokenRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> TokenResponse:
     """Refresh access token using refresh token.
@@ -198,7 +213,7 @@ def refresh_token_endpoint(
     secret_key = get_jwt_secret_key()
     
     try:
-        payload = verify_token(request.refresh_token, secret_key, token_type="refresh")
+        payload = verify_token(refresh_request.refresh_token, secret_key, token_type="refresh")
         user_id = int(payload["sub"])
     except TokenError as e:
         raise HTTPException(
@@ -245,19 +260,21 @@ def get_current_user_info(
 
 
 @router.post("/change-password")
+@limiter.limit(password_change_rate_limit())
 def change_password(
-    request: ChangePasswordRequest,
+    request: Request,
+    password_change_request: ChangePasswordRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> dict[str, str]:
     """Change password for current user."""
-    if not verify_password(request.current_password, current_user.password_hash):
+    if not verify_password(password_change_request.current_password, current_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
     
-    new_password_hash = hash_password(request.new_password)
+    new_password_hash = hash_password(password_change_request.new_password)
     current_user.password_hash = new_password_hash
     
     try:

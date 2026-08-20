@@ -10,6 +10,10 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 
 from colony_manager.adapters.api import dependencies
+from colony_manager.adapters.api.middleware.rate_limiter import (
+    get_limiter,
+    get_rate_limit_exceeded_handler,
+)
 from colony_manager.adapters.api.routers import (
     auth_router,
     colonies_router,
@@ -22,6 +26,7 @@ from colony_manager.adapters.api.routers import (
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.config.settings import get_cors_settings, get_security_settings
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
+from slowapi.errors import RateLimitExceeded
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +123,11 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
+
+    # Rate limiting middleware
+    limiter = get_limiter()
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
 
     # Include routers
     app.include_router(auth_router, prefix=API_V1_PREFIX)
