@@ -316,7 +316,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 
 ### 3.1: Main Dashboard Layout
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  HEADER: Colony Name | Age: 142 days | PF: 46 | [Actions]   │
 ├─────────────────────────────────────────────────────────────┤
@@ -350,7 +350,8 @@ This document provides detailed frontend requirements based on stakeholder answe
 ### 3.2: Modal Dialogs
 
 **Event Creation Modal**:
-```
+
+```text
 ┌──────────────────────────────────────────────────┐
 │  Add Event                              [X]      │
 ├──────────────────────────────────────────────────┤
@@ -380,6 +381,39 @@ This document provides detailed frontend requirements based on stakeholder answe
 ```
 
 ---
+---
+
+## 4. Component Library Requirements
+
+### 4.1: Core Components
+
+| Component | Purpose | Props/Inputs | Events/Outputs |
+| ----------- | --------- | -------------- | ---------------- |
+| `StatCard` | Display single colony stat | name, value, base_value, modifiers[], lore_state | onValueClick |
+| `StatGrid` | 5-colony stats layout | stats object | - |
+| `ProgressBar` | Visual stat indicator | value, max, status (good/warn/critical) | - |
+| `LoreStateBadge` | Display active lore state | state_type, active | - |
+| `UpgradeCard` | Infrastructure/upgrade item | name, type, bonuses, is_working, notes | onToggleWorking, onEdit |
+| `UpgradeList` | Grid of upgrades | upgrades[], filter | onAddUpgrade |
+| `RepresentativeSheet` | Character stats display | rep data | onStatIncrease, onAddSkill |
+| `DevelopmentPlanItem` | Single plan entry | plan data | onEdit, onComplete, onReorder |
+| `DevelopmentPlanList` | Plan board | items[], filters | onAddItem, onReorder |
+| `EventModal` | Event creation form | - | onSave, onCancel |
+| `ModifierInput` | Dynamic modifier creator | - | onAddModifier |
+| `VersionHistoryTimeline` | Audit log display | entries[], filters | onEntryClick |
+| `ColonyHeader` | Top bar with key info | colony name, age, PF, actions | onAdvanceTime, onExport |
+| `CollapsibleSection` | Expandable panel | title, icon, defaultExpanded | onToggle |
+| `NotificationBanner` | Real-time change alert | message, user, timestamp | onDismiss, onRefresh |
+
+### 4.2: Layout Components
+
+| Component | Purpose | Notes |
+| ----------- | --------- | ------- |
+| `DashboardGrid` | Main 2-column layout | Responsive: 2-col → 1-col on small screens |
+| `CardGrid` | 3-5 card layouts | For stats, territories |
+| `ModalContainer` | Dialog management | Handles stacking, backdrop, ESC key |
+| `PageLayout` | Standard page chrome | Header, nav, content area, footer |
+
 ---
 
 ## 5. State Management Requirements
@@ -604,187 +638,3 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 3. Set up shared component library / design tokens
 4. Plan integration testing strategy
 5. Define deployment pipeline (separate repos for FE/BE)
-
----
-
-## 7. Non-Functional Requirements
-
-### 7.1: Performance
-
-| Metric | Target | Measurement |
-| -------- | -------- | ------------- |
-| Initial load time | < 3 seconds | Time to interactive |
-| Colony data load | < 2 seconds | API response + render |
-| Action response | < 500ms | Click to UI update |
-| Real-time update latency | < 5 seconds | Other user saves → notification |
-
-### 7.2: Reliability
-
-- Auto-save every 5 minutes (if changes exist)
-- Manual save always available
-- Recovery from network errors (retry with exponential backoff)
-- Clear error messages for failed operations
-
-### 7.3: Security
-
-- JWT tokens stored securely (httpOnly cookies preferred)
-- Token refresh before expiry
-- Logout on token expiry
-- No sensitive data in localStorage
-- HTTPS required in production
-
-### 7.4: Browser Support
-
-- Chrome (latest 2 versions)
-- Firefox (latest 2 versions)
-- No IE support
-- No mobile browser optimization required (but should not break)
-
-## 4. Component Library Requirements
-
-### 4.1: Core Components
-
-| Component | Purpose | Props/Inputs | Events/Outputs |
-| ----------- | --------- | -------------- | ---------------- |
-| `StatCard` | Display single colony stat | name, value, base_value, modifiers[], lore_state | onValueClick |
-| `StatGrid` | 5-colony stats layout | stats object | - |
-| `ProgressBar` | Visual stat indicator | value, max, status (good/warn/critical) | - |
-| `LoreStateBadge` | Display active lore state | state_type, active | - |
-| `UpgradeCard` | Infrastructure/upgrade item | name, type, bonuses, is_working, notes | onToggleWorking, onEdit |
-| `UpgradeList` | Grid of upgrades | upgrades[], filter | onAddUpgrade |
-| `RepresentativeSheet` | Character stats display | rep data | onStatIncrease, onAddSkill |
-| `DevelopmentPlanItem` | Single plan entry | plan data | onEdit, onComplete, onReorder |
-| `DevelopmentPlanList` | Plan board | items[], filters | onAddItem, onReorder |
-| `EventModal` | Event creation form | - | onSave, onCancel |
-| `ModifierInput` | Dynamic modifier creator | - | onAddModifier |
-| `VersionHistoryTimeline` | Audit log display | entries[], filters | onEntryClick |
-| `ColonyHeader` | Top bar with key info | colony name, age, PF, actions | onAdvanceTime, onExport |
-| `CollapsibleSection` | Expandable panel | title, icon, defaultExpanded | onToggle |
-| `NotificationBanner` | Real-time change alert | message, user, timestamp | onDismiss, onRefresh |
-
-### 4.2: Layout Components
-
-| Component | Purpose | Notes |
-| ----------- | --------- | ------- |
-| `DashboardGrid` | Main 2-column layout | Responsive: 2-col → 1-col on small screens |
-| `CardGrid` | 3-5 card layouts | For stats, territories |
-| `ModalContainer` | Dialog management | Handles stacking, backdrop, ESC key |
-| `PageLayout` | Standard page chrome | Header, nav, content area, footer |
-
-4. Preview colony data (name, age, key stats)
-5. Choose action:
-   - Create new colony from import
-   - Overwrite existing colony (dangerous, needs confirmation)
-6. Confirm
-7. System imports data
-8. Success confirmation
-
-**UI Requirements**:
-
-- File upload component
-- Validation feedback (invalid file, missing fields)
-- Preview before import
-- Clear warnings for overwrite action
-- Progress indicator for large imports
-- Error details if import fails
-
-**Backend Implications ⚠️**:
-
-- **Import endpoint** - POST `/api/v1/colonies/import`
-- **Validation logic** - Validate JSON schema, check for required fields
-- **ID remapping** - Imported IDs may conflict, need to generate new IDs
-- **User reference resolution** - Imported `created_by` user IDs may not exist
-- **Duplicate handling** - What if colony name already exists for this user
-- **Rollback on failure** - If import fails partway, clean up partial data
-
----
-
-### Flow 2.6: Colony Time Advancement
-
-**Trigger**: New game session or time skip in campaign
-
-**Steps**:
-
-1. Click "Advance Time" button
-2. Choose method:
-   - Increment by 1 day
-   - Add X days (enter number)
-   - Set to specific day (enter target)
-3. System calculates:
-   - Growth/decay based on time passed
-   - Scheduled events (if any)
-   - Age-related thresholds
-4. Preview changes
-5. Confirm
-6. Colony age updates, stats recalculate
-
-**UI Requirements**:
-
-- Clear display of current colony age
-- Three input modes (increment, add, set)
-- Preview of automatic changes (growth/decay)
-- Warning if time jump triggers threshold events
-- Confirmation dialog before applying
-
-**Backend Implications ⚠️**:
-
-- **Time advancement endpoint** - Current API may only allow setting age, not calculating effects
-- **Growth/decay calculation** - Need clear rules for automatic stat changes over time
-- **Scheduled events** - If events can be scheduled for future dates, need model for this
-- **Threshold event detection** - System should detect and report when time change triggers lore states
-
-5. Load support upgrades with working status
-6. Load representative details
-7. Load development plan items
-8. Load pending events (if any)
-
-**UI Requirements**:
-
-- All stats visible without scrolling (or with minimal scrolling)
-- Lore states clearly indicated (Anarchy, Placated, Productive, Halted, Heretical, Pious)
-- Modified values highlighted (different color if changed from base)
-- Loading state shown during data fetch
-- Error state if load fails
-
-**Backend Implications ⚠️**:
-
-- Need single endpoint to fetch complete colony dashboard data (currently may require multiple calls)
-- Need computed fields for lore states returned in response
-- Need to indicate which stats are modified vs base values
-
----
-
-### Flow 2.2: Add Event with Modifiers
-
-**Trigger**: GM or player records an in-game event affecting the colony
-
-**Steps**:
-
-1. Click "Add Event" button
-2. Fill modal form:
-   - Event name (e.g., "Bandyci na drogach")
-   - Description (lore + mechanical impact)
-   - Stat modifiers (multiple: e.g., Order -1, Productivity -2)
-   - Affected upgrades (optional: mark specific upgrades as non-functional)
-   - Duration (optional: temporary or permanent)
-3. Preview impact (see updated stats before confirming)
-4. Confirm save
-5. System applies modifiers and updates colony state
-6. Version history entry created
-
-**UI Requirements**:
-
-- Modal dialog for event entry
-- Dynamic modifier addition (add multiple stat changes)
-- Real-time preview of affected stats
-- Clear indication of lore state changes (e.g., "Order will drop to 0 → Anarchy triggered")
-- Undo option immediately after save (within 5 seconds)
-
-**Backend Implications ⚠️**:
-
-- **New Event model needed** - Store events with name, description, timestamp, creator
-- **Event-Modifier relationship** - Events can have multiple modifiers attached
-- **Event-Upgrade relationship** - Events can mark specific upgrades as non-functional
-- **Modifier model needs `source_type`** - Distinguish between event-created modifiers and manual modifiers
-- **Preview endpoint** - API endpoint to calculate impact without committing
-- **Undo window** - Track recent changes for quick rollback (optional stretch goal)

@@ -31,7 +31,6 @@ COLONY_PERMISSIONS = {
 
 
 def get_colony_membership(
-    current_user: Annotated[User, Depends(get_current_user)],
     colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
 ) -> ColonyUserRepository:
     """Get the colony user repository for dependency injection.
