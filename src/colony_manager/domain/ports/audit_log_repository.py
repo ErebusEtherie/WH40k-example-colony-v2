@@ -28,6 +28,17 @@ class AuditLogRepository(Protocol):
         """
         ...
     
+    def get_by_id(self, log_id: int) -> AuditLog | None:
+        """Get an audit log entry by ID.
+        
+        Args:
+            log_id: ID of the audit log entry.
+            
+        Returns:
+            Audit log entry if found, None otherwise.
+        """
+        ...
+    
     def get_by_colony(
         self,
         colony_id: int,

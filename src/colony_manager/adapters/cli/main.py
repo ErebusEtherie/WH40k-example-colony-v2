@@ -217,14 +217,16 @@ def export_colony(colony_id: int, path: str) -> None:
         typer.echo(f"Colony {colony_id} not found")
         raise typer.Exit(code=1)
     exporter = ColonyExporter()
-    exporter.export(colony, None, path)
+    exporter.export(colony=colony, path=path)
     typer.echo(f"Exported colony {colony_id} to {path}")
 
 
 @colony_app.command("import")
 def import_colony(path: str) -> None:
     importer = ColonyImporter()
-    colony, representative = importer.import_from_path(path)
+    import_data = importer.import_from_path(path)
+    colony = import_data["colony"]
+    representative = import_data["representative"]
     typer.echo(f"Imported colony {colony.name} with representative {representative.name if representative else 'None'}")
 
 

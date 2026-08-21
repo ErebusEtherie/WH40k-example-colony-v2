@@ -97,6 +97,33 @@ class ColonyService:
             raise NotFoundError(f"Colony {colony_id} not found")
         return colony
 
+    def update_colony(
+        self,
+        colony_id: int,
+        **fields: object,
+    ) -> Colony:
+        """Update colony fields.
+        
+        Args:
+            colony_id: The ID of the colony to update.
+            **fields: Field names and values to update (e.g., representative_id=5).
+            
+        Returns:
+            Updated colony.
+            
+        Raises:
+            NotFoundError: If the colony does not exist.
+        """
+        colony = self._colony_repository.get(colony_id)
+        if colony is None:
+            raise NotFoundError(f"Colony {colony_id} not found")
+        
+        for field, value in fields.items():
+            if value is not None:
+                setattr(colony, field, value)
+        
+        return self._colony_repository.update(colony)
+
     def get_roll_status(self, colony_id: int) -> RollStatusDict:
         """
         Get the roll status for a colony (event and development rolls).

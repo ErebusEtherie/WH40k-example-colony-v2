@@ -4,7 +4,7 @@ This module provides FastAPI dependencies for checking colony-specific permissio
 based on user membership and role within each colony context.
 """
 
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import Depends, HTTPException, status
 
@@ -40,20 +40,22 @@ def get_colony_membership(
     return colony_user_repository
 
 
-def require_colony_role(colony_id: int, required_role: ColonyUserRole) -> object:
+def require_colony_role(required_role: ColonyUserRole) -> Callable[..., User]:
     """Create a dependency that requires a specific colony role.
     
     Args:
-        colony_id: ID of the colony to check membership for.
         required_role: Minimum colony role required.
         
     Returns:
         A dependency function that checks colony membership and role.
+        The returned dependency expects `colony_id: int` as a parameter,
+        which FastAPI will inject from the path parameters.
         
     Raises:
         HTTPException: 403 if user lacks required role, 404 if not a member.
     """
     def check_colony_role(
+        colony_id: int,
         current_user: Annotated[User, Depends(get_current_user)],
         colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     ) -> User:
@@ -87,20 +89,22 @@ def require_colony_role(colony_id: int, required_role: ColonyUserRole) -> object
     return check_colony_role
 
 
-def require_colony_permission(colony_id: int, permission: str) -> object:
+def require_colony_permission(permission: str) -> Callable[..., User]:
     """Create a dependency that requires a specific colony permission.
     
     Args:
-        colony_id: ID of the colony to check membership for.
         permission: Permission name ("view", "edit", "admin").
         
     Returns:
         A dependency function that checks colony membership and permission.
+        The returned dependency expects `colony_id: int` as a parameter,
+        which FastAPI will inject from the path parameters.
         
     Raises:
         HTTPException: 403 if user lacks permission, 404 if not a member.
     """
     def check_permission(
+        colony_id: int,
         current_user: Annotated[User, Depends(get_current_user)],
         colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     ) -> User:

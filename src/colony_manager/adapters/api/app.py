@@ -16,10 +16,15 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
 )
 from colony_manager.adapters.api.routers import (
     auth_router,
+    audit_logs_router,
     colonies_router,
+    colony_users_router,
+    development_plans_router,
     events_router,
+    export_import_router,
     infrastructure_router,
     modifiers_router,
+    notifications_router,
     representatives_router,
     resources_router,
     support_upgrades_router,
@@ -79,11 +84,16 @@ def create_app() -> FastAPI:
             {"name": "auth", "description": "User authentication and authorization"},
             {"name": "colonies", "description": "Colony management operations"},
             {"name": "events", "description": "Event management operations"},
-            {"name": "representatives", "description": "Representative (governor) management"},
-            {"name": "infrastructure", "description": "Hard infrastructure buildings"},
-            {"name": "support", "description": "Support upgrades and services"},
-            {"name": "modifiers", "description": "Colony stat modifiers"},
-            {"name": "resources", "description": "Resource production and management"},
+            {"name": "development_plans", "description": "Development plan tracking"},
+            {"name": "audit_logs", "description": "Audit log and history queries"},
+            {"name": "colony_users", "description": "Colony membership management"},
+            {"name": "export_import", "description": "Colony data export and import"},
+            {"name": "notifications", "description": "Real-time notifications via SSE"},
+            {"name": "representatives", "description": "Representative management"},
+            {"name": "infrastructure", "description": "Hard infrastructure management"},
+            {"name": "support_upgrades", "description": "Support upgrades management"},
+            {"name": "modifiers", "description": "Custom modifier management"},
+            {"name": "resources", "description": "Infrastructure/upgrade reference data"},
         ],
     )
     
@@ -135,6 +145,11 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, prefix=API_V1_PREFIX)
     app.include_router(colonies_router, prefix=API_V1_PREFIX)
     app.include_router(events_router, prefix=API_V1_PREFIX)
+    app.include_router(development_plans_router, prefix=API_V1_PREFIX)
+    app.include_router(audit_logs_router, prefix=API_V1_PREFIX)
+    app.include_router(colony_users_router, prefix=API_V1_PREFIX)
+    app.include_router(export_import_router, prefix=API_V1_PREFIX)
+    app.include_router(notifications_router, prefix=API_V1_PREFIX)
     app.include_router(infrastructure_router, prefix=API_V1_PREFIX)
     app.include_router(representatives_router, prefix=API_V1_PREFIX)
     app.include_router(modifiers_router, prefix=API_V1_PREFIX)

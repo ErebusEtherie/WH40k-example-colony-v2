@@ -53,10 +53,12 @@ def test_export_and_import_round_trip(tmp_path):
 
     path = tmp_path / "colony.json"
     exporter = ColonyExporter()
-    exporter.export(colony, representative, path)
+    exporter.export(colony=colony, representative=representative, path=path)
 
     importer = ColonyImporter()
-    imported_colony, imported_rep = importer.import_from_path(path)
+    import_data = importer.import_from_path(path)
+    imported_colony = import_data["colony"]
+    imported_rep = import_data["representative"]
 
     assert imported_colony.name == colony.name
     assert imported_colony.modifiers[0].modifier_description == "test"

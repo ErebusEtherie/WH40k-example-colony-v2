@@ -37,6 +37,23 @@ class RepresentativeService:
         """
         return self._representative_repository.create(representative)
 
+    def get_representative_by_id(self, representative_id: int) -> Representative:
+        """Get a representative by ID.
+        
+        Args:
+            representative_id: ID of the representative.
+            
+        Returns:
+            The representative.
+            
+        Raises:
+            NotFoundError: If representative does not exist.
+        """
+        representative = self._representative_repository.get(representative_id)
+        if representative is None:
+            raise NotFoundError(f"Representative {representative_id} not found")
+        return representative
+
     def assign_to_colony(self, colony_id: int, representative_id: int) -> Representative:
         """Assign a representative to a colony.
         

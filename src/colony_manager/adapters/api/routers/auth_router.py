@@ -122,11 +122,13 @@ def register(
         )
     
     password_hash = hash_password(register_request.password)
+    # Use provided role or default to VIEWER
+    user_role = UserRole(register_request.role) if register_request.role else UserRole.VIEWER
     user = User(
         username=register_request.username,
         email=register_request.email,
         password_hash=password_hash,
-        role=UserRole.VIEWER,
+        role=user_role,
         is_active=True,
     )
     

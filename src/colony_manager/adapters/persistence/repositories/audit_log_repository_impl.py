@@ -43,6 +43,18 @@ class SqlAlchemyAuditLogRepository(AuditLogRepository):
             
             return orm_to_domain_audit_log(orm_log)
     
+    def get_by_id(self, log_id: int) -> AuditLog | None:
+        """Get an audit log entry by ID."""
+        with self._get_session() as session:
+            query = select(AuditLogORM).where(AuditLogORM.id == log_id)
+            result = session.execute(query)
+            orm_log = result.scalar_one_or_none()
+            
+            if orm_log is None:
+                return None
+            
+            return orm_to_domain_audit_log(orm_log)
+    
     def get_by_colony(
         self,
         colony_id: int,

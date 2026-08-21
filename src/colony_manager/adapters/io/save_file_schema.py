@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from colony_manager.domain.enums import (
@@ -10,6 +12,7 @@ from colony_manager.domain.enums import (
     RepresentativeType,
     SkillLevel,
 )
+from colony_manager.domain.models.colony_user import ColonyUserRole
 
 
 class SaveModifier(BaseModel):
@@ -18,6 +21,43 @@ class SaveModifier(BaseModel):
     modifier_value: int
     modifier_description: str
     is_active: bool = True
+
+
+class SaveEventModifier(BaseModel):
+    """Schema for event modifiers in save files."""
+    stat: ModifierStat
+    value: int
+    description: str
+
+
+class SaveEvent(BaseModel):
+    """Schema for events in save files."""
+    name: str
+    description: str
+    is_active: bool = True
+    modifiers: list[SaveEventModifier] = Field(default_factory=list)
+    created_at: str | None = None
+
+
+class SaveDevelopmentPlan(BaseModel):
+    """Schema for development plans in save files."""
+    upgrade_type: str
+    target_name: str
+    priority: int
+    description: str
+    acquisition_plan: str
+    progress: int
+    status: str
+    created_at: str | None = None
+    completed_at: str | None = None
+
+
+class SaveColonyUser(BaseModel):
+    """Schema for colony users in save files."""
+    user_id: int
+    username: str | None = None
+    role: ColonyUserRole
+    joined_at: str | None = None
 
 
 class SaveRepresentativeStats(BaseModel):
@@ -63,6 +103,7 @@ class SaveRepresentative(BaseModel):
 
 
 class ColonySaveFile(BaseModel):
+    """Complete colony save file schema including all related data."""
     name: str
     owner: str
     colony_type: str
@@ -77,3 +118,6 @@ class ColonySaveFile(BaseModel):
     representative_id: int | None = None
     modifiers: list[SaveModifier] = Field(default_factory=list)
     representative: SaveRepresentative | None = None
+    events: list[SaveEvent] = Field(default_factory=list)
+    development_plans: list[SaveDevelopmentPlan] = Field(default_factory=list)
+    colony_users: list[SaveColonyUser] = Field(default_factory=list)

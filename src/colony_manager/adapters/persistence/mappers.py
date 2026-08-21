@@ -310,6 +310,9 @@ def domain_to_orm_event(domain: Event) -> EventORM:
         created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
         is_active=domain.is_active,
     )
+    # Add modifiers to the ORM event
+    for modifier in domain.modifiers:
+        orm.modifiers.append(domain_to_orm_event_modifier(modifier))
     return orm
 
 
