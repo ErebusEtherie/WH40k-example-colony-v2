@@ -6,6 +6,7 @@ from datetime import date
 
 from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
@@ -24,7 +25,7 @@ class ColonyStateCalculator:
     def __init__(self, config_provider: RuleConfigProvider) -> None:
         self._config_provider = config_provider
 
-    def _get_active_modifiers(self, colony: Colony, as_of: date | None = None) -> list:
+    def _get_active_modifiers(self, colony: Colony, as_of: date | None = None) -> list[Modifier]:
         """
         Get all non-expired, active modifiers for a colony.
         

@@ -5,7 +5,7 @@ authentication. It extracts and validates tokens from the Authorization header.
 """
 
 import os
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -89,7 +89,7 @@ def get_current_user(
     return user
 
 
-def require_role(required_role: str) -> object:
+def require_role(required_role: str) -> Callable[[User], User]:
     """Create a dependency that requires a specific user role.
     
     Args:

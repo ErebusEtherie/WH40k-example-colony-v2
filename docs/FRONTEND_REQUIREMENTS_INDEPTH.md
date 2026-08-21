@@ -17,7 +17,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 ### Role Definitions
 
 | Role | Count per Colony | Permissions |
-|------|------------------|-------------|
+| ------ | ------------------ | ------------- |
 | **Owner** | 1 (creator) | Full access: view, edit, delete, export, import, manage users, change colony status |
 | **Game Master** | 1 | Same as Owner except cannot transfer ownership |
 | **Party Member** | Many | View, edit, export (cannot delete, cannot manage users, cannot change colony status) |
@@ -26,7 +26,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 ### Permission Matrix by Action
 
 | Action | Owner | GM | Party Member | Viewer |
-|--------|-------|-----|--------------|--------|
+| -------- | ------- | ----- | -------------- | -------- |
 | View colony | ✅ | ✅ | ✅ | ✅ |
 | Edit colony stats | ✅ | ✅ | ✅ | ❌ |
 | Add/remove modifiers | ✅ | ✅ | ✅ | ❌ |
@@ -61,10 +61,12 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: User navigates to colony page
 
 **Steps**:
+
 1. Load colony summary (age, profit factor, lore states)
 2. Load 5 core stats (Size, Complacency, Order, Productivity, Piety)
 3. Load active modifiers
 4. Load infrastructure list with working status
+
 ---
 
 ### Flow 2.3: Add/Change Infrastructure Upgrade
@@ -72,6 +74,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: Colony acquires new infrastructure or existing upgrade status changes
 
 **Steps**:
+
 1. Navigate to Infrastructure section
 2. Click "Add Upgrade" or edit existing
 3. Fill form:
@@ -84,6 +87,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 5. Colony stats recalculate immediately
 
 **UI Requirements**:
+
 - Form with validation (installation date cannot be in future)
 - Working status toggle with visual feedback (green/red indicator)
 - Notes field supports multi-line text
@@ -91,6 +95,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 - Filter/sort options if many upgrades exist
 
 **Backend Implications ⚠️**:
+
 - **Upgrade model needs extension**:
   - `custom_name` field
   - `installation_date` field
@@ -106,6 +111,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: Player plans future colony development
 
 **Steps**:
+
 1. Navigate to Development Plan section
 2. Click "Add Plan Item"
 3. Fill form:
@@ -119,6 +125,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 5. Can reorder by priority (drag-drop or manual reordering)
 
 **UI Requirements**:
+
 - Card-based layout for each plan item
 - Priority indicator (color-coded: 1=red/urgent, 5=grey/low)
 - Progress visual (text field or progress bar)
@@ -127,6 +134,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 - Mark items as complete (moves to history)
 
 **Backend Implications ⚠️**:
+
 - **New DevelopmentPlan model needed**:
   - `colony_id` (foreign key)
   - `upgrade_type` (string or enum)
@@ -147,6 +155,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: Representative gains experience or new abilities
 
 **Steps**:
+
 1. Navigate to Representative section
 2. View current stats, skills, talents
 3. To increase stat:
@@ -163,6 +172,7 @@ This document provides detailed frontend requirements based on stakeholder answe
    - Save
 
 **UI Requirements**:
+
 - Character sheet layout (similar to Dark Heresy sheet style)
 - Stats displayed in grid (WS, BS, S, T, Ag, Int, Per, WP, Fel)
 - Skills list with checkboxes for advancement levels (+10, +20, +30)
@@ -171,12 +181,14 @@ This document provides detailed frontend requirements based on stakeholder answe
 - History of changes (what increased when)
 
 **Backend Implications ⚠️**:
+
 - **Representative model may need extension**:
   - Skills need to be structured (not just text list)
   - Talents may need structured storage for filtering
 - **Leadership bonus calculation** - May need dedicated endpoint or computed field
 - **Skill advancement tracking** - Need to track base skill vs advanced levels
 - **Version history for representative changes**
+
 ---
 
 ### Flow 2.7: Collaboration & Real-Time Updates
@@ -184,6 +196,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: Another user saves changes to the colony
 
 **Steps**:
+
 1. User A is viewing colony
 2. User B (different session) makes and saves changes
 3. User A sees notification: "Changes were made by [User B] at [time]"
@@ -193,6 +206,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 5. If User A was editing, warn about potential conflict
 
 **UI Requirements**:
+
 - Non-intrusive notification banner
 - Timestamp and user attribution
 - Auto-refresh option or manual refresh button
@@ -200,6 +214,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 - "Last updated" timestamp always visible
 
 **Backend Implications ⚠️**:
+
 - **WebSocket or polling** - Need real-time or near-real-time update mechanism
 - **Change notification endpoint** - API to announce changes to other connected clients
 - **Optimistic locking** - Prevent conflicting updates (version field on colony)
@@ -213,6 +228,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: User wants to see what changed and when
 
 **Steps**:
+
 1. Click "Version History" or "Audit Log"
 2. View chronological list of changes:
    - Timestamp
@@ -226,6 +242,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 4. Can click entry for more details
 
 **UI Requirements**:
+
 - Timeline or list view
 - Expandable entries for details
 - Color coding by change type (additions=green, modifications=blue, deletions=red)
@@ -234,6 +251,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 - Export history option (optional)
 
 **Backend Implications ⚠️**:
+
 - **Audit log system** - Need to track all changes with:
   - Entity type and ID
   - Field changed
@@ -252,12 +270,14 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: User wants to backup colony data
 
 **Steps**:
+
 1. Click "Export" button
 2. System generates JSON file
 3. Browser downloads file: `colony_[name]_[date].json`
 4. File contains complete colony state
 
 **UI Requirements**:
+
 - Single button action
 - Loading state during generation
 - Clear filename with colony name and date
@@ -265,6 +285,7 @@ This document provides detailed frontend requirements based on stakeholder answe
 - Error handling if export fails
 
 **Backend Implications ⚠️**:
+
 - **Export endpoint** - GET `/api/v1/colonies/{id}/export`
 - **Complete data serialization** - Include all related data:
   - Colony base data
@@ -284,9 +305,11 @@ This document provides detailed frontend requirements based on stakeholder answe
 **Trigger**: Owner wants to restore from backup or clone a colony
 
 **Steps**:
+
 1. Click "Import" button
 2. Select JSON file
 3. System validates file structure
+
 ---
 
 ## 3. Screen/Layout Specifications
@@ -411,6 +434,7 @@ interface ColonyLocalState {
 - **Conflict resolution**: Prompt user if same field modified
 
 **Backend support needed**:
+
 - `GET /api/v1/colonies/{id}/last-modified` - Lightweight endpoint for polling
 - `updated_at` and `updated_by` on all resources
 - ETag or version field for optimistic locking
@@ -427,6 +451,7 @@ interface ColonyLocalState {
 ### 6.2: Translation Scope
 
 **Must translate**:
+
 - UI labels and buttons
 - Error messages
 - Validation messages
@@ -434,6 +459,7 @@ interface ColonyLocalState {
 - Lore state names
 
 **Do NOT translate** (store as-is):
+
 - User-entered content (event names, notes, descriptions)
 - Custom upgrade names
 - Representative name and details
@@ -446,6 +472,7 @@ interface ColonyLocalState {
 - Persist language preference
 
 **Backend Implications ⚠️**:
+
 - API responses should not contain hardcoded English text for system messages
 - Consider accepting `Accept-Language` header for error messages
 - Game rule data (upgrade types, etc.) may need translation tables
@@ -457,7 +484,7 @@ interface ColonyLocalState {
 ### 7.1: Performance
 
 | Metric | Target | Measurement |
-|--------|--------|-------------|
+| -------- | -------- | ------------- |
 | Initial load time | < 3 seconds | Time to interactive |
 | Colony data load | < 2 seconds | API response + render |
 | Action response | < 500ms | Click to UI update |
@@ -492,7 +519,7 @@ interface ColonyLocalState {
 ### 8.1: Missing Endpoints
 
 | Need | Method | Path | Priority |
-|------|--------|------|----------|
+| ------ | -------- | ------ | ---------- |
 | Export colony | GET | `/api/v1/colonies/{id}/export` | High |
 | Import colony | POST | `/api/v1/colonies/import` | High |
 | Get version history | GET | `/api/v1/colonies/{id}/history` | High |
@@ -510,7 +537,7 @@ interface ColonyLocalState {
 ### 8.2: Model Extensions Needed
 
 | Model | Fields to Add | Reason |
-|-------|---------------|--------|
+| ------- | --------------- | -------- |
 | `Colony` | `is_read_only`, `owner_id`, `current_version` | Read-only mode, ownership tracking, optimistic locking |
 | `Infrastructure` | `custom_name`, `installation_date`, `is_working`, `player_notes` | Custom upgrade tracking |
 | `SupportUpgrade` | `custom_name`, `installation_date`, `is_working`, `player_notes` | Same as Infrastructure |
@@ -523,6 +550,7 @@ interface ColonyLocalState {
 ### 8.3: Permission System Overhaul
 
 Current API uses simple user roles. Need:
+
 - Colony-specific roles (Owner, GM, Party Member, Viewer per colony)
 - Permission checking middleware
 - Shareable link token system
@@ -584,7 +612,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 ### 7.1: Performance
 
 | Metric | Target | Measurement |
-|--------|--------|-------------|
+| -------- | -------- | ------------- |
 | Initial load time | < 3 seconds | Time to interactive |
 | Colony data load | < 2 seconds | API response + render |
 | Action response | < 500ms | Click to UI update |
@@ -617,7 +645,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 ### 4.1: Core Components
 
 | Component | Purpose | Props/Inputs | Events/Outputs |
-|-----------|---------|--------------|----------------|
+| ----------- | --------- | -------------- | ---------------- |
 | `StatCard` | Display single colony stat | name, value, base_value, modifiers[], lore_state | onValueClick |
 | `StatGrid` | 5-colony stats layout | stats object | - |
 | `ProgressBar` | Visual stat indicator | value, max, status (good/warn/critical) | - |
@@ -637,11 +665,12 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 ### 4.2: Layout Components
 
 | Component | Purpose | Notes |
-|-----------|---------|-------|
+| ----------- | --------- | ------- |
 | `DashboardGrid` | Main 2-column layout | Responsive: 2-col → 1-col on small screens |
 | `CardGrid` | 3-5 card layouts | For stats, territories |
 | `ModalContainer` | Dialog management | Handles stacking, backdrop, ESC key |
 | `PageLayout` | Standard page chrome | Header, nav, content area, footer |
+
 4. Preview colony data (name, age, key stats)
 5. Choose action:
    - Create new colony from import
@@ -651,6 +680,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 8. Success confirmation
 
 **UI Requirements**:
+
 - File upload component
 - Validation feedback (invalid file, missing fields)
 - Preview before import
@@ -659,6 +689,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 - Error details if import fails
 
 **Backend Implications ⚠️**:
+
 - **Import endpoint** - POST `/api/v1/colonies/import`
 - **Validation logic** - Validate JSON schema, check for required fields
 - **ID remapping** - Imported IDs may conflict, need to generate new IDs
@@ -673,6 +704,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 **Trigger**: New game session or time skip in campaign
 
 **Steps**:
+
 1. Click "Advance Time" button
 2. Choose method:
    - Increment by 1 day
@@ -687,6 +719,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 6. Colony age updates, stats recalculate
 
 **UI Requirements**:
+
 - Clear display of current colony age
 - Three input modes (increment, add, set)
 - Preview of automatic changes (growth/decay)
@@ -694,16 +727,19 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 - Confirmation dialog before applying
 
 **Backend Implications ⚠️**:
+
 - **Time advancement endpoint** - Current API may only allow setting age, not calculating effects
 - **Growth/decay calculation** - Need clear rules for automatic stat changes over time
 - **Scheduled events** - If events can be scheduled for future dates, need model for this
 - **Threshold event detection** - System should detect and report when time change triggers lore states
+
 5. Load support upgrades with working status
 6. Load representative details
 7. Load development plan items
 8. Load pending events (if any)
 
 **UI Requirements**:
+
 - All stats visible without scrolling (or with minimal scrolling)
 - Lore states clearly indicated (Anarchy, Placated, Productive, Halted, Heretical, Pious)
 - Modified values highlighted (different color if changed from base)
@@ -711,6 +747,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 - Error state if load fails
 
 **Backend Implications ⚠️**:
+
 - Need single endpoint to fetch complete colony dashboard data (currently may require multiple calls)
 - Need computed fields for lore states returned in response
 - Need to indicate which stats are modified vs base values
@@ -722,6 +759,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 **Trigger**: GM or player records an in-game event affecting the colony
 
 **Steps**:
+
 1. Click "Add Event" button
 2. Fill modal form:
    - Event name (e.g., "Bandyci na drogach")
@@ -735,6 +773,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 6. Version history entry created
 
 **UI Requirements**:
+
 - Modal dialog for event entry
 - Dynamic modifier addition (add multiple stat changes)
 - Real-time preview of affected stats
@@ -742,6 +781,7 @@ These decisions apply to Phase 4+ features. Current Phase 3 implementation is co
 - Undo option immediately after save (within 5 seconds)
 
 **Backend Implications ⚠️**:
+
 - **New Event model needed** - Store events with name, description, timestamp, creator
 - **Event-Modifier relationship** - Events can have multiple modifiers attached
 - **Event-Upgrade relationship** - Events can mark specific upgrades as non-functional

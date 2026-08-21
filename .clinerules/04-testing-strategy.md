@@ -11,6 +11,7 @@ Not all code deserves the same testing investment. Risk here means: how
 easy is it to get subtly wrong, and how bad is it if it's wrong silently?
 
 **High risk — test heavily, including with hypothesis:**
+
 - Stat derivation and stacking (multiple infrastructure/upgrade modifiers
   combining).
 - Threshold-based state transitions (Order == 0 → Anarchy; Complacency >
@@ -21,6 +22,7 @@ For these, write explicit example-based tests for the documented boundary
 cases (the ones visible in the reference sheet/rules text), *and*
 hypothesis-based property tests for invariants that should hold regardless
 of input, e.g.:
+
 - Stats never go below 0 regardless of how many penalties stack.
 - Order == 0 always forces Profit Factor to 0, regardless of other
   modifiers.
@@ -28,6 +30,7 @@ of input, e.g.:
   documented to increase.
 
 **Medium risk — standard pytest, a handful of cases:**
+
 - Use cases/application services (e.g. "install upgrade", "advance cycle")
   — test orchestration and error handling, not the math they delegate to
   the rule engine (that's already covered separately).
@@ -35,10 +38,10 @@ of input, e.g.:
   equivalent domain object).
 
 **Lower risk — light coverage is fine:**
+
 - API request/response schema validation (Pydantic mostly does this for
   you — test the interesting edge cases, not every field).
 - CLI argument parsing.
-
 
 ## Test execution — hard constraints
 

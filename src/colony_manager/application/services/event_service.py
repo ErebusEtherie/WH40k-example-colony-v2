@@ -61,6 +61,9 @@ class EventService:
         if self._audit_log_repository:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
             
+            if created_event.id is None:
+                raise RuntimeError("Created event has no ID")
+            
             audit_log = AuditLog(
                 entity_type="event",
                 entity_id=created_event.id,

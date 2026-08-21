@@ -67,6 +67,9 @@ class DevelopmentPlanService:
         if self._audit_log_repository:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
             
+            if created_plan.id is None:
+                raise RuntimeError("Created plan has no ID")
+            
             audit_log = AuditLog(
                 entity_type="development_plan",
                 entity_id=created_plan.id,

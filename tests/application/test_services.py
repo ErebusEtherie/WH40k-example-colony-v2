@@ -5,6 +5,8 @@ import pytest
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.enums import (
+    ColonyType,
+    LoreState,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -30,14 +32,16 @@ class InMemoryColonyRepository:
     def create(self, colony: Colony) -> Colony:
         colony.id = self._next_id
         self._next_id += 1
-        self._items[colony.id] = colony
+        if colony.id is not None:
+            self._items[colony.id] = colony
         return colony
 
     def get(self, colony_id: int) -> Colony | None:
         return self._items.get(colony_id)
 
     def update(self, colony: Colony) -> Colony:
-        self._items[colony.id] = colony
+        if colony.id is not None:
+            self._items[colony.id] = colony
         return colony
 
     def delete(self, colony_id: int) -> None:
@@ -55,14 +59,16 @@ class InMemoryRepresentativeRepository:
     def create(self, representative: Representative) -> Representative:
         representative.id = self._next_id
         self._next_id += 1
-        self._items[representative.id] = representative
+        if representative.id is not None:
+            self._items[representative.id] = representative
         return representative
 
     def get(self, representative_id: int) -> Representative | None:
         return self._items.get(representative_id)
 
     def update(self, representative: Representative) -> Representative:
-        self._items[representative.id] = representative
+        if representative.id is not None:
+            self._items[representative.id] = representative
         return representative
 
     def delete(self, representative_id: int) -> None:
@@ -79,11 +85,17 @@ class FakeRuleConfigProvider:
     def get_leadership_modifier(self, stat_bonus: int) -> int:
         return 1
 
-    def get_lore_state_for_stat(self, stat, value, size):
-        return None
+    def get_lore_state_for_stat(self, stat: ModifierStat, value: int, size: int) -> LoreState:
+        return LoreState.STABLE
 
-    def get_leadership_table(self) -> list[object]:
-        return []
+    def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
+        return {}
+
+    def get_event_roll_interval_days(self) -> int:
+        return 60
+
+    def get_development_roll_interval_days(self) -> int:
+        return 90
     
     def get_pf_state_bonuses(self) -> dict[str, int]:
         """Get Profit Factor bonuses for colony states."""
@@ -97,7 +109,7 @@ def test_colony_service_update_age_sets_last_updated():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="research_mission",
+        colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
@@ -106,9 +118,10 @@ def test_colony_service_update_age_sets_last_updated():
         base_piety=10,
         base_size=5,
     )
-    service.create_colony(colony)
+    created_colony = service.create_colony(colony)
+    assert created_colony.id is not None
 
-    updated = service.update_age(colony.id, 30)
+    updated = service.update_age(created_colony.id, 30)
 
     assert updated.age_days == 30
     assert updated.age_last_updated == datetime.now(UTC).date()
@@ -121,7 +134,7 @@ def test_colony_service_add_modifier_updates_colony():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="research_mission",
+        colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
@@ -130,19 +143,22 @@ def test_colony_service_add_modifier_updates_colony():
         base_piety=10,
         base_size=5,
     )
-    service.create_colony(colony)
+    created_colony = service.create_colony(colony)
+    assert created_colony.id is not None
     modifier = Modifier(
-        colony_id=colony.id,
+        colony_id=created_colony.id,
         modifier_source_type=ModifierSourceType.GM_CUSTOM,
         modifier_stat=ModifierStat.ORDER,
         modifier_value=2,
-        modifier_description="test",
+        description="test",
         is_active=True,
     )
 
-    service.add_modifier(colony.id, modifier)
+    service.add_modifier(created_colony.id, modifier)
 
-    assert len(colony_repo.get(colony.id).modifiers) == 1
+    retrieved_colony = colony_repo.get(created_colony.id)
+    assert retrieved_colony is not None
+    assert len(retrieved_colony.modifiers) == 1
 
 
 def test_colony_service_get_state_returns_state():
@@ -152,7 +168,7 @@ def test_colony_service_get_state_returns_state():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="research_mission",
+        colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
@@ -161,9 +177,10 @@ def test_colony_service_get_state_returns_state():
         base_piety=10,
         base_size=5,
     )
-    service.create_colony(colony)
+    created_colony = service.create_colony(colony)
+    assert created_colony.id is not None
 
-    state = service.get_state(colony.id)
+    state = service.get_state(created_colony.id)
 
     assert state["size"] == 5
     assert state["profit_factor"] == 8  # Base(2)+Placated(1)+Productive(2)+Orderly(2)+Leadership(1)
@@ -187,7 +204,7 @@ def test_representative_service_assigns_colony():
     colony = Colony(
         name="Test Colony",
         owner="Owner",
-        colony_type="research_mission",
+        colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
         base_complacency=10,
@@ -197,6 +214,7 @@ def test_representative_service_assigns_colony():
         base_size=5,
     )
     created_colony = colony_service.create_colony(colony)
+    assert created_colony.id is not None
     representative = Representative(
         name="Test Rep",
         type=RepresentativeType.JUDGE,
@@ -206,6 +224,7 @@ def test_representative_service_assigns_colony():
         talents=[Talent(name="Talent", description="desc")],
     )
     created_rep = representative_service.create_representative(representative)
+    assert created_rep.id is not None
 
     updated = representative_service.assign_to_colony(created_colony.id, created_rep.id)
 

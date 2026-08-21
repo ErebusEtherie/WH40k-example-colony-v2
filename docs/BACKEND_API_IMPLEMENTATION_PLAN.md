@@ -14,7 +14,7 @@ This plan addresses 13 new API endpoints, 4 new database models, 4 model extensi
 ### Implementation Phases
 
 | Phase | Focus | Duration Estimate | Priority |
-|-------|-------|-------------------|----------|
+| ------- | ------- | ------------------- | ---------- |
 | **Phase 1** | Foundation: Models + Permission System | 2-3 weeks | Critical |
 | **Phase 2** | Core Endpoints: Events, Development Plans, History | 2-3 weeks | High |
 | **Phase 3** | Collaboration: Export/Import, Real-time | 1-2 weeks | Medium |
@@ -31,6 +31,7 @@ This plan addresses 13 new API endpoints, 4 new database models, 4 model extensi
 **Location:** `src/colony_manager/domain/models/event.py` (domain), `src/colony_manager/adapters/persistence/orm_models.py` (ORM)
 
 **Domain Model:**
+
 ```python
 class Event(BaseModel):
     id: int | None = None
@@ -49,6 +50,7 @@ class EventModifier(BaseModel):
 ```
 
 **Backend Implications:**
+
 - Events automatically create `Modifier` records when activated
 - Events can be edited/deleted by GM+ roles
 - Event history preserved via soft delete (`is_active`)
@@ -62,6 +64,7 @@ class EventModifier(BaseModel):
 **Location:** `src/colony_manager/domain/models/development_plan.py`
 
 **Domain Model:**
+
 ```python
 class DevelopmentPlanStatus(str, Enum):
     PLANNED = "planned"
@@ -85,6 +88,7 @@ class DevelopmentPlan(BaseModel):
 ```
 
 **Backend Implications:**
+
 - Purely informational - no automatic stat effects
 - Progress tracking is manual
 
@@ -97,6 +101,7 @@ class DevelopmentPlan(BaseModel):
 **Location:** `src/colony_manager/domain/models/audit_log.py`
 
 **Domain Model:**
+
 ```python
 class AuditLogAction(str, Enum):
     CREATE = "create"
@@ -114,6 +119,7 @@ class AuditLog(BaseModel):
     changed_at: datetime
     colony_id: int
 ```
+
 ---
 
 ### 1.4: ColonyUser Junction Model
@@ -123,6 +129,7 @@ class AuditLog(BaseModel):
 **Location:** `src/colony_manager/domain/models/colony_user.py`
 
 **Domain Model:**
+
 ```python
 class ColonyUserRole(str, Enum):
     OWNER = "owner"
@@ -140,8 +147,10 @@ class ColonyUser(BaseModel):
 ```
 
 **Backend Implications:**
+
 - Replaces global `User.role` for colony operations
 - One role per user per colony (unique constraint)
+
 ---
 
 ## 2. Model Extensions
@@ -149,7 +158,7 @@ class ColonyUser(BaseModel):
 ### 2.1: Colony Model
 
 | Field | Type | Purpose |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | `is_read_only` | bool | Lock colony to prevent changes |
 | `owner_id` | int | Reference to ColonyUser with OWNER role |
 | `current_version` | int | Optimistic locking version |
@@ -159,7 +168,7 @@ class ColonyUser(BaseModel):
 ### 2.2: Infrastructure Model
 
 | Field | Type | Purpose |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | `custom_name` | str | Player-defined name |
 | `installation_date` | date | When operational |
 | `is_working` | bool | Faulty = no bonuses |
@@ -172,7 +181,7 @@ Same fields as Infrastructure.
 ### 2.4: Modifier Model
 
 | Field | Type | Purpose |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | `source_type` | str | "event", "infrastructure", "upgrade", "manual" |
 | `source_id` | int | ID of source entity |
 | `duration_days` | int | Days until expiry |
@@ -190,7 +199,7 @@ Same fields as Infrastructure.
 ### 3.2: Permission Matrix
 
 | Action | Owner | GM | Party | Viewer |
-|--------|-------|-----|-------|--------|
+| -------- | ------- | ----- | ------- | -------- |
 | View | ✅ | ✅ | ✅ | ✅ |
 | Edit stats | ✅ | ✅ | ✅ | ❌ |
 | Infrastructure | ✅ | ✅ | ✅ | ❌ |
@@ -282,6 +291,7 @@ async def notification_stream(current_user: User):
 ```
 
 **Notification Types:**
+
 - `colony_changed` - User made changes
 - `event_created` - New event
 - `invite_received` - Colony invite
@@ -292,6 +302,7 @@ async def notification_stream(current_user: User):
 ## 6. Implementation Phases
 
 ### Phase 1: Foundation (Weeks 1-3)
+
 - Create new ORM models
 - Create domain models + repositories
 - Extend existing models
@@ -302,6 +313,7 @@ async def notification_stream(current_user: User):
 **Deliverables:** DB schema updated, permissions working, tests passing
 
 ### Phase 2: Core Endpoints (Weeks 4-6)
+
 - Events CRUD
 - Development Plans CRUD
 - Version History
@@ -311,6 +323,7 @@ async def notification_stream(current_user: User):
 **Deliverables:** All endpoints working, API docs updated
 
 ### Phase 3: Collaboration (Weeks 7-8)
+
 - Export/Import
 - Colony User Management
 - Real-time notifications (SSE)
@@ -319,6 +332,7 @@ async def notification_stream(current_user: User):
 **Deliverables:** Export/Import E2E, notifications functional
 
 ### Phase 4: Polish (Week 9)
+
 - Feedback endpoint
 - Analytics tracking
 - Documentation
@@ -333,7 +347,7 @@ async def notification_stream(current_user: User):
 The following architectural decisions were made during planning:
 
 | # | Question | Decision | Status |
-|---|----------|----------|--------|
+| --- | ---------- | ---------- | -------- |
 | 1 | Events immutable or editable? | Editable, soft-delete | ✅ Resolved |
 | 2 | Audit log retention? | Forever, configurable | ✅ Resolved |
 | 3 | WebSocket vs SSE vs polling? | SSE for real-time updates | ✅ Resolved |
@@ -350,6 +364,7 @@ The following architectural decisions were made during planning:
 ## 8. File Locations
 
 ### New Files
+
 ```
 src/colony_manager/
 ├── domain/models/
@@ -381,6 +396,7 @@ src/colony_manager/
 ```
 
 ### Files to Modify
+
 - `domain/models/`: colony, infrastructure, support_upgrade, modifier
 - `adapters/persistence/`: orm_models, mappers, user_repository_impl
 - `adapters/api/routers/`: colonies
@@ -391,23 +407,27 @@ src/colony_manager/
 ## 9. Success Criteria
 
 ### Phase 1
+
 - [ ] All new models created/tested
 - [ ] Permission system working
 - [ ] Audit logging captures changes
 - [ ] Existing tests passing
 
 ### Phase 2
+
 - [ ] All endpoints working
 - [ ] Permission checks enforced
 - [ ] Integration tests passing
 - [ ] API docs complete
 
 ### Phase 3
+
 - [ ] Export/Import E2E working
 - [ ] Notifications < 5s latency
 - [ ] Multi-user testing passed
 
 ### Phase 4
+
 - [ ] Feedback mechanism in place
 - [ ] Analytics tracking working
 - [ ] Benchmarks met
@@ -434,6 +454,7 @@ All design questions have been resolved. Implementation can proceed:
             raise HTTPException(status_code=403)
         return colony_user
     return check
+
 ```
 
 **Backend Implications:**

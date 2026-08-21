@@ -5,6 +5,7 @@
 **Current Phase:** Phase 3b + API implementation complete
 **Test Coverage:** 105 tests passing, 17 API-related tests failing (Infrastructure & Support Upgrades APIs need fixes)
 **Implemented Features:**
+
 - ✅ V1: Colony + Representative models with full stat calculations
 - ✅ V1: Profit Factor and Persistence (save/load)
 - ✅ Phase 3b: Support Upgrades with validation rules
@@ -227,34 +228,40 @@ These effects apply automatically based on colony stat thresholds. They are
 **pure functions** — no I/O, no mutation, deterministic given inputs.
 
 **Orderly State** (Order > Size):
+
 - Effect: +2 Productivity bonus
 - Applied: Continuously while condition holds
 - Source: Rogue Trader Colony Rules
 
 **Pious State** (Piety > Size):
+
 - Effect: +1 Order, +1 Complacency bonus
 - Applied: Continuously while condition holds
 - Source: Rogue Trader Colony Rules
 
 **Complacency = 0 Crisis**:
+
 - Immediate effect: Order and Productivity each decrease by 1d5
 - Ongoing effect: Order and Productivity **cannot increase** (locked)
 - Resolution: GM action/event required to clear locks
 - Source: Rogue Trader Colony Rules
 
 **Piety = 0 Crisis (Heretical)**:
+
 - Immediate effect: Order and Complacency each decrease by 1d5
 - Ongoing effect: Order and Complacency **cannot increase** (locked)
 - Resolution: GM action/event required to clear locks
 - Source: Rogue Trader Colony Rules
 
 **Anarchy State** (Order = 0):
+
 - Trigger: End of every 90-day development cycle
 - Effect: Complacency, Productivity, and Piety each decrease by 1d5; Size decreases by 1
 - Agricultural resilience: Roll 1d10; on 8+, Size decrease is prevented
 - Source: Rogue Trader Colony Rules
 
 **Lock Flag Mechanics**:
+
 - Locks prevent **increases only** — penalties can still reduce stats further
 - Locks are cleared manually by GM command (not automatic)
 - Stats remain clamped at minimum 0 regardless of penalties
@@ -266,23 +273,27 @@ These effects apply automatically based on colony stat thresholds. They are
 Certain colony types have unique abilities per Rogue Trader rules:
 
 **Ecclesiastical Colony**:
+
 - Ability: "If an Ecclesiastical Colony's Order would decrease by any amount,
   its owners can choose to have its Piety decrease by that amount instead."
 - Implementation: `apply_ecclesiastical_protection(colony, order_decrease, use_protection)`
 - Choice: Player/GM decides whether to use protection each time
 
 **Agricultural Colony**:
+
 - Ability: "Any time an Agricultural Colony's Size would decrease, roll 1d10;
   on a result of 8 or higher, it does not decrease."
 - Implementation: `check_agricultural_resilience(dice_roll: int) -> bool`
 - Applies to: Anarchy decay, events, or any other Size decrease
 
 **Mining Colony / Industry Colony / Mining & Industry Colony**:
+
 - Condition: Colony must be exploiting **Mineral** resources
 - Effect: +2 Productivity, +2 Profit Factor
 - Implementation: `get_mining_industry_resource_bonus(colony)`
 
 **Research Mission Colony**:
+
 - Condition: Colony must be exploiting **Organic Compound**, **Archeotech Cache**,
   or **Xenos Ruins** resources
 - Effect: +2 Productivity, +1 Profit Factor
@@ -293,6 +304,7 @@ Certain colony types have unique abilities per Rogue Trader rules:
 ### 4.9 Upgrade Validation Rules (Phase 3b)
 
 **Global Limit**:
+
 - Rule: "A Colony cannot have more Support Upgrades than its Size."
 - Validation: `len(support_upgrades) <= base_size`
 - Error: Cannot add upgrade if it would exceed limit
@@ -312,6 +324,7 @@ Certain colony types have unique abilities per Rogue Trader rules:
 | Trappings | Unlimited | Can purchase multiple |
 
 **Validation Function**: `validate_upgrade_limits(colony, new_upgrade) -> list[str]`
+
 - Returns empty list if valid
 - Returns list of error messages if limits exceeded
 
@@ -365,6 +378,7 @@ All configuration data has been implemented and validated.
 | Event system scope | ✅ Complete (track past/active, GM applies modifiers) | Application logic |
 
 **Implementation Notes:**
+
 - Ecclesiastical, Agricultural, Mining, Research colony type bonuses/rules: ✅ Implemented
 - Support Upgrade type-specific rules: ✅ Implemented
 - Planetary Resource effects: ✅ Implemented

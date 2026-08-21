@@ -1,11 +1,12 @@
 """Pydantic schemas for colony user membership API requests and responses."""
 
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
 
-class ColonyUserRoleEnum(str):
+class ColonyUserRoleEnum(str, Enum):
     """Enum for colony user roles."""
     
     OWNER = "owner"

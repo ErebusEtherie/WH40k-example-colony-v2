@@ -59,6 +59,12 @@ def require_colony_role(colony_id: int, required_role: ColonyUserRole) -> object
         colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     ) -> User:
         """Check if user has required role in the colony."""
+        if current_user.id is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authenticated user has no ID",
+            )
+        
         membership = colony_user_repository.get_by_colony_and_user(colony_id, current_user.id)
         
         if membership is None:
@@ -104,6 +110,12 @@ def require_colony_permission(colony_id: int, permission: str) -> object:
         user_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
         if user_role == "admin":
             return current_user
+        
+        if current_user.id is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authenticated user has no ID",
+            )
         
         membership = colony_user_repository.get_by_colony_and_user(colony_id, current_user.id)
         

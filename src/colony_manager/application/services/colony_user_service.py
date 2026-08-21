@@ -58,6 +58,9 @@ class ColonyUserService:
         if self._audit_log_repository:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
             
+            if created_membership.id is None:
+                raise RuntimeError("Created membership has no ID")
+            
             audit_log = AuditLog(
                 entity_type="colony_membership",
                 entity_id=created_membership.id,

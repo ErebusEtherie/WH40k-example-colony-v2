@@ -1,6 +1,7 @@
 """SQLAlchemy implementation of AuditLogRepository."""
 
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import desc, select
 
@@ -24,8 +25,10 @@ class SqlAlchemyAuditLogRepository(AuditLogRepository):
         self._engine = create_engine(database_url)
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False, autocommit=False)
     
-    def _get_session(self):
+    def _get_session(self) -> Any:
         """Get a database session."""
+        from sqlalchemy.orm import Session
+        
         return self._session_factory()
     
     def create(self, audit_log: AuditLog) -> AuditLog:

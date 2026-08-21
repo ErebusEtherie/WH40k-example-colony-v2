@@ -1,6 +1,7 @@
 # Frontend Developer Guide - WH40k Colony Manager API
 
-A comprehensive guide for frontend developers integrating with the Warhammer 40k Rogue Trader Colony Manager API.
+A comprehensive guide for frontend developers integrating with the Warhammer 40k
+Rogue Trader Colony Manager API.
 
 ## Table of Contents
 
@@ -23,7 +24,8 @@ A comprehensive guide for frontend developers integrating with the Warhammer 40k
 
 ## Overview
 
-The WH40k Colony Manager API is a RESTful API built with FastAPI that manages Warhammer 40k Rogue Trader colonies. It provides endpoints for:
+The WH40k Colony Manager API is a RESTful API built with FastAPI that manages
+Warhammer 40k Rogue Trader colonies. It provides endpoints for:
 
 - **User Authentication** - Registration, login, token management
 - **Colony Management** - Create, read, update colonies with stats
@@ -41,12 +43,14 @@ The WH40k Colony Manager API is a RESTful API built with FastAPI that manages Wa
 ## Base URL & Environment
 
 ### Development
-```
+
+```text
 http://localhost:8000/api/v1
 ```
 
 ### Production
-```
+
+```text
 https://your-production-domain.com/api/v1
 ```
 
@@ -61,7 +65,8 @@ https://your-production-domain.com/api/v1
 
 ## Authentication
 
-The API uses **JWT Bearer Token** authentication. Most endpoints require a valid access token.
+The API uses **JWT Bearer Token** authentication. Most endpoints require a valid
+access token.
 
 ### Authentication Flow
 
@@ -79,12 +84,14 @@ Authorization: Bearer <your_jwt_token>
 ### Auth Endpoints
 
 #### Register New User
+
 ```http
 POST /api/v1/auth/register
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "username": "rogue_trader",
@@ -94,6 +101,7 @@ Content-Type: application/json
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": 1,
@@ -106,12 +114,14 @@ Content-Type: application/json
 ```
 
 #### Login
+
 ```http
 POST /api/v1/auth/login
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "username": "rogue_trader",
@@ -120,6 +130,7 @@ Content-Type: application/json
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -130,12 +141,14 @@ Content-Type: application/json
 ```
 
 #### Refresh Token
+
 ```http
 POST /api/v1/auth/refresh
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -143,12 +156,14 @@ Content-Type: application/json
 ```
 
 #### Get Current User
+
 ```http
 GET /api/v1/auth/me
 Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -166,6 +181,7 @@ Authorization: Bearer <token>
 |------|-------|-------------|
 | `viewer` | 0 | Read-only access |
 | `colony_manager` | 1 | Can manage colonies |
+
 ---
 
 ## API Endpoints
@@ -173,7 +189,7 @@ Authorization: Bearer <token>
 ### Colonies
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
+| -------- | ---------- | ------------- | ------ |
 | GET | `/colonies` | List all colonies | ✓ |
 | POST | `/colonies` | Create new colony | ✓ |
 | GET | `/colonies/{id}` | Get colony details | ✓ |
@@ -186,6 +202,7 @@ Authorization: Bearer <token>
 | DELETE | `/colonies/{id}/modifiers/{modifierId}` | Remove modifier | ✓ |
 
 #### Create Colony
+
 ```http
 POST /api/v1/colonies
 Authorization: Bearer <token>
@@ -193,6 +210,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Footfall",
@@ -204,7 +222,7 @@ Content-Type: application/json
 ### Representatives
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
+| -------- | ---------- | ------------- | ------ |
 | GET | `/representatives` | List all representatives | ✓ |
 | POST | `/representatives` | Create representative | ✓ |
 | GET | `/representatives/{id}` | Get representative details | ✓ |
@@ -212,13 +230,17 @@ Content-Type: application/json
 | DELETE | `/representatives/{id}` | Delete representative | ✓ |
 
 #### Representative Stats
+
 ```json
 {
   "ws": 35, "bs": 40, "s": 30, "t": 35, "ag": 35,
   "int": 45, "per": 40, "wp": 40, "fel": 50
 }
 ```
-**Stat Abbreviations:** ws=Weapon Skill, bs=Ballistic Skill, s=Strength, t=Toughness, ag=Agility, int=Intelligence, per=Perception, wp=Willpower, fel=Fellowship
+
+**Stat Abbreviations:** ws=Weapon Skill, bs=Ballistic Skill, s=Strength,
+t=Toughness, ag=Agility, int=Intelligence, per=Perception, wp=Willpower,
+fel=Fellowship
 
 ### Infrastructure
 
@@ -231,7 +253,7 @@ Content-Type: application/json
 The API computes "lore states" based on stat values relative to colony Size:
 
 | Stat | Condition | Lore State |
-|------|-----------|------------|
+| ------ | ----------- | ------------ |
 | **Complacency** | > Size | `placated` |
 | | = 0 | `riots_and_unrest` |
 | | otherwise | `stable` |
@@ -248,7 +270,7 @@ The API computes "lore states" based on stat values relative to colony Size:
 ### Profit Factor by Size
 
 | Size | PF | Description |
-|------|-----|-------------|
+| ------ | ------ | ------------- |
 | 0 | 0 | Ghost Town |
 | 1 | 1 | Settlement |
 | 2 | 2 | Outpost |
@@ -264,7 +286,7 @@ The API computes "lore states" based on stat values relative to colony Size:
 ### Colony Types
 
 | Type | Base Stats | Special Effect |
-|------|------------|----------------|
+| ------ | ------------ | ---------------- |
 | `research_mission` | C:2, P:1, O:1, Pi:1 | +2 Prod, +1 PF on Organic/Archeotech/Xenos |
 | `mining_and_industry` | C:1, P:2, O:1, Pi:1 | +2 Prod, +2 PF on Minerals |
 | `ecclesiastical` | C:1, P:1, O:2, Pi:2 | Can swap Piety for Order loss |
@@ -277,6 +299,24 @@ The API computes "lore states" based on stat values relative to colony Size:
 ### HTTP Status Codes
 
 | Code | Description |
+| ------ | ------------- |
+| 200 | Success |
+| 201 | Created |
+| 204 | No Content (successful deletion) |
+| 400 | Bad Request (validation error) |
+| 401 | Unauthorized (invalid/missing token) |
+| 403 | Forbidden (insufficient permissions) |
+| 404 | Not Found |
+| 500 | Internal Server Error |
+
+### Error Response Format
+
+```json
+{
+  "detail": "Error message here"
+}
+```
+
 ---
 
 ## CORS Configuration
@@ -284,12 +324,14 @@ The API computes "lore states" based on stat values relative to colony Size:
 The API supports Cross-Origin Resource Sharing (CORS) for browser-based frontends.
 
 ### Default Origins (Development)
+
 - `http://localhost:3000`
 - `http://127.0.0.1:3000`
 
 ### Production Configuration
 
 Set the `ALLOWED_ORIGINS` environment variable:
+
 ```bash
 ALLOWED_ORIGINS="https://colony.example.com,https://admin.colony.example.com"
 ```
@@ -297,6 +339,7 @@ ALLOWED_ORIGINS="https://colony.example.com,https://admin.colony.example.com"
 ### CORS Headers
 
 All responses include:
+
 - `Access-Control-Allow-Origin` - Allowed origin
 - `Access-Control-Allow-Credentials: true` - Cookies/auth headers allowed
 - `Access-Control-Allow-Methods` - GET, POST, PUT, PATCH, DELETE
@@ -401,12 +444,13 @@ curl -X POST http://localhost:8000/api/v1/colonies/1/infrastructure \
 The API provides auto-generated interactive documentation:
 
 | Documentation | URL |
-|---------------|-----|
+| --------------- | ----- |
 | **Swagger UI** | `http://localhost:8000/docs` |
 | **ReDoc** | `http://localhost:8000/redoc` |
 | **OpenAPI Schema** | `http://localhost:8000/openapi.json` |
 
 ### Swagger UI Features
+
 - Live API testing
 - Request/response schemas
 - Authentication support (click "Authorize" button)
@@ -444,24 +488,12 @@ The API tracks elapsed days and provides cycle information. Actual rolling is do
 ## Support
 
 For issues or questions:
+
 - Check the interactive docs at `/docs`
 - Review error messages in the response body
 - Verify CORS configuration for browser issues
 - Ensure JWT token is valid and not expired
-|------|-------------|
-| 200 | Success |
-| 201 | Created |
-| 204 | No Content (successful deletion) |
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized (invalid/missing token) |
-| 403 | Forbidden (insufficient permissions) |
-| 404 | Not Found |
-| 500 | Internal Server Error |
 
-### Error Response Format
-
-```json
-{
 ---
 
 ## Frontend Requirements (Answered)
@@ -471,6 +503,7 @@ For issues or questions:
 **Primary Users:** Both players and Game Masters use the app with similar permissions. GMs typically manage more colonies.
 
 **All Users Can:**
+
 - Increase colony time
 - Add/remove modifiers
 - Apply growth
@@ -480,18 +513,21 @@ For issues or questions:
 - Full colony management access
 
 **GM Additional Permissions:**
+
 - Remove colony
 - Change colony status to read-only
 
 **Devices:** Desktop web browsers only (Chrome/Firefox)
 
 **Session Length:** Dual-mode support:
+
 - **During gameplay:** Quick reference during 4-hour sessions
 - **Between games:** Extended planning sessions
 
 ### Core Use Cases
 
 **Top Tasks:**
+
 1. **View colony current state** — age, pending events, profit factor, development plan
 2. **Apply event modifiers** — add lore event name, description, stat modifiers
 3. **Develop Representative** — add/upgrade skills, talents, increase stats
@@ -501,15 +537,18 @@ For issues or questions:
 ### UX/UI Preferences
 
 **Visual Theme:** Cult Mechanicus aesthetic
+
 - Deep crimson, burnished copper, bronze, plasma blue accents
 - Dark backgrounds with industrial panel-like cards
 - Binary code decorative elements
 
 **Typography:**
+
 - **Headers:** Cinzel (all caps, letter-spaced)
 - **Body/Data:** Rajdhani, Share Tech Mono for numbers
 
 **Layout:**
+
 - High-density dashboards with collapsible sections
 - Dark mode required
 - Auto-save with manual save option
@@ -531,7 +570,8 @@ For issues or questions:
 
 ### Performance & Scale
 
-**Expected Load:** 
+**Expected Load:**
+
 - Multiple colonies per user (typically 1-5 for players, 10+ for GMs)
 - Load times under 2 seconds for colony dashboard
 
@@ -558,6 +598,7 @@ For detailed UI design specifications including color palette, typography, compo
 ### Reference Mockups Analyzed
 
 The specifications are based on analysis of the following UI examples:
+
 1. **Adeptus Mechanicus Dashboard** - System status panels, progress bars, command interface
 2. **Colony Administration** - Profit Factor display, colony metrics grid, representative stats
 3. **Infrastructure & Support** - Checkbox toggles, territory cards, resource tracking
@@ -570,6 +611,7 @@ The specifications are based on analysis of the following UI examples:
 For comprehensive frontend requirements including detailed user flows, permission matrix, screen layouts, and component library specifications, see [`FRONTEND_REQUIREMENTS_INDEPTH.md`](FRONTEND_REQUIREMENTS_INDEPTH.md).
 
 **Key Backend Implications Identified:**
+
 - 13 new API endpoints needed (export, import, events, development plans, version history, etc.)
 - 4 new database models (Event, DevelopmentPlan, AuditLog, Colony-User junction)
 - 4 existing models need extension (Colony, Infrastructure, SupportUpgrade, Modifier)
@@ -593,7 +635,7 @@ The following decisions have been confirmed and should guide frontend implementa
 **Infrastructure Types (5 total):**
 
 | Type | Working Bonus | Disrupted Penalty |
-|------|---------------|-------------------|
+| ------ | --------------- | ------------------- |
 | **Transportation** | +1 Productivity, +1 Complacency | -2 Productivity, -2 Order |
 | **Power Network** | +2 Productivity | -3 Productivity, -1 Complacency |
 | **Water Management** | +1 Order, +1 Complacency | -2 Order, -2 Complacency |
@@ -601,6 +643,7 @@ The following decisions have been confirmed and should guide frontend implementa
 | **Communications** | +1 Productivity, +1 Order | -2 Productivity, -2 Order |
 
 **Infrastructure Data Model Fields:**
+
 - `custom_name` (string) — e.g., "Drogi"
 - `type` (enum) — one of the 5 types above
 - `installation_date` (integer) — colony age in days when installed
@@ -620,7 +663,7 @@ The following decisions have been confirmed and should guide frontend implementa
 **Personality Mechanical Effects:** Personalities **do** have mechanical effects on colony stats. The following personalities are supported:
 
 | Personality | Effect |
-|-------------|--------|
+| ------------- | -------- |
 | **Beloved** | +1 Complacency |
 | **Military-Minded** | +1 Order |
 | **Corrupt** | +2 Productivity, -1 Order |
@@ -654,7 +697,7 @@ The following decisions have been confirmed and should guide frontend implementa
 **Event Tracking:** The system tracks events but does **not** auto-roll or enforce outcomes. Event table structure:
 
 | Field | Type | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `name` | string | Event name |
 | `when` | integer | Colony age in days when event occurred |
 | `state` | enum | `Past` or `Active` |
@@ -672,88 +715,74 @@ The following decisions have been confirmed and should guide frontend implementa
 
 User stories should follow this format:
 
-```
+```text
+
 As a [user role],
 I want to [action],
 So that [benefit/value].
 
 Acceptance Criteria:
+
 - [Criterion 1]
 - [Criterion 2]
 - [Criterion 3]
+
 ```
 
 ### Example User Stories
 
-**Example 1: Quick Stat Check**
-```
+#### Example 1: Quick Stat Check
+
+```text
+
 As a player during a game session,
 I want to see my colony's current stats at a glance,
 So that I can quickly reference them when the GM asks.
 
 Acceptance Criteria:
+
 - All 5 base stats visible without scrolling
 - Current values highlighted if changed from base
 - Lore states (Anarchy, Placated, etc.) clearly indicated
 - Loads in under 2 seconds
+
 ```
 
-**Example 2: Infrastructure Toggle**
-```
+#### Example 2: Infrastructure Toggle
+
+```text
+
 As a player managing colony disruptions,
 I want to quickly toggle infrastructure between working/disrupted,
 So that I can track temporary damage during events.
 
 Acceptance Criteria:
+
 - One-click toggle from working <-> disrupted
 - Visual indicator of state change
 - Affected stats update immediately
 - Change is auto-saved
+
 ```
 
-**Example 3: Profit Factor Calculator**
-```
+#### Example 3: Profit Factor Calculator
+
+```text
+
 As a player planning colony development,
 I want to see how adding infrastructure affects Profit Factor,
 So that I can make informed build decisions.
 
 Acceptance Criteria:
+
 - "What-if" mode to preview changes before committing
 - PF calculation updates in real-time
 - Breakdown of PF contributors shown
 - Reset to actual state option
+
 ```
 
 ---
-
-## Next Steps
-
-1. **Wireframes** - Create low-fidelity mockups for key screens
-2. **Technical Spike** - Validate frontend framework choice (React, Vue, Svelte, etc.)
-3. **Architecture Decision** - State management, routing, component library
-4. **Sprint Planning** - Break stories into tasks for first development sprint
-I want to quickly toggle infrastructure between working/disrupted,
-So that I can track temporary damage during events.
-
-Acceptance Criteria:
-- One-click toggle from working <-> disrupted
-- Visual indicator of state change
-- Affected stats update immediately
-- Change is auto-saved
-```
-
-**Example 3: Profit Factor Calculator**
-```
-As a player planning colony development,
-I want to see how adding infrastructure affects Profit Factor,
-So that I can make informed build decisions.
-
-Acceptance Criteria:
-- "What-if" mode to preview changes before committing
-- PF calculation updates in real-time
-- Breakdown of PF contributors shown
-- Reset to actual state option
-```
 
 ## Next Steps
 
@@ -764,4 +793,4 @@ Acceptance Criteria:
 5. **Architecture Decision** - State management, routing, component library
 6. **Sprint Planning** - Break stories into tasks for first development sprint
 
---- 
+---

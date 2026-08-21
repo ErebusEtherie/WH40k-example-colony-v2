@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 
+from typing import TypedDict
+
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
@@ -11,6 +13,19 @@ from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+
+
+class RollStatusDict(TypedDict):
+    """Dictionary type for roll status."""
+    
+    event_roll_due: bool
+    development_roll_due: bool
+    days_since_event_roll: int
+    days_until_event_roll: int
+    days_since_development_roll: int
+    days_until_development_roll: int
+    event_interval_days: int
+    development_interval_days: int
 
 
 class ColonyService:
@@ -82,7 +97,7 @@ class ColonyService:
             raise NotFoundError(f"Colony {colony_id} not found")
         return colony
 
-    def get_roll_status(self, colony_id: int) -> dict[str, object]:
+    def get_roll_status(self, colony_id: int) -> RollStatusDict:
         """
         Get the roll status for a colony (event and development rolls).
         

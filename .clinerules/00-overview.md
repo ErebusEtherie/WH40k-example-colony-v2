@@ -32,14 +32,13 @@ Each file below covers one concern. Cline should treat all files as binding
 simultaneously — they are not alternatives.
 
 | File | Covers |
-|---|---|
+| --- | --- |
 | `01-architecture.md` | Layering, dependency direction, where things live |
 | `02-domain-modeling.md` | Domain models vs. API schemas vs. persistence models, rule engine design |
 | `03-persistence-and-io.md` | Repository pattern, SQLite, JSON/YAML import/export, Excel migration |
 | `04-testing-strategy.md` | pytest + hypothesis, what to test and how much |
 | `05-code-style-and-documentation.md` | Type hints, docstrings, linting/formatting |
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |
-
 
 ## Cline execution environment — hard constraints
 
@@ -90,7 +89,7 @@ Do not assume Unix/Linux/macOS utilities are available. In particular, do not bl
 Prefer PowerShell commands for filesystem and text-processing operations when appropriate. Examples:
 
 | Intent | Preferred Windows/PowerShell approach |
-|---|---|
+| --- | --- |
 | Count lines | `(Get-Content -LiteralPath 'file').Count` |
 | Search text | `Select-String` |
 | Read text | `Get-Content` |
