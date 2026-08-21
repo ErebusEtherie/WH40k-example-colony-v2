@@ -447,7 +447,44 @@ The API provides auto-generated interactive documentation:
 | --------------- | ----- |
 | **Swagger UI** | `http://localhost:8000/docs` |
 | **ReDoc** | `http://localhost:8000/redoc` |
-| **OpenAPI Schema** | `http://localhost:8000/openapi.json` |
+| **OpenAPI Schema (Live)** | `http://localhost:8000/openapi.json` |
+| **OpenAPI Schema (Static)** | [`docs/api/openapi.json`](docs/api/openapi.json) |
+
+### Static OpenAPI Specification
+
+A versioned OpenAPI specification file is maintained at [`docs/api/openapi.json`](docs/api/openapi.json). This file is:
+
+- **Auto-generated** from the FastAPI application using `scripts/export_openapi.py`
+- **Version-controlled** for tracking API contract changes over time
+- **CI-managed** via GitHub Actions (auto-updated on API changes to `main`)
+- **Tool-friendly** for importing into Postman, Insomnia, or OpenAPI code generators
+
+To manually regenerate the spec:
+
+```bash
+python scripts/export_openapi.py
+```
+
+### Mock API Server
+
+For parallel frontend development without running the full backend, use the **Prism mock server**:
+
+```bash
+# Generate latest OpenAPI spec
+python scripts/export_openapi.py
+
+# Start mock server (runs on http://localhost:4010)
+npx prism mock docs/api/openapi.json
+```
+
+**Benefits:**
+
+- Zero backend setup required
+- Mock responses conform to API schema
+- Validates requests against OpenAPI spec
+- Supports all endpoints defined in the spec
+
+For detailed setup instructions, see [Mock Server Setup Guide](MOCK_SERVER_SETUP.md).
 
 ### Swagger UI Features
 
