@@ -1,7 +1,7 @@
 # Testing ToDo List
 
 **Last Updated:** 2026-08-22
-**Current Status:** 627 tests passing, 100% pass rate
+**Current Status:** 630 tests passing, 100% pass rate
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -10,7 +10,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (48 files, 627 tests)
+### ✅ Existing Tests (48 files, 630 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
@@ -22,7 +22,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **Security** | 4 files | 40+ | ✅ Complete |
 | **Integration** | 3 files | 20+ | ✅ Complete |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **48 files** | **627 tests** | ✅ **100% passing** |
+| **Total** | **48 files** | **630 tests** | ✅ **100% passing** |
 
 ### Test Patterns in Use
 
