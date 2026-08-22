@@ -25,8 +25,6 @@ class SqlAlchemyTokenBlacklistRepository(TokenBlacklistRepository):
     
     def _get_session(self):
         """Get a database session."""
-        from sqlalchemy.orm import Session
-        
         return self._session_factory()
     
     def create(self, token_blacklist: TokenBlacklist) -> TokenBlacklist:
@@ -67,17 +65,58 @@ class SqlAlchemyTokenBlacklistRepository(TokenBlacklistRepository):
     def revoke_all_user_tokens(self, user_id: int, reason: str | None = None) -> int:
         """Revoke all tokens for a user by adding them to blacklist.
         
-        Note: This is a simplified implementation. In a real system, you would
-        need to track all issued tokens per user. For now, this method exists
-        for the interface but would need a token issuance log to work properly.
+        This method queries the token_issuance table for all active (non-revoked,
+        non-expired) tokens for the user and adds them to the blacklist.
         
+        Args:
+            user_id: ID of the user whose tokens to revoke.
+            reason: Optional reason for revocation.
+            
         Returns:
-            Number of tokens revoked (currently 0 as we don't track issued tokens).
+            Number of tokens revoked.
         """
-        # For now, we only blacklist tokens when explicitly revoked
-        # A full implementation would need a token_issuance table to track
-        # all tokens issued to each user
-        return 0
+        revoked_count = 0
+        now = datetime.now(UTC)
+        
+        with self._get_session() as session:
+            try:
+                # Find all active tokens for this user from the issuance table
+                from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
+                
+                query = select(TokenIssuanceORM).where(
+                    TokenIssuanceORM.user_id == user_id,
+                    TokenIssuanceORM.revoked_at == None,
+                    TokenIssuanceORM.expires_at > now,
+                )
+                
+                results = session.execute(query).scalars().all()
+                
+                # Add each active token to the blacklist (skip if already blacklisted)
+                for issuance in results:
+                    # Check if already blacklisted to prevent duplicates
+                    existing = session.execute(
+                        select(TokenBlacklistORM).where(
+                            TokenBlacklistORM.token_id == issuance.token_id
+                        )
+                    ).scalar_one_or_none()
+                    
+                    if existing is None:
+                        blacklist_entry = TokenBlacklistORM(
+                            token_id=issuance.token_id,
+                            user_id=user_id,
+                            expires_at=issuance.expires_at,
+                            revoked_at=now,
+                            reason=reason,
+                        )
+                        session.add(blacklist_entry)
+                        revoked_count += 1
+                
+                session.commit()
+            except Exception:
+                session.rollback()
+                raise
+        
+        return revoked_count
     
     def cleanup_expired(self, before: datetime | None = None) -> int:
         """Remove expired blacklist entries."""

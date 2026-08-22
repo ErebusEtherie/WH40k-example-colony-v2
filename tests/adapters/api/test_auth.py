@@ -246,17 +246,17 @@ class TestRoleBasedAuthorization:
     
     def test_admin_user_can_access_admin_endpoints(self, test_client_with_auth):
         """Test admin user has proper role."""
-        # Register admin user
+        # Register admin user (password must meet complexity requirements)
         register_data = {
             "username": "adminuser",
             "email": "admin@example.com",
-            "password": "adminpassword123",
+            "password": "AdminPass123!",
         }
         response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
         assert response.status_code == 201
         
         # Login and check role
-        login_data = {"username": "adminuser", "password": "adminpassword123"}
+        login_data = {"username": "adminuser", "password": "AdminPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         access_token = login_response.json()["access_token"]
         

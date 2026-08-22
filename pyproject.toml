@@ -28,6 +28,7 @@ dependencies = [
   "pdfplumber>=0.11.10",
   "slowapi>=0.1.9,<1",
   "alembic>=1.13,<2",
+  "pymarkdownlnt>=0.9.39",
 ]
 
 [project.optional-dependencies]
@@ -67,3 +68,8 @@ strict = true
 ignore_missing_imports = true
 files = ["src"]
 disable_error_code = ["import-untyped"]
+
+[dependency-groups]
+dev = [
+    "freezegun>=1.5.5",
+]

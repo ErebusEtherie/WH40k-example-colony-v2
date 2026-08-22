@@ -1,0 +1,280 @@
+"""Tests for Representative domain model validators and properties."""
+
+import pytest
+
+from pydantic import ValidationError
+
+from colony_manager.domain.models.representative import (
+    Personality,
+    PersonalityEffect,
+    Representative,
+    RepresentativeStats,
+    Skill,
+    Talent,
+)
+from colony_manager.domain.enums import DynastyOutcome, RepresentativeType, SkillLevel
+
+
+class TestRepresentativeStatsValidators:
+    """Tests for RepresentativeStats field validators."""
+
+    def test_all_stats_must_be_greater_than_zero(self):
+        """All stats must be > 0 (not just >= 0)."""
+        # Test each stat individually
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=0, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10)
+        assert "ws" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=0, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10)
+        assert "bs" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=0, t=10, ag=10, int=10, per=10, wp=10, fel=10)
+        assert "s" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=0, ag=10, int=10, per=10, wp=10, fel=10)
+        assert "t" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=0, int=10, per=10, wp=10, fel=10)
+        assert "ag" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=0, per=10, wp=10, fel=10)
+        assert "int" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=0, wp=10, fel=10)
+        assert "per" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=0, fel=10)
+        assert "wp" in str(exc_info.value)
+        
+        with pytest.raises(ValidationError) as exc_info:
+            RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=0)
+        assert "fel" in str(exc_info.value)
+
+    def test_negative_stats_rejected(self):
+        """Negative stat values are rejected."""
+        with pytest.raises(ValidationError):
+            RepresentativeStats(
+                ws=-1, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10,
+            )
+
+    def test_positive_stats_accepted(self):
+        """Positive stat values are accepted."""
+        stats = RepresentativeStats(
+            ws=45, bs=38, s=35, t=40, ag=30, int=52, per=41, wp=39, fel=47,
+        )
+        assert stats.ws == 45
+        assert stats.int_ == 52
+        assert stats.per == 41
+        assert stats.fel == 47
+
+    def test_int_alias_works(self):
+        """The 'int' alias works for int_ field."""
+        stats = RepresentativeStats(
+            ws=10, bs=10, s=10, t=10, ag=10, int=50, per=10, wp=10, fel=10,
+        )
+        assert stats.int_ == 50
+
+
+class TestRepresentativeStatsProperties:
+    """Tests for RepresentativeStats bonus properties."""
+
+    def test_int_bonus_calculation(self):
+        """Intelligence bonus is stat // 10."""
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10).int_bonus == 1
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=19, per=10, wp=10, fel=10).int_bonus == 1
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=20, per=10, wp=10, fel=10).int_bonus == 2
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=99, per=10, wp=10, fel=10).int_bonus == 9
+
+    def test_per_bonus_calculation(self):
+        """Perception bonus is stat // 10."""
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10).per_bonus == 1
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=25, wp=10, fel=10).per_bonus == 2
+
+    def test_fel_bonus_calculation(self):
+        """Fellowship bonus is stat // 10."""
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10).fel_bonus == 1
+        assert RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=35).fel_bonus == 3
+
+    def test_highest_leadership_bonus(self):
+        """highest_leadership_bonus returns max of Int, Per, Fel bonuses."""
+        stats = RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=30, per=20, wp=10, fel=25)
+        assert stats.highest_leadership_bonus == 3  # Int bonus
+
+        stats = RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=20, per=45, wp=10, fel=25)
+        assert stats.highest_leadership_bonus == 4  # Per bonus
+
+        stats = RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=20, per=25, wp=10, fel=50)
+        assert stats.highest_leadership_bonus == 5  # Fel bonus
+
+
+class TestRepresentativeValidators:
+    """Tests for Representative model validators."""
+
+    def test_personalities_min_length_one(self):
+        """Representative requires at least one personality."""
+        with pytest.raises(ValidationError) as exc_info:
+            Representative(
+                name="Test Rep",
+                type=RepresentativeType.JUDGE,
+                personalities=[],
+                stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+            )
+        assert "personalities" in str(exc_info.value)
+        assert "min_length" in str(exc_info.value).lower() or "at least 1" in str(exc_info.value).lower()
+
+    def test_valid_representative_with_minimal_data(self):
+        """Valid Representative with minimal required data."""
+        rep = Representative(
+            name="Judge Dredd",
+            type=RepresentativeType.JUDGE,
+            personalities=[Personality(name="Lawful", description="Follows the law")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.name == "Judge Dredd"
+        assert rep.type == RepresentativeType.JUDGE
+        assert len(rep.personalities) == 1
+        assert rep.skills == []
+        assert rep.talents == []
+        assert rep.dynasty_outcome is None
+        assert rep.calamitous_modifier == 0
+        assert rep.assigned_to_colony_id is None
+
+    def test_skills_and_talents_default_to_empty_lists(self):
+        """Skills and talents default to empty lists."""
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[Personality(name="Test", description="Test")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.skills == []
+        assert rep.talents == []
+
+
+class TestRepresentativeProperties:
+    """Tests for Representative properties."""
+
+    def test_loss_mitigation_stat_judge(self):
+        """Judge protects Order."""
+        from colony_manager.domain.enums import ModifierStat
+        rep = Representative(
+            name="Judge",
+            type=RepresentativeType.JUDGE,
+            personalities=[Personality(name="Test", description="Test")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.loss_mitigation_stat == ModifierStat.ORDER
+
+    def test_loss_mitigation_stat_cardinal(self):
+        """Cardinal protects Piety."""
+        from colony_manager.domain.enums import ModifierStat
+        rep = Representative(
+            name="Cardinal",
+            type=RepresentativeType.CARDINAL,
+            personalities=[Personality(name="Test", description="Test")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.loss_mitigation_stat == ModifierStat.PIETY
+
+    def test_loss_mitigation_stat_colonist_representative(self):
+        """Colonist Representative protects Complacency."""
+        from colony_manager.domain.enums import ModifierStat
+        rep = Representative(
+            name="Rep",
+            type=RepresentativeType.COLONIST_REPRESENTATIVE,
+            personalities=[Personality(name="Test", description="Test")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.loss_mitigation_stat == ModifierStat.COMPLACENCY
+
+    def test_loss_mitigation_stat_military_commander(self):
+        """Military Commander protects Productivity."""
+        from colony_manager.domain.enums import ModifierStat
+        rep = Representative(
+            name="Commander",
+            type=RepresentativeType.MILITARY_COMMANDER,
+            personalities=[Personality(name="Test", description="Test")],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.loss_mitigation_stat == ModifierStat.PRODUCTIVITY
+
+    def test_get_total_personality_calamity_modifier(self):
+        """get_total_personality_calamity_modifier sums personality modifiers."""
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="Calm", description="Calm", calamitous_modifier=1),
+                Personality(name="Rash", description="Rash", calamitous_modifier=2),
+                Personality(name="Bold", description="Bold", calamitous_modifier=0),
+            ],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.get_total_personality_calamity_modifier() == 3
+
+    def test_get_total_personality_calamity_modifier_excludes_roll_twice(self):
+        """Personalities with 'roll twice' special rule are excluded from calamity sum."""
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="Lucky", description="Lucky", calamitous_modifier=5, special_rule="Roll twice, take best"),
+                Personality(name="Normal", description="Normal", calamitous_modifier=2),
+            ],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.get_total_personality_calamity_modifier() == 2
+
+    def test_update_calamitous_modifier_without_dynasty(self):
+        """update_calamitous_modifier sets total from personalities only."""
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="Test", description="Test", calamitous_modifier=3),
+            ],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        rep.update_calamitous_modifier()
+        assert rep.calamitous_modifier == 3
+
+    def test_update_calamitous_modifier_with_dynasty_outcome(self):
+        """update_calamitous_modifier includes dynasty outcome modifier."""
+        rep = Representative(
+            name="Dynasty Rep",
+            type=RepresentativeType.DYNASTY_MEMBER,
+            personalities=[
+                Personality(name="Test", description="Test", calamitous_modifier=1),
+            ],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+            dynasty_outcome=DynastyOutcome.YOU_BUILT_THE_PALACE_ON_A_VOLCANO,
+        )
+        rep.update_calamitous_modifier()
+        assert rep.calamitous_modifier == 6  # 1 from personality + 5 from dynasty outcome
+
+    def test_update_calamitous_modifier_dynasty_modifiers(self):
+        """All dynasty outcome modifiers are correctly applied."""
+        dynasty_modifiers = {
+            DynastyOutcome.THAT_ONE_HAS_POTENTIAL: 0,
+            DynastyOutcome.ONE_TO_KEEP_AN_EYE_ON: 2,
+            DynastyOutcome.THRILLING_HEROICS: 3,
+            DynastyOutcome.COME_ON_ITS_JUST_A_GROX: 4,
+            DynastyOutcome.YOU_BUILT_THE_PALACE_ON_A_VOLCANO: 5,
+        }
+        for outcome, expected_mod in dynasty_modifiers.items():
+            rep = Representative(
+                name="Test",
+                type=RepresentativeType.DYNASTY_MEMBER,
+                personalities=[Personality(name="Test", description="Test", calamitous_modifier=0)],
+                stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+                dynasty_outcome=outcome,
+            )
+            rep.update_calamitous_modifier()
+            assert rep.calamitous_modifier == expected_mod, f"Failed for {outcome}"

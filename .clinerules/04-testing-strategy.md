@@ -125,3 +125,9 @@ test file is premature.
 - Don't test the rule engine indirectly through the API in unit tests —
   API tests should confirm wiring/serialization, not re-verify game math
   already covered at the domain level.
+
+---
+
+## Testing ToDo List
+
+See `TESTING_TODO.md` for detailed task breakdown and progress tracking.

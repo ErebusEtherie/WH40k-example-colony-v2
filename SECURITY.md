@@ -60,7 +60,7 @@ Audit logs include:
 - User ID who made the change (if provided)
 - Timestamp
 
-Note: Audit logging is currently implemented for ColonyService. Other services should follow the same pattern.
+Note: All services in the application now support audit logging when an `AuditLogRepository` is provided.
 
 ### Input Validation
 
@@ -131,17 +131,27 @@ REQUIRE_PASSWORD_COMPLEXITY=true
 
 2. **Account Lockout**: Login attempt tracking is not yet implemented. Brute force protection should be added at the infrastructure level.
 
-3. **Audit Logging Coverage**: Audit logging is currently implemented for ColonyService only. The following services still need audit logging:
-   - InfrastructureService
-   - SupportUpgradeService
-   - DevelopmentPlanService
-   - RepresentativeService
+3. **Token Blacklist Cleanup**: Expired blacklist entries can be cleaned up via the CLI command:
 
-   These services should follow the same pattern as ColonyService (inject `AuditLogRepository` and log mutations).
+   ```bash
+   # Dry run (see what would be deleted)
+   uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist --dry-run
 
-4. **Token Blacklist Bulk Revocation**: The `revoke-all` endpoint currently returns 0 tokens revoked. A full implementation would require a token issuance log to track all tokens issued per user. For now, only explicitly revoked tokens (via `/auth/revoke`) are blacklisted.
+   # Actually remove expired entries
+   uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   ```
 
-5. **Token Blacklist Cleanup**: Expired blacklist entries are not automatically cleaned up. Consider adding a periodic cleanup job (e.g., weekly cron) to remove entries older than their expiration date.
+   For automated cleanup, schedule this command to run weekly via cron (Linux/macOS) or Task Scheduler (Windows).
+
+   **Example cron job (weekly on Sunday at 2 AM):**
+   ```bash
+   0 2 * * 0 cd /path/to/WH40k_Colony_Manager && uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   ```
+
+   **Example Windows Task Scheduler command:**
+   ```powershell
+   cd C:\path\to\WH40k_Colony_Manager; uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   ```
 
 ## Dependencies
 
@@ -160,4 +170,4 @@ pip-audit
 
 ## Last Updated
 
-2026-08-21 - Added security headers middleware, token blacklist/revocation, and audit logging for ColonyService
+2026-08-22 - Fixed token blacklist bulk revocation; documented cleanup CLI commands

@@ -66,41 +66,45 @@ When an operation requires functionality that does not correspond to an availabl
 
 ### Workspace and shell environment
 
-The development environment is **Windows**.
+The development environment **must be detected at session start**, not assumed. The agent should determine the OS and shell type before executing platform-specific commands.
 
-When using `run_commands`, assume commands must be compatible with the Windows environment unless the current session explicitly establishes that another shell is being used.
+**Detection strategy:**
 
-Do not assume Unix/Linux/macOS utilities are available. In particular, do not blindly use commands such as:
+1. **Check the environment** at the start of any session that requires shell commands:
+   - Run `python -c "import platform; print(platform.system())"` to detect OS (Windows, Linux, Darwin)
+   - Observe the shell prompt and command behavior to identify shell type (PowerShell, bash, zsh, etc.)
 
-- `wc`
-- `grep`
-- `sed`
-- `awk`
-- `cat`
-- `head`
-- `tail`
-- `find`
-- `xargs`
-- `chmod`
-- `rm`
-- `cp`
-- `mv`
+2. **Default to cross-platform Python commands** when possible:
+   - Prefer `python -m module` over shell-specific invocations
+   - Use Python for file operations when shell commands would diverge significantly
+   - Use `pathlib` in Python code instead of shell path operations
 
-Prefer PowerShell commands for filesystem and text-processing operations when appropriate. Examples:
+3. **When shell commands are necessary**, use the appropriate syntax for the detected environment:
 
-| Intent | Preferred Windows/PowerShell approach |
-| --- | --- |
-| Count lines | `(Get-Content -LiteralPath 'file').Count` |
-| Search text | `Select-String` |
-| Read text | `Get-Content` |
-| First N lines | `Get-Content \| Select-Object -First N` |
-| Last N lines | `Get-Content \| Select-Object -Last N` |
-| Find files/directories | `Get-ChildItem -Recurse` |
-| Remove | `Remove-Item` |
-| Copy | `Copy-Item` |
-| Move | `Move-Item` |
+   | Intent | PowerShell (Windows) | bash/zsh (Linux/macOS) |
+   | --- | --- | --- |
+   | Count lines | `(Get-Content 'file').Count` | `wc -l < file` |
+   | Search text | `Select-String -Pattern 'x' file` | `grep 'x' file` |
+   | Read text | `Get-Content 'file'` | `cat file` |
+   | First N lines | `Get-Content 'file' \| Select-Object -First N` | `head -n N file` |
+   | Last N lines | `Get-Content 'file' \| Select-Object -Last N` | `tail -n N file` |
+   | Find files | `Get-ChildItem -Recurse -Filter '*.py'` | `find . -name '*.py'` |
+   | Remove | `Remove-Item 'path'` | `rm 'path'` |
+   | Copy | `Copy-Item 'src' 'dst'` | `cp 'src' 'dst'` |
+   | Move | `Move-Item 'src' 'dst'` | `mv 'src' 'dst'` |
+   | Path separator | `\` (backslash) | `/` (forward slash) |
 
-Do not assume that a command is available merely because it is common in Linux development environments.
+4. **Path handling:**
+   - In Python code, always use `pathlib.Path` which handles cross-platform paths automatically
+   - In shell commands, use the appropriate path separator for the detected OS
+   - When in doubt, use forward slashes — PowerShell 7+ accepts them
+
+5. **Do not assume** that any Unix/Linux/macOS utilities are available on Windows, or that PowerShell cmdlets are available on Linux/macOS.
+
+**Current session detection:**
+
+- If uncertain about the environment, run a quick detection command before proceeding with platform-specific operations.
+- If a command fails with "command not found" or similar, re-evaluate the shell/OS assumptions.
 
 ### Workspace inspection workflow
 
