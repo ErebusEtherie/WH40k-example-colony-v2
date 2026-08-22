@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.support_upgrade import (
     SupportUpgradeCreate,
     SupportUpgradeListItem,
@@ -43,7 +44,7 @@ def _check_colony_exists(service: SupportUpgradeService, colony_id: int) -> None
 @router.get("", response_model=list[SupportUpgradeListItem])
 async def list_upgrades(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
 ) -> list[SupportUpgradeListItem]:
     """List all support upgrades for a colony."""
@@ -66,7 +67,7 @@ async def list_upgrades(
 async def create_upgrade(
     colony_id: int,
     upgrade_data: SupportUpgradeCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
 ) -> SupportUpgradeResponse:
     """Add new support upgrade to a colony."""
@@ -97,7 +98,7 @@ async def create_upgrade(
 async def get_upgrade(
     colony_id: int,
     upgrade_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
 ) -> SupportUpgradeResponse:
     """Get a specific support upgrade by ID."""
@@ -128,7 +129,7 @@ async def update_upgrade(
     colony_id: int,
     upgrade_id: int,
     upgrade_data: SupportUpgradeUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
 ) -> SupportUpgradeResponse:
     """Update support upgrade."""
@@ -164,7 +165,7 @@ async def update_upgrade(
 async def delete_upgrade(
     colony_id: int,
     upgrade_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
 ) -> None:
     """Remove support upgrade from a colony."""

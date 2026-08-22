@@ -4,8 +4,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from colony_manager.adapters.api.dependencies import get_development_plan_service
+from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.development_plan import (
     DevelopmentPlanCreate,
     DevelopmentPlanResponse,
@@ -14,6 +15,7 @@ from colony_manager.adapters.api.schemas.development_plan import (
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.domain.models.development_plan import DevelopmentPlanStatus
 from colony_manager.domain.models.user import User
+from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 
 router = APIRouter(prefix="/development-plans", tags=["development_plans"])
 
@@ -27,7 +29,7 @@ ERR_USER_NO_ID = "Authenticated user has no ID"
 def create_development_plan(
     colony_id: int,
     plan_data: DevelopmentPlanCreate,
-    service: Annotated[DevelopmentPlanService, Depends(get_development_plan_service)],
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
     current_user: Annotated[User, Depends(require_role("colony_manager"))],
 ) -> DevelopmentPlanResponse:
     """Create a new development plan for a colony.
@@ -74,13 +76,21 @@ def create_development_plan(
 @router.get("/{plan_id}", response_model=DevelopmentPlanResponse)
 def get_development_plan(
     plan_id: int,
-    service: Annotated[DevelopmentPlanService, Depends(get_development_plan_service)],
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
     current_user: Annotated[User, Depends(get_current_user)],
+    colony_user_repo: Annotated[ColonyUserRepository, Depends(dependencies.get_colony_user_repository)],
 ) -> DevelopmentPlanResponse:
     """Get a development plan by ID."""
     plan = service.get_plan(plan_id)
     if plan is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_PLAN_NOT_FOUND)
+    
+    # Check permission on the colony the plan belongs to
+    membership = colony_user_repo.get_by_colony_and_user(plan.colony_id, current_user.id)
+    if membership is None and current_user.role.value != "admin":
+        raise HTTPException(status_code=403, detail=f"User is not a member of colony {plan.colony_id}")
+    if membership is None and current_user.role.value != "admin":
+        raise HTTPException(status_code=403, detail=f"User is not a member of colony {plan.colony_id}")
     
     if plan.id is None or plan.created_at is None:
         raise HTTPException(
@@ -107,10 +117,15 @@ def get_development_plan(
 @router.get("/colonies/{colony_id}", response_model=list[DevelopmentPlanResponse])
 def get_development_plans_by_colony(
     colony_id: int,
-    service: Annotated[DevelopmentPlanService, Depends(get_development_plan_service)],
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> list[DevelopmentPlanResponse]:
+    colony_user_repo: Annotated[ColonyUserRepository, Depends(dependencies.get_colony_user_repository)],) -> list[DevelopmentPlanResponse]:
     """Get all development plans for a colony."""
+    # Check permission on the colony
+    membership = colony_user_repo.get_by_colony_and_user(colony_id, current_user.id)
+    if membership is None and current_user.role.value != "admin":
+        raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")
+    
     plans = service.get_plans_by_colony(colony_id)
     result: list[DevelopmentPlanResponse] = []
     for p in plans:
@@ -139,7 +154,7 @@ def get_development_plans_by_colony(
 def update_development_plan(
     plan_id: int,
     plan_data: DevelopmentPlanUpdate,
-    service: Annotated[DevelopmentPlanService, Depends(get_development_plan_service)],
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
     current_user: Annotated[User, Depends(require_role("colony_manager"))],
 ) -> DevelopmentPlanResponse:
     """Update a development plan. Requires colony_manager role or higher."""
@@ -195,7 +210,7 @@ def update_development_plan(
 @router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_development_plan(
     plan_id: int,
-    service: Annotated[DevelopmentPlanService, Depends(get_development_plan_service)],
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
     current_user: Annotated[User, Depends(require_role("colony_manager"))],
 ) -> None:
     """Delete a development plan. Requires colony_manager role or higher."""
@@ -210,3 +225,5 @@ def delete_development_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_PLAN_NOT_FOUND)
     
     service.delete_plan(plan_id, changed_by=current_user.id)
+
+

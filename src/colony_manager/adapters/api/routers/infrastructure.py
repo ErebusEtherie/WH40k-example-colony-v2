@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.infrastructure import (
     InfrastructureCreate,
     InfrastructureListItem,
@@ -41,7 +42,7 @@ def _check_colony_exists(service: InfrastructureService, colony_id: int) -> None
 @router.get("", response_model=list[InfrastructureListItem])
 async def list_infrastructure(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
 ) -> list[InfrastructureListItem]:
     """List all infrastructure for a colony."""
@@ -64,7 +65,7 @@ async def list_infrastructure(
 async def create_infrastructure(
     colony_id: int,
     infra_data: InfrastructureCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
 ) -> InfrastructureResponse:
     """Add new infrastructure to a colony."""
@@ -93,7 +94,7 @@ async def create_infrastructure(
 async def get_infrastructure(
     colony_id: int,
     infrastructure_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
 ) -> InfrastructureResponse:
     """Get a specific infrastructure by ID."""
@@ -124,7 +125,7 @@ async def update_infrastructure(
     colony_id: int,
     infrastructure_id: int,
     infra_data: InfrastructureUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
 ) -> InfrastructureResponse:
     """Update infrastructure state."""
@@ -158,7 +159,7 @@ async def update_infrastructure(
 async def delete_infrastructure(
     colony_id: int,
     infrastructure_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
 ) -> None:
     """Remove infrastructure from a colony."""

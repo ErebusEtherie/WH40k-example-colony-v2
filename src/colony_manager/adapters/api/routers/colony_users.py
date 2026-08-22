@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_colony_user_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.colony_user import (
     ColonyUserCreate,
     ColonyUserResponse,
@@ -25,7 +26,7 @@ router = APIRouter(prefix="/colonies/{colony_id}/members", tags=["colony_users"]
 def get_colony_members(
     colony_id: int,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
 ) -> list[ColonyUserResponse]:
     """Get all members of a colony."""
     memberships = service.get_members_by_colony(colony_id)
@@ -51,7 +52,7 @@ def add_colony_member(
     colony_id: int,
     member_data: ColonyUserCreate,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> ColonyUserResponse:
     """Add a user to a colony.
     
@@ -97,7 +98,7 @@ def get_colony_member(
     colony_id: int,
     user_id: int,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
 ) -> ColonyUserResponse:
     """Get a specific user's membership in a colony."""
     membership = service.get_membership_by_colony_and_user(colony_id, user_id)
@@ -129,7 +130,7 @@ def update_colony_member_role(
     user_id: int,
     member_data: ColonyUserUpdate,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> ColonyUserResponse:
     """Update a member's role in the colony.
     
@@ -175,7 +176,7 @@ def remove_colony_member(
     colony_id: int,
     user_id: int,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> None:
     """Remove a user from a colony.
     

@@ -10,7 +10,7 @@ from colony_manager.adapters.persistence.db import init_db
 import colony_manager.adapters.api.dependencies as deps
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_client(tmp_path):
     """Create test client with isolated database."""
     db_path = tmp_path / "test.db"
@@ -32,21 +32,27 @@ def test_client(tmp_path):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def auth_client(test_client):
+@pytest.fixture(scope="function")
+def auth_client(test_client, request):
     """Create authenticated test client with a test user."""
-    # Register a test user with colony_manager role (password must meet complexity requirements)
+    # Use unique username per test to avoid conflicts
+    test_name = request.node.name.replace("[", "_").replace("]", "_").replace("(", "_").replace(")", "_")[:20]
+    username = f"testuser_{test_name}"
+    
+    # Register a test user with admin role (password must meet complexity requirements)
     register_data = {
-        "username": "testuser",
-        "email": "test@example.com",
+        "username": username,
+        "email": f"{username}@example.com",
         "password": "TestPass123!",
-        "role": "colony_manager",
+        "role": "admin",
     }
     response = test_client.post("/api/v1/auth/register", json=register_data)
+    if response.status_code != 201:
+        print(f"Registration failed: {response.status_code} - {response.text}")
     assert response.status_code == 201
     
     # Login to get token
-    login_data = {"username": "testuser", "password": "TestPass123!"}
+    login_data = {"username": username, "password": "TestPass123!"}
     login_response = test_client.post("/api/v1/auth/login", json=login_data)
     assert login_response.status_code == 200
     access_token = login_response.json()["access_token"]

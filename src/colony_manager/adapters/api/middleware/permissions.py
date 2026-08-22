@@ -4,7 +4,8 @@ This module provides FastAPI dependencies for checking colony-specific permissio
 based on user membership and role within each colony context.
 """
 
-from typing import Annotated, Callable
+from collections.abc import Callable
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 
@@ -13,7 +14,6 @@ from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.domain.models.colony_user import ColonyUserRole
 from colony_manager.domain.models.user import User
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
-
 
 # Role hierarchy for colony permissions
 COLONY_ROLE_HIERARCHY = {
@@ -109,16 +109,16 @@ def require_colony_permission(permission: str) -> Callable[..., User]:
         colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     ) -> User:
         """Check if user has required permission in the colony."""
-        # Check for admin bypass
-        user_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
-        if user_role == "admin":
-            return current_user
-        
         if current_user.id is None:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Authenticated user has no ID",
             )
+        
+        # Check for admin bypass
+        user_role = current_user.role.value if isinstance(current_user.role, ColonyUserRole) else current_user.role
+        if user_role == "admin":
+            return current_user
         
         membership = colony_user_repository.get_by_colony_and_user(colony_id, current_user.id)
         

@@ -14,6 +14,7 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
     Personality,
@@ -78,6 +79,42 @@ class InMemoryRepresentativeRepository:
         return list(self._items.values())
 
 
+class InMemoryColonyUserRepository:
+    def __init__(self) -> None:
+        self._items: dict[int, ColonyUser] = {}
+        self._next_id = 1
+
+    def create(self, membership: ColonyUser) -> ColonyUser:
+        membership.id = self._next_id
+        self._next_id += 1
+        if membership.id is not None:
+            self._items[membership.id] = membership
+        return membership
+
+    def get(self, membership_id: int) -> ColonyUser | None:
+        return self._items.get(membership_id)
+
+    def get_by_colony_and_user(self, colony_id: int, user_id: int) -> ColonyUser | None:
+        for membership in self._items.values():
+            if membership.colony_id == colony_id and membership.user_id == user_id:
+                return membership
+        return None
+
+    def update(self, membership: ColonyUser) -> ColonyUser:
+        if membership.id is not None:
+            self._items[membership.id] = membership
+        return membership
+
+    def delete(self, membership_id: int) -> None:
+        self._items.pop(membership_id, None)
+
+    def list(self) -> list[ColonyUser]:
+        return list(self._items.values())
+
+    def list_by_colony(self, colony_id: int) -> list[ColonyUser]:
+        return [m for m in self._items.values() if m.colony_id == colony_id]
+
+
 class FakeRuleConfigProvider:
     def get_base_profit_factor(self, size: int) -> int:
         return 2
@@ -105,7 +142,7 @@ class FakeRuleConfigProvider:
 def test_colony_service_update_age_sets_last_updated():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider())
+    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -130,7 +167,7 @@ def test_colony_service_update_age_sets_last_updated():
 def test_colony_service_add_modifier_updates_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider())
+    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -164,7 +201,7 @@ def test_colony_service_add_modifier_updates_colony():
 def test_colony_service_get_state_returns_state():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider())
+    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -189,7 +226,7 @@ def test_colony_service_get_state_returns_state():
 def test_colony_service_raises_for_missing_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider())
+    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
 
     with pytest.raises(NotFoundError):
         service.get_state(999)
@@ -198,7 +235,7 @@ def test_colony_service_raises_for_missing_colony():
 def test_representative_service_assigns_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    colony_service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider())
+    colony_service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
     representative_service = RepresentativeService(colony_repo, representative_repo)
 
     colony = Colony(

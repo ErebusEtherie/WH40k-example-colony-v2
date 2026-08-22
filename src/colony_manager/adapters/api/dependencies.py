@@ -83,10 +83,11 @@ def get_colony_service(
     colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
     representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
     rule_config_provider: Annotated[RuleConfigProvider, Depends(get_rule_config_provider)],
+    colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
 ) -> ColonyService:
     """Get colony service instance with dependencies."""
-    return ColonyService(colony_repository, representative_repository, rule_config_provider, audit_log_repository)
+    return ColonyService(colony_repository, representative_repository, rule_config_provider, colony_user_repository, audit_log_repository)
 
 
 def get_representative_service(

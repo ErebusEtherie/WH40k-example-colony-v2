@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_db_path
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.resource import (
     ResourceCreate,
     ResourceListItem,
@@ -39,7 +40,7 @@ def _check_colony_exists(service: ResourceService, colony_id: int) -> None:
 @router.get("", response_model=list[ResourceListItem])
 async def list_resources(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ResourceService = Depends(get_resource_service),
 ) -> list[ResourceListItem]:
     """List all planetary resources for a colony."""
@@ -58,7 +59,7 @@ async def list_resources(
 async def create_resource(
     colony_id: int,
     resource_data: ResourceCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Add a new planetary resource to a colony."""
@@ -88,7 +89,7 @@ async def create_resource(
 async def get_resource(
     colony_id: int,
     resource_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Get a specific planetary resource by ID."""
@@ -118,7 +119,7 @@ async def update_resource(
     colony_id: int,
     resource_id: int,
     resource_data: ResourceUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ResourceService = Depends(get_resource_service),
 ) -> ResourceResponse:
     """Update a planetary resource's abundance or notes."""
@@ -151,7 +152,7 @@ async def update_resource(
 async def delete_resource(
     colony_id: int,
     resource_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     service: ResourceService = Depends(get_resource_service),
 ) -> None:
     """Remove a planetary resource from a colony."""

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_colony_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.colony import (
     ColonyCreate,
     ColonyListItem,
@@ -129,7 +130,7 @@ async def create_colony(
 @router.get("/{colony_id}", response_model=ColonyResponse)
 async def get_colony(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyResponse:
     """Get a colony by ID."""
@@ -152,7 +153,7 @@ async def get_colony(
 async def update_colony(
     colony_id: int,
     colony_data: ColonyUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyResponse:
     """Update a colony (partial update)."""
@@ -176,7 +177,7 @@ async def update_colony(
 @router.delete("/{colony_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_colony(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> None:
     """Delete a colony."""
@@ -187,7 +188,7 @@ async def delete_colony(
 @router.get("/{colony_id}/state", response_model=ColonyStateNested)
 async def get_colony_state(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyStateNested:
     """Get computed state for a colony."""
@@ -200,7 +201,7 @@ async def get_colony_state(
 async def advance_colony_age(
     colony_id: int,
     age_days: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyResponse:
     """Advance colony age."""
@@ -226,7 +227,7 @@ async def advance_colony_age(
 @router.get("/{colony_id}/modifiers", response_model=list[ModifierResponse])
 async def list_colony_modifiers(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> list[ModifierResponse]:
     """List all modifiers for a colony."""
@@ -242,7 +243,7 @@ async def list_colony_modifiers(
 async def add_colony_modifier(
     colony_id: int,
     modifier_data: ModifierCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ModifierResponse:
     """Add a modifier to a colony."""
@@ -266,16 +267,12 @@ async def add_colony_modifier(
 async def remove_colony_modifier(
     colony_id: int,
     modifier_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> None:
     """Remove a modifier from a colony."""
     colony = _check_colony_exists(service, colony_id)
-    modifier_to_remove = None
-    for mod in colony.modifiers:
-        if mod.id == modifier_id:
-            modifier_to_remove = mod
-            break
+    modifier_to_remove = next((mod for mod in colony.modifiers if mod.id == modifier_id), None)
     if modifier_to_remove is None:
         raise HTTPException(status_code=404, detail=f"Modifier {modifier_id} not found")
     colony.modifiers.remove(modifier_to_remove)
@@ -285,7 +282,7 @@ async def remove_colony_modifier(
 @router.get("/{colony_id}/roll-status", response_model=ColonyRollStatus)
 async def get_colony_roll_status(
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyRollStatus:
     """

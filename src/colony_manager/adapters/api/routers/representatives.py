@@ -4,8 +4,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from colony_manager.adapters.api.dependencies import get_representative_service
+from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.representative import (
     PersonalityCreate,
     RepresentativeCreate,
@@ -23,6 +24,7 @@ from colony_manager.domain.models.representative import (
     RepresentativeStats,
 )
 from colony_manager.domain.models.user import User
+from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 
 router = APIRouter(prefix="/representatives", tags=["representatives"])
 
@@ -67,7 +69,7 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
 @router.get("", response_model=list[RepresentativeListItem])
 async def list_representatives(
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> list[RepresentativeListItem]:
     """List all representatives."""
     representatives = service._representative_repository.list()
@@ -82,7 +84,7 @@ async def list_representatives(
 async def create_representative(
     rep_data: RepresentativeCreate,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Create a new representative."""
     personalities = _convert_personalities(rep_data.personalities)
@@ -104,7 +106,7 @@ async def create_representative(
 async def get_representative(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Get a representative by ID."""
     representative = _check_representative_exists(service, rep_id)
@@ -123,7 +125,7 @@ async def update_representative(
     rep_id: int,
     rep_data: RepresentativeUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Update a representative (partial update)."""
     representative = _check_representative_exists(service, rep_id)
@@ -145,7 +147,7 @@ async def update_representative(
 async def delete_representative(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> None:
     """Delete a representative."""
     _check_representative_exists(service, rep_id)
@@ -156,8 +158,8 @@ async def delete_representative(
 async def assign_to_colony(
     rep_id: int,
     colony_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Assign a representative to a colony."""
     try:
@@ -179,9 +181,21 @@ async def assign_to_colony(
 async def unassign_from_colony(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: RepresentativeService = Depends(get_representative_service),
+    service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Unassign a representative from their colony."""
+    # Get the representative to find which colony they're assigned to
+    rep = service._representative_repository.get(rep_id)
+    if rep is None or rep.assigned_to_colony_id is None:
+        raise HTTPException(status_code=404, detail=f"Representative {rep_id} not found or not assigned")
+    
+    # Check permission on the colony
+    from colony_manager.adapters.api.dependencies import get_colony_user_repository
+    colony_user_repo = get_colony_user_repository()
+    membership = colony_user_repo.get_by_colony_and_user(rep.assigned_to_colony_id, current_user.id)
+    if membership is None and current_user.role.value != "admin":
+        raise HTTPException(status_code=403, detail=f"User is not a member of colony {rep.assigned_to_colony_id}")
+    
     try:
         updated = service.unassign_from_colony(rep_id)
     except NotFoundError as e:

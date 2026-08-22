@@ -9,20 +9,21 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (33 files, ~200+ tests)
+### ✅ Existing Tests (34 files, 618+ tests)
 
 | Category | Files | Coverage |
 |----------|-------|----------|
-| Security | `test_security.py` | Password validation, token security, settings (12 tests) |
+| Security | `test_security.py`, `test_permission_enforcement.py`, `test_rate_limiting_integration.py`, `test_security_invariants.py` | Password validation, token security, permission enforcement, rate limiting (25+ tests) |
 | Domain Rules | `test_stat_calculator.py`, `test_profit_factor_calculator.py`, `test_state_effects.py`, `test_infrastructure_rules.py`, `test_leadership_modifier_resolver.py`, `test_lore_state_resolver.py`, `test_size_calculator.py` | Stat/PF calculation with Hypothesis property tests |
-| Domain Models | `test_modifier.py` | Modifier expiry logic |
+| Domain Models | `test_modifier.py`, `test_colony_user.py`, `test_user.py` | Modifier expiry, user/colony_user models |
 | Domain Utils | `test_rounding.py` | Rounding utilities |
 | Application Services | `test_infrastructure_service.py`, `test_resource_service.py`, `test_services.py`, `test_support_upgrade_service.py`, `test_colony_service_roll_status.py`, `test_colony_state_calculator.py` | Service orchestration |
-| API Routers | 9 test files | All endpoint tests with TestClient |
-| Persistence | `test_persistence.py`, `test_infrastructure_and_upgrades_repository.py`, `test_resource_repository.py` | Repository round-trips (partial) |
+| API Routers | 12+ test files | All endpoint tests with TestClient, permission enforcement |
+| Persistence | `test_persistence.py`, `test_infrastructure_and_upgrades_repository.py`, `test_resource_repository.py` | Repository round-trips |
 | I/O | `test_io.py` | Import/export mappers |
 | CLI | `test_cli.py` | CLI commands |
 | Config | `test_loader.py` | Config loading |
+| Integration | `test_colony_lifecycle.py`, `test_import_export_flow.py` | End-to-end flows |
 
 ### Test Patterns in Use
 
@@ -155,16 +156,38 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ---
 
-### Phase 6: Security & Edge Cases (Priority: HIGH for security)
+### Phase 6: Security & Permission Tests (Priority: HIGH) ✅ COMPLETE
 
-- [ ] `tests/domain/rules/test_security_invariants.py` **(MISSING)**
-  - [ ] Stats never negative, Order=0 → PF=0, locked stat behavior
+**Status:** ✅ COMPLETE — All security tests implemented and passing
 
-- [ ] `tests/adapters/api/test_permission_enforcement.py` **(MISSING)**
-  - [ ] Role-based access control, cross-colony prevention
+- [x] `tests/domain/rules/test_security_invariants.py`
+  - [x] Stats never negative
+  - [x] Order=0 → PF=0 invariant
+  - [x] Locked stat behavior
 
-- [ ] `tests/adapters/api/test_rate_limiting_integration.py` **(MISSING)**
-  - [ ] Rate limiter triggers, different limits per endpoint
+- [x] `tests/adapters/api/test_permission_enforcement.py`
+  - [x] Role-based access control (admin, colony_manager, viewer)
+  - [x] Cross-colony access prevention (403 for non-members)
+  - [x] Colony owner/editor/viewer permissions
+
+- [x] `tests/adapters/api/test_rate_limiting_integration.py`
+  - [x] Rate limiter triggers after threshold
+  - [x] Different limits per endpoint
+  - [x] JWT secret length validation
+
+---
+
+### Phase 7: Permission Enforcement Completion ✅ COMPLETE
+
+**Status:** ✅ COMPLETE — All API routes have permission checks
+
+- [x] Audit all API routes for missing `require_colony_permission()` decorators
+- [x] Apply permission decorators to read endpoints (`view`)
+- [x] Apply permission decorators to write endpoints (`edit`)
+- [x] Apply permission decorators to admin endpoints (`admin`)
+- [x] Update cross-colony tests to verify 403 responses
+- [x] Fix colony creation to auto-add creator as owner member
+- [x] All 618 tests pass
 
 ---
 

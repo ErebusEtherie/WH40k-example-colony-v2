@@ -13,6 +13,7 @@ from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
+from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 
@@ -38,6 +39,7 @@ class ColonyService:
         colony_repository: ColonyRepository,
         representative_repository: RepresentativeRepository,
         rule_config_provider: RuleConfigProvider,
+        colony_user_repository: ColonyUserRepository,
         audit_log_repository: AuditLogRepository | None = None,
     ) -> None:
         self._colony_repository = colony_repository
@@ -45,6 +47,7 @@ class ColonyService:
         self._rule_config_provider = rule_config_provider
         self._state_calculator = ColonyStateCalculator(rule_config_provider)
         self._audit_log_repository = audit_log_repository
+        self._colony_user_repository = colony_user_repository
 
     def _log_audit(
         self,
@@ -100,6 +103,17 @@ class ColonyService:
             Created colony with ID populated.
         """
         result = self._colony_repository.create(colony)
+        
+        # Automatically add the creator as an owner member of the colony
+        if changed_by is not None and result.id is not None:
+            from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
+            membership = ColonyUser(
+                colony_id=result.id,
+                user_id=changed_by,
+                role=ColonyUserRole.OWNER,
+                invited_by=changed_by,
+            )
+            self._colony_user_repository.create(membership)
         
         # Log audit entry if audit logging is enabled and user ID provided
         if self._audit_log_repository is not None and changed_by is not None and result.id is not None:

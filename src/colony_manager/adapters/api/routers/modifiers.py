@@ -9,7 +9,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from colony_manager.adapters.api.dependencies import get_colony_service
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.modifier import ModifierResponse
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.models.user import User
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/modifiers", tags=["modifiers"])
 
 @router.get("", response_model=list[ModifierResponse])
 async def list_all_modifiers(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_role("admin"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> list[ModifierResponse]:
     """List all modifiers across all colonies."""
@@ -45,7 +46,7 @@ async def list_all_modifiers(
 @router.get("/{modifier_id}", response_model=ModifierResponse)
 async def get_modifier(
     modifier_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_role("admin"))],
     service: ColonyService = Depends(get_colony_service),
 ) -> ModifierResponse:
     """Get a specific modifier by ID (searches across all colonies)."""

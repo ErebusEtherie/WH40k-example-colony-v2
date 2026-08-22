@@ -15,6 +15,9 @@ from colony_manager.adapters.persistence.db import build_database_url
 from colony_manager.adapters.persistence.representative_repository_impl import (
     SqlAlchemyRepresentativeRepository,
 )
+from colony_manager.adapters.persistence.repositories.colony_user_repository_impl import (
+    SqlAlchemyColonyUserRepository,
+)
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.enums import (
@@ -72,7 +75,8 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
-    service = ColonyService(colony_repo, representative_repo, provider)
+    colony_user_repo = SqlAlchemyColonyUserRepository(build_database_url(_db_path))
+    service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     colony_type_config = provider.get_colony_type_config(ColonyType(colony_type))
     base_stats = colony_type_config["base_stats"]
     colony = Colony(
@@ -96,7 +100,8 @@ def show_colony(colony_id: int) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
-    service = ColonyService(colony_repo, representative_repo, provider)
+    colony_user_repo = SqlAlchemyColonyUserRepository(build_database_url(_db_path))
+    service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     try:
         state = service.get_state(colony_id)
     except ColonyManagerError as exc:
@@ -141,7 +146,7 @@ def set_colony_age(colony_id: int, days: int) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
-    service = ColonyService(colony_repo, representative_repo, provider)
+    service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     try:
         updated = service.update_age(colony_id, days)
     except ColonyManagerError as exc:
@@ -164,7 +169,7 @@ def add_colony_modifier(
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
-    service = ColonyService(colony_repo, representative_repo, provider)
+    service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     try:
         modifier = Modifier(
             colony_id=colony_id,

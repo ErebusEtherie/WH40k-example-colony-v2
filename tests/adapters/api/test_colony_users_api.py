@@ -67,8 +67,9 @@ class TestColonyUsersAPI:
         response = auth_client.delete(f"/api/v1/colonies/{colony_id}/members/{user_id}")
         assert response.status_code == 204
 
+        # After removing the added member, only the colony creator remains
         response = auth_client.get(f"/api/v1/colonies/{colony_id}/members")
-        assert len(response.json()) == 0
+        assert len(response.json()) == 1  # Creator is auto-added as owner
 
     def test_invalid_role_rejected(self, auth_client: TestClient):
         """Test adding a member with invalid role fails."""
