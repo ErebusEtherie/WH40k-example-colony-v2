@@ -93,8 +93,8 @@ Prefer PowerShell commands for filesystem and text-processing operations when ap
 | Count lines | `(Get-Content -LiteralPath 'file').Count` |
 | Search text | `Select-String` |
 | Read text | `Get-Content` |
-| First N lines | `Get-Content | Select-Object -First N` |
-| Last N lines | `Get-Content | Select-Object -Last N` |
+| First N lines | `Get-Content \| Select-Object -First N` |
+| Last N lines | `Get-Content \| Select-Object -Last N` |
 | Find files/directories | `Get-ChildItem -Recurse` |
 | Remove | `Remove-Item` |
 | Copy | `Copy-Item` |

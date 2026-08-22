@@ -52,15 +52,15 @@ The following operations are logged to the `audit_logs` table:
 - Modifier additions
 
 Audit logs include:
+
 - Entity type and ID
 - Action performed (create/update/delete/assign/unassign)
 - Field changed (for updates)
 - Old and new values
 - User ID who made the change (if provided)
 - Timestamp
-- Colony ID (for colony-scoped entities)
 
-All application services now support optional audit logging via the `changed_by` parameter on mutation methods.
+Note: Audit logging is currently implemented for ColonyService. Other services should follow the same pattern.
 
 ### Input Validation
 
@@ -131,7 +131,15 @@ REQUIRE_PASSWORD_COMPLEXITY=true
 
 2. **Account Lockout**: Login attempt tracking is not yet implemented. Brute force protection should be added at the infrastructure level.
 
-3. **Token Blacklist Bulk Revocation**: The `revoke-all` endpoint currently returns 0 tokens revoked. A full implementation would require a token issuance log to track all tokens issued per user. For now, only explicitly revoked tokens (via `/auth/revoke`) are blacklisted.
+3. **Audit Logging Coverage**: Audit logging is currently implemented for ColonyService only. The following services still need audit logging:
+   - InfrastructureService
+   - SupportUpgradeService
+   - DevelopmentPlanService
+   - RepresentativeService
+
+   These services should follow the same pattern as ColonyService (inject `AuditLogRepository` and log mutations).
+
+4. **Token Blacklist Bulk Revocation**: The `revoke-all` endpoint currently returns 0 tokens revoked. A full implementation would require a token issuance log to track all tokens issued per user. For now, only explicitly revoked tokens (via `/auth/revoke`) are blacklisted.
 
 5. **Token Blacklist Cleanup**: Expired blacklist entries are not automatically cleaned up. Consider adding a periodic cleanup job (e.g., weekly cron) to remove entries older than their expiration date.
 
@@ -150,12 +158,6 @@ uv pip install --upgrade -r requirements.txt
 pip-audit
 ```
 
-## Security Headers
-
-Security headers are now automatically added by the application middleware. See the "Security Headers" section above for details.
-
-When deploying behind a reverse proxy, you may want to configure the proxy to add additional headers or override defaults. Note that HSTS is automatically disabled in development mode (`ENVIRONMENT=development`) to allow local HTTP testing.
-
 ## Last Updated
 
-2026-08-21 - Completed audit logging for all services (Infrastructure, SupportUpgrade, Representative, Resource), added Alembic migrations for database schema management
+2026-08-21 - Added security headers middleware, token blacklist/revocation, and audit logging for ColonyService

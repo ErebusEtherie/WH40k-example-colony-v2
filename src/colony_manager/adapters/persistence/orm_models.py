@@ -14,6 +14,9 @@ COLONIES_ID_FK = "colonies.id"
 REPRESENTATIVES_ID_FK = "representatives.id"
 EVENTS_ID_FK = "events.id"
 
+# Relationship cascade constant - avoid string duplication
+CASCADE_DELETE_ORPHAN = "all, delete-orphan"
+
 
 class Base(DeclarativeBase):
     pass
@@ -44,17 +47,17 @@ class ColonyORM(Base):
     # Planetary resources as JSON array
     planetary_resources: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    modifiers: Mapped[list[ModifierORM]] = relationship("ModifierORM", back_populates="colony", cascade="all, delete-orphan")
-    infrastructure: Mapped[list[InfrastructureORM]] = relationship("InfrastructureORM", back_populates="colony", cascade="all, delete-orphan")
-    support_upgrades: Mapped[list[SupportUpgradeORM]] = relationship("SupportUpgradeORM", back_populates="colony", cascade="all, delete-orphan")
-    resources: Mapped[list[ResourceORM]] = relationship("ResourceORM", back_populates="colony", cascade="all, delete-orphan")
+    modifiers: Mapped[list[ModifierORM]] = relationship("ModifierORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    infrastructure: Mapped[list[InfrastructureORM]] = relationship("InfrastructureORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    support_upgrades: Mapped[list[SupportUpgradeORM]] = relationship("SupportUpgradeORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    resources: Mapped[list[ResourceORM]] = relationship("ResourceORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
     manager: Mapped[UserORM] = relationship("UserORM", back_populates="managed_colony")
     
     # Phase 4+ relationships
-    events: Mapped[list[EventORM]] = relationship("EventORM", back_populates="colony", cascade="all, delete-orphan")
-    development_plans: Mapped[list[DevelopmentPlanORM]] = relationship("DevelopmentPlanORM", back_populates="colony", cascade="all, delete-orphan")
-    audit_logs: Mapped[list[AuditLogORM]] = relationship("AuditLogORM", back_populates="colony", cascade="all, delete-orphan")
-    colony_users: Mapped[list[ColonyUserORM]] = relationship("ColonyUserORM", back_populates="colony", cascade="all, delete-orphan")
+    events: Mapped[list[EventORM]] = relationship("EventORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    development_plans: Mapped[list[DevelopmentPlanORM]] = relationship("DevelopmentPlanORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    audit_logs: Mapped[list[AuditLogORM]] = relationship("AuditLogORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
+    colony_users: Mapped[list[ColonyUserORM]] = relationship("ColonyUserORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
 
 
 class RepresentativeORM(Base):
@@ -140,9 +143,9 @@ class UserORM(Base):
     managed_colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="manager")
     
     # Phase 4+ relationships
-    colony_memberships: Mapped[list[ColonyUserORM]] = relationship("ColonyUserORM", foreign_keys="ColonyUserORM.user_id", back_populates="user", cascade="all, delete-orphan")
-    created_events: Mapped[list[EventORM]] = relationship("EventORM", foreign_keys="EventORM.created_by", cascade="all, delete-orphan")
-    created_development_plans: Mapped[list[DevelopmentPlanORM]] = relationship("DevelopmentPlanORM", foreign_keys="DevelopmentPlanORM.created_by", cascade="all, delete-orphan")
+    colony_memberships: Mapped[list[ColonyUserORM]] = relationship("ColonyUserORM", foreign_keys="ColonyUserORM.user_id", back_populates="user", cascade=CASCADE_DELETE_ORPHAN)
+    created_events: Mapped[list[EventORM]] = relationship("EventORM", foreign_keys="EventORM.created_by", cascade=CASCADE_DELETE_ORPHAN)
+    created_development_plans: Mapped[list[DevelopmentPlanORM]] = relationship("DevelopmentPlanORM", foreign_keys="DevelopmentPlanORM.created_by", cascade=CASCADE_DELETE_ORPHAN)
 
 
 class EventORM(Base):
@@ -159,7 +162,7 @@ class EventORM(Base):
 
     # Relationships
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="events")
-    modifiers: Mapped[list[EventModifierORM]] = relationship("EventModifierORM", back_populates="event", cascade="all, delete-orphan")
+    modifiers: Mapped[list[EventModifierORM]] = relationship("EventModifierORM", back_populates="event", cascade=CASCADE_DELETE_ORPHAN)
 
 
 class EventModifierORM(Base):
