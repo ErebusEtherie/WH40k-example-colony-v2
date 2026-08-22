@@ -59,3 +59,40 @@ and flag it — not to fill it in with something plausible.
 Check `business_analysis.md` §7 and `technical_analysis.md`'s resolved
 decisions section for the authoritative, up-to-date list — this section
 is a snapshot, not a live source.
+
+## Phase 5 work - Scope for this phase
+
+- **Representative Personality mechanics**: 18 of 19 rulebook Personalities are now
+  fully specified and in scope. `Representative.personalities: list[PersonalityAssignment]`,
+  min 1 / no duplicates. Two special input types: roll-based (Mad) and choice-based
+  (Ties With…, Scholarly) — both default to 0 contribution when unset.
+- **Representative Type**: descriptive only. Do NOT wire Type into any calculation.
+  Add `special_trait_description` for display purposes only.
+- **Hard Infrastructure**: new `Infrastructure` model, same aggregation pattern as
+  `SupportUpgrade`. Starting infrastructure is NOT modeled as instances — it's already
+  in `ColonyType` base stats. No build-order validation. Growth-triggered Complacency
+  penalty is surfaced via a `pending_infrastructure_growth` flag on `Colony`, cleared
+  manually by the GM — the app does not auto-calculate this penalty.
+
+## Explicitly out of scope this phase — do not implement, ask if tempted to
+
+- **Administrative Expert** personality (`+2 Productivity if Order > Size`) — continuously
+  evaluated condition, deferred alongside other conditional mechanics.
+- **Infrastructure "shortage" mechanic** (`Colony_Sheet_Analysis.md` §15) — no confirmed
+  rulebook source, not yet discussed with the GM group. Marked "To Be Discussed with GM."
+- **Skills/Talents** mechanical effects — remain reference-only per existing V1 decision,
+  unaffected by this phase.
+
+## ⚠️ Known blocker — verify before starting
+
+`DECISIONS_AND_QUESTIONS.md` contains **contradictory** statements about whether Hard
+Infrastructure is already implemented (Part 4 says no, Part 5 lists it as a to-do, Part 9's
+log claims it's done as of "Phase 4b"). **Check the actual codebase**
+(`domain/models/`, `domain/rules/`) before writing new Infrastructure code — this may be
+a reconciliation/gap-check task rather than greenfield work. If code already exists,
+compare it against the Part 10 reference tables and flag any discrepancies rather than
+silently changing it (per `06-collaboration-and-uncertainty.md`).
+
+Also unresolved: **where in the app Colony Size increase is currently triggered** — needed
+to wire the `pending_infrastructure_growth = True` assignment at the right point. Ask if
+not obvious from the application layer.

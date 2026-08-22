@@ -1,7 +1,7 @@
 # Decisions & Questions — Rogue Trader Colony Manager
 
 This document consolidates all major architectural decisions, design choices,
-and remaining open questions. **Last updated:** 2026-08-20
+and remaining open questions. **Last updated:** 2026-08-23
 
 ---
 
@@ -64,6 +64,35 @@ and remaining open questions. **Last updated:** 2026-08-20
 | **Resources are colony attributes** | Colonies have a list of active resources (many-to-one relationship) | ✅ Confirmed & Implemented |
 | **Resource-based bonuses automatic** | Mining/Research bonuses apply when corresponding resources are exploited | ✅ Confirmed & Implemented |
 
+### F. Representative Mechanics — Personality & Type (Phase 5)
+
+| Decision | Rationale | Status |
+| --- | --- | --- |
+| **Representative contributes modifiers from Leadership + Personality only** | Type contributes no stat modifiers (see below) | ✅ Confirmed |
+| **Personality assignment: 1..N per Representative, no duplicates** | A Representative must have at least one Personality; the same `PersonalityType` cannot be assigned twice to the same Representative | ✅ Confirmed |
+| **18 of 19 rulebook Personalities are unconditional and in scope for V1** | Simple fixed stat deltas, computed directly from `config/personalities.yaml`; full table in Part 10 | ✅ Confirmed |
+| **Administrative Expert excluded from V1** | Continuously-evaluated condition (`+2 Productivity if Order > Size`) — same category as other deferred conditional mechanics (e.g. Infrastructure shortage) | ⏳ DEFERRED — no target phase set |
+| **Mad's roll component uses manual GM input, not engine-rolled dice** | `-1d5 Order`; GM enters the rolled value on the assignment; unset value = 0 contribution. Consistent with the existing "dice injected from outside, not generated internally" principle (`DiceRoller`) | ✅ Confirmed |
+| **"Ties With…" and "Scholarly" use a GM-chosen target stat, not an app-computed one** | Both take a `chosen_stat` field (Complacency/Order/Productivity/Piety) set by the GM; unset = 0 contribution. **Scholarly's rulebook text** ("bonus applies to whichever stat is lowest at time of install") **is deliberately simplified** — the app does not auto-detect the lowest stat; GM picks manually, same mechanism as Ties With | ✅ Confirmed — deliberate simplification, not a bug |
+| **Representative Type is descriptive only, never a modifier source** | Satrap/Judge/Cardinal/Colonist Representative/Military Commander special traits (rulebook text) are displayed as `special_trait_description` text; GM applies their effects manually during play. Excel's Leadership Modifier (Int/Per/Fel-derived) remains the only Type-adjacent thing that's mechanically wired, and it isn't Type-specific — it applies to every Representative | ✅ Confirmed |
+
+### G. Hard Infrastructure (Phase 5)
+
+| Decision | Rationale | Status |
+| --- | --- | --- |
+| **Starting infrastructure is not modeled as `Infrastructure` instances** | The rulebook's "every settlement begins with basic infrastructure" is already folded into `ColonyType` base stats. No `Infrastructure` row is created for the baseline set | ✅ Confirmed |
+| **Infrastructure built during play: unlimited instances per type** | Multiple instances of the same type allowed (colonies accumulate these over time via Endeavours); no upper limit enforced | ✅ Confirmed |
+| **No build-order validation** | Rulebook's "usually build 1 of each before a 2nd of each" is narrative/GM guidance only — the app does not enforce or warn on build order or ratio between types | ✅ Confirmed |
+| **Growth → Complacency penalty is not auto-calculated** | On Colony Size increase, `Colony.pending_infrastructure_growth` is set `True` and surfaced to the GM. The app does **not** auto-apply the Complacency penalty — GM applies their own `gm_custom` modifier and manually clears the flag once resolved | ✅ Confirmed |
+| **Infrastructure "shortage" mechanic excluded from V1** | Corresponds to `Colony_Sheet_Analysis.md` §15. Not discussed with GM group; no confirmed rulebook source found; the Excel formula's own correctness is already flagged as unverified in that analysis | ⏳ TO BE DISCUSSED WITH GM |
+
+**⚠️ Contradiction requiring verification before Phase 5 dev starts:** this document
+currently contains conflicting signals about Hard Infrastructure's implementation
+status — Part 4 says "❌ not implemented," Part 5 lists it as a Phase 4b to-do, and
+Part 9's Communication Log says "✅ Phase 4b complete." **Someone needs to check the
+actual codebase** (`domain/models/`, `domain/rules/`) before treating the above as
+new work vs. a reconciliation/gap-check task. See Part 3 for the tracked question.
+
 ---
 
 ## Part 2: Implementation Decisions (Made During Development)
@@ -103,7 +132,8 @@ and remaining open questions. **Last updated:** 2026-08-20
 
 | Question | Context | Impact | Status |
 | --- | --- | --- | --- |
-| **Hard Infrastructure rules — when should these be implemented?** | Infrastructure has a model but no calculation rules (build state, operational cost, partial capacity). Currently deferred to Phase 4b | Low — Phase 3b doesn't require this | ⏳ DEFERRED to Phase 4b |
+| **Hard Infrastructure — is it actually implemented in the codebase, or is Part 9's "Phase 4b complete" note stale?** | This document contradicts itself (see Part 1, Section G note). Must be checked against `domain/models/` and `domain/rules/` before Phase 5 dev starts, so the work is scoped correctly (build vs. reconcile) | High — determines whether Phase 5 Hard Infrastructure work is new or a gap-fix | 🟡 NEEDS VERIFICATION |
+| **Where does Colony Size increase get triggered in the app today?** | Needed to hook `pending_infrastructure_growth = True` at the right point (CLI command? application service?) | Medium — blocks US-9 implementation until located | 🟡 NEEDS ANSWER |
 
 ### Medium Priority (Nice-to-have, affects UX)
 
@@ -111,9 +141,10 @@ and remaining open questions. **Last updated:** 2026-08-20
 | --- | --- | --- | --- |
 | **Event system: pending roll indicators?** | Roll intervals are global config (60/90 days). App can display "next roll in X days" but no automatic notifications | Low — display-only, no enforcement | ✅ IMPLEMENTED in Phase 4 |
 | **Modifier expiry/duration?** | GM custom modifiers are toggled via `is_active`, but no automatic time-based expiry. User mentioned "temporary" bonuses. | Low — manual toggle sufficient for now | ⏳ DEFERRED to Phase 5 |
-| **Representative Type mechanical bonus wiring?** | Type field exists per reference sheet but its mechanical link to PF isn't wired (only Leadership Modifier is). Flagged as descriptive-only for now. | Low — future enhancement | ⏳ DEFERRED to Phase 5 |
-| **Personality mechanical effects?** | Personality list exists but mechanics not yet wired to any calculations | Low — future enhancement | ⏳ DEFERRED to Phase 5 |
+| **Representative Type mechanical bonus wiring?** | ~~Type field exists per reference sheet but its mechanical link to PF isn't wired.~~ | Low | ✅ RESOLVED: Type is descriptive-only by design, see Part 1 Section F |
+| **Personality mechanical effects?** | ~~Personality list exists but mechanics not yet wired to any calculations~~ | Low | ✅ RESOLVED: 18/19 wired, see Part 1 Section F and Part 10 |
 | **Skills/Talents mechanical effects?** | Modeled as reference-only (not affecting calculations) per spec. Intentional or future scope? | Low — intentional for V1 | ✅ CONFIRMED |
+| **Infrastructure shortage mechanic (`Colony_Sheet_Analysis.md` §15)?** | No confirmed rulebook source; Excel's own correctness already in question | Low — excluded from V1 | ⏳ TO BE DISCUSSED WITH GM |
 
 ### Low Priority (Refinement, doesn't block shipping)
 
@@ -133,7 +164,8 @@ and remaining open questions. **Last updated:** 2026-08-20
 - ❌ Hard Infrastructure not implemented (build/operational states, partial capacity, stat bonuses)
 - ❌ Event system logic beyond config (no pending/upcoming roll indicators, no auto-triggers)
 - ❌ Colony Type not changeable post-creation (outside testing)
-- ❌ Skills/Talents/Personality mechanics not wired (reference-only)
+- ❌ Skills/Talents mechanics not wired (reference-only, intentional)
+- ✅ Personality mechanics wired (18/19 traits; Administrative Expert excluded as conditional) — see Part 1 Section F
 - ❌ Modifier duration/expiry (manual via `is_active`)
 
 ### Phase 3b Limitations (by design)
@@ -208,10 +240,13 @@ For production, these need to be validated against the reference Excel workbook.
 - [x] Leadership Modifier lookup (stat bonus 0-9+ → modifier -3 to +3)
 - [x] Lore state threshold labels (Stable, Placated, Anarchy, Productive, Halted, Pious, Heretical)
 - [x] Representative Types (Satrap, Judge, Cardinal, Colonist Representative, Military Commander)
-- [x] Personality types (with descriptions and effects)
+- [x] Personality types (with descriptions and effects) — full effect table now defined, see Part 10
+- [ ] Representative Type special trait descriptions (display-only text, Phase 5)
 - [x] Support Upgrade types (13 types with per-type limits)
 - [x] Planetary Resource types (8 resources with bonus rules)
-- [x] Upgrade limit validation rules\n- [x] Infrastructure types and rules (5 types with working/disrupted modifiers)\n- [x] Event/Development roll interval configuration (60/90 days)\n- [x] Modifier expiry support (optional expires_at date with auto-filtering)
+- [x] Upgrade limit validation rules\n- [x] Infrastructure types and rules (5 types with working/disrupted modifiers) — ⚠️ verify against actual codebase, see High Priority open question in Part 3
+- [x] Event/Development roll interval configuration (60/90 days)
+- [x] Modifier expiry support (optional expires_at date with auto-filtering)
 
 ### ⏳ Deferred (Phase 5+)
 
@@ -258,3 +293,61 @@ For production, these need to be validated against the reference Excel workbook.
 - ✅ **All test failures resolved** — 100% pass rate achieved
 - ✅ **CORSSettings edge case fixed** — empty string now returns default localhost origins
 - ✅ **Phase 4b complete** — Hard Infrastructure rules, modifier expiry, and roll status endpoints implemented
+  (⚠️ **unverified against codebase** — flagged 2026-08-23, see Part 1 Section G and Part 3 High Priority)
+
+---
+
+## Part 10: Reference Tables — Personality & Hard Infrastructure (Phase 5)
+
+Source: rulebook text provided directly by the user (2026-08-23), not derived from the
+Excel workbook. Intended for `config/personalities.yaml` and `config/infrastructure.yaml`.
+
+### 10.1 Personality Effects
+
+| Personality | Effect(s) | Input required |
+| --- | --- | --- |
+| Beloved | +1 Complacency | — |
+| Military-Minded | +1 Order | — |
+| Corrupt | +2 Productivity, −1 Order | — |
+| Idle | +2 Complacency, −1 Productivity | — |
+| Ambitious | +2 Productivity, −1 Complacency | — |
+| Zealous | +1 Piety | — |
+| Patron of the Arts | +2 Complacency, −1 Piety | — |
+| Unlucky | +2 Piety | — |
+| Cruel | +2 Productivity, −1 Complacency | — |
+| Spymaster | +2 Order, −1 Complacency | — |
+| Generalissimo | +2 Order, −1 Piety | — |
+| Paranoid | +2 Order, −1 Productivity | — |
+| Charitable | +1 Complacency, +1 Piety, −1 Productivity | — |
+| Vainglorious | +2 Productivity, −1 Piety | — |
+| Avaricious | +1 Productivity | — |
+| Mad | +1 Complacency, +1 Piety, +1 Productivity, −[roll] Order | roll (1d5), unset = 0 |
+| Ties With… | +1 to [chosen stat] | GM choice (Complacency/Order/Productivity/Piety), unset = 0 |
+| Scholarly | +1 to [chosen stat] | GM choice — **simplified from rulebook's auto-pick-lowest-at-install rule**, unset = 0 |
+| Administrative Expert | +2 Productivity **if** Order > Size | ⛔ Excluded from V1 — conditional, see Part 1 Section F |
+
+### 10.2 Hard Infrastructure Effects
+
+| Type | Working | Disrupted |
+| --- | --- | --- |
+| Transportation | +1 Productivity, +1 Complacency | −2 Productivity, −2 Order |
+| Power Network | +2 Productivity | −3 Productivity, −1 Complacency |
+| Water Management | +1 Order, +1 Complacency | −2 Order, −2 Complacency |
+| Food Production and Distribution | +1 Productivity, +1 Complacency | −2 Productivity, −2 Complacency |
+| Communications | +1 Productivity, +1 Order | −2 Productivity, −2 Order |
+
+All values unconditional per-instance modifiers, netted across however many instances of
+each type a Colony has (working vs. disrupted counted separately), same aggregation
+pattern as Support Upgrades.
+
+**2026-08-23 session — Representative Mechanics & Hard Infrastructure (Phase 5) requirements defined:**
+
+- ✅ Representative Type mechanical bonuses resolved: descriptive-only, never a modifier source (rulebook text for Satrap/Judge/Cardinal/Colonist Representative/Military Commander provided by user, sourced from actual game material, not Excel)
+- ✅ Personality mechanics resolved: full 19-trait rulebook text provided by user; 18 in scope for V1 (see Part 10), Administrative Expert deferred as conditional
+- ✅ Personality assignment rules confirmed: 1..N per Representative, no duplicate trait assignment, minimum 1 required
+- ✅ Scholarly's auto-pick-lowest-stat rule deliberately simplified to GM manual choice (same mechanism as Ties With…)
+- ✅ Mad's `-1d5 Order` roll handled via manual GM input, unset = 0 — consistent with existing dice-injection principle
+- ✅ Hard Infrastructure requirements defined: starting infrastructure folded into `ColonyType` base stats (not modeled as instances); unlimited instances per type during play; no build-order validation; growth-triggered Complacency penalty surfaced via `pending_infrastructure_growth` flag but not auto-calculated (GM applies `gm_custom` modifier manually)
+- ⏳ Infrastructure "shortage" mechanic (`Colony_Sheet_Analysis.md` §15) marked To Be Discussed With GM — no rulebook source, not yet raised with the group
+- 🟡 **Flagged, not resolved:** contradictory documentation about whether Hard Infrastructure is already implemented (Part 4 vs. Part 5 vs. Part 9) — needs a codebase check before Phase 5 work is scoped
+- 🟡 **Flagged, not resolved:** exact location in the app where Colony Size increase is currently triggered — needed to wire the new growth flag
