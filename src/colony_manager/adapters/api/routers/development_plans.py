@@ -86,6 +86,8 @@ def get_development_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_PLAN_NOT_FOUND)
     
     # Check permission on the colony the plan belongs to
+    if current_user.id is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
     membership = colony_user_repo.get_by_colony_and_user(plan.colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {plan.colony_id}")
@@ -122,6 +124,8 @@ def get_development_plans_by_colony(
     colony_user_repo: Annotated[ColonyUserRepository, Depends(dependencies.get_colony_user_repository)],) -> list[DevelopmentPlanResponse]:
     """Get all development plans for a colony."""
     # Check permission on the colony
+    if current_user.id is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
     membership = colony_user_repo.get_by_colony_and_user(colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")

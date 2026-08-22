@@ -84,14 +84,14 @@ class InMemoryColonyUserRepository:
         self._items: dict[int, ColonyUser] = {}
         self._next_id = 1
 
-    def create(self, membership: ColonyUser) -> ColonyUser:
-        membership.id = self._next_id
+    def create(self, colony_user: ColonyUser) -> ColonyUser:
+        colony_user.id = self._next_id
         self._next_id += 1
-        if membership.id is not None:
-            self._items[membership.id] = membership
-        return membership
+        if colony_user.id is not None:
+            self._items[colony_user.id] = colony_user
+        return colony_user
 
-    def get(self, membership_id: int) -> ColonyUser | None:
+    def get_by_id(self, membership_id: int) -> ColonyUser | None:
         return self._items.get(membership_id)
 
     def get_by_colony_and_user(self, colony_id: int, user_id: int) -> ColonyUser | None:
@@ -100,13 +100,19 @@ class InMemoryColonyUserRepository:
                 return membership
         return None
 
-    def update(self, membership: ColonyUser) -> ColonyUser:
-        if membership.id is not None:
-            self._items[membership.id] = membership
-        return membership
+    def update(self, colony_user: ColonyUser) -> ColonyUser:
+        if colony_user.id is not None:
+            self._items[colony_user.id] = colony_user
+        return colony_user
 
     def delete(self, membership_id: int) -> None:
         self._items.pop(membership_id, None)
+
+    def get_by_colony(self, colony_id: int) -> list[ColonyUser]:
+        return [m for m in self._items.values() if m.colony_id == colony_id]
+
+    def get_by_user(self, user_id: int) -> list[ColonyUser]:
+        return [m for m in self._items.values() if m.user_id == user_id]
 
     def list(self) -> list[ColonyUser]:
         return list(self._items.values())

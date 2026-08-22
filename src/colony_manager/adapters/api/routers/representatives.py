@@ -190,8 +190,10 @@ async def unassign_from_colony(
         raise HTTPException(status_code=404, detail=f"Representative {rep_id} not found or not assigned")
     
     # Check permission on the colony
-    from colony_manager.adapters.api.dependencies import get_colony_user_repository
-    colony_user_repo = get_colony_user_repository()
+    from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
+    colony_user_repo = get_colony_user_repository(get_db_path())
+    if current_user.id is None:
+        raise HTTPException(status_code=500, detail="Authenticated user has no ID")
     membership = colony_user_repo.get_by_colony_and_user(rep.assigned_to_colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {rep.assigned_to_colony_id}")

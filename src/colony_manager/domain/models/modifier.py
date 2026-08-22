@@ -25,7 +25,7 @@ class Modifier(BaseModel):
         expires_at: Optional date when this modifier expires (None = permanent).
     """
     id: int | None = None
-    colony_id: int | None = None
+    colony_id: int
     modifier_source_type: ModifierSourceType
     modifier_stat: ModifierStat
     modifier_value: int

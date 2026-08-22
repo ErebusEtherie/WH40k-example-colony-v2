@@ -37,6 +37,7 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
     
     return [
         Modifier(
+            colony_id=infrastructure.colony_id,
             modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
             modifier_stat=ModifierStat(str(mod["stat"])),
             modifier_value=int(mod["value"]),  # type: ignore[call-overload]

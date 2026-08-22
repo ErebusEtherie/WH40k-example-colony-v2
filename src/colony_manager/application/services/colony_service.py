@@ -8,7 +8,7 @@ from typing import TypedDict
 
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.models.audit_log import AuditLog
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
@@ -79,7 +79,7 @@ class ColonyService:
             audit_log = AuditLog(
                 entity_type=entity_type,
                 entity_id=entity_id,
-                action=action,
+                action=AuditLogAction(action),
                 field=field,
                 old_value=old_value,
                 new_value=new_value,

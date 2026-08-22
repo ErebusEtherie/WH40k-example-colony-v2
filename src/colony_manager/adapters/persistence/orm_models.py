@@ -212,7 +212,7 @@ class AuditLogORM(Base):
     old_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     changed_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
-    changed_at: Mapped[date] = mapped_column(DateTime, nullable=True)
+    changed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
 
     # Relationships
@@ -227,7 +227,7 @@ class ColonyUserORM(Base):
     colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK, ondelete="CASCADE"), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="viewer")
-    joined_at: Mapped[date] = mapped_column(DateTime, nullable=True)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     invited_by: Mapped[int | None] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=True)
 
     # Relationships

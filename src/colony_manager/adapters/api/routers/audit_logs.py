@@ -38,6 +38,7 @@ def get_audit_logs_by_colony(
     for log in logs:
         if log.id is None or log.changed_at is None:
             continue  # Skip logs with incomplete data
+        assert log.id is not None
         result.append(
             AuditLogResponse(
                 id=log.id,
@@ -74,6 +75,7 @@ def get_audit_log(
         from fastapi import HTTPException, status
         raise HTTPException(status_code=500, detail="Audit log data is incomplete")
     
+    assert log.id is not None
     return AuditLogResponse(
         id=log.id,
         entity_type=log.entity_type,

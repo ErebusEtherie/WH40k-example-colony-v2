@@ -89,6 +89,8 @@ def get_event(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_EVENT_NOT_FOUND)
     
     # Check permission on the colony the event belongs to
+    if current_user.id is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
     membership = colony_user_repo.get_by_colony_and_user(event.colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {event.colony_id}")
@@ -124,6 +126,8 @@ def get_events_by_colony(
 ) -> list[EventResponse]:
     """Get all events for a colony."""
     # Check permission on the colony
+    if current_user.id is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
     membership = colony_user_repo.get_by_colony_and_user(colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")

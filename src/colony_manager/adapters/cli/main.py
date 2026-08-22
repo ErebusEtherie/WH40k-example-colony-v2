@@ -146,6 +146,7 @@ def set_colony_age(colony_id: int, days: int) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
+    colony_user_repo = SqlAlchemyColonyUserRepository(build_database_url(_db_path))
     service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     try:
         updated = service.update_age(colony_id, days)
@@ -169,6 +170,7 @@ def add_colony_modifier(
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
+    colony_user_repo = SqlAlchemyColonyUserRepository(build_database_url(_db_path))
     service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     try:
         modifier = Modifier(

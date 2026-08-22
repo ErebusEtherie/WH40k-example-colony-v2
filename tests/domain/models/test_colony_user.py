@@ -37,10 +37,11 @@ class TestColonyUserDefaults:
         cu = ColonyUser(colony_id=1, user_id=2)
         assert cu.role == ColonyUserRole.VIEWER
 
-    def test_joined_at_defaults_to_none(self):
-        """joined_at defaults to None."""
+    def test_joined_at_defaults_to_datetime(self):
+        """joined_at defaults to current datetime (Warsaw timezone)."""
         cu = ColonyUser(colony_id=1, user_id=2)
-        assert cu.joined_at is None
+        assert cu.joined_at is not None
+        assert cu.joined_at.tzinfo is not None
 
     def test_invited_by_defaults_to_none(self):
         """invited_by defaults to None."""
@@ -56,3 +57,10 @@ class TestColonyUserDefaults:
         """invited_by can be set."""
         cu = ColonyUser(colony_id=1, user_id=2, invited_by=99)
         assert cu.invited_by == 99
+
+    def test_can_set_explicit_joined_at(self):
+        """joined_at can be explicitly set."""
+        from datetime import datetime, timezone
+        explicit_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        cu = ColonyUser(colony_id=1, user_id=2, joined_at=explicit_time)
+        assert cu.joined_at == explicit_time

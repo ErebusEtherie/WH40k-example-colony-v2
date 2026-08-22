@@ -1,33 +1,32 @@
 # Testing ToDo List
 
 **Last Updated:** 2026-08-22
+**Current Status:** 627 tests passing, 100% pass rate
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
-It complements `.clinerules/04-testing-strategy.md` with specific implementation tasks.
+It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
 
 ---
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (34 files, 618+ tests)
+### ✅ Existing Tests (48 files, 627 tests)
 
-| Category | Files | Coverage |
-|----------|-------|----------|
-| Security | `test_security.py`, `test_permission_enforcement.py`, `test_rate_limiting_integration.py`, `test_security_invariants.py` | Password validation, token security, permission enforcement, rate limiting (25+ tests) |
-| Domain Rules | `test_stat_calculator.py`, `test_profit_factor_calculator.py`, `test_state_effects.py`, `test_infrastructure_rules.py`, `test_leadership_modifier_resolver.py`, `test_lore_state_resolver.py`, `test_size_calculator.py` | Stat/PF calculation with Hypothesis property tests |
-| Domain Models | `test_modifier.py`, `test_colony_user.py`, `test_user.py` | Modifier expiry, user/colony_user models |
-| Domain Utils | `test_rounding.py` | Rounding utilities |
-| Application Services | `test_infrastructure_service.py`, `test_resource_service.py`, `test_services.py`, `test_support_upgrade_service.py`, `test_colony_service_roll_status.py`, `test_colony_state_calculator.py` | Service orchestration |
-| API Routers | 12+ test files | All endpoint tests with TestClient, permission enforcement |
-| Persistence | `test_persistence.py`, `test_infrastructure_and_upgrades_repository.py`, `test_resource_repository.py` | Repository round-trips |
-| I/O | `test_io.py` | Import/export mappers |
-| CLI | `test_cli.py` | CLI commands |
-| Config | `test_loader.py` | Config loading |
-| Integration | `test_colony_lifecycle.py`, `test_import_export_flow.py` | End-to-end flows |
+| Category | Files | Tests | Status |
+|----------|-------|-------|--------|
+| **Domain Models** | 10 files | 100+ | ✅ Complete |
+| **Domain Rules** | 9 files | 80+ | ✅ Complete (includes Hypothesis) |
+| **Application Services** | 6 files | 50+ | ⚠️ Missing 2 service tests |
+| **Persistence Repositories** | 9 files | 60+ | ✅ Complete |
+| **API Routers** | 13 files | 200+ | ✅ Complete |
+| **Security** | 4 files | 40+ | ✅ Complete |
+| **Integration** | 3 files | 20+ | ✅ Complete |
+| **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
+| **Total** | **48 files** | **627 tests** | ✅ **100% passing** |
 
 ### Test Patterns in Use
 
-1. **Hypothesis property-based testing** for domain rules (stat calculator, profit factor)
+1. **Hypothesis property-based testing** for domain rules (stat calculator, profit factor, size, state effects)
 2. **pytest fixtures** for shared test data and mock repositories
 3. **Example-based tests** for boundary conditions and specific scenarios
 4. **Round-trip tests** for persistence (save → load → verify)
@@ -35,159 +34,121 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ---
 
-## Testing ToDo List
+## Priority Tasks
 
 ### Phase 1: High-Risk Hypothesis Tests (Priority: HIGH)
 
-**Status:** Partially complete — stat_calculator and profit_factor_calculator have Hypothesis tests
+**Status:** ✅ COMPLETE
 
-- [x] `tests/domain/rules/test_stat_calculator.py`
-  - [x] `test_calculate_stat_never_negative_property` — Stats never < 0
-  - [x] `test_calculate_stat_locked_prevents_increases_property` — Locked stats ignore positive modifiers
+- [x]  ests/domain/rules/test_stat_calculator.py
+  - [x]  est_calculate_stat_never_negative_property
+  - [x]  est_calculate_stat_locked_prevents_increases_property
 
-- [x] `tests/domain/rules/test_profit_factor_calculator.py`
-  - [x] `test_profit_factor_zero_when_order_is_zero_property` — Order=0 → PF=0
-  - [x] `test_profit_factor_halved_when_productivity_zero_property` — Productivity=0 → PF halved
-  - [x] `test_profit_factor_never_negative_property` — PF never < 0
+- [x]  ests/domain/rules/test_profit_factor_calculator.py
+  - [x]  est_profit_factor_zero_when_order_is_zero_property
+  - [x]  est_profit_factor_halved_when_productivity_zero_property
+  - [x]  est_profit_factor_never_negative_property
 
-- [ ] `tests/domain/rules/test_state_effects_hypothesis.py` **(MISSING)**
-  - [ ] Property: State transitions are deterministic at boundaries
-  - [ ] Property: Cascading effects (e.g., Piety=0 locks Order/Complacency increases) apply consistently
-  - [ ] Property: Multiple state bonuses stack correctly
+- [x]  ests/domain/rules/test_size_calculator_hypothesis.py
+  - [x]  est_single_positive_modifier_increases_size
+  - [x]  est_single_negative_modifier_decreases_size
 
-- [ ] `tests/domain/rules/test_size_calculator_hypothesis.py` **(MISSING)**
-  - [ ] Property: Size calculation is monotonic (more population → same or larger size)
+- [x]  ests/domain/rules/test_state_effects_hypothesis.py
+  - [x] Orderly effect properties
+  - [x] Pious effect properties
+  - [x] Anarchy decay properties
 
 ---
 
 ### Phase 2: Domain Model Validator Tests (Priority: MEDIUM)
 
-**Status:** Only `test_modifier.py` exists
+**Status:** ✅ COMPLETE
 
-- [x] `tests/domain/models/test_modifier.py` — Expiry logic tests
-
-- [ ] `tests/domain/models/test_colony.py` **(MISSING)**
-  - [ ] `age_days` validator (≥ 0)
-  - [ ] Lock flag interactions
-  - [ ] `planetary_resources` validation
-  - [ ] `dynasty_outcome` validation
-
-- [ ] `tests/domain/models/test_representative.py` **(MISSING)**
-  - [ ] `RepresentativeStats` validators (all > 0)
-  - [ ] Bonus properties (`int_bonus`, `per_bonus`, `fel_bonus`)
-  - [ ] `highest_leadership_bonus` property
-  - [ ] `loss_mitigation_stat` property
-  - [ ] `get_total_personality_calamity_modifier` method
-  - [ ] `update_calamitous_modifier` method
-
-- [ ] `tests/domain/models/test_user.py` **(MISSING)**
-  - [ ] `username` length validation (3-50 chars)
-  - [ ] `email` length validation (5-100 chars)
-  - [ ] `role` default (VIEWER), `is_active` default (True)
-
-- [ ] `tests/domain/models/test_infrastructure.py` **(MISSING)**
-  - [ ] `state` validation, `has_effect`/`is_disrupted` properties
-
-- [ ] `tests/domain/models/test_support_upgrade.py` **(MISSING)**
-  - [ ] `is_installed` property, cost validation
-
-- [ ] `tests/domain/models/test_colony_user.py` **(MISSING)**
-- [ ] `tests/domain/models/test_event.py` **(MISSING)**
-- [ ] `tests/domain/models/test_development_plan.py` **(MISSING)**
+- [x]  ests/domain/models/test_modifier.py
+- [x]  ests/domain/models/test_colony.py
+- [x]  ests/domain/models/test_representative.py
+- [x]  ests/domain/models/test_user.py
+- [x]  ests/domain/models/test_infrastructure.py
+- [x]  ests/domain/models/test_support_upgrade.py
+- [x]  ests/domain/models/test_colony_user.py
+- [x]  ests/domain/models/test_event.py
+- [x]  ests/domain/models/test_development_plan.py
+- [x]  ests/domain/models/test_audit_log.py
 
 ---
 
 ### Phase 3: Repository Round-Trip Tests (Priority: MEDIUM)
 
-**Status:** Basic round-trips exist for Colony, Representative, Infrastructure, Resource
+**Status:** ✅ COMPLETE
 
-- [x] `tests/adapters/persistence/test_persistence.py` — Colony & Representative round-trips
-- [x] `tests/adapters/persistence/test_infrastructure_and_upgrades_repository.py` — Infrastructure/Upgrade CRUD
-- [x] `tests/adapters/persistence/test_resource_repository.py` — Resource CRUD
-
-- [ ] `tests/adapters/persistence/test_token_blacklist_repository.py` **(MISSING)**
-  - [ ] Add/query blacklist, `revoke_all_user_tokens`, expired entry queries
-
-- [ ] `tests/adapters/persistence/test_token_issuance_repository.py` **(MISSING)**
-  - [ ] Token creation, active token queries, revocation
-
-- [ ] `tests/adapters/persistence/test_login_attempt_repository.py` **(MISSING)**
-  - [ ] Failed attempt tracking, cleanup old entries
-
-- [ ] `tests/adapters/persistence/test_audit_log_repository.py` **(MISSING)**
-  - [ ] Audit log CRUD, filtering, pagination
-
-- [ ] `tests/adapters/persistence/test_colony_user_repository.py` **(MISSING)**
-- [ ] `tests/adapters/persistence/test_development_plan_repository.py` **(MISSING)**
-- [ ] `tests/adapters/persistence/test_event_repository.py` **(MISSING)**
+- [x]  ests/adapters/persistence/test_persistence.py — Colony, Representative
+- [x]  ests/adapters/persistence/test_infrastructure_and_upgrades_repository.py
+- [x]  ests/adapters/persistence/test_resource_repository.py
+- [x]  ests/adapters/persistence/test_modifier_repository.py
+- [x]  ests/adapters/persistence/test_colony_user_repository.py
+- [x]  ests/adapters/persistence/test_event_repository.py
+- [x]  ests/adapters/persistence/test_development_plan_repository.py
+- [x]  ests/adapters/persistence/test_audit_log_repository.py
+- [x]  ests/adapters/persistence/test_token_blacklist_repository.py
+- [x]  ests/adapters/persistence/test_token_issuance_repository.py
+- [x]  ests/adapters/persistence/test_login_attempt_repository.py
 
 ---
 
 ### Phase 4: Application Service Tests (Priority: MEDIUM)
 
-**Status:** Infrastructure, Resource, SupportUpgrade services tested
+**Status:** ⚠️ MOSTLY COMPLETE — 2 files missing
 
-- [x] `tests/application/test_infrastructure_service.py` — CRUD, error handling
-- [x] `tests/application/test_resource_service.py` — Resource management
-- [x] `tests/application/test_support_upgrade_service.py` — Upgrade installation
-- [x] `tests/application/services/test_colony_service_roll_status.py` — Roll status
-- [x] `tests/application/services/test_colony_state_calculator.py` — State calculation
-
-- [ ] `tests/application/services/test_auth_service.py` **(MISSING)**
-  - [ ] Registration, login, token refresh, logout, bulk revocation
-
-- [ ] `tests/application/services/test_colony_user_service.py` **(MISSING)**
-- [ ] `tests/application/services/test_event_service.py` **(MISSING)**
-- [ ] `tests/application/services/test_development_plan_service.py` **(MISSING)**
+- [x]  ests/application/services/test_colony_service.py (via test_services.py)
+- [x]  ests/application/services/test_colony_service_roll_status.py
+- [x]  ests/application/services/test_colony_state_calculator.py
+- [x]  ests/application/services/test_resource_service.py
+- [x]  ests/application/services/test_auth_service.py
+- [x]  ests/application/services/test_colony_user_service.py
+- [x]  ests/application/services/test_event_service.py
+- [x]  ests/application/services/test_development_plan_service.py
+- [ ]  ests/application/services/test_infrastructure_service.py **(MISSING)**
+- [ ]  ests/application/services/test_support_upgrade_service.py **(MISSING)**
 
 ---
 
-### Phase 5: Integration Tests (Priority: LOW)
+### Phase 5: API Router Tests (Priority: HIGH)
 
-- [ ] `tests/integration/test_auth_flow.py` **(MISSING)**
-  - [ ] Registration → login → authenticated request
-  - [ ] Token refresh, logout/blacklist verification
+**Status:** ✅ COMPLETE
 
-- [ ] `tests/integration/test_colony_lifecycle.py` **(MISSING)**
-  - [ ] Create → add infrastructure → calculate stats → advance cycle
-
-- [ ] `tests/integration/test_import_export_flow.py` **(MISSING)**
-  - [ ] Export → import → verify equivalence
-
----
-
-### Phase 6: Security & Permission Tests (Priority: HIGH) ✅ COMPLETE
-
-**Status:** ✅ COMPLETE — All security tests implemented and passing
-
-- [x] `tests/domain/rules/test_security_invariants.py`
-  - [x] Stats never negative
-  - [x] Order=0 → PF=0 invariant
-  - [x] Locked stat behavior
-
-- [x] `tests/adapters/api/test_permission_enforcement.py`
-  - [x] Role-based access control (admin, colony_manager, viewer)
-  - [x] Cross-colony access prevention (403 for non-members)
-  - [x] Colony owner/editor/viewer permissions
-
-- [x] `tests/adapters/api/test_rate_limiting_integration.py`
-  - [x] Rate limiter triggers after threshold
-  - [x] Different limits per endpoint
-  - [x] JWT secret length validation
+- [x]  ests/adapters/api/test_api.py — General API tests
+- [x]  ests/adapters/api/test_auth.py — Authentication endpoints
+- [x]  ests/adapters/api/test_cors.py — CORS configuration
+- [x]  ests/adapters/api/test_permission_enforcement.py — Permission checks
+- [x]  ests/adapters/api/test_rate_limiting.py — Rate limit config
+- [x]  ests/adapters/api/test_rate_limiting_integration.py — Rate limit enforcement
+- [x]  ests/adapters/api/test_audit_logs_api.py
+- [x]  ests/adapters/api/test_colony_users_api.py
+- [x]  ests/adapters/api/test_development_plans_api.py
+- [x]  ests/adapters/api/test_events_api.py
+- [x]  ests/adapters/api/test_infrastructure_api.py
+- [x]  ests/adapters/api/test_support_upgrades_api.py
 
 ---
 
-### Phase 7: Permission Enforcement Completion ✅ COMPLETE
+### Phase 6: Security & Permission Tests (Priority: HIGH)
 
-**Status:** ✅ COMPLETE — All API routes have permission checks
+**Status:** ✅ COMPLETE
 
-- [x] Audit all API routes for missing `require_colony_permission()` decorators
-- [x] Apply permission decorators to read endpoints (`view`)
-- [x] Apply permission decorators to write endpoints (`edit`)
-- [x] Apply permission decorators to admin endpoints (`admin`)
-- [x] Update cross-colony tests to verify 403 responses
-- [x] Fix colony creation to auto-add creator as owner member
-- [x] All 618 tests pass
+- [x]  ests/test_security.py — Password validation, token security
+- [x]  ests/adapters/api/test_permission_enforcement.py — Role-based access
+- [x]  ests/adapters/api/test_rate_limiting_integration.py — Brute force prevention
+- [x]  ests/domain/rules/test_security_invariants.py — Security properties
+
+---
+
+### Phase 7: Integration Tests (Priority: LOW)
+
+**Status:** ✅ COMPLETE
+
+- [x]  ests/integration/test_auth_flow.py — Registration → login → authenticated request
+- [x]  ests/integration/test_colony_lifecycle.py — Create → modify → calculate stats
+- [x]  ests/integration/test_import_export_flow.py — Export/import round-trip
 
 ---
 
@@ -195,38 +156,58 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ### Running Tests
 
-```bash
-# All tests
+`ash
+
+## All tests
+
 uv run pytest
 
-# By category
+## By category
+
 uv run pytest tests/domain/
 uv run pytest tests/application/
 uv run pytest tests/adapters/
 
-# With coverage
+## With coverage
+
 uv run pytest --cov=src/colony_manager
 
-# Hypothesis verbose
+## Hypothesis verbose
+
 uv run pytest tests/domain/rules/ -v --hypothesis-verbosity=verbose
-```
+`
 
-### Hypothesis Settings
+## Hypothesis Settings
 
-```python
+`python
 from hypothesis import settings, HealthCheck
 
 @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
 @given(...)
 def test_property(...): ...
-```
+`
 
-### Test Data Patterns
+---
 
-1. Use fixtures for common test data (see `conftest.py`)
-2. Use `tmp_path` for isolated SQLite databases
-3. Mock external dependencies (RNG, time, config) for deterministic tests
-4. Use `model_copy()` for variant test cases (Pydantic v2)
+## Remaining Work
+
+### HIGH PRIORITY
+
+1. **Complete Application Service Tests** (2-3 hours)
+   - ests/application/services/test_infrastructure_service.py
+   - ests/application/services/test_support_upgrade_service.py
+
+### MEDIUM PRIORITY
+
+1. **Excel Migration Utility Tests** (if utility is implemented)
+   - ests/tools/test_excel_migration.py
+
+### LOW PRIORITY
+
+1. **Expand Hypothesis Tests** (2-4 hours)
+   - Additional state effects properties
+   - Cascading effects verification
+   - Multiple bonus stacking
 
 ---
 
@@ -236,41 +217,3 @@ def test_property(...): ...
 - **Domain tests should not mock domain code** — domain has no I/O
 - **API tests verify wiring/serialization**, not domain math (covered in domain tests)
 - **Add corresponding tests when adding new models/repositories**
-  - [ ] Property: Size thresholds from config are applied correctly
-
----
-
-### Phase 2: Domain Model Validator Tests (Priority: MEDIUM)
-
-**Status:** Only `test_modifier.py` exists
-
-- [x] `tests/domain/models/test_modifier.py` — Expiry logic tests
-
-- [ ] `tests/domain/models/test_colony.py` **(MISSING)**
-  - [ ] `age_days` validator (≥ 0)
-  - [ ] Lock flag interactions
-  - [ ] `planetary_resources` validation
-  - [ ] `dynasty_outcome` validation
-
-- [ ] `tests/domain/models/test_representative.py` **(MISSING)**
-  - [ ] `RepresentativeStats` validators (all > 0)
-  - [ ] Bonus properties (`int_bonus`, `per_bonus`, `fel_bonus`)
-  - [ ] `highest_leadership_bonus` property
-  - [ ] `loss_mitigation_stat` property
-  - [ ] `get_total_personality_calamity_modifier` method
-  - [ ] `update_calamitous_modifier` method
-
-- [ ] `tests/domain/models/test_user.py` **(MISSING)**
-  - [ ] `username` length validation (3-50 chars)
-  - [ ] `email` length validation (5-100 chars)
-  - [ ] `role` default (VIEWER), `is_active` default (True)
-
-- [ ] `tests/domain/models/test_infrastructure.py` **(MISSING)**
-  - [ ] `state` validation, `has_effect`/`is_disrupted` properties
-
-- [ ] `tests/domain/models/test_support_upgrade.py` **(MISSING)**
-  - [ ] `is_installed` property, cost validation
-
-- [ ] `tests/domain/models/test_colony_user.py` **(MISSING)**
-- [ ] `tests/domain/models/test_event.py` **(MISSING)**
-- [ ] `tests/domain/models/test_development_plan.py` **(MISSING)**

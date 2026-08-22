@@ -74,30 +74,6 @@ def get_representative_repository(db_path: Annotated[Path, Depends(get_db_path)]
     return SqlAlchemyRepresentativeRepository(build_database_url(db_path))
 
 
-def get_rule_config_provider() -> RuleConfigProvider:
-    """Get rule config provider instance."""
-    return FileRuleConfigProvider(config_dir=get_config_dir())
-
-
-def get_colony_service(
-    colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
-    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
-    rule_config_provider: Annotated[RuleConfigProvider, Depends(get_rule_config_provider)],
-    colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
-    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
-) -> ColonyService:
-    """Get colony service instance with dependencies."""
-    return ColonyService(colony_repository, representative_repository, rule_config_provider, colony_user_repository, audit_log_repository)
-
-
-def get_representative_service(
-    colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
-    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
-) -> RepresentativeService:
-    """Get representative service instance with dependencies."""
-    return RepresentativeService(colony_repository, representative_repository)
-
-
 def get_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> UserRepository:
     """Get user repository instance."""
     return SqlAlchemyUserRepository(build_database_url(db_path))
@@ -121,6 +97,30 @@ def get_audit_log_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> 
 def get_colony_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> ColonyUserRepository:
     """Get colony user repository instance."""
     return SqlAlchemyColonyUserRepository(build_database_url(db_path))
+
+
+def get_rule_config_provider() -> RuleConfigProvider:
+    """Get rule config provider instance."""
+    return FileRuleConfigProvider(config_dir=get_config_dir())
+
+
+def get_colony_service(
+    colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
+    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
+    rule_config_provider: Annotated[RuleConfigProvider, Depends(get_rule_config_provider)],
+    colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+) -> ColonyService:
+    """Get colony service instance with dependencies."""
+    return ColonyService(colony_repository, representative_repository, rule_config_provider, colony_user_repository, audit_log_repository)
+
+
+def get_representative_service(
+    colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
+    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
+) -> RepresentativeService:
+    """Get representative service instance with dependencies."""
+    return RepresentativeService(colony_repository, representative_repository)
 
 
 def get_event_service(

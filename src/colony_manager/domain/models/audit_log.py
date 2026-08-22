@@ -4,10 +4,10 @@ Audit logs track all changes to colony state for version history. They are
 auto-populated via the service layer - not manually created.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AuditLogAction(str, Enum):
@@ -34,7 +34,7 @@ class AuditLog(BaseModel):
         old_value: Previous value as JSON-serialized string (None for create).
         new_value: New value as JSON-serialized string (None for delete).
         changed_by: User ID of the user who made the change.
-        changed_at: Timestamp when the change was made.
+        changed_at: Timestamp when the change was made (UTC).
         colony_id: ID of the colony this change relates to.
     """
     
@@ -46,5 +46,17 @@ class AuditLog(BaseModel):
     old_value: str | None = Field(default=None, max_length=10000)
     new_value: str | None = Field(default=None, max_length=10000)
     changed_by: int
-    changed_at: datetime | None = None
+    changed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     colony_id: int
+    
+    @field_validator("changed_at")
+    @classmethod
+    def _validate_changed_at(cls, value: datetime | None) -> datetime:
+        """Ensure changed_at is never None and is timezone-aware (UTC)."""
+        if value is None:
+            return datetime.now(timezone.utc)
+        # Ensure UTC timezone
+        if value.tzinfo is None:
+            # Assume naive datetime is UTC
+            return value.replace(tzinfo=timezone.utc)
+        return value

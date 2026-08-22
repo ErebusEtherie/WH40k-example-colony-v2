@@ -27,6 +27,7 @@ class TestStatSecurityInvariants:
         """Property: Stats never go below 0 regardless of penalty combinations."""
         modifiers = [
             Modifier(
+                colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
                 modifier_stat=ModifierStat.ORDER,
                 modifier_value=val,
@@ -41,8 +42,8 @@ class TestStatSecurityInvariants:
         """Test: Locked stats ignore all positive modifiers."""
         base_value = 50
         modifiers = [
-            Modifier(modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=20, is_active=True),
-            Modifier(modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=-10, is_active=True),
+            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=20, is_active=True),
+            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=-10, is_active=True),
         ]
         locked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=True)
         unlocked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=False)
@@ -72,6 +73,7 @@ class TestProfitFactorSecurityInvariants:
         """Property: Profit Factor never goes below 0."""
         modifiers = [
             Modifier(
+                colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=custom_pf_mod,
@@ -107,6 +109,7 @@ class TestProfitFactorSecurityInvariants:
         """Property: Order == 0 always forces Profit Factor to 0 (Anarchy)."""
         modifiers = [
             Modifier(
+                colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=custom_pf_mod,
@@ -160,7 +163,7 @@ class TestProfitFactorSecurityInvariants:
             current_piety=100,
             actual_size=5,
             modifiers=[
-                Modifier(modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.PROFIT_FACTOR, modifier_value=1000, is_active=True),
+                Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.PROFIT_FACTOR, modifier_value=1000, is_active=True),
             ],
             leadership_modifier=50,
             is_orderly=False,

@@ -248,8 +248,8 @@ For production, these need to be validated against the reference Excel workbook.
 
 **Outstanding clarifications needed:**
 
-- 🟡 Whether Hard Infrastructure rules should be implemented before Phase 4b
-- 🟡 Preference for per-colony vs. global config for roll intervals
+- ~~🟡 Whether Hard Infrastructure rules should be implemented before Phase 4b~~ ✅ RESOLVED: Implemented in Phase 4b
+- ~~🟡 Preference for per-colony vs. global config for roll intervals~~ ✅ RESOLVED: Global config with per-colony override
 
 **Recently Resolved:**
 

@@ -24,7 +24,7 @@ def size_modifiers(draw):
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=draw(st.integers(min_value=-5, max_value=5)),
-            modifier_description=draw(st.text(min_size=1, max_size=50)),
+            description=draw(st.text(min_size=1, max_size=50)),
             is_active=draw(st.booleans()),
         )
         modifiers.append(modifier)
@@ -51,9 +51,9 @@ class TestCalculateSizeProperties:
     @given(st.integers(min_value=0, max_value=10), st.integers(min_value=1, max_value=5))
     def test_single_positive_modifier_increases_size(self, base_size: int, mod_value: int):
         """A single positive modifier increases size."""
-        modifier = Modifier(source="Test", modifier_source_type=ModifierSourceType.GM_CUSTOM,
+        modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
                           modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
-                          modifier_description="Test", duration_days=90, is_active=True)
+                          description="Test", is_active=True)
         result = calculate_size(base_size, [modifier])
         assert result == base_size + mod_value
 
@@ -61,9 +61,9 @@ class TestCalculateSizeProperties:
     @given(st.integers(min_value=0, max_value=10), st.integers(min_value=-5, max_value=-1))
     def test_single_negative_modifier_decreases_size(self, base_size: int, mod_value: int):
         """A single negative modifier decreases size (but not below 0)."""
-        modifier = Modifier(source="Test", modifier_source_type=ModifierSourceType.GM_CUSTOM,
+        modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
                           modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
-                          modifier_description="Test", duration_days=90, is_active=True)
+                          description="Test", is_active=True)
         result = calculate_size(base_size, [modifier])
         expected = max(base_size + mod_value, 0)
         assert result == expected

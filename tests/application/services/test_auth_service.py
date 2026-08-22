@@ -97,6 +97,8 @@ class TestBulkTokenRevocation:
         
         user = _create_user(user_repo, username="bulkuser")
         
+        assert user.id is not None
+        
         # Create some token issuances
         for i in range(3):
             issuance_repo.create(TokenIssuance(
@@ -105,8 +107,12 @@ class TestBulkTokenRevocation:
                 token_type="access",
                 issued_at=datetime.now(UTC),
                 expires_at=datetime.now(UTC) + timedelta(hours=1),
+                revoked_at=None,
+                ip_address="192.168.1.1",
+                user_agent="TestAgent/1.0",
             ))
         
+        assert user.id is not None
         revoked_count = auth_service.revoke_all_user_tokens(user.id, reason="password_change")
         
         assert revoked_count >= 3
@@ -140,7 +146,7 @@ class TestAccountLockout:
         )
         
         for i in range(LOCKOUT_MAX_ATTEMPTS):
-            auth_service.track_login_attempt("lockuser", success=False, ip_address="192.168.1.1")
+            auth_service.track_login_attempt("lockuser", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
         
         assert auth_service.is_account_locked("lockuser") is True
 
@@ -157,7 +163,7 @@ class TestAccountLockout:
         )
         
         for i in range(LOCKOUT_MAX_ATTEMPTS - 1):
-            auth_service.track_login_attempt("notlocked", success=False, ip_address="192.168.1.1")
+            auth_service.track_login_attempt("notlocked", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
         
         assert auth_service.is_account_locked("notlocked") is False
 
@@ -175,7 +181,7 @@ class TestAccountLockout:
         
         with freeze_time(datetime.now(UTC) - timedelta(minutes=LOCKOUT_WINDOW_MINUTES + 5)):
             for i in range(LOCKOUT_MAX_ATTEMPTS):
-                auth_service.track_login_attempt("expireuser", success=False)
+                auth_service.track_login_attempt("expireuser", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
         
         assert auth_service.is_account_locked("expireuser") is False
 
@@ -197,6 +203,7 @@ class TestTokenCleanup:
             user_id=1,
             expires_at=datetime.now(UTC) - timedelta(days=1),
             revoked_at=datetime.now(UTC) - timedelta(days=2),
+            reason="test_expired",
         )
         blacklist_repo.create(expired_entry)
         
@@ -205,6 +212,7 @@ class TestTokenCleanup:
             user_id=1,
             expires_at=datetime.now(UTC) + timedelta(days=1),
             revoked_at=datetime.now(UTC),
+            reason="test_valid",
         )
         blacklist_repo.create(valid_entry)
         
@@ -229,6 +237,7 @@ class TestTokenCleanup:
             ip_address="192.168.1.1",
             attempted_at=datetime.now(UTC) - timedelta(days=60),
             success=False,
+            user_agent="TestAgent/1.0",
         )
         login_repo.create(old_attempt)
         
@@ -237,6 +246,7 @@ class TestTokenCleanup:
             ip_address="192.168.1.2",
             attempted_at=datetime.now(UTC),
             success=True,
+            user_agent="TestAgent/2.0",
         )
         login_repo.create(recent_attempt)
         
