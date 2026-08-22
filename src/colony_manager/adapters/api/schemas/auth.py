@@ -50,3 +50,23 @@ class ChangePasswordRequest(BaseModel):
     
     current_password: str = Field(..., min_length=8, max_length=128)
     new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class TokenRevokeRequest(BaseModel):
+    """Request schema for token revocation (logout)."""
+    
+    reason: str | None = Field(None, max_length=100, description="Optional reason for revocation")
+
+
+class TokenRevokeAllRequest(BaseModel):
+    """Request schema for revoking all user tokens."""
+    
+    user_id: int | None = Field(None, gt=0, description="Target user ID (admin only). If omitted, revokes own tokens.")
+    reason: str | None = Field(None, max_length=100, description="Optional reason for revocation")
+
+
+class TokenRevokeResponse(BaseModel):
+    """Response schema for token revocation."""
+    
+    message: str
+    tokens_revoked: int = 0

@@ -6,8 +6,11 @@ handles token creation, validation, and extraction of user claims.
 Token expiration times are configurable via settings:
 - Access tokens: 30 minutes (default)
 - Refresh tokens: 7 days (default)
+
+Each token includes a unique 'jti' (JWT ID) claim for token revocation support.
 """
 
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -41,11 +44,15 @@ def create_access_token(
         
     Returns:
         Encoded JWT token string
+        
+    Note:
+        Token includes a unique 'jti' (JWT ID) claim for revocation support.
     """
     if expires_delta is None:
         expires_delta = timedelta(minutes=DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES)
     
     expire = datetime.now(UTC) + expires_delta
+    token_id = secrets.token_urlsafe(16)  # Unique token identifier
     
     to_encode: dict[str, Any] = {
         "sub": str(user.id),  # Subject (user ID)
@@ -55,6 +62,7 @@ def create_access_token(
         "exp": expire,
         "iat": datetime.now(UTC),
         "type": "access",
+        "jti": token_id,  # JWT ID for revocation
     }
     
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
@@ -80,11 +88,15 @@ def create_refresh_token(
         
     Returns:
         Encoded JWT token string
+        
+    Note:
+        Token includes a unique 'jti' (JWT ID) claim for revocation support.
     """
     if expires_delta is None:
         expires_delta = timedelta(days=DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS)
     
     expire = datetime.now(UTC) + expires_delta
+    token_id = secrets.token_urlsafe(16)  # Unique token identifier
     
     to_encode: dict[str, Any] = {
         "sub": str(user.id),
@@ -92,6 +104,7 @@ def create_refresh_token(
         "exp": expire,
         "iat": datetime.now(UTC),
         "type": "refresh",
+        "jti": token_id,  # JWT ID for revocation
     }
     
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)

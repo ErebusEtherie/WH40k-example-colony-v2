@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime, date
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, MappedColumn
+
+
+# Foreign key constants - avoid string duplication
+USERS_ID_FK = "users.id"
+COLONIES_ID_FK = "colonies.id"
+REPRESENTATIVES_ID_FK = "representatives.id"
+EVENTS_ID_FK = "events.id"
 
 
 class Base(DeclarativeBase):
@@ -27,7 +34,7 @@ class ColonyORM(Base):
     base_productivity: Mapped[int] = mapped_column(Integer, nullable=False)
     base_piety: Mapped[int] = mapped_column(Integer, nullable=False)
     base_size: Mapped[int] = mapped_column(Integer, nullable=False)
-    representative_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("representatives.id"), nullable=True)
+    representative_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(REPRESENTATIVES_ID_FK), nullable=True)
     # Dynasty outcome for Dynasty Member representatives
     dynasty_outcome: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Lock flags - prevent stat increases until resolved
@@ -60,14 +67,14 @@ class RepresentativeORM(Base):
     stats: Mapped[str] = mapped_column(Text, nullable=False)
     skills: Mapped[str] = mapped_column(Text, nullable=False)
     talents: Mapped[str] = mapped_column(Text, nullable=False)
-    assigned_to_colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("colonies.id"), nullable=True)
+    assigned_to_colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK), nullable=True)
 
 
 class ModifierORM(Base):
     __tablename__ = "modifiers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey("colonies.id", ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     modifier_source_type: Mapped[str] = mapped_column(String(255), nullable=False)
     modifier_stat: Mapped[str] = mapped_column(String(255), nullable=False)
     modifier_value: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -82,7 +89,7 @@ class InfrastructureORM(Base):
     __tablename__ = 'infrastructure'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey('colonies.id', ondelete='CASCADE'), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete='CASCADE'), nullable=False)
     infrastructure_type: Mapped[str] = mapped_column(String(255), nullable=False)
     state: Mapped[str] = mapped_column(String(255), nullable=False, default='planned')
 
@@ -93,7 +100,7 @@ class SupportUpgradeORM(Base):
     __tablename__ = 'support_upgrades'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey('colonies.id', ondelete='CASCADE'), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete='CASCADE'), nullable=False)
     upgrade_type: Mapped[str] = mapped_column(String(255), nullable=False)
     custom_stat_choice: Mapped[str | None] = mapped_column(String(255), nullable=True)
     custom_product: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -106,7 +113,7 @@ class ResourceORM(Base):
     __tablename__ = 'resources'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey('colonies.id', ondelete='CASCADE'), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete='CASCADE'), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     abundance: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -127,7 +134,7 @@ class UserORM(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[date] = mapped_column(Date, nullable=True)
     updated_at: Mapped[date] = mapped_column(Date, nullable=True)
-    managed_colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("colonies.id"), nullable=True)
+    managed_colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK), nullable=True)
 
     # Relationship to colony this user manages (optional)
     managed_colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="manager")
@@ -143,10 +150,10 @@ class EventORM(Base):
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey("colonies.id", ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
     created_at: Mapped[date] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
@@ -160,7 +167,7 @@ class EventModifierORM(Base):
     __tablename__ = "event_modifiers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey(EVENTS_ID_FK, ondelete="CASCADE"), nullable=False)
     stat: Mapped[str] = mapped_column(String(50), nullable=False)
     value: Mapped[int] = mapped_column(Integer, nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -174,7 +181,7 @@ class DevelopmentPlanORM(Base):
     __tablename__ = "development_plans"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey("colonies.id", ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     upgrade_type: Mapped[str] = mapped_column(String(50), nullable=False)
     target_name: Mapped[str] = mapped_column(String(200), nullable=False)
     priority: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -182,7 +189,7 @@ class DevelopmentPlanORM(Base):
     acquisition_plan: Mapped[str] = mapped_column(Text, nullable=False)
     progress: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="planned")
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
     created_at: Mapped[date] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[date] = mapped_column(DateTime, nullable=True)
 
@@ -201,9 +208,9 @@ class AuditLogORM(Base):
     field: Mapped[str | None] = mapped_column(String(100), nullable=True)
     old_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
-    changed_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    changed_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
     changed_at: Mapped[date] = mapped_column(DateTime, nullable=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey("colonies.id", ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
 
     # Relationships
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="audit_logs")
@@ -214,13 +221,52 @@ class ColonyUserORM(Base):
     __tablename__ = "colony_users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey("colonies.id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK, ondelete="CASCADE"), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="viewer")
     joined_at: Mapped[date] = mapped_column(DateTime, nullable=True)
-    invited_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    invited_by: Mapped[int | None] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=True)
 
     # Relationships
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="colony_users")
     user: Mapped[UserORM] = relationship("UserORM", foreign_keys=[user_id], back_populates="colony_memberships")
     inviter: Mapped[UserORM | None] = relationship("UserORM", foreign_keys=[invited_by])
+
+
+class TokenBlacklistORM(Base):
+    """ORM model for blacklisted JWT tokens."""
+    __tablename__ = "token_blacklist"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK, ondelete="CASCADE"), nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    revoked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    reason: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+
+class LoginAttemptORM(Base):
+    """ORM model for login attempt tracking."""
+    __tablename__ = "login_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    attempted_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+
+class TokenIssuanceORM(Base):
+    """ORM model for token issuance tracking."""
+    __tablename__ = "token_issuance"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK, ondelete="CASCADE"), nullable=False, index=True)
+    token_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    token_type: Mapped[str] = mapped_column(String(10), nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)

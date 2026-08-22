@@ -82,7 +82,9 @@ class TestAuditLogsAPI:
         response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}")
         assert response.status_code == 200
         logs = response.json()
-        assert len(logs) == 0
+        # Colony creation is now logged, so we expect 1 log entry
+        assert len(logs) == 1
+        assert logs[0]["action"] == "create"
 
     def test_get_audit_log_not_found(self, auth_client: TestClient):
         """Test 404 when audit log doesn't exist."""

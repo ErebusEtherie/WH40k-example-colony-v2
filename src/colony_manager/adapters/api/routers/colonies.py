@@ -110,7 +110,7 @@ async def create_colony(
         base_piety=base_stats["piety"],  # type: ignore[index]
         base_size=base_stats["size"],  # type: ignore[index]
     )
-    created = service.create_colony(colony)
+    created = service.create_colony(colony, changed_by=current_user.id)
     assert created.id is not None
     state = service.get_state(created.id)
     return ColonyResponse(
@@ -156,12 +156,9 @@ async def update_colony(
     service: ColonyService = Depends(get_colony_service),
 ) -> ColonyResponse:
     """Update a colony (partial update)."""
-    colony = _check_colony_exists(service, colony_id)
+    _check_colony_exists(service, colony_id)
     update_data = colony_data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        if value is not None:
-            setattr(colony, field, value)
-    updated = service._colony_repository.update(colony)
+    updated = service.update_colony(colony_id, changed_by=current_user.id, **update_data)
     state = service.get_state(colony_id)
     return ColonyResponse(
         id=updated.id, name=updated.name, owner=updated.owner, colony_type=updated.colony_type,
@@ -256,7 +253,7 @@ async def add_colony_modifier(
         modifier_value=modifier_data.modifier_value, description=modifier_data.modifier_description,
         is_active=modifier_data.is_active,
     )
-    updated = service.add_modifier(colony_id, modifier)
+    updated = service.add_modifier(colony_id, modifier, changed_by=current_user.id)
     new_modifier = updated.modifiers[-1]
     return ModifierResponse(
         id=new_modifier.id, colony_id=colony_id, modifier_source_type=new_modifier.modifier_source_type,

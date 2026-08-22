@@ -14,6 +14,9 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
     get_rate_limit_exceeded_handler,
 )
+from colony_manager.adapters.api.middleware.security_headers import (
+    SecurityHeadersMiddleware,
+)
 from colony_manager.adapters.api.routers import (
     auth_router,
     audit_logs_router,
@@ -140,6 +143,9 @@ def create_app() -> FastAPI:
     limiter = get_limiter()
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())  # type: ignore[arg-type]
+
+    # Security headers middleware
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Include routers
     app.include_router(auth_router, prefix=API_V1_PREFIX)

@@ -12,16 +12,55 @@
 
 - **JWT Token-Based Authentication**: All protected endpoints require a valid JWT access token
 - **Refresh Token Rotation**: Refresh tokens are rotated on each use to prevent replay attacks
+- **Token Revocation**: Tokens can be revoked via `/auth/revoke` (single token) or `/auth/revoke-all` (all user tokens)
+- **Token Blacklist**: Revoked tokens are stored in a SQLite blacklist and rejected even if cryptographically valid
 - **Password Hashing**: Passwords are hashed using bcrypt with 12 rounds
 - **Password Policy**: Configurable minimum length and complexity requirements
 - **Role-Based Access Control**: Users assigned roles (viewer, colony_manager, admin)
+- **Admin Token Revocation**: Administrators can revoke tokens for any user (useful for compromised accounts)
 
 ### Token Security
 
 - Access tokens expire after 30 minutes (configurable)
 - Refresh tokens expire after 7 days (configurable)
 - Tokens are signed using HS256 algorithm
-- Token validation includes expiration and type checking
+- Token validation includes expiration, type checking, and blacklist verification
+- Each token includes a unique `jti` (JWT ID) claim for revocation support
+
+### Security Headers
+
+The following security headers are automatically added to all API responses:
+
+| Header | Value | Notes |
+|--------|-------|-------|
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Production only (disabled in dev) |
+| `X-Content-Type-Options` | `nosniff` | Always enabled |
+| `X-Frame-Options` | `DENY` | Always enabled |
+| `X-XSS-Protection` | `1; mode=block` | Always enabled |
+| `Content-Security-Policy` | `default-src 'self'` | Always enabled |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Always enabled |
+
+### Audit Logging
+
+The following operations are logged to the `audit_logs` table:
+
+- Colony creation, updates (each field change logged separately), and age updates
+- Infrastructure creation, state updates, and deletion
+- Support upgrade creation, updates, and deletion
+- Representative creation, colony assignment, and unassignment
+- Resource creation, updates (abundance/notes), and deletion
+- Modifier additions
+
+Audit logs include:
+- Entity type and ID
+- Action performed (create/update/delete/assign/unassign)
+- Field changed (for updates)
+- Old and new values
+- User ID who made the change (if provided)
+- Timestamp
+- Colony ID (for colony-scoped entities)
+
+All application services now support optional audit logging via the `changed_by` parameter on mutation methods.
 
 ### Input Validation
 
@@ -88,13 +127,13 @@ REQUIRE_PASSWORD_COMPLEXITY=true
 
 ## Known Limitations
 
-1. **Rate Limiting**: Basic rate limiting is configurable but not enforced at the application level. Consider adding a reverse proxy (nginx, Cloudflare) for production.
+1. **Rate Limiting**: Basic rate limiting is implemented using SlowAPI but consider adding a reverse proxy (nginx, Cloudflare) for production-grade protection.
 
 2. **Account Lockout**: Login attempt tracking is not yet implemented. Brute force protection should be added at the infrastructure level.
 
-3. **Audit Logging**: User actions are not currently logged. Consider adding audit trails for security-sensitive operations.
+3. **Token Blacklist Bulk Revocation**: The `revoke-all` endpoint currently returns 0 tokens revoked. A full implementation would require a token issuance log to track all tokens issued per user. For now, only explicitly revoked tokens (via `/auth/revoke`) are blacklisted.
 
-4. **Session Management**: No mechanism to revoke tokens before expiration. Implement token blacklist if early revocation is needed.
+5. **Token Blacklist Cleanup**: Expired blacklist entries are not automatically cleaned up. Consider adding a periodic cleanup job (e.g., weekly cron) to remove entries older than their expiration date.
 
 ## Dependencies
 
@@ -111,18 +150,12 @@ uv pip install --upgrade -r requirements.txt
 pip-audit
 ```
 
-## Security Headers (Recommended)
+## Security Headers
 
-When deploying behind a reverse proxy, add these headers:
+Security headers are now automatically added by the application middleware. See the "Security Headers" section above for details.
 
-```
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Content-Security-Policy: default-src 'self'
-```
+When deploying behind a reverse proxy, you may want to configure the proxy to add additional headers or override defaults. Note that HSTS is automatically disabled in development mode (`ENVIRONMENT=development`) to allow local HTTP testing.
 
 ## Last Updated
 
-2026-08-19
+2026-08-21 - Completed audit logging for all services (Infrastructure, SupportUpgrade, Representative, Resource), added Alembic migrations for database schema management

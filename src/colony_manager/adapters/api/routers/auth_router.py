@@ -14,7 +14,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from colony_manager.adapters.api.dependencies import get_user_repository
+from colony_manager.adapters.api.dependencies import get_user_repository, get_auth_service
 from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
 from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
@@ -29,11 +29,15 @@ from colony_manager.adapters.api.schemas.auth import (
     RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
+    TokenRevokeAllRequest,
+    TokenRevokeRequest,
+    TokenRevokeResponse,
     UserResponse,
 )
 from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.user_repository import UserRepository
+from colony_manager.application.services.auth_service import AuthService
 from colony_manager.domain.util.auth import hash_password, verify_password
 from colony_manager.domain.util.token import (
     TokenError,
@@ -156,38 +160,97 @@ def login(
     request: Request,
     login_request: LoginRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> TokenResponse:
     """Authenticate user and return JWT tokens.
     
     This endpoint is public and does not require authentication.
-    """
-    user = user_repository.get_by_username(login_request.username)
     
+    Security:
+    - Account lockout after 5 failed attempts within 15 minutes
+    - Lockout duration: 15 minutes
+    - All attempts are logged for audit purposes
+    """
+    # Extract client information for audit logging
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    
+    # Check if account is locked before attempting authentication
+    if auth_service.is_account_locked(login_request.username):
+        # Log the attempt even though locked
+        auth_service.track_login_attempt(
+            username=login_request.username,
+            success=False,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="Account is temporarily locked due to too many failed login attempts. Please try again in 15 minutes.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    user = user_repository.get_by_username(login_request.username)
+
     if user is None:
+        # Log failed attempt
+        auth_service.track_login_attempt(
+            username=login_request.username,
+            success=False,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user.is_active:
+        # Log the attempt
+        auth_service.track_login_attempt(
+            username=login_request.username,
+            success=False,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account is deactivated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not verify_password(login_request.password, user.password_hash):
+        # Log failed attempt
+        auth_service.track_login_attempt(
+            username=login_request.username,
+            success=False,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    # Log successful login
+    auth_service.track_login_attempt(
+        username=login_request.username,
+        success=True,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    # Create tokens with issuance tracking
     secret_key = get_jwt_secret_key()
-    access_token = create_access_token(user, secret_key)
-    refresh_token = create_refresh_token(user, secret_key)
-    
+    access_token, refresh_token = auth_service.create_tokens_with_tracking(
+        user=user,
+        secret_key=secret_key,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -288,3 +351,88 @@ def change_password(
         ) from e
     
     return {"message": "Password changed successfully"}
+
+
+@router.post("/revoke", response_model=TokenRevokeResponse)
+@limiter.limit(refresh_token_rate_limit())
+def revoke_token(
+    request: Request,
+    revoke_request: TokenRevokeRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> TokenRevokeResponse:
+    """Revoke current access token (logout).
+    
+    This endpoint adds the current token to the blacklist, preventing
+    further use even if the token hasn't expired yet.
+    
+    Note: The client should discard the token after calling this endpoint.
+    The token used to make this request will still be valid for this request
+    but will be blacklisted for future requests.
+    """
+    # Get token from request header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Authorization header with Bearer token required",
+        )
+    
+    token = auth_header[7:]  # Remove "Bearer " prefix
+    secret_key = get_jwt_secret_key()
+    
+    try:
+        auth_service.revoke_token(token, secret_key, reason=revoke_request.reason or "logout")
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+    
+    return TokenRevokeResponse(message="Token revoked successfully", tokens_revoked=1)
+
+
+@router.post("/revoke-all", response_model=TokenRevokeResponse)
+def revoke_all_tokens(
+    revoke_request: TokenRevokeAllRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> TokenRevokeResponse:
+    """Revoke all tokens for a user.
+    
+    For regular users: Revokes all tokens for the current user.
+    For admins: Can revoke tokens for any user by specifying user_id.
+    
+    This is useful for:
+    - Password changes (revoke all sessions)
+    - Suspected account compromise
+    - User deactivation
+    """
+    # Check if user is trying to revoke another user's tokens
+    target_user_id = revoke_request.user_id or (current_user.id if current_user.id else 0)
+    
+    # Only admins can revoke tokens for other users
+    user_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
+    if target_user_id != current_user.id and user_role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can revoke tokens for other users",
+        )
+    
+    # Verify target user exists
+    target_user = auth_service.get_user(target_user_id)
+    if target_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {target_user_id} not found",
+        )
+    
+    tokens_revoked = auth_service.revoke_all_user_tokens(
+        target_user_id,
+        reason=revoke_request.reason or "admin_revoke" if user_role == "admin" else "password_change",
+    )
+    
+    return TokenRevokeResponse(
+        message=f"Revoked {tokens_revoked} token(s) for user {target_user_id}",
+        tokens_revoked=tokens_revoked,
+    )

@@ -22,8 +22,18 @@ from colony_manager.adapters.persistence.representative_repository_impl import (
     SqlAlchemyRepresentativeRepository,
 )
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
+    SqlAlchemyTokenBlacklistRepository,
+)
+from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
+    SqlAlchemyLoginAttemptRepository,
+)
+from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
+    SqlAlchemyTokenIssuanceRepository,
+)
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.colony_user_service import ColonyUserService
+from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.application.services.event_service import EventService
 from colony_manager.application.services.representative_service import RepresentativeService
@@ -35,6 +45,9 @@ from colony_manager.domain.ports.event_repository import EventRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 from colony_manager.domain.ports.user_repository import UserRepository
+from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
+from colony_manager.domain.ports.login_attempt_repository import LoginAttemptRepository
+from colony_manager.domain.ports.token_issuance_repository import TokenIssuanceRepository
 
 # Default paths - config is at project root, not src/config
 DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3].parent / "config"
@@ -70,9 +83,10 @@ def get_colony_service(
     colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
     representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
     rule_config_provider: Annotated[RuleConfigProvider, Depends(get_rule_config_provider)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
 ) -> ColonyService:
     """Get colony service instance with dependencies."""
-    return ColonyService(colony_repository, representative_repository, rule_config_provider)
+    return ColonyService(colony_repository, representative_repository, rule_config_provider, audit_log_repository)
 
 
 def get_representative_service(
@@ -130,3 +144,28 @@ def get_colony_user_service(
 ) -> ColonyUserService:
     """Get colony user service instance with dependencies."""
     return ColonyUserService(membership_repository, audit_log_repository)
+
+
+def get_token_blacklist_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> TokenBlacklistRepository:
+    """Get token blacklist repository instance."""
+    return SqlAlchemyTokenBlacklistRepository(build_database_url(db_path))
+
+
+def get_login_attempt_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> LoginAttemptRepository:
+    """Get login attempt repository instance."""
+    return SqlAlchemyLoginAttemptRepository(build_database_url(db_path))
+
+
+def get_token_issuance_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> TokenIssuanceRepository:
+    """Get token issuance repository instance."""
+    return SqlAlchemyTokenIssuanceRepository(build_database_url(db_path))
+
+
+def get_auth_service(
+    token_blacklist_repository: Annotated[TokenBlacklistRepository, Depends(get_token_blacklist_repository)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    login_attempt_repository: Annotated[LoginAttemptRepository, Depends(get_login_attempt_repository)],
+    token_issuance_repository: Annotated[TokenIssuanceRepository, Depends(get_token_issuance_repository)],
+) -> AuthService:
+    """Get auth service instance with dependencies."""
+    return AuthService(token_blacklist_repository, user_repository, login_attempt_repository, token_issuance_repository)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import typer
 
+from colony_manager.adapters.cli.commands.cleanup import cleanup_app
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
 from colony_manager.adapters.io.colony_exporter import ColonyExporter
 from colony_manager.adapters.io.colony_importer import ColonyImporter
@@ -37,6 +38,7 @@ colony_app = typer.Typer(help="Colony commands")
 representative_app = typer.Typer(help="Representative commands")
 app.add_typer(colony_app, name="colony")
 app.add_typer(representative_app, name="representative")
+app.add_typer(cleanup_app, name="cleanup")
 
 
 def cli() -> None:

@@ -54,3 +54,24 @@ def auth_client(test_client):
     # Return client with auth header
     test_client.headers["Authorization"] = f"Bearer {access_token}"
     return test_client
+
+
+@pytest.fixture
+def test_client_with_auth(tmp_path):
+    """Create test client with initialized database (for auth tests)."""
+    from colony_manager.adapters.persistence.db import init_db
+    import colony_manager.adapters.api.dependencies as deps
+    
+    db_path = tmp_path / "test.db"
+    init_db(db_path)
+    app = create_app()
+    
+    def override_get_db_path() -> Path:
+        return db_path
+    
+    app.dependency_overrides[deps.get_db_path] = override_get_db_path
+    
+    client = TestClient(app)
+    yield client
+    
+    app.dependency_overrides.clear()

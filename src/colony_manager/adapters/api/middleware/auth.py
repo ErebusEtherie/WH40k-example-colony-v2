@@ -1,7 +1,8 @@
 """Authentication middleware for JWT token validation.
 
 This module provides FastAPI dependencies for protecting routes with JWT
-authentication. It extracts and validates tokens from the Authorization header.
+authentication. It extracts and validates tokens from the Authorization header,
+and checks tokens against the blacklist for revocation support.
 """
 
 import os
@@ -9,12 +10,14 @@ from typing import Annotated, Callable
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+import jwt
 
-from colony_manager.adapters.api.dependencies import get_user_repository
+from colony_manager.adapters.api.dependencies import get_user_repository, get_token_blacklist_repository
 from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User
 from colony_manager.domain.ports.user_repository import UserRepository
-from colony_manager.domain.util.token import TokenError, get_user_id_from_token
+from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
+from colony_manager.domain.util.token import TokenError, verify_token
 
 # Security scheme for Bearer token
 security = HTTPBearer(auto_error=False)
@@ -36,15 +39,18 @@ def get_jwt_secret_key() -> str:
 def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    token_blacklist_repository: Annotated[TokenBlacklistRepository, Depends(get_token_blacklist_repository)],
 ) -> User:
     """Get current authenticated user from JWT token.
     
     This dependency extracts the JWT token from the Authorization header,
-    validates it, and retrieves the corresponding user from the repository.
+    validates it, checks it against the blacklist, and retrieves the
+    corresponding user from the repository.
     
     Args:
         credentials: HTTP Bearer credentials from request
         user_repository: Repository for user lookup
+        token_blacklist_repository: Repository for checking token revocation
         
     Returns:
         Authenticated User object
@@ -63,11 +69,28 @@ def get_current_user(
     secret_key = get_jwt_secret_key()
     
     try:
-        user_id = get_user_id_from_token(token, secret_key)
+        # First verify the token is valid and not expired
+        payload = verify_token(token, secret_key, token_type="access")
+        user_id = int(payload["sub"])
+        
+        # Check if token is blacklisted (revoked)
+        token_jti = payload.get("jti")
+        if token_jti and token_blacklist_repository.is_blacklisted(token_jti):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
     except TokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {e}",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+    except jwt.PyJWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation error: {e}",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     
