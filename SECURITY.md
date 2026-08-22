@@ -135,22 +135,24 @@ REQUIRE_PASSWORD_COMPLEXITY=true
 
    ```bash
    # Dry run (see what would be deleted)
-   uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist --dry-run
+   uv run colony-manager cleanup token-blacklist --dry-run
 
    # Actually remove expired entries
-   uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   uv run colony-manager cleanup token-blacklist
    ```
 
    For automated cleanup, schedule this command to run weekly via cron (Linux/macOS) or Task Scheduler (Windows).
 
    **Example cron job (weekly on Sunday at 2 AM):**
+
    ```bash
-   0 2 * * 0 cd /path/to/WH40k_Colony_Manager && uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   0 2 * * 0 cd /path/to/WH40k_Colony_Manager && uv run colony-manager cleanup token-blacklist
    ```
 
    **Example Windows Task Scheduler command:**
+
    ```powershell
-   cd C:\path\to\WH40k_Colony_Manager; uv run python -m colony_manager.adapters.cli.main cleanup token-blacklist
+   cd C:\path\to\WH40k_Colony_Manager; uv run colony-manager cleanup token-blacklist
    ```
 
 ## Dependencies

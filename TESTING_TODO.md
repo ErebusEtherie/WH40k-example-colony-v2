@@ -9,7 +9,7 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (37 files, ~500+ tests)
+### ✅ Existing Tests (33 files, ~200+ tests)
 
 | Category | Files | Coverage |
 |----------|-------|----------|
@@ -17,7 +17,7 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 | Domain Rules | `test_stat_calculator.py`, `test_profit_factor_calculator.py`, `test_state_effects.py`, `test_infrastructure_rules.py`, `test_leadership_modifier_resolver.py`, `test_lore_state_resolver.py`, `test_size_calculator.py` | Stat/PF calculation with Hypothesis property tests |
 | Domain Models | `test_modifier.py` | Modifier expiry logic |
 | Domain Utils | `test_rounding.py` | Rounding utilities |
-| Application Services | 	est_infrastructure_service.py, 	est_resource_service.py, 	est_services.py, 	est_support_upgrade_service.py, 	est_colony_service_roll_status.py, 	est_colony_state_calculator.py, 	est_auth_service.py, 	est_colony_user_service.py, 	est_event_service.py, 	est_development_plan_service.py | Service orchestration, auth, membership, events, development plans |
+| Application Services | `test_infrastructure_service.py`, `test_resource_service.py`, `test_services.py`, `test_support_upgrade_service.py`, `test_colony_service_roll_status.py`, `test_colony_state_calculator.py` | Service orchestration |
 | API Routers | 9 test files | All endpoint tests with TestClient |
 | Persistence | `test_persistence.py`, `test_infrastructure_and_upgrades_repository.py`, `test_resource_repository.py` | Repository round-trips (partial) |
 | I/O | `test_io.py` | Import/export mappers |
@@ -38,7 +38,7 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
 
 ### Phase 1: High-Risk Hypothesis Tests (Priority: HIGH)
 
-**Status:** ✅ COMPLETE — All Phase 1 Hypothesis tests implemented (23 new tests)
+**Status:** Partially complete — stat_calculator and profit_factor_calculator have Hypothesis tests
 
 - [x] `tests/domain/rules/test_stat_calculator.py`
   - [x] `test_calculate_stat_never_negative_property` — Stats never < 0
@@ -49,59 +49,205 @@ It complements `.clinerules/04-testing-strategy.md` with specific implementation
   - [x] `test_profit_factor_halved_when_productivity_zero_property` — Productivity=0 → PF halved
   - [x] `test_profit_factor_never_negative_property` — PF never < 0
 
-- [x] `tests/domain/rules/test_state_effects_hypothesis.py` — 12 property tests for state transitions, locks, and boundary conditions
+- [ ] `tests/domain/rules/test_state_effects_hypothesis.py` **(MISSING)**
+  - [ ] Property: State transitions are deterministic at boundaries
+  - [ ] Property: Cascading effects (e.g., Piety=0 locks Order/Complacency increases) apply consistently
+  - [ ] Property: Multiple state bonuses stack correctly
 
-- [x] `tests/domain/rules/test_size_calculator_hypothesis.py` — 11 property tests for size calculation and growth rolls
+- [ ] `tests/domain/rules/test_size_calculator_hypothesis.py` **(MISSING)**
+  - [ ] Property: Size calculation is monotonic (more population → same or larger size)
 
+---
 
+### Phase 2: Domain Model Validator Tests (Priority: MEDIUM)
+
+**Status:** Only `test_modifier.py` exists
+
+- [x] `tests/domain/models/test_modifier.py` — Expiry logic tests
+
+- [ ] `tests/domain/models/test_colony.py` **(MISSING)**
+  - [ ] `age_days` validator (≥ 0)
+  - [ ] Lock flag interactions
+  - [ ] `planetary_resources` validation
+  - [ ] `dynasty_outcome` validation
+
+- [ ] `tests/domain/models/test_representative.py` **(MISSING)**
+  - [ ] `RepresentativeStats` validators (all > 0)
+  - [ ] Bonus properties (`int_bonus`, `per_bonus`, `fel_bonus`)
+  - [ ] `highest_leadership_bonus` property
+  - [ ] `loss_mitigation_stat` property
+  - [ ] `get_total_personality_calamity_modifier` method
+  - [ ] `update_calamitous_modifier` method
+
+- [ ] `tests/domain/models/test_user.py` **(MISSING)**
+  - [ ] `username` length validation (3-50 chars)
+  - [ ] `email` length validation (5-100 chars)
+  - [ ] `role` default (VIEWER), `is_active` default (True)
+
+- [ ] `tests/domain/models/test_infrastructure.py` **(MISSING)**
+  - [ ] `state` validation, `has_effect`/`is_disrupted` properties
+
+- [ ] `tests/domain/models/test_support_upgrade.py` **(MISSING)**
+  - [ ] `is_installed` property, cost validation
+
+- [ ] `tests/domain/models/test_colony_user.py` **(MISSING)**
+- [ ] `tests/domain/models/test_event.py` **(MISSING)**
+- [ ] `tests/domain/models/test_development_plan.py` **(MISSING)**
+
+---
+
+### Phase 3: Repository Round-Trip Tests (Priority: MEDIUM)
+
+**Status:** Basic round-trips exist for Colony, Representative, Infrastructure, Resource
+
+- [x] `tests/adapters/persistence/test_persistence.py` — Colony & Representative round-trips
+- [x] `tests/adapters/persistence/test_infrastructure_and_upgrades_repository.py` — Infrastructure/Upgrade CRUD
+- [x] `tests/adapters/persistence/test_resource_repository.py` — Resource CRUD
+
+- [ ] `tests/adapters/persistence/test_token_blacklist_repository.py` **(MISSING)**
+  - [ ] Add/query blacklist, `revoke_all_user_tokens`, expired entry queries
+
+- [ ] `tests/adapters/persistence/test_token_issuance_repository.py` **(MISSING)**
+  - [ ] Token creation, active token queries, revocation
+
+- [ ] `tests/adapters/persistence/test_login_attempt_repository.py` **(MISSING)**
+  - [ ] Failed attempt tracking, cleanup old entries
+
+- [ ] `tests/adapters/persistence/test_audit_log_repository.py` **(MISSING)**
+  - [ ] Audit log CRUD, filtering, pagination
+
+- [ ] `tests/adapters/persistence/test_colony_user_repository.py` **(MISSING)**
+- [ ] `tests/adapters/persistence/test_development_plan_repository.py` **(MISSING)**
+- [ ] `tests/adapters/persistence/test_event_repository.py` **(MISSING)**
+
+---
+
+### Phase 4: Application Service Tests (Priority: MEDIUM)
+
+**Status:** Infrastructure, Resource, SupportUpgrade services tested
+
+- [x] `tests/application/test_infrastructure_service.py` — CRUD, error handling
+- [x] `tests/application/test_resource_service.py` — Resource management
+- [x] `tests/application/test_support_upgrade_service.py` — Upgrade installation
+- [x] `tests/application/services/test_colony_service_roll_status.py` — Roll status
+- [x] `tests/application/services/test_colony_state_calculator.py` — State calculation
+
+- [ ] `tests/application/services/test_auth_service.py` **(MISSING)**
+  - [ ] Registration, login, token refresh, logout, bulk revocation
+
+- [ ] `tests/application/services/test_colony_user_service.py` **(MISSING)**
+- [ ] `tests/application/services/test_event_service.py` **(MISSING)**
+- [ ] `tests/application/services/test_development_plan_service.py` **(MISSING)**
+
+---
 
 ### Phase 5: Integration Tests (Priority: LOW)
 
-**Status:** ✅ COMPLETE — All Phase 5 Integration tests implemented (17 tests, 1 skipped)
+- [ ] `tests/integration/test_auth_flow.py` **(MISSING)**
+  - [ ] Registration → login → authenticated request
+  - [ ] Token refresh, logout/blacklist verification
 
-- [x] \	ests/integration/test_auth_flow.py\ — 6 tests for registration, login, token refresh, and revocation
-- [x] \	ests/integration/test_colony_lifecycle.py\ — 9 tests for colony creation, infrastructure, development plans, events, and stats
-- [x] \	ests/integration/test_import_export_flow.py\ — 3 tests for export/import workflows (1 skipped pending endpoint implementation)
+- [ ] `tests/integration/test_colony_lifecycle.py` **(MISSING)**
+  - [ ] Create → add infrastructure → calculate stats → advance cycle
+
+- [ ] `tests/integration/test_import_export_flow.py` **(MISSING)**
+  - [ ] Export → import → verify equivalence
+
+---
 
 ### Phase 6: Security & Edge Cases (Priority: HIGH for security)
 
-**Status:** ✅ COMPLETE — All Phase 6 Security tests implemented (25 tests, 1 skipped)
+- [ ] `tests/domain/rules/test_security_invariants.py` **(MISSING)**
+  - [ ] Stats never negative, Order=0 → PF=0, locked stat behavior
 
-- [x] `tests/domain/rules/test_security_invariants.py` — 6 tests for stats never negative, Order=0 → PF=0, locked stat behavior
-- [x] `tests/adapters/api/test_permission_enforcement.py` — Role-based access control, cross-colony prevention
-- [x] `tests/adapters/api/test_rate_limiting_integration.py` — Rate limiter triggers, different limits per endpoint
+- [ ] `tests/adapters/api/test_permission_enforcement.py` **(MISSING)**
+  - [ ] Role-based access control, cross-colony prevention
 
+- [ ] `tests/adapters/api/test_rate_limiting_integration.py` **(MISSING)**
+  - [ ] Rate limiter triggers, different limits per endpoint
 
-### Phase 7: Permission Enforcement Completion (Priority: HIGH)
+---
 
-**Status:** ⏳ NOT STARTED — Permission dependencies exist but are not applied to most routes
+## Test Execution Guidelines
 
-- [ ] Audit all API routes for missing permission checks
-- [ ] Apply `require_colony_permission("view")` to read endpoints
-- [ ] Apply `require_colony_permission("edit")` to write endpoints
-- [ ] Apply `require_colony_permission("admin")` to delete/management endpoints
-- [ ] Update tests to expect 403 responses where permission is denied
-- [ ] Add integration tests for cross-colony access prevention
-- [ ] Enable rate limiting in test environment for strict enforcement testing
+### Running Tests
+
+```bash
+# All tests
+uv run pytest
+
+# By category
+uv run pytest tests/domain/
+uv run pytest tests/application/
+uv run pytest tests/adapters/
+
+# With coverage
+uv run pytest --cov=src/colony_manager
+
+# Hypothesis verbose
+uv run pytest tests/domain/rules/ -v --hypothesis-verbosity=verbose
+```
+
+### Hypothesis Settings
+
+```python
+from hypothesis import settings, HealthCheck
+
+@settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
+@given(...)
+def test_property(...): ...
+```
+
+### Test Data Patterns
+
+1. Use fixtures for common test data (see `conftest.py`)
+2. Use `tmp_path` for isolated SQLite databases
+3. Mock external dependencies (RNG, time, config) for deterministic tests
+4. Use `model_copy()` for variant test cases (Pydantic v2)
 
 ---
 
 ## Notes
 
-### Permission Enforcement Status
+- **Do not build shared test helpers prematurely** — only abstract when duplication causes maintenance problems
+- **Domain tests should not mock domain code** — domain has no I/O
+- **API tests verify wiring/serialization**, not domain math (covered in domain tests)
+- **Add corresponding tests when adding new models/repositories**
+  - [ ] Property: Size thresholds from config are applied correctly
 
-The permission middleware (`src/colony_manager/adapters/api/middleware/permissions.py`) is implemented with:
-- `require_colony_permission()` - checks view/edit/admin permissions
-- `require_colony_role()` - checks minimum colony role
-- Admin user bypass for global administrators
+---
 
-Currently only used in `export_import.py`. Most routes lack colony-level permission checks.
+### Phase 2: Domain Model Validator Tests (Priority: MEDIUM)
 
-### Rate Limiting Status
+**Status:** Only `test_modifier.py` exists
 
-Rate limiting is implemented in `rate_limiter.py` but disabled during tests (checks for `pytest` in `sys.modules`).
-To test strict enforcement, set `RATE_LIMIT_ENABLED=true` in test environment.
+- [x] `tests/domain/models/test_modifier.py` — Expiry logic tests
 
+- [ ] `tests/domain/models/test_colony.py` **(MISSING)**
+  - [ ] `age_days` validator (≥ 0)
+  - [ ] Lock flag interactions
+  - [ ] `planetary_resources` validation
+  - [ ] `dynasty_outcome` validation
 
+- [ ] `tests/domain/models/test_representative.py` **(MISSING)**
+  - [ ] `RepresentativeStats` validators (all > 0)
+  - [ ] Bonus properties (`int_bonus`, `per_bonus`, `fel_bonus`)
+  - [ ] `highest_leadership_bonus` property
+  - [ ] `loss_mitigation_stat` property
+  - [ ] `get_total_personality_calamity_modifier` method
+  - [ ] `update_calamitous_modifier` method
 
+- [ ] `tests/domain/models/test_user.py` **(MISSING)**
+  - [ ] `username` length validation (3-50 chars)
+  - [ ] `email` length validation (5-100 chars)
+  - [ ] `role` default (VIEWER), `is_active` default (True)
 
+- [ ] `tests/domain/models/test_infrastructure.py` **(MISSING)**
+  - [ ] `state` validation, `has_effect`/`is_disrupted` properties
+
+- [ ] `tests/domain/models/test_support_upgrade.py` **(MISSING)**
+  - [ ] `is_installed` property, cost validation
+
+- [ ] `tests/domain/models/test_colony_user.py` **(MISSING)**
+- [ ] `tests/domain/models/test_event.py` **(MISSING)**
+- [ ] `tests/domain/models/test_development_plan.py` **(MISSING)**
