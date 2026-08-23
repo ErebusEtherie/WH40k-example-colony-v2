@@ -75,6 +75,18 @@
   stat_effects:
     - stat: "order"
       value: 1
+  mechanical_effects:
+    - description: "+10 bonus to Command and Intimidate Tests made to protect the colony from invasion or civil unrest."
+      type: "skill_bonus"
+      skills: ["command", "intimidate"]
+      bonus: 10
+      condition: "protecting_colony"
+    - description: "Can be 'tapped' to grant 100 Achievement Points to military-themed Endeavours."
+      type: "achievement_points"
+      points: 100
+      condition: "military_endeavour"
+  lore_effects:
+    - "Safeguards the colony against the numerous threats of the Koronus Expanse."
 # =============================================================================
 # 5. Cultural Improvement
 # +1 to any one Colony Characteristic (except Size), chosen by the Explorers
@@ -152,15 +164,3 @@
       value: 1
   lore_effects:
     - "Designed to keep the 'populace blinded by the shining legend of their leader'."
-  mechanical_effects:
-    - description: "+10 bonus to Command and Intimidate Tests made to protect the colony from invasion or civil unrest."
-      type: "skill_bonus"
-      skills: ["command", "intimidate"]
-      bonus: 10
-      condition: "protecting_colony"
-    - description: "Can be 'tapped' to grant 100 Achievement Points to military-themed Endeavours."
-      type: "achievement_points"
-      points: 100
-      condition: "military_endeavour"
-  lore_effects:
-    - "Safeguards the colony against the numerous threats of the Koronus Expanse."
