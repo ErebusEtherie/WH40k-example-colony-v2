@@ -1,8 +1,8 @@
 # Business Analysis — Rogue Trader Colony Manager
 
-**Version:** 2.0 (Consolidated)  
-**Last Updated:** 2026-08-23  
-**Status:** Authoritative source of truth for all business rules  
+**Version:** 2.1 (Consolidated, contradictions resolved)
+**Last Updated:** 2026-08-23
+**Status:** Authoritative source of truth for all business rules
 
 ---
 
@@ -16,7 +16,12 @@ This is the **single source of truth** for all business rules, domain models, an
 - ✅ **Phase 4a:** Hard Infrastructure module complete
 - ✅ **Phase 5:** Support Upgrades, Planetary Resources, State Effects complete
 - ✅ **Phase 6-9:** API, CLI, Import/Export, tooling complete
-- ⚠️ **Phase 5 Gaps:** Representative Personality mechanics (Mad roll, Scholarly/Ties chosen_stat) pending
+- ⚠️ **Phase 5 Gaps:** Representative Personality mechanics (`PersonalityAssignment`
+  model, Mad roll, Scholarly/Ties `chosen_stat` — see §3.2 and §4.7a) and
+  `pending_infrastructure_growth` flag pending. See `implementation_plan_phase_5.md`.
+- ⚠️ **Leadership Modifier table incomplete** — see §4.5. This is still open
+  despite an earlier, incorrect "complete" marking in §7 of a prior revision
+  of this document; that marking has been corrected below.
 
 **Test Coverage:** 188+ tests passing across all layers
 
@@ -24,7 +29,7 @@ This is the **single source of truth** for all business rules, domain models, an
 
 This document captures the business requirements for the Colony Manager.
 
-**Source of Truth:** The reference Excel workbook (`[WH40k_RT] [Team RT6] Colony Sheet.xlsx`) is treated as validated domain knowledge — it was used and tested by the players/GM against the core rulebook.
+**Source of Truth:** The reference Excel workbook (`[WH40k_RT] [Team RT6] Colony Sheet.xlsx`) is treated as validated domain knowledge — it was used and tested by the players/GM against the core rulebook. For Representative Personality mechanics specifically, the actual Rogue Trader rulebook personality text (supplied directly, not derived from the Excel) is the source of truth — see §4.7a.
 
 **V1 goal:** ✅ COMPLETE — working Colony + Representative model with real stat calculations (Base → Current), Profit Factor, and persistence (save/load).
 
@@ -65,9 +70,10 @@ This document captures the business requirements for the Colony Manager.
 | `base_size` | integer | no | Derived from `colony_type` at creation |
 | `actual_size` | integer ≥ 0 | no (calculated) | `base_size` + applicable modifiers, clamped at 0 |
 | `current_complacency` / `current_order` / `current_productivity` / `current_piety` | integer ≥ 0 | no (calculated) | Base + applicable modifiers, clamped at 0 |
-| `lore_state_complacency` / `..._order` / `..._productivity` / `..._piety` | string (enum) | no (calculated) | See §4.3 |
-| `current_profit_factor` | integer ≥ 0 | no (calculated) | See §4.4 |
+| `lore_state_complacency` / `..._order` / `..._productivity` / `..._piety` | string (enum) | no (calculated) | See §4.4 |
+| `current_profit_factor` | integer ≥ 0 | no (calculated) | See §4.5 |
 | `representative_id` | reference (nullable) | yes (assignment) | Representative is an independent entity, not owned by Colony — see §3.2. Nothing prevents the same Representative being referenced by more than one Colony (mechanically possible, though not meaningful lore-wise) |
+| `pending_infrastructure_growth` | boolean | no (system-set) | **Phase 5 gap, not yet implemented.** Set `True` automatically when `base_size` increases; GM applies the resulting Complacency penalty manually via a `gm_custom` modifier and clears the flag. See `implementation_plan_phase_5.md` |
 | `modifiers` | list of Modifier | — | See §3.3 |
 
 **V1 explicitly excludes:** pending/upcoming event indicators. The app tracks
@@ -85,13 +91,43 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 |---|---|---|---|
 | `id` | identifier | no | |
 | `name` | string | yes | Representative is a standalone entity — it can exist unassigned to any Colony, and can in principle be referenced by more than one Colony (Colony holds the reference, not the other way round; see §3.1) |
-| `type` | enum | yes | Exactly one. Fixed list (from reference sheet): Satrap, Judge, Cardinal, Colonist Representative, Military Commander — each with **descriptive text only, no mechanical bonus** |
-| `personalities` | list of Personality | yes | **At least 1, multiple allowed.** Each has name, description, effect. Full fixed list with mechanical effects confirmed (see Design Decisions section) |
+| `type` | enum | yes | Exactly one. Fixed list (from reference sheet): Satrap, Judge, Cardinal, Colonist Representative, Military Commander — each with **descriptive text only, no mechanical bonus**. (A sixth value, "Dynasty Member," has appeared in one now-retired planning document with an undefined "Consequences table" mechanic; it is **not** part of the confirmed enum until that mechanic has its own source.) |
+| `personalities` | list of `PersonalityAssignment` | yes | **At least 1, multiple allowed.** See §3.2a and §4.7a for the `PersonalityAssignment` wrapper and the confirmed 18-trait table with mechanical effects |
+| `special_trait_description` | string (nullable) | yes | **Phase 5 gap, not yet implemented.** Free-text GM note tied to `type` (e.g. narrative flavor for a Satrap's trade contacts). Reference-only, no mechanical effect |
 | `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
 | `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
 | `skills` | list of Skill | yes | `{name, level: known\|+10\|+20\|+30, description}` — **reference only, no mechanical effect** |
 | `talents` | list of Talent | yes | `{name, description}` — **reference only, no mechanical effect** |
-| `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.4). This is the **only** confirmed mechanical link from Representative to Colony stats in V1 — Personality effects are applied separately to colony stats, Type is descriptive only, Skills and Talents are reference-only |
+| `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.5). This is the **only** confirmed mechanical link from Representative to Colony stats that targets `profit_factor` directly in V1 — Personality effects (§4.7a) apply separately to the four core colony stats, Type is descriptive only, Skills and Talents are reference-only |
+
+### 3.2a PersonalityAssignment (Phase 5 gap — not yet implemented)
+
+Wraps a personality with any GM-provided input it requires. Replaces the bare
+`list[Personality]` originally planned for `Representative.personalities`.
+
+```python
+class PersonalityAssignment(BaseModel):
+    personality_type: PersonalityType  # enum, see §4.7a
+    mad_order_roll: int | None = None       # 1-5, only for "Mad"
+    chosen_stat: ModifierStat | None = None # for "Scholarly" or "Ties With…"
+```
+
+**Confirmed lifecycle rule for `mad_order_roll` / `chosen_stat`:**
+
+- Both values are set at **Representative-to-Colony assignment time**, not at
+  Representative creation. A Representative can exist unassigned or be
+  reassigned between Colonies (§3.2), so a value fixed at creation would carry
+  stale, Colony-A-specific context into a later Colony-B assignment.
+- On **reassignment** to a different Colony (or on unassignment), any existing
+  value **must be cleared**, forcing fresh input on the next assignment.
+- The assign-representative operation must **reject** assigning a
+  Representative whose personalities include Mad, Scholarly, or Ties With…
+  if the corresponding input is not supplied — it must not silently default
+  to `None`/0.
+
+This directly resolves a lore/consistency concern with Scholarly specifically:
+see §4.7a for why its rulebook-literal "lowest stat" trigger was deliberately
+replaced with GM choice.
 
 ### 3.3 Modifier (generic)
 
@@ -151,10 +187,9 @@ current_stat = clamp( base_stat (from colony_type)
                        min = 0 )
 ```
 
-In V1, the only modifier source affecting these four stats is `gm_custom`
-(Infrastructure/Support Upgrades/Resources are deferred, and
-Representative's mechanical effect is confirmed to target `profit_factor`
-only, not these four directly).
+In V1, modifier sources affecting these four stats are `gm_custom`, plus (once
+Phase 5 lands) Personality effects applied via `representative_leadership`-style
+modifiers and Hard Infrastructure / Support Upgrade sources per §4.7–§4.9.
 
 ### 4.3 Size Calculation
 
@@ -167,21 +202,27 @@ actual_size = clamp( base_size
 Active source types affecting size in V1: `growth_decay`, `gm_custom`.
 Integer only.
 
-### 4.4 Lore State (per stat)
+### 4.4 Lore State (per stat) — CONFIRMED, all four thresholds resolved
 
-Derived from thresholds relative to `actual_size`. **[Derived from
-reference spreadsheet — confirm before implementing]**:
+Derived from thresholds relative to `actual_size`. Cross-confirmed against
+`UI_PANEL_REQUIREMENTS.md`, `UI_ALIGNMENT_SUMMARY.md`, and the `LoreState`
+enum described in `UI_DESIGN_ANALYSIS.md` — all agree on the following, so the
+two labels previously marked "confirm" are now resolved:
 
-| Stat | Condition: `stat > size` | Condition: `stat == 0` | Otherwise |
+| Stat | Condition: `stat > actual_size` | Condition: `stat == 0` | Otherwise |
 |---|---|---|---|
-| Complacency | Placated | *(sheet shows "Riots and unrests" — confirm)* | Stable |
-| Order | *(sheet shows a label here — confirm, likely "Orderly")* | Anarchy | Stable |
+| Complacency | Placated | Riots and Unrest | Stable |
+| Order | Orderly | Anarchy | Stable |
 | Productivity | Productive | Halted | Stable |
 | Piety | Pious | Heretical | Stable |
 
-### 4.5 Profit Factor
+**Note:** both threshold conditions use `stat > actual_size` / `stat == 0`
+consistently across all four stats. A conflicting "State Thresholds" table
+using `stat > 0` for Productive/Pious appeared in a now-retired planning
+document (`AGENT_BRIEFING_ADDENDUM_PHASE5.md`) and should be disregarded —
+it contradicts every other source in the project.
 
-**[Derived from reference spreadsheet — confirm before implementing]**
+### 4.5 Profit Factor
 
 ```python
 pf_base = lookup(actual_size)            # Size → PF table, from reference "Data" sheet
@@ -201,14 +242,43 @@ else:
 profit_factor = max(profit_factor, 0)    # integer, ≥ 0
 ```
 
+**Size → PF lookup table (confirmed, per-size, not range-based):**
+
+| Size | PF | Size | PF |
+|---|---|---|---|
+| 0 | 0 | 6 | 8 |
+| 1 | 1 | 7 | 10 |
+| 2 | 2 | 8 | 12 |
+| 3 | 3 | 9 | 14 |
+| 4 | 4 | 10 | 18 |
+| 5 | 6 | | |
+
+Implemented in `config/rule_tables.yaml`. A conflicting range-bucket version
+(e.g. "Size 1–5 → PF 1") appeared in the same now-retired planning document
+referenced in §4.4 and should be disregarded.
+
 **Rounding rule (global):** round-half-up for every halving/rounding
 calculation in the system (e.g. `1.5 → 2`), not just Profit Factor. Applies
 system-wide unless a specific future rule explicitly states otherwise.
 
-**Leadership Modifier lookup:** `max(Int_bonus, Per_bonus, Fel_bonus) →
-modifier`. Partial table visible in the reference sheet (value 2 → −2,
-3 → −1, 4 → 0, 5 → +1, 6 → +2). **[Needs full table from user — the visible
-range doesn't cover all possible stat-bonus values (0–9+)]**.
+**Leadership Modifier lookup — STILL OPEN, not complete:**
+`max(Int_bonus, Per_bonus, Fel_bonus) → modifier`. Partial table visible in
+the reference sheet:
+
+| Bonus | PF Effect |
+|---|---|
+| 2 | −2 |
+| 3 | −1 |
+| 4 | 0 |
+| 5 | +1 |
+| 6 | +2 |
+
+**This table does not cover the full possible range of stat-bonus values
+(0–9+).** A prior revision of this document's §7 incorrectly marked this table
+"✅ Complete" — that was wrong and has been corrected (see §7 below). This
+remains a genuine open gap requiring the missing values from the reference
+sheet/rulebook before the leadership modifier resolver can be considered
+finished.
 
 ### 4.6 Representative Stat Bonus
 
@@ -263,6 +333,51 @@ These effects apply automatically based on colony stat thresholds. They are
 - Locks prevent **increases only** — penalties can still reduce stats further
 - Locks are cleared manually by GM command (not automatic)
 - Stats remain clamped at minimum 0 regardless of penalties
+
+---
+
+### 4.7a Representative Personality Mechanics (18 traits, confirmed)
+
+**Source of truth:** rulebook personality text, supplied directly and verified
+trait-by-trait — this supersedes an earlier, fabricated personality table that
+briefly existed in a planning document (`AGENT_BRIEFING_ADDENDUM_PHASE5.md`,
+now retired). The full table, effects, and the `chosen_stat`/`mad_order_roll`
+lifecycle rule live in `implementation_plan_phase_5.md` to avoid duplicating
+data across documents; this section is the pointer + the design-decision
+record.
+
+| Personality | Effect |
+|---|---|
+| Beloved | +1 Complacency |
+| Military-Minded | +1 Order |
+| Corrupt | +2 Productivity, −1 Order |
+| Idle | +2 Complacency, −1 Productivity |
+| Ambitious | +2 Productivity, −1 Complacency |
+| Zealous | +1 Piety |
+| Patron of the Arts | +2 Complacency, −1 Piety |
+| Unlucky | +2 Piety |
+| Cruel | +2 Productivity, −1 Complacency |
+| Spymaster | +2 Order, −1 Complacency |
+| Generalissimo | +2 Order, −1 Piety |
+| Paranoid | +2 Order, −1 Productivity |
+| Charitable | +1 Complacency, +1 Piety, −1 Productivity |
+| Vainglorious | +2 Productivity, −1 Piety |
+| Avaricious | +1 Productivity |
+| Mad | +1 Complacency, +1 Piety, +1 Productivity, −[1d5 roll] Order |
+| Ties With… | +1 to GM-chosen stat (Complacency/Order/Productivity/Piety) |
+| Scholarly | +1 to GM-chosen stat (Complacency/Order/Productivity/Piety) |
+
+**Excluded from V1:** Administrative Expert (+2 Productivity if Order > Size)
+— continuous condition evaluation deferred.
+
+**Confirmed design decision — Scholarly:** The rulebook ties Scholarly's bonus
+to whichever stat is lowest *at the moment the Representative is installed*.
+V1 deliberately replaces this with GM choice at assignment time (same
+mechanism as Ties With…), to avoid (a) a lore mismatch where an automatic pick
+could hand, e.g., a Piety bonus to a Representative with no Ecclesiarchy
+connection, and (b) an undefined tie-break when multiple stats are equally
+lowest. Both `chosen_stat` (Scholarly, Ties With…) and `mad_order_roll` (Mad)
+are set at assignment time and cleared on reassignment — see §3.2a.
 
 ---
 
@@ -340,6 +455,9 @@ Certain colony types have unique abilities per Rogue Trader rules:
    stats, PF), clamp at 0 after all modifiers are applied.
 4. **Colony Type is immutable** post-creation outside of an explicit
    testing/admin path.
+5. **`chosen_stat` / `mad_order_roll` are assignment-scoped, not
+   Representative-scoped** — set when a Representative is assigned to a
+   Colony, required if the personality demands it, cleared on reassignment.
 
 ---
 
@@ -351,6 +469,8 @@ Certain colony types have unique abilities per Rogue Trader rules:
 - Skills/Talents mechanical effects (reference-only for now)
 - Representative Type mechanical effects (descriptive only, no stat bonuses)
 - Modifier expiry/duration (temporary modifiers are manual via `is_active`)
+- Administrative Expert personality (conditional, deferred)
+- "Dynasty Member" Representative type (undefined mechanic, no confirmed source)
 
 **Note:** Hard Infrastructure module has been moved to Phase 4a (before 4b).
 Support Upgrades and Planetary Resources modules have been implemented in
@@ -358,23 +478,22 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
 
 ---
 
-## 7. Configuration Reference (Complete)
-
-All configuration data has been implemented and validated.
+## 7. Configuration Reference
 
 | Item | Status | Location |
 |---|---|---|
 | Colony Type config (types, base stats, base size, resource exploit bonuses) | ✅ Complete | `config/colony_types.yaml` |
 | Representative Type list + mechanical bonuses | ✅ Complete (descriptive only) | `config/colony_types.yaml` |
-| Personality list (name, description, effect) | ✅ Complete with mechanical effects | `config/personalities.yaml` |
-| Lore state threshold labels | ✅ Complete | `config/rule_tables.yaml` |
-| Size → base PF lookup table | ✅ Complete | `config/rule_tables.yaml` |
-| Leadership Modifier full lookup table (all stat-bonus values) | ✅ Complete | `config/rule_tables.yaml` |
+| Personality list (name, description, effect) | ✅ Complete with mechanical effects — see §4.7a | `config/personalities.yaml` |
+| Lore state threshold labels | ✅ Complete — both previously-unconfirmed labels resolved, see §4.4 | `config/rule_tables.yaml` |
+| Size → base PF lookup table | ✅ Complete (per-size, not range-based) | `config/rule_tables.yaml` |
+| Leadership Modifier full lookup table (all stat-bonus values) | ⚠️ **Still incomplete** — only bonus values 2–6 confirmed; corrected from an earlier, incorrect "Complete" marking. See §4.5 | `config/rule_tables.yaml` (partial) |
 | Support Upgrades full definition & limits | ✅ Complete | `config/rule_tables.yaml` |
 | Planetary Resources types & effects | ✅ Complete (8 resource types) | `config/rule_tables.yaml` |
 | Infrastructure types & mechanics | ✅ Complete (5 types) | `config/rule_tables.yaml` |
 | Roll interval configuration | ✅ Complete (global default, per-colony override) | `config/rule_tables.yaml` |
 | Event system scope | ✅ Complete (track past/active, GM applies modifiers) | Application logic |
+| `PersonalityAssignment` model + `chosen_stat`/`mad_order_roll` lifecycle | ⚠️ Not yet implemented — see §3.2a and `implementation_plan_phase_5.md` | `domain/models/personality.py` (new) |
 
 **Implementation Notes:**
 
@@ -398,7 +517,16 @@ All configuration data has been implemented and validated.
 - If a Representative assigned to a Colony is deleted, the Colony's
   reference is cleared rather than blocking the delete or deleting the
   Colony. Flagged as a default in `architecture_phase_1.md` §3.6.
+- **Scholarly's trigger is GM choice, not a rulebook-literal "lowest stat"
+  lookup** — confirmed design decision, see §4.7a.
+- **`chosen_stat`/`mad_order_roll` are set at assignment time and cleared on
+  reassignment**, not fixed at Representative creation — confirmed design
+  decision, see §3.2a.
 - **Phase 5 Gaps (Pending Implementation):**
   1. `pending_infrastructure_growth: bool` flag in Colony model
-  2. `PersonalityAssignment` model with `mad_order_roll` and `chosen_stat` fields
+  2. `PersonalityAssignment` model with `mad_order_roll` and `chosen_stat` fields,
+     including assignment-time validation and reassignment-clearing behavior
   3. `special_trait_description: str | None` field in Representative model
+  4. Leadership Modifier lookup table remains incomplete for stat-bonus values
+     outside 2–6 (§4.5, §7) — needs the missing values from the reference
+     sheet/rulebook before it can be closed out

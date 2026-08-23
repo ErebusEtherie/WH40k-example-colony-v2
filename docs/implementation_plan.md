@@ -11,9 +11,10 @@ stated elsewhere; it references them.
 below conflicts with any of those, stop and ask — do not silently resolve
 the conflict (per `06-collaboration-and-uncertainty.md`).
 
-**Configuration Status:** All game rule data (colony types, personalities,
-leadership modifiers, lore-state labels, infrastructure rules) has been
-confirmed and implemented in YAML config files. No placeholders remain
+**Configuration status:**
+All game rule data (colony types, personalities, leadership modifiers, lore-state labels, infrastructure rules) has been confirmed and implemented in YAML config files. No placeholders remain\
+
+---
 
 ## Current Status (Updated: 2026-08-20)
 

@@ -221,7 +221,3 @@
    ```jsx
    <div className={`stat-box ${colony.order === 0 ? 'anarchy' : 'stable'}`}>
    ```
-
----
-
-## End of Quick Reference
