@@ -1,10 +1,5 @@
 # Mechanicum Data-Slate UI Design System
 
-**Version:** 1.0  
-**Date:** 2026-08-20  
-**Status:** Ready for Implementation
----
-
 ## Reference Implementation
 
 **Canonical CSS:** `src/assets/css/mechanicum-design-system.css`
@@ -207,9 +202,8 @@ responsive breakpoints.
 ```
 
 **State Classes:** `placated` | `anarchy` | `warning` | `stable` | `orderly` | `productive` | `halted` | `pious` | `heretical` | `riots_and_unrest`
-  box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
-}
 
+```css
 .stat-box--order[data-state="stable"] {
   border-color: var(--void-green);
 }
@@ -239,7 +233,7 @@ responsive breakpoints.
 
 @keyframes pulse-red {
   0%, 100% { opacity: 1; }
----
+```
 
 ### 4.4: Input Field
 
@@ -821,8 +815,6 @@ Ensure all text meets WCAG AA standards:
   100% { background-position: 8px 0; }
 }
 
-```
-
 ### 6.2: Corner Accents
 
 ```css
@@ -888,9 +880,7 @@ Ensure all text meets WCAG AA standards:
 }
 ```
 
----
-
-**End of Part 4**
+```html
   <div class="tooltip">
     <div class="tooltip__header">Calculation Breakdown</div>
     <div class="tooltip__formula">
@@ -955,16 +945,6 @@ Ensure all text meets WCAG AA standards:
   font-weight: 700;
 }
 ```
-
----
-
-**End of Part 3**
-  50% { opacity: 0.7; }
-}
-
-```
-
----
 
 ### 4.3: Infrastructure Row
 
@@ -1054,10 +1034,7 @@ Ensure all text meets WCAG AA standards:
 }
 ```
 
----
-
-**End of Part 2**
-
+```text
 | Color | Usage | Example |
 |-------|-------|---------|
 | **Copper** | Headers, active borders, primary actions | Panel titles, focused inputs |
@@ -1065,6 +1042,7 @@ Ensure all text meets WCAG AA standards:
 | **Amber** | Warnings, caution states | Heretical status, low Order warning |
 | **Blood Red** | Critical states, errors | Anarchy status, colony collapse |
 | **Void Green** | Success, stable states | Placated status, upgrades working |
+```
 
 ### 2.3: Gradient Definitions
 
@@ -1115,7 +1093,3 @@ Ensure all text meets WCAG AA standards:
 | `label` | Rajdhani | 14px | 500 | Form labels |
 | `data` | Share Tech Mono | 16px | 400 | Calculated values |
 | `caption` | Rajdhani | 12px | 400 | Help text, notes |
-
----
-
-**End of Part 1**

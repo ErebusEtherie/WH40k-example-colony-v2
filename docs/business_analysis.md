@@ -89,7 +89,7 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 | `personalities` | list of Personality | yes | **At least 1, multiple allowed.** Each has name, description, effect. Full fixed list with mechanical effects confirmed (see Design Decisions section) |
 | `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
 | `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
-| `skills` | list of Skill | yes | `{name, level, description}` — reference only, no mechanical effect |
+| `skills` | list of Skill | yes | `{name, level: known\|+10\|+20\|+30, description}` — **reference only, no mechanical effect** |
 | `talents` | list of Talent | yes | `{name, description}` — **reference only, no mechanical effect** |
 | `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.4). This is the **only** confirmed mechanical link from Representative to Colony stats in V1 — Personality effects are applied separately to colony stats, Type is descriptive only, Skills and Talents are reference-only |
 
@@ -145,7 +145,7 @@ worth revisiting once Infrastructure/Events are in scope.
 
 ### 4.2 Stat Calculation (Complacency / Order / Productivity / Piety)
 
-```text
+```python
 current_stat = clamp( base_stat (from colony_type)
                        + sum(active modifiers where modifier_stat == this stat),
                        min = 0 )
@@ -158,7 +158,7 @@ only, not these four directly).
 
 ### 4.3 Size Calculation
 
-```text
+```python
 actual_size = clamp( base_size
                       + sum(active modifiers where modifier_stat == 'size'),
                       min = 0 )
@@ -239,14 +239,14 @@ These effects apply automatically based on colony stat thresholds. They are
 
 **Complacency = 0 Crisis**:
 
-- Immediate effect: Order and Productivity each decrease by 1d5
+- Immediate effect: Order and Productivity each decrease by 1d5 (apply penalty modifier, user needs to input modifier value that is in roll 1d5 range -> <1;5> integer)
 - Ongoing effect: Order and Productivity **cannot increase** (locked)
 - Resolution: GM action/event required to clear locks
 - Source: Rogue Trader Colony Rules
 
 **Piety = 0 Crisis (Heretical)**:
 
-- Immediate effect: Order and Complacency each decrease by 1d5
+- Immediate effect: Order and Complacency each decrease by 1d5 (apply penalty modifier, user needs to input modifier value that is in roll 1d5 range -> <1;5> integer)
 - Ongoing effect: Order and Complacency **cannot increase** (locked)
 - Resolution: GM action/event required to clear locks
 - Source: Rogue Trader Colony Rules
@@ -254,8 +254,8 @@ These effects apply automatically based on colony stat thresholds. They are
 **Anarchy State** (Order = 0):
 
 - Trigger: End of every 90-day development cycle
-- Effect: Complacency, Productivity, and Piety each decrease by 1d5; Size decreases by 1
-- Agricultural resilience: Roll 1d10; on 8+, Size decrease is prevented
+- Effect: Complacency, Productivity, and Piety each decrease by 1d5 (apply penalty modifier, user needs to input modifier value that is in roll 1d5 range -> <1;5> integer); Size decreases by 1
+- Agricultural resilience: Roll 1d10; on 8+, Size decrease is prevented (user should be informed that roll is needed, user should respond with test result -> True / False)
 - Source: Rogue Trader Colony Rules
 
 **Lock Flag Mechanics**:

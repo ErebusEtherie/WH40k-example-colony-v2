@@ -168,20 +168,20 @@ Authorization: Bearer <your_jwt_token>
 
 ### Colony Dashboard — 3 Panel Layout
 
-#### Panel 1: Basic Info (Editable)
+### Panel 1: Basic Info (Editable)
 
 - Colony Name, Type (read-only), Representative
 - Age display (computed: X years, Y months, Z days)
 - Inline edit for age_days
 
-#### Panel 2: Current Status (Calculated)
+### Panel 2: Current Status (Calculated)
 
 - 5 stats with current values
 - Highlight if changed from base
 - Lore state badges
 - Profit Factor with breakdown
 
-#### Panel 3: Infrastructure Summary (Read-only)
+### Panel 3: Infrastructure Summary (Read-only)
 
 - Hard Infrastructure list (count by type)
 - Support Upgrades list (count, limit check)
@@ -230,7 +230,3 @@ Authorization: Bearer <your_jwt_token>
 - `http://127.0.0.1:3000`
 
 **Production:** Configure via `ALLOWED_ORIGINS` environment variable
-
----
-
-## End of Document

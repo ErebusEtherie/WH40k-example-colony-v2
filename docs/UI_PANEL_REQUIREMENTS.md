@@ -15,7 +15,7 @@ what data is displayed, what fields are editable, and how values are calculated.
 
 **Location:** Top section of Colony Dashboard
 
-### Fields
+**Fields:**
 
 | Field | Example | Editable | Source/Notes |
 |-------|---------|----------|--------------|
@@ -39,7 +39,7 @@ days = remaining_days % 30
 # Omit zero values: "5 months and 12 days" (not "0 years, 5 months, 12 days")
 ```
 
-### User Actions
+**User Actions:**
 
 - Edit colony name (text input)
 - Edit colony owner (text input)
@@ -54,7 +54,7 @@ days = remaining_days % 30
 
 **Location:** Main section of Colony Dashboard, below Panel 1
 
-### Fields
+**Fields:**
 
 | Field | Example | Editable | Source/Notes |
 |-------|---------|----------|--------------|
@@ -141,7 +141,7 @@ infrastructure details. Shows Hard Infrastructure and Support Upgrades in a sort
 
 Sorted list with **Hard Infrastructure presented first**, then Support Upgrades.
 
-### Fields Per Infrastructure Item
+**Fields:** Per Infrastructure Item
 
 | Field | Example | Editable | Notes |
 |-------|---------|----------|-------|
@@ -169,7 +169,7 @@ Sorted list with **Hard Infrastructure presented first**, then Support Upgrades.
 
 ### Example Display
 
-```
+```text
 INFRASTRUCTURE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚙ Łączność Astropatyczna
@@ -183,11 +183,11 @@ INFRASTRUCTURE
 ⚙ Water Reclamation Plant
   Type: Water Management
   Status: Operational
----
+```
 
 ## Data Flow Summary
 
-```
+```text
 
 ┌─────────────────────────────────────────────────────────┐
 │                  COLONY DASHBOARD                        │
@@ -219,13 +219,14 @@ INFRASTRUCTURE
 ### Editable Fields Trigger Recalculation
 
 When user edits:
+
 - **Age (days)**: Update `colony.age_days`, recalculate formatted display
 - **Size**: Update `colony.base_size`, set `pending_infrastructure_growth = True` if
   size increased, trigger full stat recalculation
 
 ### Calculation Chain
 
-```
+```text
 
 age_days edited
     ↓
@@ -243,7 +244,7 @@ stat_calculator.run()
     ├─ gm_custom_modifiers
     └─ final_stats (Complacency, Order, Productivity, Piety)
     ↓
----
+```
 
 ## Open Questions
 
@@ -270,6 +271,8 @@ stat_calculator.run()
 - `business_analysis.md` §3 — Colony stat calculation rules
 - `architecture_phase_1.md` §4 — Domain model definitions
 - `implementation_plan_phase_5.md` — Phase 5 scope and implementation checklist
+
+```text
 profit_factor_calculator.run()
     ├─ size_to_pf_lookup
     ├─ leadership_modifier
@@ -327,19 +330,11 @@ UI updates all calculated fields
 }
 ```
 
-```
-
-### User Actions
+**User Actions:**
 
 - View infrastructure list (read-only summary)
 - Click/tap item to navigate to detailed Infrastructure Management view
 - No inline editing in this panel — all changes made in detailed view
-4. Representative personality modifiers
-5. Custom GM modifiers
-6. Lock flags (e.g., Complacency = 0 prevents Order/Productivity increases)
-
-### User Actions
-
 - Edit Size (number input with +/- buttons)
 - View all other stats (read-only, auto-calculated)
 - View stat descriptions (read-only, auto-calculated)

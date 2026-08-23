@@ -1,9 +1,7 @@
 # Implementation Plan — Phases 6-12 (Future Work)
 
-**Created:** 2026-08-23
-
-**Status:** Planning Complete, Not Started
-
+**Created:** 2026-08-23  
+**Status:** Planning Complete, Not Started  
 **Predecessor:** `implementation_plan_phase_5.md`
 
 ---
@@ -46,22 +44,16 @@ Phase 5 ──→ Phase 6 ──→ Phase 7 ──→ Phase 8 ──→ Phase 9 
 | 8 | Frontend Dashboard | 8-12h | High | Not Started |
 | 9 | Event Automation | 6-8h | Medium | Not Started |
 | 10 | Audit Logging | 4-6h | Medium | Not Started |
-| 11 | Real-Time Collaboration | 6-8h | Low | Not Started |
-| 12 | DevOps & Deployment | 6-8h | High | Not Started |
-
-**Total:** 42-56 hours (excluding Phase 5)
-
----
 
 ## Phase 6: Excel Migration Utility
 
 **Priority:** High | **Effort:** 4-6h | **Status:** Not Started
 
-### Phase 6 Goal
+**Goal:**
 
 Create a one-off migration tool to import data from the existing Excel workbook into JSON/YAML or SQLite format.
 
-### Phase 6 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -73,7 +65,7 @@ Create a one-off migration tool to import data from the existing Excel workbook 
 | 6.6 | Export to JSON/YAML | Same | Use existing `adapters/io/` exporters |
 | 6.7 | Test with sample Excel file | `tests/tools/test_migrate_excel.py` | Validate round-trip |
 
-### Phase 6 Decisions
+**Decisions:**
 
 | Question | Recommended | Rationale |
 |----------|-------------|-----------|
@@ -81,7 +73,7 @@ Create a one-off migration tool to import data from the existing Excel workbook 
 | Handle missing/invalid data? | Skip + log warnings | Non-blocking |
 | Direct SQLite seeding? | No — use JSON/YAML intermediate | Cleaner separation |
 
-### Phase 6 Acceptance Criteria
+**Acceptance Criteria:**
 
 - [ ] Reads Excel workbook (Colony, Representative, Data, Calculations sheets)
 - [ ] Produces valid JSON/YAML save file
@@ -95,11 +87,11 @@ Create a one-off migration tool to import data from the existing Excel workbook 
 
 **Priority:** Medium | **Effort:** 3-4h | **Status:** Not Started
 
-### Phase 7 Goal
+**Goal:**
 
 Implement mechanical effects for Representative skills and talents.
 
-### Phase 7 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -109,7 +101,7 @@ Implement mechanical effects for Representative skills and talents.
 | 7.4 | Update API schemas | `adapters/api/schemas/representative.py` | Expose effects |
 | 7.5 | Add tests | `tests/domain/test_representative_rules.py` | Verify stacking |
 
-### Phase 7 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Recommended |
 |----------|---------|-------------|
@@ -117,24 +109,17 @@ Implement mechanical effects for Representative skills and talents.
 | How do effects stack? | Additive / Highest / Unique | Additive |
 | Multiple representatives? | Stack / Only assigned | Only assigned |
 
-### Phase 7 Acceptance Criteria
-
-- [ ] Config file defines skill/talent effects
-- [ ] Effects apply correctly to colony stats
-- [ ] Stacking rules documented and tested
-- [ ] No breaking changes
-
----
+**Acceptance Criteria (Needs to be defined):**
 
 ## Phase 8: Colony Dashboard UI (Frontend)
 
 **Priority:** High | **Effort:** 8-12h | **Status:** Not Started
 
-### Phase 8 Goal
+**Goal:**
 
 Build a web-based Colony Dashboard implementing the 3-panel layout.
 
-### Phase 8 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -146,7 +131,7 @@ Build a web-based Colony Dashboard implementing the 3-panel layout.
 | 8.6 | Add authentication UI | `frontend/src/components/Login.tsx` | Login/logout flow |
 | 8.7 | Build & deploy config | `vite.config.ts`, `Dockerfile` | Per deployment target |
 
-### Phase 8 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Recommended |
 |----------|---------|-------------|
@@ -154,7 +139,7 @@ Build a web-based Colony Dashboard implementing the 3-panel layout.
 | Hosting target? | Static / Same server / Local | Same server |
 | Auth UI needed? | Yes / No | Yes |
 
-### Phase 8 Acceptance Criteria
+**Acceptance Criteria:**
 
 - [ ] 3-panel dashboard renders correctly
 - [ ] Calculated values update on modifier change
@@ -169,11 +154,11 @@ Build a web-based Colony Dashboard implementing the 3-panel layout.
 
 **Priority:** Medium | **Effort:** 6-8h | **Status:** Not Started
 
-### Phase 9 Goal
+**Goal:**
 
 Add automatic event triggering and resolution logic to the existing Event system.
 
-### Phase 9 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -184,7 +169,7 @@ Add automatic event triggering and resolution logic to the existing Event system
 | 9.5 | Add event UI (frontend) | `frontend/src/components/EventPanel.tsx` | Display events |
 | 9.6 | Add tests | `tests/application/services/test_event_service.py` | Verify automation |
 
-### Phase 9 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Current State |
 |----------|---------|---------------|
@@ -192,25 +177,17 @@ Add automatic event triggering and resolution logic to the existing Event system
 | Which events auto-trigger? | User list vs. all | User-provided |
 | Outcome determination? | Fixed / Dice roll / GM choice | GM choice |
 
-### Phase 9 Acceptance Criteria
-
-- [ ] Event rolls trigger automatically on schedule
-- [ ] Outcomes apply correctly to colony stats
-- [ ] GM can override/disable automation
-- [ ] Background job runs reliably
-- [ ] Tests cover automation logic
-
----
+**Acceptance Criteria (Needs To be defined):**
 
 ## Phase 10: Audit Logging & Version History
 
 **Priority:** Medium | **Effort:** 4-6h | **Status:** Not Started
 
-### Phase 10 Goal
+**Goal:**
 
 Automatically populate `AuditLog` entries for all colony state changes.
 
-### Phase 10 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -221,7 +198,7 @@ Automatically populate `AuditLog` entries for all colony state changes.
 | 10.5 | Implement retention policy | `src/colony_manager/jobs/audit_cleanup.py` | Configurable |
 | 10.6 | Add tests | `tests/application/services/` | Verify logging |
 
-### Phase 10 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Recommended |
 |----------|---------|-------------|
@@ -229,7 +206,7 @@ Automatically populate `AuditLog` entries for all colony state changes.
 | Retention period? | Forever / N entries / N days | Forever (configurable) |
 | Editable? | Never / Admin-only | Never (immutable) |
 
-### Phase 10 Acceptance Criteria
+### Acceptance Criteria
 
 - [ ] All colony changes logged automatically
 - [ ] Audit log queryable via API
@@ -243,11 +220,11 @@ Automatically populate `AuditLog` entries for all colony state changes.
 
 **Priority:** Low | **Effort:** 6-8h | **Status:** Not Started
 
-### Phase 11 Goal
+**Goal:**
 
 Implement Server-Sent Events (SSE) for real-time notifications when colony state changes.
 
-### Phase 11 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -258,14 +235,14 @@ Implement Server-Sent Events (SSE) for real-time notifications when colony state
 | 11.5 | Add conflict UI | `frontend/src/components/ConflictModal.tsx` | Notify on stale write |
 | 11.6 | Add tests | `tests/integration/test_concurrency.py` | Verify locking |
 
-### Phase 11 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Recommended |
 |----------|---------|-------------|
 | What updates trigger notifications? | All / Stat-only / Configurable | All colony changes |
 | Conflict resolution? | Last-write / Optimistic / Merge | Optimistic locking |
 
-### Phase 11 Acceptance Criteria
+**Acceptance Criteria:**
 
 - [ ] SSE endpoint streams updates
 - [ ] Frontend receives updates in < 5 seconds
@@ -273,17 +250,14 @@ Implement Server-Sent Events (SSE) for real-time notifications when colony state
 - [ ] Auto-reconnect on connection loss
 - [ ] Tests cover concurrent edits
 
----
+## Phase 12: Deployment
 
-## Phase 12: Infrastructure & DevOps
+**Priority:** Low | **Effort:** 6-8h | **Status:** Not Started
 
-**Priority:** High | **Effort:** 6-8h | **Status:** Not Started
-
-### Phase 12 Goal
-
+**Goal:**
 Containerize the application, set up CI/CD pipeline, and add monitoring.
 
-### Phase 12 Tasks
+**Tasks:**
 
 | # | Task | File(s) | Notes |
 |---|------|---------|-------|
@@ -295,7 +269,7 @@ Containerize the application, set up CI/CD pipeline, and add monitoring.
 | 12.6 | Add metrics endpoint | `adapters/api/routers/metrics.py` | Prometheus format |
 | 12.7 | Document deployment | `docs/deployment.md` | Step-by-step guide |
 
-### Phase 12 Decisions
+**Decisions (Needs User Input):**
 
 | Question | Options | Recommended |
 |----------|---------|-------------|
@@ -303,7 +277,7 @@ Containerize the application, set up CI/CD pipeline, and add monitoring.
 | CI/CD platform? | GitHub Actions / GitLab CI / Manual | GitHub Actions |
 | Monitoring requirements? | Health checks / Full metrics / External | Health checks + basic metrics |
 
-### Phase 12 Acceptance Criteria
+**Acceptance Criteria:**
 
 - [ ] Application runs in Docker container
 - [ ] docker-compose starts app + database
@@ -311,8 +285,6 @@ Containerize the application, set up CI/CD pipeline, and add monitoring.
 - [ ] Health check returns 200 OK
 - [ ] Logs are structured (JSON)
 - [ ] Deployment documented
-
----
 
 ## Question Index
 
@@ -405,5 +377,3 @@ Questions to answer before each phase:
 | `UI_DESIGN_SYSTEM.md` | Cult Mechanicus design system |
 
 ---
-
-## End of Document

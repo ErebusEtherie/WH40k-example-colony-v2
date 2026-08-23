@@ -1,7 +1,5 @@
 # Agent Briefing — WH40k Colony Manager
 
-**Quick Start for AI Coding Agents**
-
 ---
 
 ## Reading Order
@@ -96,5 +94,3 @@ mypy src/
 ```
 
 ---
-
-**End of Briefing**
