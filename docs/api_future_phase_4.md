@@ -82,6 +82,8 @@ class DevelopmentPlan(BaseModel):
 
 Track all changes to colony state for version history
 
+---
+
 ### 4. ColonyUser Model
 
 Per-colony user roles for collaboration.
@@ -133,7 +135,7 @@ class ColonyUser(BaseModel):
 
 **Stream Format:**
 
-```text
+```json
 data: {"type": "infrastructure_updated", "colony_id": 1, "timestamp": "..."}
 data: {"type": "modifier_added", "colony_id": 1, "timestamp": "..."}
 ```
@@ -230,8 +232,6 @@ data: {"type": "modifier_added", "colony_id": 1, "timestamp": "..."}
 - [ ] Multi-user testing passed
 
 ---
-
-## End of Document
 
 ```python
 class AuditLogAction(str, Enum):

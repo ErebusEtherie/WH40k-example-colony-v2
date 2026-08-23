@@ -201,8 +201,6 @@ These will be addressed in `implementation_plan_phase_6.md`.
 
 ---
 
-## End of Document
-
 - Purpose: GM notes for Representative Type (Satrap, Judge, etc.) — reference only
 
 ### 5.2: Rule Engine Updates

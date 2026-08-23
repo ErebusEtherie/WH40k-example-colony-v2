@@ -236,8 +236,6 @@ Google-style for all public modules/classes/functions.
 
 ---
 
-## End of Document
-
 - Stats cannot go below 0
 - Derived state (lore states) computed, not stored
 - Example: `Colony`, `Representative`, `Infrastructure`
