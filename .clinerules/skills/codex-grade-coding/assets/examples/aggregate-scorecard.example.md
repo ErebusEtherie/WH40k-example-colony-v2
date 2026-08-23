@@ -29,13 +29,17 @@ Skill state: A/B comparison for `codex-grade-coding`
 ## Qualitative Summary
 
 Biggest improvement:
+
 - Scope discipline and verification quality improved the most.
 
 Biggest remaining weakness:
+
 - The skill still needs watching on very small refactors, where the gain was marginal.
 
 Did the skill add harmful ceremony:
+
 - Not materially in this run, but trivial tasks should still be monitored.
 
 Would you keep, refine, or drop the skill:
+
 - Keep, then refine to reduce overhead on near-trivial tasks.

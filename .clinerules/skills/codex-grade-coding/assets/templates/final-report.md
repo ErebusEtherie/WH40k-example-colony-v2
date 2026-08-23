@@ -1,14 +1,14 @@
-Objective:
-- 
+Objective
+-
 
-Assumptions:
-- 
+Assumptions
+-
 
-Changes made:
-- 
+Changes made
+-
 
-Verification performed:
-- 
+Verification performed
+-
 
-Residual risk:
-- 
+Residual risk
+-

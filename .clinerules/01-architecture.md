@@ -6,7 +6,7 @@ Use a pragmatic layered architecture — clear boundaries, without full
 hexagonal/DDD ceremony (no aggregates, no CQRS, no event sourcing unless a
 real need emerges).
 
-```
+```text
 src/
   domain/          # pure business logic, zero I/O
   application/      # use cases / services, orchestrates domain + ports
@@ -29,6 +29,7 @@ implement it in `adapters`. This is dependency inversion, applied only where
 it's actually needed — not as a rule to sprinkle everywhere.
 
 Concretely for this project:
+
 - `domain` defines `ColonyRepository` (interface) — `adapters/persistence`
   implements it against SQLite.
 - `domain` defines a `DiceRoller` interface if rules require randomness

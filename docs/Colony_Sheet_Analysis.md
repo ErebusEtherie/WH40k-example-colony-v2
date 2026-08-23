@@ -39,7 +39,7 @@ Colony ─────────────┘
 
 ---
 
-# 3. Warstwy logiczne
+## 3. Warstwy logiczne
 
 Dla implementacji aplikacji warto traktować skoroszyt jako cztery podstawowe warstwy.
 
@@ -96,7 +96,7 @@ Wyniki:
 
 ---
 
-# 4. Arkusz `Representative`
+## 4. Arkusz `Representative`
 
 Ark
 usz zawiera 9 formuł.
@@ -137,7 +137,7 @@ Te Bonusy są następnie używane przez `Calculations`.
 
 ---
 
-# 5. Arkusz `Data`
+## 5. Arkusz `Data`
 
 `Data` nie zawiera formuł. Jest tabelą referencyjną.
 
@@ -223,7 +223,7 @@ Dla każdego typu przechowywane są:
 
 ---
 
-# 6. Arkusz `Calculations`
+## 6. Arkusz `Calculations`
 
 `Calculations` zawiera 280 formuł i jest głównym silnikiem obliczeniowym.
 
@@ -281,7 +281,7 @@ otherwise    → Stable
 
 ---
 
-# 7. Hard Infrastructure — obliczenia
+## 7. Hard Infrastructure — obliczenia
 
 Dla każdego typu infrastruktury Excel liczy:
 
@@ -323,7 +323,7 @@ Na końcu obliczane są globalne sumy dla całej infrastruktury.
 
 ---
 
-# 8. Support Upgrades — obliczenia
+## 8. Support Upgrades — obliczenia
 
 Mechanizm jest analogiczny do Hard Infrastructure.
 
@@ -352,7 +352,7 @@ Powstają wartości netto oraz globalne sumy.
 
 ---
 
-# 9. Limity Support Upgrades
+## 9. Limity Support Upgrades
 
 Dla każdego typu Support Upgrade istnieje limit.
 
@@ -384,7 +384,7 @@ W implementacji aplikacji te ostrzeżenia powinny być traktowane jako **walidac
 
 ---
 
-# 10. Leadership Modifier
+## 10. Leadership Modifier
 
 Leadership korzysta z charakterystyk Representative.
 
@@ -431,7 +431,7 @@ Leadership Bonus +5
 
 ---
 
-# 11. `Colony` — Effective Size
+## 11. `Colony` — Effective Size
 
 Effective Size jest obliczany jako:
 
@@ -459,7 +459,7 @@ To wymaga decyzji projektowej.
 
 ---
 
-# 12. Profit Factor
+## 12. Profit Factor
 
 ## 12.1. Base PF
 
@@ -511,7 +511,7 @@ PF >= 0
 
 ---
 
-# 13. Wpływ Anarchy i Halted na Profit Factor
+## 13. Wpływ Anarchy i Halted na Profit Factor
 
 ## Anarchy
 
@@ -547,7 +547,7 @@ Anarchy ma pierwszeństwo przed tym mechanizmem.
 
 ---
 
-# 14. Complacency — wartość efektywna
+## 14. Complacency — wartość efektywna
 
 Model składa Complacency z kilku źródeł:
 
@@ -571,7 +571,7 @@ Complacency >= 0
 
 ---
 
-# 15. Brak infrastruktury
+## 15. Brak infrastruktury
 
 Excel posiada mechanizm kary za brak infrastruktury.
 
@@ -591,7 +591,7 @@ Brakujące elementy powodują redukcję Complacency.
 
 ---
 
-# 16. Order — wartość efektywna
+## 16. Order — wartość efektywna
 
 Order jest składany z:
 
@@ -621,7 +621,7 @@ Anarchy
 
 ---
 
-# 17. Productivity — wartość efektywna
+## 17. Productivity — wartość efektywna
 
 Productivity uwzględnia:
 
@@ -647,7 +647,7 @@ To wygląda na przygotowanie pod przyszłą mechanikę.
 
 ---
 
-# 18. Piety — wartość efektywna
+## 18. Piety — wartość efektywna
 
 Piety jest składane z:
 
@@ -664,7 +664,7 @@ Piety nie otrzymuje bezpośredniego bonusu z Order ani Complacency.
 
 ---
 
-# 19. Aktualny przykład stanu kolonii
+## 19. Aktualny przykład stanu kolonii
 
 Dla aktualnych danych w skoroszycie:
 
@@ -714,7 +714,7 @@ Profit Factor = 0
 
 ---
 
-# 20. Elementy niekompletne / TBD
+## 20. Elementy niekompletne / TBD
 
 Nie należy traktować obecnego skoroszytu jako kompletnej implementacji wszystkich zasad.
 
@@ -755,7 +755,7 @@ Obecną formułę należy zweryfikować pod kątem tego, czy uszkodzona infrastr
 
 ---
 
-# 21. Zalecenie dla implementacji aplikacji
+## 21. Zalecenie dla implementacji aplikacji
 
 Excel powinien być traktowany jako:
 
@@ -773,7 +773,7 @@ Agent implementujący aplikację powinien:
 
 ---
 
-# 22. Zalecana architektura aplikacji
+## 22. Zalecana architektura aplikacji
 
 Logicznie obecny Excel sugeruje następujący podział:
 
@@ -813,7 +813,7 @@ Nie oznacza to, że taka architektura jest obowiązkowa. Jest to model wynikają
 
 ---
 
-# 23. Zasada dla agenta AI
+## 23. Zasada dla agenta AI
 
 Podczas implementacji agent powinien stosować następującą zasadę:
 
@@ -833,7 +833,7 @@ W szczególności agent powinien rozróżniać:
 
 ---
 
-# 24. Najważniejszy wniosek
+## 24. Najważniejszy wniosek
 
 Skoroszyt nie jest wyłącznie makietą.
 
@@ -857,7 +857,7 @@ Dlatego przy implementacji aplikacji `.xlsx` powinien być traktowany jako ważn
 
 ---
 
-# 25. Phase 3b Implementation Cross-References
+## 25. Phase 3b Implementation Cross-References
 
 Phase 3b implemented Support Upgrades and Planetary Resources modules with core
 rulebook rules. This section maps Excel sheet data to implemented code.
@@ -868,12 +868,14 @@ rulebook rules. This section maps Excel sheet data to implemented code.
 (input fields for upgrades)
 
 **Implemented in:**
+
 - `config/support_upgrades.yaml` — all upgrade definitions with stat bonuses
 - `config/upgrade_limits.json` — per-type limits
 - `domain/rules/upgrade_validation.py` — validation logic
 - `domain/models/support_upgrade.py` — data model
 
 **Key rules implemented:**
+
 - Global limit: upgrades ≤ Colony Size
 - Per-type limits (Mechanicum=1, Cultural=5, etc.)
 - Working vs. Faulty state bonuses/penalties
@@ -884,12 +886,14 @@ rulebook rules. This section maps Excel sheet data to implemented code.
 list)
 
 **Implemented in:**
+
 - `domain/enums.py` — `ResourceType` enum with all resource types
 - `domain/models/colony.py` — `planetary_resources: list[ResourceType]`
 - `domain/rules/colony_type_effects.py` — Mining/Industry and Research Mission
   resource bonuses
 
 **Key rules implemented:**
+
 - Mining/Industry + Mineral → +2 Productivity, +2 PF
 - Research Mission + Organic/Archeotech/Xenos → +2 Productivity, +1 PF
 
@@ -898,10 +902,12 @@ list)
 **Excel location:** `Calculations` sheet (lore state formulas, crisis logic)
 
 **Implemented in:**
+
 - `domain/rules/state_effects.py` — Orderly, Pious, Anarchy, Crisis effects
 - `domain/models/colony.py` — lock flags for stat crises
 
 **Key rules implemented:**
+
 - Orderly (Order > Size): +2 Productivity
 - Pious (Piety > Size): +1 Order, +1 Complacency
 - Complacency = 0: -1d5 Order & Productivity, locks increases
@@ -914,10 +920,12 @@ list)
 (special bonuses)
 
 **Implemented in:**
+
 - `domain/rules/colony_type_effects.py`
 - `config/colony_types.yaml` — colony type definitions
 
 **Key rules implemented:**
+
 - Ecclesiastical: convert Order loss → Piety loss (player choice)
 - Agricultural: 1d10 ≥ 8 prevents Size decrease
 - Mining/Industry + Mineral resource bonus
@@ -928,6 +936,7 @@ list)
 **Excel location:** `Calculations` sheet (RANDBETWEEN formulas for events/decay)
 
 **Implemented in:**
+
 - `domain/rules/state_effects.py` — dice rolls passed as parameters
 - CLI/service layer generates actual random rolls (1d5, 1d10)
 - Test code can inject deterministic rolls for reproducibility

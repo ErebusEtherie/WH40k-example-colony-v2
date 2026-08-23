@@ -1,24 +1,24 @@
 # Implementation Plan — Rogue Trader Colony Manager (V1 Prototype)
 
 **Audience:** an LLM coding agent, working alongside `business_analysis.md`,
-`technical_analysis.md`, and the `.clinerules/` rule set. This plan is the
+`architecture_phase_1.md`, and the `.clinerules/` rule set. This plan is the
 sequencing layer — it tells the agent *what order* to build things in and
 *what "done" looks like* at each step. It does not repeat rules already
 stated elsewhere; it references them.
 
 **Before starting any phase, read (in this order):** `.clinerules/*.md`
-(all files), `business_analysis.md`, `technical_analysis.md`. If a step
+(all files), `business_analysis.md`, `architecture_phase_1.md`. If a step
 below conflicts with any of those, stop and ask — do not silently resolve
 the conflict (per `06-collaboration-and-uncertainty.md`).
 
 **Configuration Status:** All game rule data (colony types, personalities,
 leadership modifiers, lore-state labels, infrastructure rules) has been
-confirmed and implemented in YAML config files. No placeholders remain.
----
+confirmed and implemented in YAML config files. No placeholders remain
 
 ## Current Status (Updated: 2026-08-20)
 
 **Completed Phases:**
+
 - ✅ **Phase 0** — Environment Setup
 - ✅ **Phase 1** — Folder Structure  
 - ✅ **Phase 2** — Domain Layer (all models, rules, ports)
@@ -33,16 +33,19 @@ confirmed and implemented in YAML config files. No placeholders remain.
 - ✅ **Phase 9** — Tooling & Final Checks (ruff, mypy, full test suite)
 
 **Test Coverage:**
+
 - Domain tests: 40 passed (includes hypothesis property tests for stat/profit/size calculators)
 - Application tests: 34 passed
 - Adapter tests: 114+ passed (config/persistence/io + 80 API tests + 3 CLI tests)
 - **Total: 188+ tests passing**
 
 **Code Quality:**
+
 - ✅ Ruff: All checks passed
 - ✅ Mypy: All checks passed (import-untyped suppressed for PyYAML)
 
 **Code Review Fixes Applied:**
+
 1. ✅ Added hypothesis property-based tests for stat calculator, profit factor calculator, and size calculator invariants
 2. ✅ Refactored `ColonyService` to add `get_colony()` method, updated router to use it
 3. ✅ Standardized exception handling across all routers (NotFoundError→404, ValidationError→400, with `from e` chaining)
@@ -50,8 +53,9 @@ confirmed and implemented in YAML config files. No placeholders remain.
 5. ✅ Added infrastructure integration tests showing working/disrupted state effects
 
 **Remaining Work:**
-- None for V1 prototype — all phases complete!
-- Phase 4+ features (events, audit logs, real-time collaboration, advanced export/import) are tracked in `BACKEND_API_IMPLEMENTATION_PLAN.md` for future development
+
+- **Phase 5 Gaps:** Representative Personality mechanics (Mad roll, Scholarly/Ties chosen_stat) and `pending_infrastructure_growth` flag — tracked in `implementation_plan_phase_5.md`
+- **Phases 6-12:** Excel migration, skills/talents effects, frontend dashboard, event automation, audit logging, real-time collaboration, DevOps — tracked in `implementation_plan_phases_6-12.md`
 
 ---
 
@@ -69,7 +73,7 @@ confirmed and implemented in YAML config files. No placeholders remain.
       `__pycache__/`, `*.pyc`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`,
       `.pytest_cache/`, `*.db`, `.env`.
 - [ ] Create `pyproject.toml` with the dependency list from
-      `technical_analysis.md` §6 (main deps: pydantic, pydantic-settings,
+      `architecture_phase_1.md` §6 (main deps: pydantic, pydantic-settings,
       sqlalchemy, pyyaml, typer; dev deps: pytest, hypothesis, ruff, mypy).
 - [ ] Add `[tool.ruff]` and `[tool.mypy]` sections to `pyproject.toml`
       with reasonable defaults (line length 100, `strict = true` for
@@ -85,7 +89,7 @@ confirmed and implemented in YAML config files. No placeholders remain.
 
 ## Phase 1 — Folder Structure
 
-Create the full directory tree from `technical_analysis.md` §2, empty
+Create the full directory tree from `architecture_phase_1.md` §2, empty
 except for `__init__.py` files where needed for Python packages:
 
 - [ ] `src/colony_manager/{domain,application,adapters}/` and their
@@ -107,7 +111,7 @@ except for `__init__.py` files where needed for Python packages:
 
 Build in this order — each item only depends on the ones before it:
 
-- [ ] `domain/errors.py` — exception hierarchy from `technical_analysis.md`
+- [ ] `domain/errors.py` — exception hierarchy from `architecture_phase_1.md`
       §3.5.
 - [ ] `domain/util/rounding.py` — `round_half_up`, fully implemented (it's
       simple and fully specified, no placeholders needed).
@@ -228,7 +232,7 @@ phase)** — per `04-testing-strategy.md`'s risk-based prioritization:
 
 - [ ] `adapters/persistence/orm_models.py` — SQLAlchemy 2.0 declarative
       models: `ColonyORM`, `RepresentativeORM`, `ModifierORM`. Schema per
-      `technical_analysis.md` §5.1/§3.6: `modifiers.colony_id` FK with
+      `architecture_phase_1.md` §5.1/§3.6: `modifiers.colony_id` FK with
       `ON DELETE CASCADE`; `colonies.representative_id` nullable FK, no
       cascade in either direction.
 - [ ] `adapters/persistence/db.py` (or `session.py`) — engine/session
@@ -247,7 +251,7 @@ phase)** — per `04-testing-strategy.md`'s risk-based prioritization:
       Modifiers but leaves a referenced Representative untouched;
       deleting a Representative clears the referencing Colony's
       `representative_id` (per the default agreed in
-      `technical_analysis.md` §3.6).
+      `architecture_phase_1.md` §3.6).
 - [ ] **Checkpoint:** `uv run pytest tests/adapters/persistence/ -v`
       passes.
 
@@ -313,7 +317,8 @@ phase)** — per `04-testing-strategy.md`'s risk-based prioritization:
 - ✅ Code quality checks passing (Ruff, Mypy).
 - ✅ Documentation consolidated and up-to-date (see `docs/README.md`).
 
-**Out of Scope for V1** (tracked for Phase 4+ in `BACKEND_API_IMPLEMENTATION_PLAN.md`):
+**Out of Scope for V1** (tracked for Phase 4+ in `api_future_phase_4.md`):
+
 - Event system (immutable event log, triggers, resolution)
 - Audit log / version history
 - Real-time collaboration (WebSocket/SSE notifications)

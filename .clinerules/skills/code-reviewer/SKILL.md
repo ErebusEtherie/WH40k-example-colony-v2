@@ -59,15 +59,19 @@ Perform a thorough, actionable code review that a senior engineer would give. Fo
 Start with a 2-3 sentence overall assessment. Be direct. State whether this looks good, needs minor fixes, or has serious issues.
 
 ### Critical (must fix before merge)
+
 Only issues that would cause bugs, security vulnerabilities, or data loss in production. If there are none, omit this section entirely.
 
 ### Suggestions (should fix)
+
 Issues that affect maintainability, performance, or developer experience but would not cause production incidents.
 
 ### Nitpicks (optional)
+
 Style preferences, minor naming improvements, or small refactors. Keep to 3 max. If you have more, pick the most impactful.
 
 ### What looks good
+
 Briefly call out 1-2 things done well. Specific, not generic. "Good use of early returns to reduce nesting in validateUser" not "Nice code!"
 
 ## Rules
@@ -83,7 +87,7 @@ Briefly call out 1-2 things done well. Specific, not generic. "Good use of early
 
 ## Example
 
-```
+````text
 ## Review Summary
 
 Solid implementation of the webhook handler. One security issue to fix
@@ -118,8 +122,9 @@ service during outages.
 validation and processing. Extracting validation into a separate
 function would make unit testing easier.
 
-### What looks good
+#### What looks good
 
 The idempotency key check at line 35 is well implemented and will
 prevent duplicate processing during retries.
-```
+
+````

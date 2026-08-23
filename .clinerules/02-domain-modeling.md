@@ -34,6 +34,7 @@ belong in `config/` as JSON or YAML, loaded at startup into typed structures
 if/elif chains or scattered numeric literals in the rule engine.
 
 Benefits this is meant to protect:
+
 - Houserules/balance changes don't require touching engine code.
 - The rule engine becomes trivially testable against known table values.
 - Magic numbers don't leak into business logic.

@@ -4,7 +4,7 @@ Rogue Trader Colony Manager prototype for Warhammer 40k tabletop roleplaying.
 
 ## Overview
 
-This repository contains a prototype of the Colony Manager system described in `business_analysis.md` and `technical_analysis.md`.
+This repository contains a prototype of the Colony Manager system described in `business_analysis.md` and `architecture_phase_1.md`.
 
 ## Setup
 

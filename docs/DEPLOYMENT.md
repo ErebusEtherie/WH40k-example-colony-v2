@@ -149,6 +149,7 @@ journalctl -u colony-manager -n 50
 ```
 
 Common issues:
+
 - JWT_SECRET_KEY not set
 - Database path not writable
 - Port already in use
@@ -177,6 +178,7 @@ sqlite3 /var/lib/colony-manager/colony_manager.sqlite "PRAGMA journal_mode=WAL;"
 ---
 
 **Last Updated**: 2026-08-19
+
 ### PostgreSQL (Production)
 
 ```bash

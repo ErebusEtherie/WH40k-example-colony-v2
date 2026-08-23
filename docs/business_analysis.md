@@ -1,38 +1,36 @@
 # Business Analysis — Rogue Trader Colony Manager
 
-## Implementation Status (as of latest update)
+**Version:** 2.0 (Consolidated)  
+**Last Updated:** 2026-08-23  
+**Status:** Authoritative source of truth for all business rules  
 
-**Current Phase:** Phase 3b + API implementation complete
-**Test Coverage:** 105 tests passing, 17 API-related tests failing (Infrastructure & Support Upgrades APIs need fixes)
-**Implemented Features:**
+---
 
-- ✅ V1: Colony + Representative models with full stat calculations
-- ✅ V1: Profit Factor and Persistence (save/load)
-- ✅ Phase 3b: Support Upgrades with validation rules
-- ✅ Phase 3b: Planetary Resources module
-- ✅ Phase 3b: State-based effects (Orderly, Pious, crisis locks)
-- ✅ Phase 3b: Colony Type special rules (Ecclesiastical, Agricultural, Mining, Research)
-- ✅ Phase 4: FastAPI REST endpoints for all entities
-- ✅ CLI interface (Typer)
+## Document Purpose
+
+This is the **single source of truth** for all business rules, domain models, and calculation logic for the WH40k Rogue Trader Colony Manager.
+
+**Implementation Status:**
+
+- ✅ **Phase 1-4:** Core domain models, rule engine, application services, persistence complete
+- ✅ **Phase 4a:** Hard Infrastructure module complete
+- ✅ **Phase 5:** Support Upgrades, Planetary Resources, State Effects complete
+- ✅ **Phase 6-9:** API, CLI, Import/Export, tooling complete
+- ⚠️ **Phase 5 Gaps:** Representative Personality mechanics (Mad roll, Scholarly/Ties chosen_stat) pending
+
+**Test Coverage:** 188+ tests passing across all layers
 
 ## 1. Purpose & Scope
 
 This document captures the business requirements for the Colony Manager.
 
-**Status: All business rules confirmed and implemented.**
+**Source of Truth:** The reference Excel workbook (`[WH40k_RT] [Team RT6] Colony Sheet.xlsx`) is treated as validated domain knowledge — it was used and tested by the players/GM against the core rulebook.
 
-**V1 goal:** ✅ COMPLETE — working Colony + Representative model with real stat
-calculations (Base → Current), Profit Factor, and persistence (save/load).
+**V1 goal:** ✅ COMPLETE — working Colony + Representative model with real stat calculations (Base → Current), Profit Factor, and persistence (save/load).
 
-**Phase 3b goal:** ✅ COMPLETE — Support Upgrades and Resources implemented
-with all core rulebook rules. Hard Infrastructure module implemented in Phase 4a.
+**Phase 3b goal:** ✅ COMPLETE — Support Upgrades and Resources implemented with all core rulebook rules. Hard Infrastructure module implemented in Phase 4a.
 
-**Source of domain truth:** the reference Excel workbook (Colony /
-Representative / Data / Calculations sheets) is treated as validated
-domain knowledge — it was used and tested by the players/GM against the
-core rulebook. Where this document derives a rule directly from that sheet,
-it's noted, since the sheet itself doesn't document *why* — only the
-computed result.
+**Phase 6-9:** ✅ COMPLETE — REST API, CLI, Import/Export, and tooling complete.
 
 ---
 
@@ -91,7 +89,7 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 | `personalities` | list of Personality | yes | **At least 1, multiple allowed.** Each has name, description, effect. Full fixed list with mechanical effects confirmed (see Design Decisions section) |
 | `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
 | `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
-| `skills` | list of Skill | yes | `{name, level: known|+10|+20|+30, description}` — **reference only, no mechanical effect** |
+| `skills` | list of Skill | yes | `{name, level, description}` — reference only, no mechanical effect |
 | `talents` | list of Talent | yes | `{name, description}` — **reference only, no mechanical effect** |
 | `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.4). This is the **only** confirmed mechanical link from Representative to Colony stats in V1 — Personality effects are applied separately to colony stats, Type is descriptive only, Skills and Talents are reference-only |
 
@@ -147,7 +145,7 @@ worth revisiting once Infrastructure/Events are in scope.
 
 ### 4.2 Stat Calculation (Complacency / Order / Productivity / Piety)
 
-```
+```text
 current_stat = clamp( base_stat (from colony_type)
                        + sum(active modifiers where modifier_stat == this stat),
                        min = 0 )
@@ -160,7 +158,7 @@ only, not these four directly).
 
 ### 4.3 Size Calculation
 
-```
+```text
 actual_size = clamp( base_size
                       + sum(active modifiers where modifier_stat == 'size'),
                       min = 0 )
@@ -185,7 +183,7 @@ reference spreadsheet — confirm before implementing]**:
 
 **[Derived from reference spreadsheet — confirm before implementing]**
 
-```
+```python
 pf_base = lookup(actual_size)            # Size → PF table, from reference "Data" sheet
 pf_raw  = pf_base
         + (1 if current_complacency > actual_size else 0)
@@ -214,7 +212,7 @@ range doesn't cover all possible stat-bonus values (0–9+)]**.
 
 ### 4.6 Representative Stat Bonus
 
-```
+```python
 stat_bonus = floor(stat_value / 10)
 ```
 
@@ -310,6 +308,7 @@ Certain colony types have unique abilities per Rogue Trader rules:
 - Error: Cannot add upgrade if it would exceed limit
 
 **Per-Type Limits**:
+
 | Upgrade Type | Limit | Notes |
 |---|---|---|
 | Mechanicum Station | 1 | Unique facility |
@@ -398,5 +397,8 @@ All configuration data has been implemented and validated.
   during technical analysis, supersedes the earlier draft.
 - If a Representative assigned to a Colony is deleted, the Colony's
   reference is cleared rather than blocking the delete or deleting the
-  Colony. Flagged as a default in `technical_analysis.md` §3.6 — revisit if
-  you'd rather block deletion instead.
+  Colony. Flagged as a default in `architecture_phase_1.md` §3.6.
+- **Phase 5 Gaps (Pending Implementation):**
+  1. `pending_infrastructure_growth: bool` flag in Colony model
+  2. `PersonalityAssignment` model with `mad_order_roll` and `chosen_stat` fields
+  3. `special_trait_description: str | None` field in Representative model

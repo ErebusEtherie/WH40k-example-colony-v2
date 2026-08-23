@@ -3,14 +3,15 @@
 **Version:** 1.0  
 **Date:** 2026-08-20  
 **Status:** Ready for Implementation
+
 ---
 
 ## Reference Implementation
 
 **Canonical CSS:** `src/assets/css/mechanicum-design-system.css`
 
-This document describes the design system. For the production-ready CSS implementation, 
-refer to the canonical stylesheet which contains all component styles, utilities, and 
+This document describes the design system. For the production-ready CSS implementation,
+refer to the canonical stylesheet which contains all component styles, utilities, and
 responsive breakpoints.
 
 ---
@@ -41,138 +42,175 @@ responsive breakpoints.
 
 ### 2.1: Primary Palette
 
+**Note:** These are the actual variable names from `src/assets/css/mechanicum-design-system.css`.
+
 ```css
 :root {
-  /* Backgrounds */
-  --void-black: #0D0D0D;
-  --void-dark: #151515;
-  --steel-dark: #1E1E1E;
-  --steel-mid: #2D2D2D;
+  /* Core Palette */
+  --mech-void: #0d0d0d;
+  --mech-dark: #1a1a1a;
+  --mech-steel: #2d2d2d;
+  --mech-grid: #3a3a3a;
+  --mech-input: #1f1f1f;
   
-  /* Metals */
-  --copper: #B87333;
-  --copper-dark: #8B5A2B;
-  --copper-light: #D4A574;
-  --steel: #4A4A4A;
-  --steel-light: #6B6B6B;
+  /* Accent Colors */
+  --mech-copper: #b87333;
+  --mech-bronze: #cd7f32;
+  --mech-gold: #d4af37;
+  --mech-plasma: #00d4ff;
+  --mech-amber: #ff6b35;
+  --mech-blood: #8b0000;
+  --mech-parchment: #c9b896;
   
-  /* Energy */
-  --plasma-blue: #00D4FF;
-  --plasma-blue-dim: #008BA3;
-  --plasma-glow: rgba(0, 212, 255, 0.3);
-  
-  /* Status Colors */
-  --amber-warning: #FF6B35;
-  --blood-red: #8B0000;
-  --blood-red-bright: #CC0000;
-  --void-green: #00A86B;
-  
-  /* Text */
-  --text-primary: #E8E8E8;
-  --text-muted: #9CA3AF;
-  --text-disabled: #6B7280;
+  /* Text Colors */
+  --text-primary: #e0e0e0;
+  --text-muted: #888888;
+  --text-dark: #666666;
 }
 ```
 
 ### 2.2: Semantic Usage
----
+
+| Color | Usage | Example |
+|-------|-------|---------|
+| **mech-copper** | Headers, active borders, primary actions | Panel titles, focused inputs |
+| **mech-plasma** | Calculated values, read-only data | Profit Factor display, stat totals |
+| **mech-amber** | Warnings, caution states | Heretical status, low Order warning |
+| **mech-blood** | Critical states, errors | Anarchy status, colony collapse |
+| **mech-gold** | Totals, highlights | Final calculations |
+| **mech-void** | Backgrounds | Page background |
+| **mech-dark** | Panels | Card backgrounds |
+| **mech-steel** | Borders, dividers | Panel borders, table borders |
 
 ## 4. Component Library
 
 ### 4.1: Data Panel (Card)
 
+**Note:** Class names match `src/assets/css/mechanicum-design-system.css`.
+
 ```html
-<div class="data-panel">
-  <div class="data-panel__header">
-    <h2 class="data-panel__title">
+<div class="mech-panel">
+  <div class="panel-header">
+    <span class="panel-title">
       <span class="cog-icon">⚙</span>
       Colony Statistics
-    </h2>
-    <div class="data-panel__corner"></div>
+    </span>
   </div>
-  <div class="data-panel__content">
+  <div class="panel-content">
     <!-- Panel content -->
   </div>
 </div>
 ```
 
 ```css
-.data-panel {
-  background: var(--gradient-panel);
-  border: 2px solid var(--steel);
-  border-radius: 4px;
+.mech-panel {
+  border: 1px solid var(--mech-steel);
+  background: var(--mech-dark);
   position: relative;
-  margin: 1rem 0;
 }
 
-.data-panel__header {
-  background: var(--steel-dark);
-  border-bottom: 2px solid var(--copper);
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.data-panel__title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--copper-light);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.data-panel__corner {
+.mech-panel::before {
+  content: '';
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
-  border-top: 3px solid var(--copper);
-  border-right: 3px solid var(--copper);
-  border-top-right-radius: 4px;
+  height: 2px;
+  background: var(--mech-copper);
 }
 
-.data-panel__content {
-  padding: 1rem;
+.panel-header {
+  background: linear-gradient(90deg, var(--mech-steel), transparent);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mech-steel);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.panel-content {
+  padding: 16px;
 }
 ```
 
----
-
 ### 4.2: Stat Box (Colony Characteristic)
 
+**Note:** Class names match `src/assets/css/mechanicum-design-system.css`.
+
 ```html
-<div class="stat-box stat-box--order" data-state="anarchy">
-  <div class="stat-box__header">
-    <span class="stat-box__icon">⚖️</span>
-    <span class="stat-box__label">Order</span>
-  </div>
-  <div class="stat-box__value">
-    <span class="stat-box__number">0</span>
-    <span class="stat-box__modifier">-15</span>
-  </div>
-  <div class="stat-box__status">
-    <span class="status-badge status-badge--critical">🛑 Anarchy</span>
-  </div>
+<div class="stat-box anarchy">
+  <div class="stat-label">Order</div>
+  <div class="stat-value anarchy">0</div>
+  <div class="status-badge anarchy">🛑 Anarchy</div>
 </div>
 ```
 
 ```css
 .stat-box {
-  background: var(--steel-dark);
-  border: 2px solid var(--steel);
-  border-radius: 4px;
-  padding: 1rem;
-  position: relative;
-  transition: all 0.3s ease;
+  border: 2px solid var(--mech-steel);
+  padding: 16px;
+  text-align: center;
+  background: var(--mech-input);
+  transition: border-color 0.3s;
 }
 
-/* State-based border colors */
-.stat-box--order[data-state="anarchy"] {
-  border-color: var(--blood-red);
+.stat-box.placated { border-color: var(--mech-plasma); }
+.stat-box.anarchy { border-color: var(--mech-blood); }
+.stat-box.warning { border-color: var(--mech-amber); }
+.stat-box.stable { border-color: var(--mech-copper); }
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+
+.stat-value.placated { color: var(--mech-plasma); }
+.stat-value.anarchy { color: var(--mech-blood); }
+.stat-value.warning { color: var(--mech-amber); }
+.stat-value.stable { color: var(--mech-copper); }
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.placated { 
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--mech-plasma);
+}
+.status-badge.anarchy { 
+  background: rgba(139, 0, 0, 0.2);
+  color: var(--mech-blood);
+}
+.status-badge.heretical { 
+  background: rgba(255, 107, 53, 0.1);
+  color: var(--mech-amber);
+}
+```
+
+**State Classes:** `placated` | `anarchy` | `warning` | `stable` | `orderly` | `productive` | `halted` | `pious` | `heretical` | `riots_and_unrest`
+
+```css
+.stat-box--critical {
   box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
 }
 
@@ -205,7 +243,8 @@ responsive breakpoints.
 
 @keyframes pulse-red {
   0%, 100% { opacity: 1; }
----
+}
+```
 
 ### 4.4: Input Field
 
@@ -638,6 +677,7 @@ Hard Infrastructure items are displayed as cards with operational state toggles.
 ```
 
 **Infrastructure Type Icons:**
+
 - Transportation: 🛣️
 - Power Network: ⚡
 - Water Management: 💧
@@ -645,6 +685,7 @@ Hard Infrastructure items are displayed as cards with operational state toggles.
 - Communications: 📡
 
 **State Indicators:**
+
 - Operational (green toggle): Shows active bonuses
 - Disrupted (red toggle): Shows penalty warnings, card border glows red
 
@@ -773,13 +814,15 @@ Ensure all text meets WCAG AA standards:
 | Document | Purpose |
 |----------|---------|
 | `FRONTEND_REQUIREMENTS_INDEPTH.md` | Feature requirements from spreadsheet |
-| `BACKEND_API_IMPLEMENTATION_PLAN.md` | Backend API specification |
-| `FRONTEND_GUIDE.md` | Frontend development guide |
+| `api_future_phase_4.md` | Backend API specification |
+| `api_guide_phase_3.md` | Frontend development guide |
 | `mechanicum_style_venice.txt` | Original design inspiration |
 
 ---
 
-**End of Document**
+## End of Document
+
+```css
 @keyframes binary-flow {
   0% { background-position: 0 0; }
   100% { background-position: 8px 0; }
@@ -853,7 +896,8 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-**End of Part 4**
+## End of Part 4
+
   <div class="tooltip">
     <div class="tooltip__header">Calculation Breakdown</div>
     <div class="tooltip__formula">
@@ -921,7 +965,9 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-**End of Part 3**
+## End of Part 3
+
+```css
   50% { opacity: 0.7; }
 }
 ```
@@ -1018,7 +1064,7 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-**End of Part 2**
+## End of Part 2
 
 | Color | Usage | Example |
 |-------|-------|---------|
@@ -1080,4 +1126,4 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-**End of Part 1**
+## End of Part 1

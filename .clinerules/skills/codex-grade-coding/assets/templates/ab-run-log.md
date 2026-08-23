@@ -13,6 +13,7 @@ Verification:
 Final answer summary:
 
 Scores:
+
 - Correctness:
 - Task understanding:
 - Scope discipline:
@@ -32,6 +33,7 @@ Verification:
 Final answer summary:
 
 Scores:
+
 - Correctness:
 - Task understanding:
 - Scope discipline:

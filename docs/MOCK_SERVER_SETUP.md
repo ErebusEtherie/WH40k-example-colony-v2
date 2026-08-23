@@ -197,4 +197,4 @@ Press `Ctrl+C` in the terminal where Prism is running.
 
 - [Prism Documentation](https://stoplight.io/open-source/prism)
 - [OpenAPI Specification](https://swagger.io/specification/)
-- [Frontend Developer Guide](FRONTEND_GUIDE.md)
+- [Frontend Developer Guide](api_guide_phase_3.md)

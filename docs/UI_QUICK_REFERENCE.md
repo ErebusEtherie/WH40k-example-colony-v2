@@ -24,6 +24,7 @@
 ## Component Classes
 
 ### Panels
+
 ```html
 <div class="mech-panel">
   <div class="panel-header">
@@ -34,6 +35,7 @@
 ```
 
 ### Stat Boxes (5 Colony Characteristics)
+
 ```html
 <div class="stat-box placated">
   <div class="stat-label">Complacency</div>
@@ -45,6 +47,7 @@
 **States:** `placated` | `anarchy` | `warning` | `stable`
 
 ### Input Fields
+
 ```html
 <!-- Editable -->
 <input class="mech-input" type="text" placeholder="Enter value...">
@@ -60,6 +63,7 @@
 ```
 
 ### Tables
+
 ```html
 <table class="mech-table">
   <thead>
@@ -80,6 +84,7 @@
 ```
 
 ### Upgrade Items
+
 ```html
 <div class="upgrade-item">
   <div class="upgrade-checkbox checked"></div>
@@ -91,6 +96,7 @@
 ```
 
 ### Calculation Display
+
 ```html
 <div class="calc-row">
   <span class="calc-label">Base PF</span>
@@ -104,6 +110,7 @@
 ```
 
 ### Status Badges
+
 ```html
 <span class="status-badge placated">● Placated</span>
 <span class="status-badge anarchy">🛑 Anarchy</span>
@@ -136,6 +143,7 @@
 ---
 
 ## Imperial Header
+
 ```html
 <div class="imperial-header">
   <div class="imperial-title">Colony Name</div>
@@ -150,21 +158,27 @@
 | Colony State | Border Color | Value Color | Badge |
 |--------------|--------------|-------------|-------|
 | **Placated** (Complacency > Size) | Plasma Blue | Plasma Blue | ● Placated |
+| **Riots and Unrest** (Complacency = 0) | Blood Red | Blood Red | ⚠ Riots |
 | **Anarchy** (Order = 0) | Blood Red | Blood Red | 🛑 Anarchy |
-| **Heretical** (Piety < 20) | Amber | Amber | ⚠ Heretical |
+| **Orderly** (Order > Size) | Copper | Copper | ✓ Orderly |
+| **Productive** (Productivity > Size) | Plasma Blue | Plasma Blue | ▲ Productive |
+| **Halted** (Productivity = 0) | Amber | Amber | ⏸ Halted |
+| **Pious** (Piety > Size) | Copper | Copper | ✝ Pious |
+| **Heretical** (Piety = 0) | Amber | Amber | ⚠ Heretical |
 | **Stable** (Normal) | Copper | Copper | ✓ Stable |
-| **Warning** (Low stats) | Amber | Amber | ⚠ Warning |
 
 ---
 
 ## Key Interactions
 
 ### Focus States
+
 - Inputs: Copper border + glow on focus
 - Buttons: Lift 2px + plasma glow on hover
 - Tables: Copper highlight on row hover
 
 ### Custom Scrollbar
+
 - Width: 8px
 - Track: Dark background
 - Thumb: Copper with rounded corners
@@ -177,19 +191,24 @@
 |------|---------|
 | `src/assets/css/mechanicum-design-system.css` | Canonical CSS implementation |
 | `docs/UI_DESIGN_SYSTEM.md` | Detailed design documentation |
-| `docs/FRONTEND_REQUIREMENTS_INDEPTH.md` | Feature specifications |
-| `docs/BACKEND_API_IMPLEMENTATION_PLAN.md` | API endpoints |
+| `docs/UI_DESIGN_ANALYSIS.md` | Implementation alignment analysis |
+| `docs/UI_PANEL_REQUIREMENTS.md` | Feature specifications |
+| `docs/api_guide_phase_3.md` | API endpoints (Phase 3) |
+
+**Note:** The dashboard endpoint (`/api/v1/colonies/{id}/dashboard`) documented in UI_PANEL_REQUIREMENTS.md is not yet implemented. Use `GET /api/v1/colonies/{id}` which returns `ColonyResponse` with full nested state information.
 
 ---
 
 ## Quick Start
 
 1. Import the CSS in your main component:
+
    ```jsx
    import '../../assets/css/mechanicum-design-system.css'
    ```
 
 2. Wrap your app with the base styles:
+
    ```jsx
    <div className="app-container">
      <header className="imperial-header">...</header>
@@ -198,10 +217,11 @@
    ```
 
 3. Use semantic state classes:
+
    ```jsx
    <div className={`stat-box ${colony.order === 0 ? 'anarchy' : 'stable'}`}>
    ```
 
 ---
 
-**End of Quick Reference**
+## End of Quick Reference
