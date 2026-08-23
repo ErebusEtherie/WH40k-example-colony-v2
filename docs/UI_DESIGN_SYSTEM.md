@@ -3,7 +3,6 @@
 **Version:** 1.0  
 **Date:** 2026-08-20  
 **Status:** Ready for Implementation
-
 ---
 
 ## Reference Implementation
@@ -208,9 +207,6 @@ responsive breakpoints.
 ```
 
 **State Classes:** `placated` | `anarchy` | `warning` | `stable` | `orderly` | `productive` | `halted` | `pious` | `heretical` | `riots_and_unrest`
-
-```css
-.stat-box--critical {
   box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
 }
 
@@ -243,8 +239,7 @@ responsive breakpoints.
 
 @keyframes pulse-red {
   0%, 100% { opacity: 1; }
-}
-```
+---
 
 ### 4.4: Input Field
 
@@ -820,13 +815,12 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-## End of Document
-
-```css
+**End of Document**
 @keyframes binary-flow {
   0% { background-position: 0 0; }
   100% { background-position: 8px 0; }
 }
+
 ```
 
 ### 6.2: Corner Accents
@@ -896,8 +890,7 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-## End of Part 4
-
+**End of Part 4**
   <div class="tooltip">
     <div class="tooltip__header">Calculation Breakdown</div>
     <div class="tooltip__formula">
@@ -965,11 +958,10 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-## End of Part 3
-
-```css
+**End of Part 3**
   50% { opacity: 0.7; }
 }
+
 ```
 
 ---
@@ -1064,7 +1056,7 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-## End of Part 2
+**End of Part 2**
 
 | Color | Usage | Example |
 |-------|-------|---------|
@@ -1126,4 +1118,4 @@ Ensure all text meets WCAG AA standards:
 
 ---
 
-## End of Part 1
+**End of Part 1**

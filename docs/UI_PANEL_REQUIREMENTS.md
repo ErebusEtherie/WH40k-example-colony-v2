@@ -54,7 +54,7 @@ days = remaining_days % 30
 
 **Location:** Main section of Colony Dashboard, below Panel 1
 
-### Panel 2 Fields
+### Fields
 
 | Field | Example | Editable | Source/Notes |
 |-------|---------|----------|--------------|
@@ -169,7 +169,7 @@ Sorted list with **Hard Infrastructure presented first**, then Support Upgrades.
 
 ### Example Display
 
-```text
+```
 INFRASTRUCTURE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚙ Łączność Astropatyczna
@@ -187,7 +187,7 @@ INFRASTRUCTURE
 
 ## Data Flow Summary
 
-```text
+```
 
 ┌─────────────────────────────────────────────────────────┐
 │                  COLONY DASHBOARD                        │
@@ -209,6 +209,7 @@ INFRASTRUCTURE
 │  - Sorted: Hard Infrastructure first, then Upgrades     │
 │  - Click to navigate to detailed management view        │
 └─────────────────────────────────────────────────────────┘
+
 ```
 
 ---
@@ -218,14 +219,13 @@ INFRASTRUCTURE
 ### Editable Fields Trigger Recalculation
 
 When user edits:
-
 - **Age (days)**: Update `colony.age_days`, recalculate formatted display
 - **Size**: Update `colony.base_size`, set `pending_infrastructure_growth = True` if
   size increased, trigger full stat recalculation
 
 ### Calculation Chain
 
-```text
+```
 
 age_days edited
     ↓
@@ -243,8 +243,6 @@ stat_calculator.run()
     ├─ gm_custom_modifiers
     └─ final_stats (Complacency, Order, Productivity, Piety)
     ↓
-```
-
 ---
 
 ## Open Questions
@@ -272,8 +270,6 @@ stat_calculator.run()
 - `business_analysis.md` §3 — Colony stat calculation rules
 - `architecture_phase_1.md` §4 — Domain model definitions
 - `implementation_plan_phase_5.md` — Phase 5 scope and implementation checklist
-
-```text
 profit_factor_calculator.run()
     ├─ size_to_pf_lookup
     ├─ leadership_modifier
@@ -331,16 +327,18 @@ UI updates all calculated fields
 }
 ```
 
-### Panel 3 User Actions
+```
+
+### User Actions
 
 - View infrastructure list (read-only summary)
 - Click/tap item to navigate to detailed Infrastructure Management view
 - No inline editing in this panel — all changes made in detailed view
-- Review Representative personality modifiers
-- Review Custom GM modifiers
-- Check Lock flags (e.g., Complacency = 0 prevents Order/Productivity increases)
+4. Representative personality modifiers
+5. Custom GM modifiers
+6. Lock flags (e.g., Complacency = 0 prevents Order/Productivity increases)
 
-#### Panel 2 User Actions
+### User Actions
 
 - Edit Size (number input with +/- buttons)
 - View all other stats (read-only, auto-calculated)
