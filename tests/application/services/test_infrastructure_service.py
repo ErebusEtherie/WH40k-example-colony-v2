@@ -11,7 +11,7 @@ from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchem
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import SqlAlchemyAuditLogRepository
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.enums import InfrastructureType, InfrastructureState
+from colony_manager.domain.enums import InfrastructureType, InfrastructureState, ColonyType
 from colony_manager.domain.errors import NotFoundError
 
 
@@ -24,10 +24,19 @@ def _create_db_url(tmp_path: Path) -> str:
 
 def _create_colony(colony_repo, name="Test Colony"):
     """Helper to create a test colony."""
+    from datetime import date
+    
     colony = Colony(
         name=name,
-        governor_name="Governor Test",
-        population=1000,
+        owner="Test Owner",
+        colony_type=ColonyType.INDUSTRY,
+        age_days=0,
+        age_last_updated=date.today(),
+        base_complacency=10,
+        base_order=10,
+        base_productivity=10,
+        base_piety=10,
+        base_size=10,
     )
     return colony_repo.create(colony)
 class TestInfrastructureServiceCreation:
@@ -112,7 +121,7 @@ class TestInfrastructureServiceQueries:
         colony = _create_colony(colony_repo)
         infra = Infrastructure(
             colony_id=colony.id,
-            infrastructure_type=InfrastructureType.WATER_RECLAMATION,
+            infrastructure_type=InfrastructureType.WATER_MANAGEMENT,
             state=InfrastructureState.WORKING,
         )
         created = service.create_infrastructure(infra, changed_by=50)
@@ -120,7 +129,7 @@ class TestInfrastructureServiceQueries:
         retrieved = service.get_infrastructure(created.id)
         
         assert retrieved.id == created.id
-        assert retrieved.infrastructure_type == InfrastructureType.WATER_RECLAMATION
+        assert retrieved.infrastructure_type == InfrastructureType.WATER_MANAGEMENT
 
     def test_get_nonexistent_infrastructure_raises(self, tmp_path):
         """Test getting non-existent infrastructure raises NotFoundError."""
@@ -159,7 +168,7 @@ class TestInfrastructureServiceQueries:
         for i in range(2):
             infra = Infrastructure(
                 colony_id=colony2.id,
-                infrastructure_type=InfrastructureType.HABITATION_MODULE,
+                infrastructure_type=InfrastructureType.COMMUNICATIONS,
                 state=InfrastructureState.WORKING,
             )
             service.create_infrastructure(infra, changed_by=50)
@@ -235,12 +244,12 @@ class TestInfrastructureServiceUpdate:
         
         updated = service.update_infrastructure_state(
             created.id,
-            InfrastructureState.FAULTY,
+            InfrastructureState.DISRUPTED,
             changed_by=60,
         )
         
         assert updated.id == created.id
-        assert updated.state == InfrastructureState.FAULTY
+        assert updated.state == InfrastructureState.DISRUPTED
 
     def test_update_nonexistent_infrastructure_raises(self, tmp_path):
         """Test updating non-existent infrastructure raises NotFoundError."""
@@ -253,7 +262,7 @@ class TestInfrastructureServiceUpdate:
         )
         
         with pytest.raises(NotFoundError, match="Infrastructure 99999 not found"):
-            service.update_infrastructure_state(99999, InfrastructureState.FAULTY, changed_by=50)
+            service.update_infrastructure_state(99999, InfrastructureState.DISRUPTED, changed_by=50)
 
     def test_update_state_all_states(self, tmp_path):
         """Test updating to all possible states."""
@@ -364,7 +373,7 @@ class TestInfrastructureServiceAuditLogging:
         )
         created = service.create_infrastructure(infra, changed_by=50)
         
-        service.update_infrastructure_state(created.id, InfrastructureState.FAULTY, changed_by=60)
+        service.update_infrastructure_state(created.id, InfrastructureState.DISRUPTED, changed_by=60)
         
         logs = audit_repo.get_by_entity("infrastructure", created.id)
         assert len(logs) == 2
@@ -372,7 +381,7 @@ class TestInfrastructureServiceAuditLogging:
         assert update_log.changed_by == 60
         assert update_log.field == "state"
         assert update_log.old_value == InfrastructureState.WORKING.value
-        assert update_log.new_value == InfrastructureState.FAULTY.value
+        assert update_log.new_value == InfrastructureState.DISRUPTED.value
 
     def test_audit_log_created_on_delete(self, tmp_path):
         """Test audit log entry created when deleting infrastructure."""
@@ -421,7 +430,7 @@ class TestInfrastructureServiceAuditLogging:
         )
         
         created = service.create_infrastructure(infra, changed_by=50)
-        service.update_infrastructure_state(created.id, InfrastructureState.FAULTY, changed_by=50)
+        service.update_infrastructure_state(created.id, InfrastructureState.DISRUPTED, changed_by=50)
         service.delete_infrastructure(created.id, changed_by=50)
         
         assert created.id is not None
@@ -448,4 +457,3 @@ class TestInfrastructureServiceAuditLogging:
         
         logs = audit_repo.get_by_entity("infrastructure", created.id)
         assert len(logs) == 0
-            assert result.infrastructure_type == infra_type

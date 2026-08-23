@@ -6,7 +6,7 @@ from datetime import date
 
 from colony_manager.domain.enums import ResourceType
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.models.audit_log import AuditLog
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.resource import ColonyResource
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
@@ -45,7 +45,7 @@ class ResourceService:
             audit_log = AuditLog(
                 entity_type=entity_type,
                 entity_id=entity_id,
-                action=action,
+                action=AuditLogAction(action),
                 field=field,
                 old_value=old_value,
                 new_value=new_value,
@@ -101,7 +101,7 @@ class ResourceService:
                 colony_id=colony_id,
                 entity_type="resource",
                 entity_id=result.id,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=result.name,
@@ -155,7 +155,7 @@ class ResourceService:
                     colony_id=resource.colony_id,
                     entity_type="resource",
                     entity_id=result.id,
-                    action="update",
+                    action=AuditLogAction.UPDATE,
                     field=field,
                     old_value=old_val,
                     new_value=new_val,
@@ -184,7 +184,7 @@ class ResourceService:
                 colony_id=colony_id,
                 entity_type="resource",
                 entity_id=resource_id,
-                action="delete",
+                action=AuditLogAction.DELETE,
                 field=None,
                 old_value=resource_name,
                 new_value=None,

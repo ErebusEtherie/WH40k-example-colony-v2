@@ -1,7 +1,7 @@
 """Support Upgrade service for managing colony support upgrades."""
 
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.models.audit_log import AuditLog
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
@@ -40,7 +40,7 @@ class SupportUpgradeService:
             audit_log = AuditLog(
                 entity_type=entity_type,
                 entity_id=entity_id,
-                action=action,
+                action=AuditLogAction(action),
                 field=field,
                 old_value=old_value,
                 new_value=new_value,
@@ -75,7 +75,7 @@ class SupportUpgradeService:
                 colony_id=upgrade.colony_id,
                 entity_type="support_upgrade",
                 entity_id=result.id,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=result.upgrade_type.value,
@@ -103,6 +103,9 @@ class SupportUpgradeService:
         Returns:
             The updated support upgrade.
         """
+        # Verify upgrade exists
+        self.get_upgrade(upgrade.id)
+        
         result = self._repository.update(upgrade)
         
         # Log audit entry for update
@@ -111,7 +114,7 @@ class SupportUpgradeService:
                 colony_id=upgrade.colony_id,
                 entity_type="support_upgrade",
                 entity_id=result.id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field=None,
                 old_value=None,
                 new_value=f"Updated {result.upgrade_type.value}",
@@ -141,7 +144,7 @@ class SupportUpgradeService:
                     colony_id=colony_id,
                     entity_type="support_upgrade",
                     entity_id=upgrade_id,
-                    action="delete",
+                    action=AuditLogAction.DELETE,
                     field=None,
                     old_value=upgrade_type,
                     new_value=None,

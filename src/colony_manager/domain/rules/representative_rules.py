@@ -20,6 +20,7 @@ def get_personality_modifiers(
     representative: Representative,
     current_order: int = 0,
     current_size: int = 1,
+    colony_id: int = 1,
 ) -> list[Modifier]:
     """
     Get all modifiers from representative's personalities.
@@ -58,6 +59,7 @@ def get_personality_modifiers(
             
             modifiers.append(
                 Modifier(
+                    colony_id=colony_id,
                     modifier_source_type=ModifierSourceType.GM_CUSTOM,  # Personality effects are GM-managed
                     modifier_stat=ModifierStat(effect.stat),
                     modifier_value=effect.value,

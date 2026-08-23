@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from colony_manager.adapters.io.save_file_schema import (
     ColonySaveFile,
@@ -202,7 +202,7 @@ def save_file_to_domain_colony_user(save_user: SaveColonyUser) -> ColonyUser:
         colony_id=0,  # Will be set by importer
         user_id=save_user.user_id,
         role=save_user.role,
-        joined_at=datetime.fromisoformat(save_user.joined_at) if save_user.joined_at else None,
+        joined_at=datetime.fromisoformat(save_user.joined_at) if save_user.joined_at else datetime.now(timezone(timedelta(hours=1))),
         invited_by=None,  # Not stored in save file
     )
 

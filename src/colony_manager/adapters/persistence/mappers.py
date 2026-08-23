@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 
 from colony_manager.adapters.persistence.orm_models import (
     AuditLogORM,
@@ -391,7 +392,7 @@ def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
         old_value=orm.old_value,
         new_value=orm.new_value,
         changed_by=orm.changed_by,
-        changed_at=datetime.combine(orm.changed_at, datetime.min.time()) if orm.changed_at else None,
+        changed_at=datetime.combine(orm.changed_at, datetime.min.time()).replace(tzinfo=timezone.utc) if orm.changed_at else datetime.now(timezone.utc),
         colony_id=orm.colony_id,
     )
 
@@ -425,7 +426,7 @@ def orm_to_domain_colony_user(orm: ColonyUserORM) -> ColonyUser:
         colony_id=orm.colony_id,
         user_id=orm.user_id,
         role=ColonyUserRole(orm.role),
-        joined_at=datetime.combine(orm.joined_at, datetime.min.time()) if orm.joined_at else None,
+        joined_at=datetime.combine(orm.joined_at, datetime.min.time()).replace(tzinfo=timezone(timedelta(hours=1))) if orm.joined_at else datetime.now(timezone(timedelta(hours=1))),
         invited_by=orm.invited_by,
     )
 

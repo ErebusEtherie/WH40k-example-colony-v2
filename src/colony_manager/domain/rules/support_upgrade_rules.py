@@ -37,6 +37,7 @@ def get_support_upgrade_modifiers(
         if upgrade.custom_stat_choice and upgrade.custom_stat_choice != ModifierStat.SIZE:
             modifiers.append(
                 Modifier(
+                    colony_id=upgrade.colony_id,
                     modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
                     modifier_stat=upgrade.custom_stat_choice,
                     modifier_value=1,
@@ -51,17 +52,18 @@ def get_support_upgrade_modifiers(
 def _get_base_modifiers(
     upgrade_type: SupportUpgradeType,
     colony_type: ColonyType | None = None,
+    colony_id: int = 1,
 ) -> list[Modifier]:
     """Get base modifiers for an upgrade type."""
     modifiers = []
     
     if upgrade_type == SupportUpgradeType.ARBITES_PRECINCT:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Arbites Precinct"))
+        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Arbites Precinct", colony_id))
     
     elif upgrade_type == SupportUpgradeType.ECCLESIOARCHY_MISSION:
-        modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission"))
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Ecclesiarchy Mission"))
-        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Ecclesiarchy Mission"))
+        modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission", colony_id))
+        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Ecclesiarchy Mission", colony_id))
+        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Ecclesiarchy Mission", colony_id))
     
     elif upgrade_type == SupportUpgradeType.MECHANICUM_STATION:
         # Base +1, +2 for Mining/Industry/Mining_and_Industry, +3 for Research Mission
@@ -75,31 +77,32 @@ def _get_base_modifiers(
                 productivity_bonus = 2
             elif colony_type == ColonyType.RESEARCH_MISSION:
                 productivity_bonus = 3
-        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, productivity_bonus, "Mechanicum Station"))
+        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, productivity_bonus, "Mechanicum Station", colony_id))
     
     elif upgrade_type == SupportUpgradeType.INFANTRY_GARRISON:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Infantry Garrison"))
+        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Infantry Garrison", colony_id))
     
     elif upgrade_type == SupportUpgradeType.IMPERIAL_NAVY_STATION:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Imperial Navy Station"))
+        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Imperial Navy Station", colony_id))
     
     elif upgrade_type == SupportUpgradeType.INDUSTRIAL_FACILITY:
-        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility"))
+        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility", colony_id))
     
     elif upgrade_type == SupportUpgradeType.PERSONAL_LODGINGS:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Personal Lodgings"))
+        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Personal Lodgings", colony_id))
     
     elif upgrade_type == SupportUpgradeType.TRAPPINGS:
-        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Trappings"))
+        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Trappings", colony_id))
     
     # Contacts and Cultural Improvement have no base modifiers (handled separately)
     
     return modifiers
 
 
-def _make_modifier(stat: ModifierStat, value: int, source_name: str) -> Modifier:
+def _make_modifier(stat: ModifierStat, value: int, source_name: str, colony_id: int = 1) -> Modifier:
     """Helper to create a modifier."""
     return Modifier(
+        colony_id=colony_id,
         modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
         modifier_stat=stat,
         modifier_value=value,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.models.audit_log import AuditLog
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.representative import Representative
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
@@ -37,7 +37,7 @@ class RepresentativeService:
 
     def _log_audit(
         self,
-        colony_id: int | None,
+        colony_id: int,
         entity_type: str,
         entity_id: int,
         action: str,
@@ -54,12 +54,12 @@ class RepresentativeService:
             audit_log = AuditLog(
                 entity_type=entity_type,
                 entity_id=entity_id,
-                action=action,
+                action=AuditLogAction(action),
                 field=field,
                 old_value=old_value,
                 new_value=new_value,
                 changed_by=changed_by,
-                colony_id=colony_id,
+                colony_id=colony_id or 0,
             )
             self._audit_log_repository.create(audit_log)
         except Exception:
@@ -82,10 +82,10 @@ class RepresentativeService:
         # Log audit entry
         if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
             self._log_audit(
-                colony_id=representative.assigned_to_colony_id,
+                colony_id=representative.assigned_to_colony_id or 0,
                 entity_type="representative",
                 entity_id=result.id,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=result.name,
@@ -149,7 +149,7 @@ class RepresentativeService:
                 colony_id=colony_id,
                 entity_type="representative",
                 entity_id=representative_id,
-                action="assign",
+                action=AuditLogAction.UPDATE,
                 field="assigned_to_colony_id",
                 old_value=str(old_colony_id) if old_colony_id else None,
                 new_value=str(colony_id),
@@ -195,7 +195,7 @@ class RepresentativeService:
                 colony_id=old_colony_id,
                 entity_type="representative",
                 entity_id=representative_id,
-                action="unassign",
+                action=AuditLogAction.UPDATE,
                 field="assigned_to_colony_id",
                 old_value=str(old_colony_id),
                 new_value=None,

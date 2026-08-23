@@ -11,7 +11,7 @@ from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchem
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import SqlAlchemyAuditLogRepository
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.enums import SupportUpgradeType
+from colony_manager.domain.enums import SupportUpgradeType, ColonyType
 from colony_manager.domain.errors import NotFoundError
 
 
@@ -24,10 +24,19 @@ def _create_db_url(tmp_path: Path) -> str:
 
 def _create_colony(colony_repo, name="Test Colony"):
     """Helper to create a test colony."""
+    from datetime import date
+    
     colony = Colony(
         name=name,
-        governor_name="Governor Test",
-        population=1000,
+        owner="Test Owner",
+        colony_type=ColonyType.INDUSTRY,
+        age_days=0,
+        age_last_updated=date.today(),
+        base_complacency=10,
+        base_order=10,
+        base_productivity=10,
+        base_piety=10,
+        base_size=10,
     )
     return colony_repo.create(colony)
 class TestSupportUpgradeServiceCreation:
@@ -47,13 +56,13 @@ class TestSupportUpgradeServiceCreation:
         
         upgrade = SupportUpgrade(
             colony_id=colony.id,
-            upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+            upgrade_type=SupportUpgradeType.INFANTRY_GARRISON,
         )
         result = service.create_upgrade(upgrade, changed_by=50)
         
         assert result.id is not None
         assert result.colony_id == colony.id
-        assert result.upgrade_type == SupportUpgradeType.SECURITY_DETAIL
+        assert result.upgrade_type == SupportUpgradeType.INFANTRY_GARRISON
 
     def test_create_upgrade_for_nonexistent_colony_raises(self, tmp_path):
         """Test creating upgrade for non-existent colony raises NotFoundError."""
@@ -67,7 +76,7 @@ class TestSupportUpgradeServiceCreation:
         
         upgrade = SupportUpgrade(
             colony_id=99999,
-            upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+            upgrade_type=SupportUpgradeType.INFANTRY_GARRISON,
         )
         
         with pytest.raises(NotFoundError, match="Colony 99999 not found"):
@@ -108,14 +117,14 @@ class TestSupportUpgradeServiceQueries:
         colony = _create_colony(colony_repo)
         upgrade = SupportUpgrade(
             colony_id=colony.id,
-            upgrade_type=SupportUpgradeType.TRAINING_CAMP,
+            upgrade_type=SupportUpgradeType.CONTACTS,
         )
         created = service.create_upgrade(upgrade, changed_by=50)
         
         retrieved = service.get_upgrade(created.id)
         
         assert retrieved.id == created.id
-        assert retrieved.upgrade_type == SupportUpgradeType.TRAINING_CAMP
+        assert retrieved.upgrade_type == SupportUpgradeType.CONTACTS
 
     def test_get_nonexistent_upgrade_raises(self, tmp_path):
         """Test getting non-existent upgrade raises NotFoundError."""
@@ -146,14 +155,14 @@ class TestSupportUpgradeServiceQueries:
         for i in range(3):
             upgrade = SupportUpgrade(
                 colony_id=colony1.id,
-                upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+                upgrade_type=SupportUpgradeType.INFANTRY_GARRISON,
             )
             service.create_upgrade(upgrade, changed_by=50)
         
         for i in range(2):
             upgrade = SupportUpgrade(
                 colony_id=colony2.id,
-                upgrade_type=SupportUpgradeType.TRAINING_CAMP,
+                upgrade_type=SupportUpgradeType.CONTACTS,
             )
             service.create_upgrade(upgrade, changed_by=50)
         
@@ -221,15 +230,15 @@ class TestSupportUpgradeServiceUpdate:
         colony = _create_colony(colony_repo)
         upgrade = SupportUpgrade(
             colony_id=colony.id,
-            upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+            upgrade_type=SupportUpgradeType.INDUSTRIAL_FACILITY,
         )
         created = service.create_upgrade(upgrade, changed_by=50)
         
-        created.notes = "Updated notes"
+        created.custom_product = "Updated product"
         updated = service.update_upgrade(created, changed_by=60)
         
         assert updated.id == created.id
-        assert updated.notes == "Updated notes"
+        assert updated.custom_product == "Updated product"
 
     def test_update_nonexistent_upgrade_raises(self, tmp_path):
         """Test updating non-existent upgrade raises NotFoundError."""
@@ -243,7 +252,7 @@ class TestSupportUpgradeServiceUpdate:
         
         upgrade = SupportUpgrade(
             colony_id=1,
-            upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+            upgrade_type=SupportUpgradeType.INFANTRY_GARRISON,
             id=99999,
         )
         
@@ -267,7 +276,7 @@ class TestSupportUpgradeServiceDelete:
         colony = _create_colony(colony_repo)
         upgrade = SupportUpgrade(
             colony_id=colony.id,
-            upgrade_type=SupportUpgradeType.SECURITY_DETAIL,
+            upgrade_type=SupportUpgradeType.INFANTRY_GARRISON,
         )
         created = service.create_upgrade(upgrade, changed_by=50)
         
@@ -287,4 +296,3 @@ class TestSupportUpgradeServiceDelete:
         )
         
         service.delete_upgrade(99999, changed_by=50)
-            assert result.upgrade_type == upgrade_type

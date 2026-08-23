@@ -124,6 +124,11 @@ class AuthService:
         # Track token issuance if repository is configured
         if self._token_issuance_repository is not None:
             import jwt
+            
+            # User must have an ID to track tokens
+            if user.id is None:
+                raise ValueError("Cannot track tokens for user without ID")
+            
             access_payload = jwt.decode(access_token, secret_key, algorithms=["HS256"], options={"verify_exp": False})
             refresh_payload = jwt.decode(refresh_token, secret_key, algorithms=["HS256"], options={"verify_exp": False})
             
@@ -136,6 +141,7 @@ class AuthService:
                 token_type="access",
                 issued_at=now,
                 expires_at=datetime.fromtimestamp(access_payload["exp"], tz=UTC),
+                revoked_at=None,
                 ip_address=ip_address,
                 user_agent=user_agent,
             ))
@@ -147,6 +153,7 @@ class AuthService:
                 token_type="refresh",
                 issued_at=now,
                 expires_at=datetime.fromtimestamp(refresh_payload["exp"], tz=UTC),
+                revoked_at=None,
                 ip_address=ip_address,
                 user_agent=user_agent,
             ))
