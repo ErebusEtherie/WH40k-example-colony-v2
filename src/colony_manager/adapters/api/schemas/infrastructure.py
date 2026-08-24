@@ -27,7 +27,7 @@ class InfrastructureResponse(BaseModel):
     state: InfrastructureState
     has_effect: bool
     is_working: bool
-    is_disrupted: bool
+    is_not_working: bool
 
 
 class InfrastructureListItem(BaseModel):
@@ -38,4 +38,4 @@ class InfrastructureListItem(BaseModel):
     state: InfrastructureState
     has_effect: bool
     is_working: bool
-    is_disrupted: bool
+    is_not_working: bool

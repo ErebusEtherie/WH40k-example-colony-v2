@@ -44,12 +44,12 @@ class TestInfrastructureRepository:
         )
         saved = repo.create(infra)
 
-        saved.state = InfrastructureState.DISRUPTED
+        saved.state = InfrastructureState.NOT_WORKING
         updated = repo.update(saved)
 
-        assert updated.state == InfrastructureState.DISRUPTED
+        assert updated.state == InfrastructureState.NOT_WORKING
         loaded = repo.get(saved.id)
-        assert loaded.state == InfrastructureState.DISRUPTED
+        assert loaded.state == InfrastructureState.NOT_WORKING
 
     def test_delete(self):
         repo = SqlAlchemyInfrastructureRepository("sqlite:///:memory:")

@@ -29,12 +29,12 @@ class TestInfrastructureProperties:
         )
         assert infra.has_effect is True
 
-    def test_has_effect_disrupted_is_true(self):
-        """Disrupted infrastructure has effect (penalties apply)."""
+    def test_has_effect_not_working_is_true(self):
+        """Not working infrastructure has effect (penalties apply)."""
         infra = Infrastructure(
             colony_id=1,
             infrastructure_type=InfrastructureType.POWER_NETWORK,
-            state=InfrastructureState.DISRUPTED,
+            state=InfrastructureState.NOT_WORKING,
         )
         assert infra.has_effect is True
 
@@ -42,13 +42,13 @@ class TestInfrastructureProperties:
         """is_working is True only for WORKING state."""
         assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.PLANNED).is_working is False
         assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING).is_working is True
-        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED).is_working is False
+        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING).is_working is False
 
-    def test_is_disrupted_only_true_for_disrupted_state(self):
-        """is_disrupted is True only for DISRUPTED state."""
-        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.PLANNED).is_disrupted is False
-        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING).is_disrupted is False
-        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED).is_disrupted is True
+    def test_is_not_working_only_true_for_not_working_state(self):
+        """is_not_working is True only for NOT_WORKING state."""
+        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.PLANNED).is_not_working is False
+        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING).is_not_working is False
+        assert Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING).is_not_working is True
 
     def test_default_state_is_planned(self):
         """Infrastructure state defaults to PLANNED."""

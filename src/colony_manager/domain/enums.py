@@ -67,7 +67,7 @@ class InfrastructureState(StrEnum):
     """State of infrastructure installation/operation."""
     PLANNED = "planned"  # Not yet installed, no effect
     WORKING = "working"  # Operational, bonuses apply
-    DISRUPTED = "disrupted"  # Incapacitated, penalties apply
+    NOT_WORKING = "not_working"  # Incapacitated, penalties apply
 
 
 class SupportUpgradeType(StrEnum):

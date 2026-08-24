@@ -13,7 +13,7 @@ class Infrastructure(BaseModel):
     States:
     - planned: Not yet installed, no mechanical effect
     - working: Operational, bonuses apply
-    - disrupted: Incapacitated, penalties apply
+    - not_working: Incapacitated, penalties apply
     """
     model_config = ConfigDict(validate_assignment=True)
     
@@ -25,7 +25,7 @@ class Infrastructure(BaseModel):
     @property
     def has_effect(self) -> bool:
         """Check if this infrastructure currently applies modifiers."""
-        return self.state in (InfrastructureState.WORKING, InfrastructureState.DISRUPTED)
+        return self.state in (InfrastructureState.WORKING, InfrastructureState.NOT_WORKING)
     
     @property
     def is_working(self) -> bool:
@@ -33,6 +33,6 @@ class Infrastructure(BaseModel):
         return self.state == InfrastructureState.WORKING
     
     @property
-    def is_disrupted(self) -> bool:
-        """Check if infrastructure is disrupted."""
-        return self.state == InfrastructureState.DISRUPTED
+    def is_not_working(self) -> bool:
+        """Check if infrastructure is not working."""
+        return self.state == InfrastructureState.NOT_WORKING

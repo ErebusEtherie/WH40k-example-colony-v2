@@ -20,8 +20,8 @@ class TestInfrastructureRules:
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == 1 for m in mods)
         assert any(m.modifier_stat == ModifierStat.COMPLACENCY and m.modifier_value == 1 for m in mods)
 
-    def test_transport_disrupted(self):
-        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.DISRUPTED)
+    def test_transport_not_working(self):
+        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.NOT_WORKING)
         mods = get_infrastructure_modifiers(infra)
         assert len(mods) == 2
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == -2 for m in mods)
@@ -34,8 +34,8 @@ class TestInfrastructureRules:
         assert mods[0].modifier_stat == ModifierStat.PRODUCTIVITY
         assert mods[0].modifier_value == 2
 
-    def test_power_network_disrupted(self):
-        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED)
+    def test_power_network_not_working(self):
+        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING)
         mods = get_infrastructure_modifiers(infra)
         assert len(mods) == 2
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == -3 for m in mods)
@@ -48,8 +48,8 @@ class TestInfrastructureRules:
         assert any(m.modifier_stat == ModifierStat.ORDER and m.modifier_value == 1 for m in mods)
         assert any(m.modifier_stat == ModifierStat.COMPLACENCY and m.modifier_value == 1 for m in mods)
 
-    def test_water_management_disrupted(self):
-        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.DISRUPTED)
+    def test_water_management_not_working(self):
+        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.NOT_WORKING)
         mods = get_infrastructure_modifiers(infra)
         assert len(mods) == 2
         assert any(m.modifier_stat == ModifierStat.ORDER and m.modifier_value == -2 for m in mods)
@@ -62,8 +62,8 @@ class TestInfrastructureRules:
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == 1 for m in mods)
         assert any(m.modifier_stat == ModifierStat.COMPLACENCY and m.modifier_value == 1 for m in mods)
 
-    def test_food_production_disrupted(self):
-        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.DISRUPTED)
+    def test_food_production_not_working(self):
+        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.NOT_WORKING)
         mods = get_infrastructure_modifiers(infra)
         assert len(mods) == 2
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == -2 for m in mods)
@@ -76,8 +76,8 @@ class TestInfrastructureRules:
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == 1 for m in mods)
         assert any(m.modifier_stat == ModifierStat.ORDER and m.modifier_value == 1 for m in mods)
 
-    def test_communications_disrupted(self):
-        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.DISRUPTED)
+    def test_communications_not_working(self):
+        infra = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.NOT_WORKING)
         mods = get_infrastructure_modifiers(infra)
         assert len(mods) == 2
         assert any(m.modifier_stat == ModifierStat.PRODUCTIVITY and m.modifier_value == -2 for m in mods)
@@ -92,14 +92,14 @@ class TestInfrastructureRules:
         assert sum(m.modifier_value for m in comp_mods) == 1
 
     def test_apply_mixed_states(self):
-        infra_list = [Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING), Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED), Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.PLANNED)]
+        infra_list = [Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING), Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING), Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.PLANNED)]
         mods = apply_infrastructure_modifiers(infra_list)
         prod_mods = [m for m in mods if m.modifier_stat == ModifierStat.PRODUCTIVITY]
         comp_mods = [m for m in mods if m.modifier_stat == ModifierStat.COMPLACENCY]
         assert sum(m.modifier_value for m in prod_mods) == -2
         assert sum(m.modifier_value for m in comp_mods) == 0
 class TestInfrastructureIntegration:
-    """Integration tests showing working vs disrupted state effects on colony stats."""
+    """Integration tests showing working vs not working state effects on colony stats."""
     
     def test_working_infrastructure_boosts_stats(self):
         """Working infrastructure provides positive modifiers to colony stats."""
@@ -130,16 +130,16 @@ class TestInfrastructureIntegration:
         assert complacency > base_complacency
         assert order > base_order
     
-    def test_disrupted_infrastructure_penalizes_stats(self):
-        """Disrupted infrastructure applies negative modifiers to colony stats."""
+    def test_not_working_infrastructure_penalizes_stats(self):
+        """not working infrastructure applies negative modifiers to colony stats."""
         from colony_manager.domain.rules.infrastructure_rules import apply_infrastructure_modifiers
         from colony_manager.domain.rules.stat_calculator import calculate_stat
         
-        # Create disrupted infrastructure
+        # Create not working infrastructure
         infra_list = [
-            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.DISRUPTED),
-            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED),
-            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.DISRUPTED),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.NOT_WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.NOT_WORKING),
         ]
         
         # Apply modifiers
@@ -154,20 +154,20 @@ class TestInfrastructureIntegration:
         complacency = calculate_stat(base_complacency, modifiers, ModifierStat.COMPLACENCY)
         order = calculate_stat(base_order, modifiers, ModifierStat.ORDER)
         
-        # Disrupted infrastructure should reduce stats below base
+        # not working infrastructure should reduce stats below base
         assert productivity < base_productivity
         assert complacency < base_complacency
         assert order < base_order
     
     def test_mixed_states_have_combined_effect(self):
-        """Mixed working and disrupted infrastructure have combined net effect."""
+        """Mixed working and not working infrastructure have combined net effect."""
         from colony_manager.domain.rules.infrastructure_rules import apply_infrastructure_modifiers
         from colony_manager.domain.rules.stat_calculator import calculate_stat
         
         # Create mixed infrastructure
         infra_list = [
             Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
-            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.DISRUPTED),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.NOT_WORKING),
         ]
         
         # Apply modifiers
@@ -179,7 +179,7 @@ class TestInfrastructureIntegration:
         productivity = calculate_stat(base_productivity, modifiers, ModifierStat.PRODUCTIVITY)
         
         # Transport working: +1 productivity
-        # Power Network disrupted: -3 productivity
+        # Power Network not working: -3 productivity
         # Net: -2 productivity
         assert productivity == base_productivity - 2
     

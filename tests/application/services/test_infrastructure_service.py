@@ -244,12 +244,12 @@ class TestInfrastructureServiceUpdate:
         
         updated = service.update_infrastructure_state(
             created.id,
-            InfrastructureState.DISRUPTED,
+            InfrastructureState.NOT_WORKING,
             changed_by=60,
         )
         
         assert updated.id == created.id
-        assert updated.state == InfrastructureState.DISRUPTED
+        assert updated.state == InfrastructureState.NOT_WORKING
 
     def test_update_nonexistent_infrastructure_raises(self, tmp_path):
         """Test updating non-existent infrastructure raises NotFoundError."""
@@ -262,7 +262,7 @@ class TestInfrastructureServiceUpdate:
         )
         
         with pytest.raises(NotFoundError, match="Infrastructure 99999 not found"):
-            service.update_infrastructure_state(99999, InfrastructureState.DISRUPTED, changed_by=50)
+            service.update_infrastructure_state(99999, InfrastructureState.NOT_WORKING, changed_by=50)
 
     def test_update_state_all_states(self, tmp_path):
         """Test updating to all possible states."""
@@ -373,7 +373,7 @@ class TestInfrastructureServiceAuditLogging:
         )
         created = service.create_infrastructure(infra, changed_by=50)
         
-        service.update_infrastructure_state(created.id, InfrastructureState.DISRUPTED, changed_by=60)
+        service.update_infrastructure_state(created.id, InfrastructureState.NOT_WORKING, changed_by=60)
         
         logs = audit_repo.get_by_entity("infrastructure", created.id)
         assert len(logs) == 2
@@ -381,7 +381,7 @@ class TestInfrastructureServiceAuditLogging:
         assert update_log.changed_by == 60
         assert update_log.field == "state"
         assert update_log.old_value == InfrastructureState.WORKING.value
-        assert update_log.new_value == InfrastructureState.DISRUPTED.value
+        assert update_log.new_value == InfrastructureState.NOT_WORKING.value
 
     def test_audit_log_created_on_delete(self, tmp_path):
         """Test audit log entry created when deleting infrastructure."""
@@ -430,7 +430,7 @@ class TestInfrastructureServiceAuditLogging:
         )
         
         created = service.create_infrastructure(infra, changed_by=50)
-        service.update_infrastructure_state(created.id, InfrastructureState.DISRUPTED, changed_by=50)
+        service.update_infrastructure_state(created.id, InfrastructureState.NOT_WORKING, changed_by=50)
         service.delete_infrastructure(created.id, changed_by=50)
         
         assert created.id is not None

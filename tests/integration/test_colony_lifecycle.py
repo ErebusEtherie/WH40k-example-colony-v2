@@ -118,15 +118,15 @@ class TestColonyLifecycleInfrastructure:
         assert new_state["productivity"]["current"] >= initial_productivity
         
     def test_faulty_infrastructure_penalizes_stats(self, auth_client):
-        """Test disrupted infrastructure reduces stats."""
+        """Test not working infrastructure reduces stats."""
         # Create colony
         create_data = {"name": "Faulty Test", "owner": "Owner", "colony_type": "mining_and_industry"}
         colony_response = auth_client.post("/api/v1/colonies", json=create_data)
         colony = colony_response.json()
         colony_id = colony["id"]
         
-        # Add disrupted infrastructure (disrupted = faulty/incapacitated)
-        infra_data = {"infrastructure_type": "power_network", "state": "disrupted"}
+        # Add not working infrastructure (not_working = faulty/incapacitated)
+        infra_data = {"infrastructure_type": "power_network", "state": "not_working"}
         infra_response = auth_client.post(f"/api/v1/colonies/{colony_id}/infrastructure", json=infra_data)
         assert infra_response.status_code == 201
         
@@ -134,7 +134,7 @@ class TestColonyLifecycleInfrastructure:
         state_response = auth_client.get(f"/api/v1/colonies/{colony_id}/state")
         state = state_response.json()
         
-        # Disrupted infrastructure should apply penalties
+        # not working infrastructure should apply penalties
         assert state["productivity"]["current"] >= 0
 class TestColonyLifecycleDevelopment:
     """Tests for development plans and upgrades."""

@@ -55,7 +55,7 @@ async def list_infrastructure(
             state=infra.state,
             has_effect=infra.has_effect,
             is_working=infra.is_working,
-            is_disrupted=infra.is_disrupted,
+            is_not_working=infra.is_not_working,
         )
         for infra in infrastructure
     ]
@@ -86,7 +86,7 @@ async def create_infrastructure(
         state=created.state,
         has_effect=created.has_effect,
         is_working=created.is_working,
-        is_disrupted=created.is_disrupted,
+        is_not_working=created.is_not_working,
     )
 
 
@@ -114,7 +114,7 @@ async def get_infrastructure(
             state=infrastructure.state,
             has_effect=infrastructure.has_effect,
             is_working=infrastructure.is_working,
-            is_disrupted=infrastructure.is_disrupted,
+            is_not_working=infrastructure.is_not_working,
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")
@@ -149,7 +149,7 @@ async def update_infrastructure(
             state=infrastructure.state,
             has_effect=infrastructure.has_effect,
             is_working=infrastructure.is_working,
-            is_disrupted=infrastructure.is_disrupted,
+            is_not_working=infrastructure.is_not_working,
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")

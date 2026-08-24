@@ -1,17 +1,17 @@
 """Infrastructure rules for the colony manager.
 
 Per Rogue Trader Colony Rules:
-- Infrastructure has three states: planned, working, disrupted
+- Infrastructure has three states: planned, working, not_working
 - planned: No mechanical effect (not yet installed)
 - working: Bonuses apply
-- disrupted: Penalties apply
+- not_working: Penalties apply
 
 Hard Infrastructure types:
-- Transport: working (+1 Prod, +1 Comp), disrupted (-2 Prod, -2 Order)
-- Power Network: working (+2 Prod), disrupted (-3 Prod, -1 Comp)
-- Water Management: working (+1 Order, +1 Comp), disrupted (-2 Order, -2 Comp)
-- Food Production: working (+1 Prod, +1 Comp), disrupted (-2 Prod, -2 Comp)
-- Communications: working (+1 Prod, +1 Order), disrupted (-2 Prod, -2 Order)
+- Transport: working (+1 Prod, +1 Comp), not_working (-2 Prod, -2 Order)
+- Power Network: working (+2 Prod), not_working (-3 Prod, -1 Comp)
+- Water Management: working (+1 Order, +1 Comp), not_working (-2 Order, -2 Comp)
+- Food Production: working (+1 Prod, +1 Comp), not_working (-2 Prod, -2 Comp)
+- Communications: working (+1 Prod, +1 Order), not_working (-2 Prod, -2 Order)
 """
 
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType, ModifierStat
@@ -59,7 +59,7 @@ def _get_modifiers_for_type(
                 {"stat": "productivity", "value": 1},
                 {"stat": "complacency", "value": 1},
             ],
-            InfrastructureState.DISRUPTED: [
+            InfrastructureState.NOT_WORKING: [
                 {"stat": "productivity", "value": -2},
                 {"stat": "order", "value": -2},
             ],
@@ -68,7 +68,7 @@ def _get_modifiers_for_type(
             InfrastructureState.WORKING: [
                 {"stat": "productivity", "value": 2},
             ],
-            InfrastructureState.DISRUPTED: [
+            InfrastructureState.NOT_WORKING: [
                 {"stat": "productivity", "value": -3},
                 {"stat": "complacency", "value": -1},
             ],
@@ -78,7 +78,7 @@ def _get_modifiers_for_type(
                 {"stat": "order", "value": 1},
                 {"stat": "complacency", "value": 1},
             ],
-            InfrastructureState.DISRUPTED: [
+            InfrastructureState.NOT_WORKING: [
                 {"stat": "order", "value": -2},
                 {"stat": "complacency", "value": -2},
             ],
@@ -88,7 +88,7 @@ def _get_modifiers_for_type(
                 {"stat": "productivity", "value": 1},
                 {"stat": "complacency", "value": 1},
             ],
-            InfrastructureState.DISRUPTED: [
+            InfrastructureState.NOT_WORKING: [
                 {"stat": "productivity", "value": -2},
                 {"stat": "complacency", "value": -2},
             ],
@@ -98,7 +98,7 @@ def _get_modifiers_for_type(
                 {"stat": "productivity", "value": 1},
                 {"stat": "order", "value": 1},
             ],
-            InfrastructureState.DISRUPTED: [
+            InfrastructureState.NOT_WORKING: [
                 {"stat": "productivity", "value": -2},
                 {"stat": "order", "value": -2},
             ],

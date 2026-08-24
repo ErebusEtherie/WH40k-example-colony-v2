@@ -55,11 +55,11 @@ class TestInfrastructureAPI:
         create_data = {"infrastructure_type": "power_network", "state": "planned"}
         create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
         infra_id = create_response.json()["id"]
-        update_data = {"state": "disrupted"}
+        update_data = {"state": "not_working"}
         response = auth_client.patch(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}", json=update_data)
         assert response.status_code == 200
-        assert response.json()["state"] == "disrupted"
-        assert response.json()["is_disrupted"] is True
+        assert response.json()["state"] == "not_working"
+        assert response.json()["is_not_working"] is True
 
     def test_update_infrastructure_missing_raises(self, auth_client, colony):
         update_data = {"state": "working"}
