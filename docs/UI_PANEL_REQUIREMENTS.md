@@ -278,7 +278,7 @@ stat_calculator.run()
 - `UI_DESIGN_SYSTEM.md` — Mechanicum data-slate visual design specifications
 - `business_analysis.md` §3 — Colony stat calculation rules
 - `architecture_phase_1.md` §4 — Domain model definitions
-- `implementation_plan_phase_5.md` — Phase 5 scope and implementation checklist
+- `TESTING_TODO.md` — Phase 5 scope and implementation checklist
 
 ```text
 profit_factor_calculator.run()

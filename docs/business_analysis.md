@@ -196,9 +196,8 @@ Active modifier categories affecting size: Permanent (growth investments), Condi
 ### 4.5 Lore State (per stat) — CONFIRMED, all four thresholds resolved
 
 Derived from thresholds relative to `actual_size`. Cross-confirmed against
-`UI_PANEL_REQUIREMENTS.md`, `UI_ALIGNMENT_SUMMARY.md`, and the `LoreState`
-enum described in `UI_DESIGN_ANALYSIS.md` — all agree on the following, so the
-two labels previously marked "confirm" are now resolved:
+`UI_PANEL_REQUIREMENTS.md` and the `LoreState` enum in
+`src/colony_manager/domain/enums.py`:
 
 | Stat | Condition: `stat > actual_size` | Condition: `stat == 0` | Otherwise |
 |---|---|---|---|
@@ -321,7 +320,7 @@ These effects apply automatically based on colony stat thresholds. They are
 trait-by-trait — this supersedes an earlier, fabricated personality table that
 briefly existed in a planning document (`AGENT_BRIEFING_ADDENDUM_PHASE5.md`,
 now retired). The full table, effects, and the `chosen_stat`/`mad_order_roll`
-lifecycle rule live in `implementation_plan_phase_5.md` to avoid duplicating
+lifecycle rule live in `business_analysis.md` §4.7a to avoid duplicating
 data across documents; this section is the pointer + the design-decision
 record.
 

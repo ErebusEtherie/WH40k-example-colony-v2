@@ -8,9 +8,10 @@
 2. **`docs/business_analysis.md`** — **Single source of truth** for all business rules, calculations, and data structures
 3. **`docs/colony-manager-rules-reference.md`** — Reference rules from rulebook/Excel
 4. **`docs/architecture_phase_1.md`** — Technical architecture & layering
-5. **`docs/implementation_plan_phase_5.md`** — Current work (Phase 5 in progress)
-6. **`docs/api_guide_phase_3.md`** — Current API (implemented)
-7. **`docs/api_future_phase_4.md`** — Future roadmap (not implemented)
+5. **`docs/business_analysis.md`** — Business rules (source of truth)
+6. **`TESTING_TODO.md`** — Current work tracking
+7. **`docs/api_guide_phase_3.md`** — Current API (implemented)
+8. **`docs/api_future_phase_4.md`** — Future roadmap (not implemented)
 
 ---
 

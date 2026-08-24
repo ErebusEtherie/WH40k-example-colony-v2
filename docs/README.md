@@ -23,16 +23,12 @@ conflated lock/lore-state entry are removed), and personality/upgrade counts.
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [`implementation_plan.md`](implementation_plan.md) | Overall phase sequencing and history | Reference |
-| [`implementation_plan_phase_5.md`](implementation_plan_phase_5.md) | Phase 5 detailed requirements (Personalities, Infrastructure) | Active |
-| [`implementation_plan_phases_6-12.md`](implementation_plan_phases_6-12.md) | Phases 6-12 roadmap (Migration, Frontend, Events, Audit, DevOps) | Planning Complete |
+| [`TESTING_TODO.md`](../TESTING_TODO.md) | Current development tasks and test coverage tracking | Active |
+| [`business_analysis.md`](business_analysis.md) | Phase 5 requirements (Personalities, Infrastructure) | Reference |
 
-**Note on phase numbering:** "Phase 5" is used with two different meanings
-across documents — `implementation_plan.md` uses it for the (completed)
-Persistence Adapter, while `implementation_plan_phase_5.md` and this index use
-it for the (in-progress) Personalities/Infrastructure/Dashboard work. This
-hasn't been renumbered yet; when in doubt, `implementation_plan_phase_5.md`'s
-own scope description is authoritative for what "Phase 5" means in that file.
+**Note on phase numbering:** Historical documents referenced "Phase 5" for
+different scopes. Current work is tracked in `TESTING_TODO.md` and business
+requirements are in `business_analysis.md`.
 
 ### 🔌 API & Frontend
 
@@ -59,7 +55,7 @@ own scope description is authoritative for what "Phase 5" means in that file.
 
 **Phase 5 In Progress:** Representative Personalities & Hard Infrastructure
 
-See [`implementation_plan_phase_5.md`](implementation_plan_phase_5.md) for detailed checklist.
+See [`TESTING_TODO.md`](../TESTING_TODO.md) for detailed checklist.
 
 ### Completed Phases (1-4)
 
@@ -148,8 +144,7 @@ Mechanicum Station, Ecclesiarchy Mission, Infantry Garrison, Arbites Precinct.
 ### Representative Personalities
 
 18 traits with confirmed mechanical effects, verified against rulebook source
-text. Full table: `business_analysis.md` §4.7a or
-`implementation_plan_phase_5.md`. Two of the eighteen (Scholarly, Ties
+text. Full table: `business_analysis.md` §4.7a. Two of the eighteen (Scholarly, Ties
 With…) require a GM-chosen stat set at Representative-assignment time; Mad
 requires a 1d5 roll set the same way. See `business_analysis.md` §3.2a for the
 assignment/reassignment lifecycle rule.

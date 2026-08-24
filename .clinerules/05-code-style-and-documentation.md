@@ -17,7 +17,7 @@ project once decided.
 For the rule engine specifically, docstrings on any function encoding a game
 rule should reference *where the rule comes from* (e.g. "per Rogue Trader
 Core Rulebook, Colony rules" or "per project houserule, see
-`config/rules.yaml`") so it's traceable back to source later.
+`config/rule_tables.yaml`") so it's traceable back to source later.
 
 ## Suggested tooling (pending your confirmation)
 

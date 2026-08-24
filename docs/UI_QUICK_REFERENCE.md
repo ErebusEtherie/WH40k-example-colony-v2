@@ -192,7 +192,6 @@
 |------|---------|
 | `src/assets/css/mechanicum-design-system.css` | Canonical CSS implementation |
 | `docs/UI_DESIGN_SYSTEM.md` | Detailed design documentation |
-| `docs/UI_DESIGN_ANALYSIS.md` | Implementation alignment analysis |
 | `docs/UI_PANEL_REQUIREMENTS.md` | Feature specifications |
 | `docs/api_guide_phase_3.md` | API endpoints (Phase 3) |
 

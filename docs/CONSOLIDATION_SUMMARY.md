@@ -28,7 +28,7 @@ Multiple documentation files had significant redundancy:
 | `README.md` | Master index with quick navigation | Everyone |
 | `business_analysis.md` | **Single source of truth** for business rules | Everyone |
 | `architecture_phase_1.md` | Technical architecture & layering | Developers |
-| `implementation_plan_phase_5.md` | Current Phase 5 checklist | Developers |
+| `TESTING_TODO.md` | Current work tracking | Developers |
 | `agent_briefing.md` | Quick AI agent onboarding | AI agents |
 
 ### API & Frontend (5 files)
@@ -41,14 +41,13 @@ Multiple documentation files had significant redundancy:
 | `UI_QUICK_REFERENCE.md` | CSS/HTML quick reference | UI developers |
 | `UI_PANEL_REQUIREMENTS.md` | Colony Dashboard panel specs | UI developers |
 
-### Reference (4 files)
+### Reference (3 files)
 
 | File | Purpose | Status |
 |------|---------|--------|
 | `Colony_Sheet_Analysis.md` | Excel workbook analysis (Polish) | Reference |
 | `DEPLOYMENT.md` | Production deployment | DevOps |
 | `MOCK_SERVER_SETUP.md` | Mock API for frontend | Frontend |
-| `implementation_plan.md` | Overall phase sequencing | Reference |
 
 ---
 
@@ -56,13 +55,17 @@ Multiple documentation files had significant redundancy:
 
 | File | Reason | Content Merged To |
 |------|--------|-------------------|
-| `AGENT_BRIEFING_ADDENDUM_PHASE5.md` | Redundant | `implementation_plan_phase_5.md` |
+| `AGENT_BRIEFING_ADDENDUM_PHASE5.md` | Redundant | `business_analysis.md` |
 | `AGENT_BRIEFING.md` | Replaced | `agent_briefing.md` (simplified) |
 | `DECISIONS_AND_QUESTIONS.md` | Duplicate | `business_analysis.md` |
 | `FRONTEND_REQUIREMENTS_ANSWERED.md` | Duplicate | `api_guide_phase_3.md` |
-| `FRONTEND_REQUIREMENTS_INDEPTH.md` | Split | `api_guide_phase_3.md` + `implementation_plan_phase_5.md` |
+| `FRONTEND_REQUIREMENTS_INDEPTH.md` | Split | `api_guide_phase_3.md` + `business_analysis.md` |
 | `BACKEND_API_IMPLEMENTATION_PLAN.md` | Renamed | `api_future_phase_4.md` |
 | `technical_analysis.md` | Renamed | `architecture_phase_1.md` |
+
+**Note (2026-08-24):** Additional cleanup removed `DECISIONS_AND_QUESTIONS.md`,
+`PROJECT_STATUS.md`, and `BACKEND_TODO.md` from root directory as they were
+superseded by `business_analysis.md` and `TESTING_TODO.md`.
 | `FRONTEND_GUIDE.md` | Renamed | `api_guide_phase_3.md` |
 
 ---
@@ -86,7 +89,7 @@ Multiple documentation files had significant redundancy:
 1. `.clinerules/00-overview.md` — Engineering rules (binding)
 2. `docs/business_analysis.md` — Business rules (source of truth)
 3. `docs/architecture_phase_1.md` — Technical architecture
-4. `docs/implementation_plan_phase_5.md` — Current work
+4. `TESTING_TODO.md` — Current work tracking
 5. `docs/agent_briefing.md` — Quick reference
 
 ### For Frontend Developers
@@ -101,7 +104,7 @@ Multiple documentation files had significant redundancy:
 
 **Implementation Planning:**
 
-- Phase 5 tasks: `implementation_plan_phase_5.md` (detailed checklist)
+- Phase 5 tasks: `TESTING_TODO.md` (detailed checklist)
 - Architecture: `architecture_phase_1.md` (layering, patterns)
 - Business rules: `business_analysis.md` (calculation rules, tables)
 
@@ -115,6 +118,6 @@ Multiple documentation files had significant redundancy:
 ✅ Cross-references updated  
 ✅ No broken links  
 
-**Next:** Begin Phase 5 implementation per `implementation_plan_phase_5.md`
+**Next:** Begin Phase 5 implementation per `TESTING_TODO.md`
 
 ---

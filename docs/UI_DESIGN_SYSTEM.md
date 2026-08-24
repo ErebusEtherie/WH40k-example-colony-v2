@@ -802,7 +802,7 @@ Ensure all text meets WCAG AA standards:
 
 | Document | Purpose |
 |----------|---------|
-| `FRONTEND_REQUIREMENTS_INDEPTH.md` | Feature requirements from spreadsheet |
+| `business_analysis.md` | Feature requirements from spreadsheet (source of truth) |
 | `api_future_phase_4.md` | Backend API specification |
 | `api_guide_phase_3.md` | Frontend development guide |
 | `mechanicum_style_venice.txt` | Original design inspiration |
