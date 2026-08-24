@@ -84,16 +84,78 @@ interface SupportUpgrade {
   installationDate: Date;
   description: string;           // Lore/flavor text
   status: InfrastructureStatus;  // Same status enum as Infrastructure
+
+  // For Contacts upgrade only
+  contactCount?: number;         // Number of NPCs (1-5), player/GM provides
+  contactDetails?: string;       // Description of contacts
 }
 
 enum UpgradeType {
+  // Original Upgrades
   ARBITES_PRECINCT = "Arbites Precinct",
   ECCLESIARCHY_MISSION = "Ecclesiarchy Mission",
   MECHANICUM_STATION = "Mechanicum Station",
   INFANTRY_GARRISON = "Infantry Garrison",
   IMPERIAL_NAVY_STATION = "Imperial Navy Station",
   CULTURAL_IMPROVEMENT = "Cultural Improvement",
-  INDUSTRIAL_FACILITY = "Industrial Facility"
+  INDUSTRIAL_FACILITY = "Industrial Facility",
+
+  // New Upgrades
+  PERSONAL_LODGINGS = "Personal Lodgings",
+  CONTACTS = "Contacts",
+  TRAPPINGS = "Trappings"
+}
+```
+
+### Development Plan Item Object (Planning Panel)
+
+```typescript
+interface DevelopmentPlanItem {
+  id: string;
+  name: string;                  // Custom name (e.g., "Garrison of Combat Engineers")
+  type: PlanType;                // Hard Infrastructure or Support Upgrade type
+  priority: number;              // >0 integer, higher = more important
+  status: PlanStatus;            // Planning | In Progress
+  planDescription: string;       // Player/GM input: in-game plan for acquisition
+
+  // Optional: Link to actual item when promoted
+  linkedItemId?: string;         // ID of actual Infrastructure or SupportUpgrade
+}
+
+// PlanType includes all InfrastructureTypes and UpgradeTypes
+enum PlanType {
+  // Hard Infrastructure
+  TRANSPORT = "Transport",
+  POWER = "Power",
+  WATER = "Water",
+  FOOD_PRODUCTION = "Food Production",
+  COMMUNICATIONS = "Communications",
+
+  // Support Upgrades
+  ARBITES_PRECINCT = "Arbites Precinct",
+  ECCLESIARCHY_MISSION = "Ecclesiarchy Mission",
+  MECHANICUM_STATION = "Mechanicum Station",
+  INFANTRY_GARRISON = "Infantry Garrison",
+  IMPERIAL_NAVY_STATION = "Imperial Navy Station",
+  CULTURAL_IMPROVEMENT = "Cultural Improvement",
+  INDUSTRIAL_FACILITY = "Industrial Facility",
+  PERSONAL_LODGINGS = "Personal Lodgings",
+  CONTACTS = "Contacts",
+  TRAPPINGS = "Trappings"
+}
+
+enum PlanStatus {
+  PLANNING = "Planning",          // Initial idea stage
+  IN_PROGRESS = "In Progress"    // Actively working toward acquisition
+}
+
+// Sort options for Planning Panel
+enum PlanSortOption {
+  PRIORITY = "Priority",          // High to low
+  PRIORITY_ASC = "Priority Asc",  // Low to high
+  STATUS = "Status",              // Group by status
+  TYPE = "Type",                  // Group by type
+  NAME = "Name"                   // Alphabetical
 }
 ```
 
@@ -129,7 +191,7 @@ interface Colony {
   id: string;
   name: string;
   type: ColonyType;
-  creationDate: Date;              // Day 0
+  creationDate: Date;             // Day 0
   currentDay: number;
 
   // Base Stats (from colony type)
@@ -149,9 +211,12 @@ interface Colony {
   hardInfrastructure: Infrastructure[];
   supportUpgrades: SupportUpgrade[];
 
+  // Planning Panel (no calculation impact)
+  developmentPlans: DevelopmentPlanItem[];
+
   // Modifiers
   permanentModifiers: Modifier[];
-  customModifiers: Modifier[];    // User-managed
+  customModifiers: Modifier[];     // User-managed
 
   // Calculated (not stored, computed on demand)
   // displayStats: CalculatedStats;
@@ -184,6 +249,8 @@ Apply all modifiers from:
 - Dynasty Member Roll (if applicable)
 - Hard Infrastructure (if Working)
 - Support Upgrades (if Working)
+
+> **Note:** Development Plan Items are NOT included in calculations.
 
 ### Phase 3: Conditional Modifiers
 
@@ -255,13 +322,13 @@ Display Value = Base + Σ(Permanent Modifiers) + Σ(Conditional Modifiers) + Σ(
 
 ### Ecclesiastical
 
-- **Special Rule**: When Order would decrease, may decrease Piety instead
+- **Special Rule:** When Order would decrease, may decrease Piety instead
 - Begins with **Cultural District** (free Working upgrade)
 - *Source: "Ecclesiastical Flexibility"*
 
 ### Agricultural
 
-- **Special Rule**: When Size would decrease, player/GM may roll 1d10; on 8+ ignore the decrease
+- **Special Rule:** When Size would decrease, player/GM may roll 1d10; on 8+ ignore the decrease
 - *Source: "Agricultural Resilience"*
 
 ---
@@ -278,7 +345,7 @@ Display Value = Base + Σ(Permanent Modifiers) + Σ(Conditional Modifiers) + Σ(
 | 5 | +1 |
 | 6 | +2 |
 
-Source: "Leadership Quality"
+*Source: "Leadership Quality"*
 
 ### Representative Types
 
@@ -325,7 +392,7 @@ Select any combination. **No duplicates allowed.**
 | **Unlucky** | Piety | +2 | "Unlucky" | Prone to disasters and misfortune, the Representative has turned to faith as their only solace, becoming extremely devout and inspiring religious fervor as a coping mechanism. |
 | **Ties With...** | Player Choice | +1 | "Ties With [Org]" | The Representative has connections to a specific organization (Military, Criminal, Ecclesiarchy, Mechanicum, etc.), granting them influence and resources from that faction. GM decides which stat receives the bonus based on the organization. |
 | **Administrative Expert** | Productivity | +2 | "Administrative Expert" | A master of bureaucracy and logistics, the Representative streamlines operations brilliantly—but only when the colony is already orderly. |
-| **Administrative Expert** | Condition: Only if Order > Size | | | |
+| **Administrative Expert** | Condition: Only if Order > Size | — | — | — |
 | **Cruel** | Productivity | +2 | "Cruel" | Through fear and harsh discipline, the Representative extracts maximum work from the population, though morale suffers terribly. |
 | **Cruel** | Complacency | -1 | "Cruel" | The populace lives in fear of the Representative's punishments, creating an atmosphere of terror and resentment. |
 | **Spymaster** | Order | +2 | "Spymaster" | The Representative maintains an extensive network of informants and agents, crushing dissent before it can organize and keeping the population monitored. |
@@ -371,13 +438,13 @@ When Size increases, player/GM provides d5 (1-5) or selects:
 | 4 | **Food Production** | Productivity +1, Complacency +1 | Productivity -2, Complacency -2 | Agri-domes, protein vats, hydroponic bays, and food processing facilities that feed the colony. |
 | 5 | **Communications** | Productivity +1, Order +1 | Productivity -2, Order -2 | Vox-casters, data networks, and astropathic relays that allow coordination, governance, and contact with the wider Imperium. |
 
-**Missing Infrastructure Penalty:**
+### Missing Infrastructure Penalty
 
 Until a required infrastructure is built (moved from In Progress to Working):
 
-- Statistic: Complacency
-- Value: -1
-- Source: "Missing Infrastructure"
+- **Statistic:** Complacency
+- **Value:** -1
+- **Source:** "Missing Infrastructure"
 
 ---
 
@@ -402,8 +469,99 @@ Until a required infrastructure is built (moved from In Progress to Working):
 | **Imperial Navy Station** | Order +1 | One only | A void-port, orbital dock, or aerospace facility maintained by the Imperial Navy. Enables system defense, void transport, and maintains the Rogue Trader's connection to the wider stellar neighborhood. |
 | **Cultural Improvement** | Player Choice +1 | Once per stat | A theater, museum, garden, or other cultural institution that elevates the colony beyond mere survival, improving quality of life and community spirit in the chosen area. |
 | **Industrial Facility** | Productivity +2, PF_Value +1 | — | A manufactorum, refinery, or production center that significantly increases the colony's industrial output and economic value. |
+| **Personal Lodgings** | Order +1 | Once (no benefit after first) | Rogue Traders frequently build lavish personal accommodations on their colonised worlds, from fortified compounds to grand palaces, or humble prefabricated hab units. Security measures, armouries, dungeons, teleportariums, or ostentatious banqueting halls may be included. +10 to Charm, Commerce, and Deceive Tests while entertaining dignitaries here. |
+| **Contacts** | Special (see below) | Cumulative | A network of 1d5 NPCs who have risen above the faceless masses—each with connections to local groups (Ecclesiarchy, Mechanicus, underworld, mutant societies, hidden cults). +10 to Fellowship-based Tests with affiliated groups. Can be used to investigate shadowy portions of the colony. |
+| **Trappings** | Complacency +1 | Cumulative | Large-scale and grandiose signs of the Rogue Trader's skill, courage, and cunning—the prow of a rival's flagship as a monument, the skeleton of an exotic predator, or a massive effigy of the Rogue Trader. These inspire the populace and keep them blinded by the shining legend of their leader. |
 
 **Maximum Support Upgrades:** Equal to current Colony Size.
+
+### Contacts Upgrade Details
+
+Since the app does not roll dice, the player/GM provides the number of contacts (1-5):
+
+| Field | Description |
+|---|---|
+| **Contact Count** | Player/GM inputs 1-5 (represents 1d5 result) |
+| **Contact Details** | Free text describing who the contacts are, their affiliations, and what makes them useful |
+
+**Effect Tracking:**
+
+- Store contact count and description in the SupportUpgrade object.
+- The +10 Fellowship bonus is narrative; not tracked as a modifier (GM applies situational bonuses via Custom Modifiers if needed).
+- Contacts can be used for investigation and proactive crisis management (narrative tool).
+
+---
+
+## Development Planning Panel
+
+A separate planning interface for players to organize and prioritize future infrastructure and upgrades. **This panel has no impact on colony calculations.**
+
+### Purpose
+
+- Plan colony development roadmap
+- Track acquisition progress
+- Coordinate between players and GM
+- Maintain wishlist of desired improvements
+
+### Plan Item Fields
+
+| Field | Type | Description |
+|---|---|---|
+| **Name** | string | Custom name (e.g., "Garrison of Combat Engineers", "Cathedral of the Golden Throne") |
+| **Type** | PlanType | Hard Infrastructure or Support Upgrade category |
+| **Priority** | number (>0) | Integer priority level. Higher = more important. Suggested range: 1-10 |
+| **Status** | PlanStatus | **Planning**: Initial idea stage / **In Progress**: Actively working toward acquisition |
+| **Plan Description** | text | Free-form field for players to describe: acquisition method, resources needed, in-game narrative, challenges, etc. |
+
+### Plan Type Options
+
+**Hard Infrastructure:**
+
+- Transport
+- Power
+- Water
+- Food Production
+- Communications
+
+**Support Upgrades:**
+
+- Arbites Precinct
+- Ecclesiarchy Mission
+- Mechanicum Station
+- Infantry Garrison
+- Imperial Navy Station
+- Cultural Improvement
+- Industrial Facility
+- Personal Lodgings
+- Contacts
+- Trappings
+
+### Status Definitions
+
+| Status | Meaning |
+|---|---|
+| **Planning** | Item is on the wishlist. No active effort to acquire it yet. Aspirational or awaiting opportunity. |
+| **In Progress** | Players are actively pursuing this through Endeavours, negotiations, or other in-game actions. |
+
+### Sorting Options
+
+Players can sort the planning list by:
+
+1. **Priority (High to Low)** - Default view. Shows most important items first
+2. **Priority (Low to High)** - Shows lower priority items first
+3. **Status** - Groups by Planning vs In Progress
+4. **Type** - Groups by infrastructure/upgrade category
+5. **Name (A-Z)** - Alphabetical by custom name
+
+### Workflow: Plan → Reality
+
+When a planned item is actually acquired in-game:
+
+1. Create actual Infrastructure or SupportUpgrade object.
+2. Set status to In Progress or Working (based on narrative).
+3. For Contacts: Player/GM inputs contact count (1-5).
+4. Optionally link Plan Item to actual item via `linkedItemId`.
+5. Archive or delete Plan Item (GM/Player choice).
 
 ---
 
@@ -416,7 +574,7 @@ When player initiates Growth Check:
 3. Determine outcome:
 
 | d10 + Bonus | Effect |
-|---:|---|
+|---|---|
 | 1-2 | **Decline**: Size -1; GM inputs -1d5 to random stat via Custom Modifier |
 | 3-7 | **Stagnation**: No change |
 | 8+ | **Growth**: Size +1; GM selects/determines d5 for new Infrastructure requirement |
@@ -476,7 +634,7 @@ At end of 90-day cycle, player selects:
 | Leader Quality | -2 to +2 | Based on stat |
 | Colony Type Special | Variable | See Colony Type section |
 
-Important: Final PF Value = Base + Sum(all modifiers)
+**Final PF Value = Base + Sum(all modifiers)**
 
 ---
 
@@ -540,6 +698,8 @@ PF Value: [X]
 
 Representative: [Judge] [Ambitious, Zealous]
 Upgrades: [3/5] (3 of 5 maximum)
+
+[Tabs: Overview | Modifiers | Infrastructure | Upgrades | Development Plans]
 ```
 
 ### Modifier Breakdown (Expandable)
@@ -561,13 +721,56 @@ Complacency: 5
 - Click to edit Name, Description, Status
 - Show modifiers applied based on current status
 
+### Contacts Upgrade Display
+
+```text
+Contacts (Working)
+   "Underworld Informants Network"
+   Contact Count: 3
+   Details: Fixer Jax (Criminal), Sister Mera (Ecclesiarchy),
+           Tech-Adept Zol (Mechanicus)
+
+   Effect: +10 Fellowship with affiliated groups
+```
+
+### Development Planning Panel
+
+```text
+[Development Plans]                    [Sort: Priority ▼] [Filter: All]
+
+┌─────────────────────────────────────────────────────────┐
+│ Industrial Facility         [Planning]  Priority: 10  │
+│ "Forge Complex Theta"                                     │
+│ Type: Industrial Facility                               │
+│ Plan: Need to complete Greater Endeavour "Ore to        │
+│ Orbit" first. Then negotiate with Mechanicus for         │
+│ tech-priest assignment.                                  │
+│ [Promote] [Edit] [Delete]                                │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ Power                      [In Progress] Priority: 8   │
+│ "Geothermal Tap Alpha"                                  │
+│ Type: Power                                             │
+│ Plan: Mechanicum survey complete. Need 2 more sessions │
+│ to complete drilling. Expected completion: Session 5  │
+│ [View Linked] [Edit] [Complete] [Delete]               │
+└─────────────────────────────────────────────────────────┘
+
+[Add New Development Plan]
+```
+
 ---
 
 ## Implementation Notes
 
-1. **Modifier Application Order**: Always calculate Permanent → Conditional → Custom.
-2. **Damage Reduction**: Apply after Custom modifiers are calculated but before final value.
-3. **Status Changes**: When Infrastructure/Upgrade status changes, recalculate all modifiers.
-4. **Threshold Checking**: Re-evaluate Conditional modifiers whenever base stats change.
-5. **Persistence**: Store all Custom Modifiers with timestamps for audit trail.
-6. **Validation**: Ensure no duplicate personalities; validate Size cannot exceed 10.
+1. **Modifier Application Order:** Always calculate Permanent → Conditional → Custom.
+2. **Damage Reduction:** Apply after Custom modifiers are calculated but before final value.
+3. **Status Changes:** When Infrastructure/Upgrade status changes, recalculate all modifiers.
+4. **Threshold Checking:** Re-evaluate Conditional modifiers whenever base stats change.
+5. **Persistence:** Store all Custom Modifiers with timestamps for audit trail.
+6. **Validation:** Ensure no duplicate personalities; validate Size cannot exceed 10.
+7. **Planning Panel:** Completely separate from calculations; optional feature for player coordination.
+8. **Plan Promotion:** When plan becomes reality, create actual Infrastructure/Upgrade and optionally link back to plan.
+9. **Personal Lodgings:** Track if already purchased; hide or disable "Purchase Again" if limit reached.
+10. **Contacts:** Store contact count (1-5) and description; effect is narrative only.
