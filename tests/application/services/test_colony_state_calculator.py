@@ -63,7 +63,8 @@ class TestColonyStateCalculatorWithExpiry:
         
         colony.modifiers = [permanent_mod, expired_mod]
         state = state_calculator.calculate(colony)
-        assert state["productivity"] == 15
+        # Base 10 + permanent 5 + Orderly (Order 10 > Size 3) +2 = 17
+        assert state["productivity"] == 17
 
     def test_active_modifiers_included_in_calculation(self, state_calculator):
         """Non-expired modifiers should affect calculated stats."""
@@ -92,7 +93,8 @@ class TestColonyStateCalculatorWithExpiry:
         
         colony.modifiers = [future_mod]
         state = state_calculator.calculate(colony)
-        assert state["productivity"] == 20
+        # Base 10 + modifier 10 + Orderly (Order 10 > Size 3) +2 = 22
+        assert state["productivity"] == 22
 
     def test_calculate_with_as_of_date(self, state_calculator):
         """State calculation respects as_of date for expiry."""
@@ -122,10 +124,12 @@ class TestColonyStateCalculatorWithExpiry:
         
         colony.modifiers = [mod]
         state_before = state_calculator.calculate(colony, as_of=date(2025, 6, 15))
-        assert state_before["productivity"] == 20
+        # Base 10 + modifier 10 + Orderly (Order 10 > Size 3) +2 = 22
+        assert state_before["productivity"] == 22
         
         state_after = state_calculator.calculate(colony, as_of=date(2025, 7, 15))
-        assert state_after["productivity"] == 10
+        # Base 10 + Orderly (Order 10 > Size 3) +2 = 12
+        assert state_after["productivity"] == 12
 
     def test_inactive_modifiers_excluded_regardless_of_expiry(self, state_calculator):
         """Inactive modifiers are excluded even if not expired."""
@@ -155,4 +159,5 @@ class TestColonyStateCalculatorWithExpiry:
         
         colony.modifiers = [inactive_mod]
         state = state_calculator.calculate(colony)
-        assert state["productivity"] == 10
+        # Base 10 + Orderly (Order 10 > Size 3) +2 = 12
+        assert state["productivity"] == 12

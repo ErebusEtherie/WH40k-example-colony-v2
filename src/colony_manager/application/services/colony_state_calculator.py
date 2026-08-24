@@ -11,6 +11,7 @@ from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 from colony_manager.domain.rules.size_calculator import calculate_size
+from colony_manager.domain.rules.state_effects import apply_orderly_effect, apply_pious_effect
 from colony_manager.domain.rules.stat_calculator import calculate_stat
 
 
@@ -55,6 +56,7 @@ class ColonyStateCalculator:
         """
         active_modifiers = self._get_active_modifiers(colony, as_of)
         
+        # Phase 2: Calculate stats with permanent modifiers
         current_size = calculate_size(colony.base_size, active_modifiers)
         current_complacency = calculate_stat(colony.base_complacency, active_modifiers, ModifierStat.COMPLACENCY)
         current_order = calculate_stat(colony.base_order, active_modifiers, ModifierStat.ORDER)
@@ -64,6 +66,27 @@ class ColonyStateCalculator:
             ModifierStat.PRODUCTIVITY,
         )
         current_piety = calculate_stat(colony.base_piety, active_modifiers, ModifierStat.PIETY)
+
+        # Evaluate lore states on Phase 2 stats (before conditional bonuses)
+        # to avoid circular dependencies and state oscillation
+        lore_state = {
+            "size": "stable",
+            "complacency": resolve_lore_state(ModifierStat.COMPLACENCY, current_complacency, current_size).value,
+            "order": resolve_lore_state(ModifierStat.ORDER, current_order, current_size).value,
+            "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, current_productivity, current_size).value,
+            "piety": resolve_lore_state(ModifierStat.PIETY, current_piety, current_size).value,
+        }
+
+        # Phase 3: Apply conditional modifiers (state-based bonuses)
+        # Orderly: Order > Size => Productivity +2
+        orderly_bonus = apply_orderly_effect(current_order, current_size)
+        current_productivity += orderly_bonus
+
+        # Pious: Piety > Size => Order +1, Complacency +1
+        pious_order_bonus, pious_complacency_bonus = apply_pious_effect(current_piety, current_size)
+        current_order += pious_order_bonus
+        current_complacency += pious_complacency_bonus
+
         leadership_modifier = self._config_provider.get_leadership_modifier(
             max(
                 current_order,
@@ -92,11 +115,5 @@ class ColonyStateCalculator:
             "piety": current_piety,
             "leadership_modifier": leadership_modifier,
             "profit_factor": profit_factor,
-            "lore_state": {
-                "size": "stable",
-                "complacency": resolve_lore_state(ModifierStat.COMPLACENCY, current_complacency, current_size).value,
-                "order": resolve_lore_state(ModifierStat.ORDER, current_order, current_size).value,
-                "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, current_productivity, current_size).value,
-                "piety": resolve_lore_state(ModifierStat.PIETY, current_piety, current_size).value,
-            },
+            "lore_state": lore_state,
         }

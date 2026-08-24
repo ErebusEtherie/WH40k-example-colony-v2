@@ -11,8 +11,13 @@ Per Rogue Trader Colony Rules:
 
 from colony_manager.domain.models.colony import Colony
 
+# Type alias for stat bonus values (0, +1, +2, etc.)
+StatBonus = int
+# Type alias for tuple of two stat bonuses (e.g., Order bonus, Complacency bonus)
+StatBonusPair = tuple[StatBonus, StatBonus]
 
-def apply_orderly_effect(colony: Colony) -> int:
+
+def apply_orderly_effect(current_order: int, current_size: int) -> StatBonus:
     """
     Apply Orderly state bonus to Productivity.
     
@@ -21,17 +26,18 @@ def apply_orderly_effect(colony: Colony) -> int:
     and increases its Productivity by 2."
     
     Args:
-        colony: The colony to apply the effect to.
+        current_order: Current Order value (base + permanent modifiers).
+        current_size: Current Size value (base + permanent modifiers).
     
     Returns:
         Productivity bonus (0 or 2).
     """
-    if colony.base_order > colony.base_size:
+    if current_order > current_size:
         return 2
     return 0
 
 
-def apply_pious_effect(colony: Colony) -> tuple[int, int]:
+def apply_pious_effect(current_piety: int, current_size: int) -> StatBonusPair:
     """
     Apply Pious state bonus to Order and Complacency.
     
@@ -40,12 +46,13 @@ def apply_pious_effect(colony: Colony) -> tuple[int, int]:
     and its Order and Complacency each increase by 1."
     
     Args:
-        colony: The colony to apply the effect to.
+        current_piety: Current Piety value (base + permanent modifiers).
+        current_size: Current Size value (base + permanent modifiers).
     
     Returns:
         Tuple of (Order bonus, Complacency bonus), each 0 or 1.
     """
-    if colony.base_piety > colony.base_size:
+    if current_piety > current_size:
         return (1, 1)
     return (0, 0)
 

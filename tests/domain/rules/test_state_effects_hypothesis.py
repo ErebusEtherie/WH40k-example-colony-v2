@@ -50,14 +50,14 @@ class TestOrderlyEffectProperties:
     @given(colony_states())
     def test_orderly_bonus_is_binary(self, colony: Colony):
         """Orderly bonus is always either 0 or 2."""
-        bonus = apply_orderly_effect(colony)
+        bonus = apply_orderly_effect(colony.base_order, colony.base_size)
         assert bonus in (0, 2)
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     @given(colony_states())
     def test_orderly_condition_is_deterministic(self, colony: Colony):
         """Orderly bonus depends solely on Order > Size."""
-        bonus = apply_orderly_effect(colony)
+        bonus = apply_orderly_effect(colony.base_order, colony.base_size)
         expected = 2 if colony.base_order > colony.base_size else 0
         assert expected == bonus
 
@@ -67,14 +67,14 @@ class TestPiousEffectProperties:
     @given(colony_states())
     def test_pious_bonus_is_binary_tuple(self, colony: Colony):
         """Pious bonus is always (0, 0) or (1, 1)."""
-        order_bonus, complacency_bonus = apply_pious_effect(colony)
+        order_bonus, complacency_bonus = apply_pious_effect(colony.base_piety, colony.base_size)
         assert (order_bonus, complacency_bonus) in ((0, 0), (1, 1))
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     @given(colony_states())
     def test_pious_condition_is_deterministic(self, colony: Colony):
         """Pious bonus depends solely on Piety > Size."""
-        order_bonus, complacency_bonus = apply_pious_effect(colony)
+        order_bonus, complacency_bonus = apply_pious_effect(colony.base_piety, colony.base_size)
         expected = (1, 1) if colony.base_piety > colony.base_size else (0, 0)
         assert expected == (order_bonus, complacency_bonus)
 
@@ -150,7 +150,7 @@ class TestStateTransitionBoundaries:
         """Orderly state activates exactly when Order > Size."""
         colony = Colony(name="Test", owner="Test", colony_type=ColonyType.INDUSTRY, base_size=size, base_order=order_value,
                        base_complacency=5, base_productivity=5, base_piety=5, age_days=0, age_last_updated=date.today())
-        bonus = apply_orderly_effect(colony)
+        bonus = apply_orderly_effect(order_value, size)
         if order_value > size:
             assert bonus == 2
         else:
@@ -162,7 +162,7 @@ class TestStateTransitionBoundaries:
         """Pious state activates exactly when Piety > Size."""
         colony = Colony(name="Test", owner="Test", colony_type=ColonyType.INDUSTRY, base_size=size, base_order=5,
                        base_complacency=5, base_productivity=5, base_piety=piety_value, age_days=0, age_last_updated=date.today())
-        order_bonus, complacency_bonus = apply_pious_effect(colony)
+        order_bonus, complacency_bonus = apply_pious_effect(piety_value, size)
         if piety_value > size:
             assert (order_bonus, complacency_bonus) == (1, 1)
         else:
