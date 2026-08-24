@@ -1,7 +1,8 @@
 # Mechanicum UI Quick Reference
 
 **For:** Frontend Developers  
-**Version:** 1.0  
+**Version:** 1.1 (Cleanup Complete)  
+**Date:** 2026-08-24  
 **CSS File:** `src/assets/css/mechanicum-design-system.css`
 
 ---
@@ -100,12 +101,12 @@
 ```html
 <div class="calc-row">
   <span class="calc-label">Base PF</span>
-  <span class="calc-value">5</span>
-  <span class="calc-desc">Colony Size 50-75</span>
+  <span class="calc-value">3</span>
+  <span class="calc-desc">Colony Size 3 (Freehold)</span>
 </div>
 <div class="calc-total">
   <span class="calc-label">Total Profit Factor</span>
-  <span class="calc-value">5.2</span>
+  <span class="calc-value">5</span>
 </div>
 ```
 

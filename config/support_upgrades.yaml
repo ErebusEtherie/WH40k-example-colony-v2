@@ -29,10 +29,6 @@
   stat_effects:
     - stat: "piety"
       value: 1
-    - stat: "order"
-      value: 1
-    - stat: "complacency"
-      value: 1
   mechanical_effects:
     - description: "Tests made to convince or cajole the citizenry into action gain a +10 bonus as long as the Explorers appear sufficiently pious."
       type: "skill_bonus"
@@ -52,7 +48,7 @@
     - stat: "productivity"
       value: 1
       conditional_bonuses:
-        - colony_types: ["mining", "industry", "mining_and_industry"]
+        - colony_types: ["mining_and_industry"]
           value: 2
         - colony_types: ["research_mission"]
           value: 3
@@ -67,11 +63,11 @@
     - "Brings the blessings of the Omnissiah to the colony's machines."
 
 # =============================================================================
-# 4. Infantry Garrison & Imperial Navy Station
+# 4. Infantry Garrison
 # =============================================================================
-- name: "infantry_garrison_navy_station"
-  display_name: "Infantry Garrison & Imperial Navy Station"
-  description: "A permanent presence of Imperial Guard soldiers or a flotilla of Navy voidships to protect the Rogue Trader's interests."
+- name: "infantry_garrison"
+  display_name: "Infantry Garrison"
+  description: "A barracks and headquarters for Imperial Guard or other military forces stationed to protect the colony. Their presence deters external threats and internal rebellion through show of force and martial discipline."
   stat_effects:
     - stat: "order"
       value: 1
@@ -87,8 +83,27 @@
       condition: "military_endeavour"
   lore_effects:
     - "Safeguards the colony against the numerous threats of the Koronus Expanse."
+
 # =============================================================================
-# 5. Cultural Improvement
+# 5. Imperial Navy Station
+# =============================================================================
+- name: "imperial_navy_station"
+  display_name: "Imperial Navy Station"
+  description: "A void-port, orbital dock, or aerospace facility maintained by the Imperial Navy. Enables system defense, void transport, and maintains the Rogue Trader's connection to the wider stellar neighborhood."
+  stat_effects:
+    - stat: "order"
+      value: 1
+  mechanical_effects:
+    - description: "+10 bonus to Command and Intimidate Tests made to protect the colony from invasion or civil unrest."
+      type: "skill_bonus"
+      skills: ["command", "intimidate"]
+      bonus: 10
+      condition: "protecting_colony"
+  lore_effects:
+    - "Safeguards the colony against the numerous threats of the Koronus Expanse."
+
+# =============================================================================
+# 6. Cultural Improvement
 # +1 to any one Colony Characteristic (except Size), chosen by the Explorers
 # =============================================================================
 - name: "cultural_improvement"
@@ -104,13 +119,15 @@
     - "Distracts citizens from their 'grinding existence' and inspires loyalty."
 
 # =============================================================================
-# 6. Industrial Facility
+# 7. Industrial Facility
 # =============================================================================
 - name: "industrial_facility"
   display_name: "Industrial Facility"
   description: "Refineries, foundries, and sprawling mine complexes that produce everything from rations to voidship components."
   stat_effects:
     - stat: "productivity"
+      value: 2
+    - stat: "profit_factor"
       value: 1
   mechanical_effects:
     - description: "The Explorers define a specific product (e.g., lasguns), which can lead to further trade-based adventures."
@@ -120,7 +137,7 @@
     - "The 'heart and soul' of a colony's economic growth."
 
 # =============================================================================
-# 7. Personal Lodgings
+# 8. Personal Lodgings
 # =============================================================================
 - name: "personal_lodgings"
   display_name: "Personal Lodgings"
@@ -137,7 +154,7 @@
   lore_effects: []
 
 # =============================================================================
-# 8. Contacts
+# 9. Contacts
 # =============================================================================
 - name: "contacts"
   display_name: "Contacts"
@@ -154,7 +171,7 @@
   lore_effects: []
 
 # =============================================================================
-# 9. Trappings
+# 10. Trappings
 # =============================================================================
 - name: "trappings"
   display_name: "Trappings"

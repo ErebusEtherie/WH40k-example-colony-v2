@@ -65,9 +65,9 @@
     piety: 2
   special_effects:
     - name: "shield_of_faith"
-      description: "Starts with a Cultural District Upgrade (e.g., chapel, cloister). If Order would decrease, the owner can choose to decrease Piety instead."
+      description: "Starts with a Cultural Improvement Upgrade (e.g., chapel, cloister). If Order would decrease, the owner can choose to decrease Piety instead."
       starts_with_upgrade: true
-      upgrade_type: "cultural_district"
+      upgrade_type: "cultural_improvement"
       order_piety_swap: true
 
 # =============================================================================

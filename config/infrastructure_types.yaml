@@ -1,6 +1,6 @@
 # Hard Infrastructure Types for WH40k Colony Manager
 # Source: Rogue Trader Colony Rules - Infrastructure Upgrades
-# States: planned (no effect), working (bonus applies), disrupted (penalty applies)
+# States: in_progress (no effect), working (bonus applies), not_working (penalty applies)
 
 # =============================================================================
 # Transport
@@ -10,7 +10,7 @@
   display_name: "Transport"
   description: "Roads, bridges, maglev lines, canals, and spaceports. Essential for moving goods and people efficiently."
   states:
-    planned:
+    in_progress:
       description: "Infrastructure planned but not yet installed. No mechanical effect."
       modifiers: []
     working:
@@ -20,7 +20,7 @@
           value: 1
         - stat: "complacency"
           value: 1
-    disrupted:
+    not_working:
       description: "Infrastructure incapacitated. Penalties apply."
       modifiers:
         - stat: "productivity"
@@ -29,14 +29,14 @@
           value: -2
 
 # =============================================================================
-# Power Network
+# Power
 # Peat-burning generators, solar panels, or block-sized fusion reactors
 # =============================================================================
-- name: "power_network"
-  display_name: "Power Network"
+- name: "power"
+  display_name: "Power"
   description: "Peat-burning generators, solar panels, or block-sized fusion reactors. The 'lifeblood' of industry."
   states:
-    planned:
+    in_progress:
       description: "Infrastructure planned but not yet installed. No mechanical effect."
       modifiers: []
     working:
@@ -44,8 +44,8 @@
       modifiers:
         - stat: "productivity"
           value: 2
-    disrupted:
-      description: "Infrastructure disrupted. Penalties apply."
+    not_working:
+      description: "Infrastructure incapacitated. Penalties apply."
       modifiers:
         - stat: "productivity"
           value: -3
@@ -53,14 +53,14 @@
           value: -1
 
 # =============================================================================
-# Water Management
+# Water
 # Purification plants, reservoirs, and sewage systems
 # =============================================================================
-- name: "water_management"
-  display_name: "Water Management"
+- name: "water"
+  display_name: "Water"
   description: "Purification plants, reservoirs, and sewage systems. Necessary to prevent dehydration and disease."
   states:
-    planned:
+    in_progress:
       description: "Infrastructure planned but not yet installed. No mechanical effect."
       modifiers: []
     working:
@@ -70,7 +70,7 @@
           value: 1
         - stat: "complacency"
           value: 1
-    disrupted:
+    not_working:
       description: "Water tainted or cut off. Penalties apply."
       modifiers:
         - stat: "order"
@@ -86,7 +86,7 @@
   display_name: "Food Production"
   description: "Hydroponic farms or regular deliveries of corpse starch rations. Vital for growth."
   states:
-    planned:
+    in_progress:
       description: "Infrastructure planned but not yet installed. No mechanical effect."
       modifiers: []
     working:
@@ -96,8 +96,8 @@
           value: 1
         - stat: "complacency"
           value: 1
-    disrupted:
-      description: "Food production disrupted. Penalties apply."
+    not_working:
+      description: "Food production incapacitated. Penalties apply."
       modifiers:
         - stat: "productivity"
           value: -2
@@ -112,7 +112,7 @@
   display_name: "Communications"
   description: "Radio buoys, orbital signal repeaters, and Astropathic choirs. Used for day-to-day operations and propaganda."
   states:
-    planned:
+    in_progress:
       description: "Infrastructure planned but not yet installed. No mechanical effect."
       modifiers: []
     working:
@@ -122,8 +122,8 @@
           value: 1
         - stat: "order"
           value: 1
-    disrupted:
-      description: "Communications disrupted. Penalties apply."
+    not_working:
+      description: "Communications incapacitated. Penalties apply."
       modifiers:
         - stat: "productivity"
           value: -2

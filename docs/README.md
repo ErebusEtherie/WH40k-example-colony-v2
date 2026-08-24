@@ -51,7 +51,7 @@ own scope description is authoritative for what "Phase 5" means in that file.
 | [`Colony_Sheet_Analysis.md`](Colony_Sheet_Analysis.md) | Analysis of reference Excel workbook (Polish) | Reference |
 | [`DEPLOYMENT.md`](DEPLOYMENT.md) | Production deployment instructions | DevOps |
 | [`MOCK_SERVER_SETUP.md`](MOCK_SERVER_SETUP.md) | Mock API server for frontend development | Frontend |
-| `agent_briefing.md` | Quick onboarding for AI coding agents | ⚠️ **Referenced but does not exist in the project.** Either create it or remove this row — until then this is a dead link. See "Reading Order" below for the working substitute. |
+| [`AGENT_BRIEFING.md`](AGENT_BRIEFING.md) | Quick onboarding for AI coding agents | AI agents, developers |
 
 ---
 
@@ -91,7 +91,8 @@ anything here disagrees with it, `business_analysis.md` wins.**
 
 1. Base PF from Size lookup table (per-size, e.g. Size 5 → PF 6, Size 10 → PF 18 — see `business_analysis.md` §4.5)
 2. Add Leadership Modifier (Rep's best of Int/Per/Fel bonus) — **table is
-   only partially confirmed for bonus values 2–6, see §4.5**
+   complete for valid range 2–6 (values outside this range are invalid per
+   game rules), see §4.5**
 3. Add Infrastructure/Upgrade/Resource bonuses
 4. **Order == 0 → PF = 0** (zero-forcing rule)
 5. **Productivity == 0 → PF halved** (round-half-up)
@@ -116,9 +117,14 @@ Threshold is always relative to **Colony Size** (`stat > actual_size` /
 state" — that absolute threshold does not exist anywhere in
 `business_analysis.md` and has been removed as fabricated.)
 
-### Colony Types (9 total)
+### Colony Types (4 total)
 
-Ecclesiastical, Agricultural, Mining, Industrial, Research Mission, Mining & Industrial, Shrine World, Fortress World, Paradise World
+**Only these 4 colony types are valid** (per `colony-manager-rules-reference.md`):
+
+- Research Mission
+- Mining and Industry
+- Ecclesiastical
+- Agricultural
 
 ### Hard Infrastructure (5 types)
 

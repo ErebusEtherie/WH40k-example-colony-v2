@@ -42,13 +42,9 @@ size_to_profit_factor:
 # =============================================================================
 # Table 3-4: Colonial Leadership Modifier
 # Based on highest of leader's Int, Per, or Fel bonus (stat / 10, floor)
-# Capped at +2 for stat bonus 6 and above
+# Valid range: 2-6 only (0-1: character dead/incapacitated; 7+: impossible in-game)
 # =============================================================================
 leadership_modifier:
-  - stat_bonus: 0
-    modifier: -3
-  - stat_bonus: 1
-    modifier: -2
   - stat_bonus: 2
     modifier: -2
   - stat_bonus: 3
@@ -135,6 +131,19 @@ stat_loss_mitigation:
     stat: "productivity"
     reduction: 1
     minimum: 1
+
+# =============================================================================
+# Missing Infrastructure Penalty
+# Per Rogue Trader Colony Rules: Until each required infrastructure type is
+# built (moved from In Progress to Working), the colony suffers Complacency -1
+# per missing type. Source: "Missing Infrastructure"
+# =============================================================================
+missing_infrastructure_penalty:
+  stat: "complacency"
+  value: -1
+  source: "Missing Infrastructure"
+  applies_per: "missing_infrastructure_type"
+  description: "Applied for each infrastructure type not yet in Working status"
 
 # =============================================================================
 # Table 1-18: Resource Abundance Levels

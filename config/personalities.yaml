@@ -19,8 +19,6 @@
   stat_effects:
     - stat: "order"
       value: 1
-    - stat: "productivity"
-      value: -1
   calamitous_modifier: 0
 
 - name: "corrupt"
@@ -37,9 +35,9 @@
   display_name: "Idle"
   description: "Takes a long time to perform tasks due to slothful ways."
   stat_effects:
-    - stat: "productivity"
-      value: 2
     - stat: "complacency"
+      value: 2
+    - stat: "productivity"
       value: -1
   calamitous_modifier: 0
 

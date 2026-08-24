@@ -1,7 +1,7 @@
 # UI Panel Requirements — Colony Dashboard
 
-**Version:** 1.0  
-**Date:** 2026-08-23  
+**Version:** 1.1 (Cleanup Complete)  
+**Date:** 2026-08-24  
 **Status:** Requirements Defined  
 
 This document defines the three main panels of the Colony Dashboard view, including
@@ -39,11 +39,24 @@ days = remaining_days % 30
 # Omit zero values: "5 months and 12 days" (not "0 years, 5 months, 12 days")
 ```
 
+### Size Calculation
+
+**Important:** Size is a **calculated value**, not directly editable. The formula is:
+
+```python
+actual_size = clamp(base_size + sum(size modifiers), min=0, max=10)
+```
+
+- **Base Size**: Set at colony creation from colony type, can be modified by GM via Custom Modifiers (e.g., growth/decay events)
+- **Actual Size**: Display value, automatically calculated, capped at 10
+- **GM Modifications**: To change Size, GM creates Custom Modifiers with `stat: size`, `value: +/-X` (e.g., "Growth Check: Size +2", "Plague Event: Size -1")
+
 **User Actions:**
 
 - Edit colony name (text input)
 - Edit colony owner (text input)
 - Edit age in days (number input with +/- buttons)
+- **View Size** (read-only, calculated from base_size + modifiers)
 - View colony type (read-only, set at creation)
 
 ---
@@ -58,8 +71,9 @@ days = remaining_days % 30
 
 | Field | Example | Editable | Source/Notes |
 |-------|---------|----------|--------------|
-| **Size** | 3 | ✅ Yes (input or +/- buttons) | Calculated, starts at 1, integer, min 0 |
+| **Size** | 3 | ❌ No (calculated) | `base_size` + applicable modifiers, clamped 0-10; see Size section below |
 | **Size Description** | Freehold | ❌ No | Based on Size value (see mapping below) |
+| **Base Size** | 3 | ✅ Yes (input or +/- buttons) | Starting Size from colony type, can be modified by GM via Custom Modifiers |
 | **Profit Factor** | 4 | ❌ No | Calculated from stats, representative, infrastructure; min 0 |
 | **Complacency** | 3 | ❌ No | Calculated, min 0; starts from colony type base stats |
 | **Complacency Description** | Placated | ❌ No | Based on Complacency value (see rules below) |
@@ -221,8 +235,7 @@ INFRASTRUCTURE
 When user edits:
 
 - **Age (days)**: Update `colony.age_days`, recalculate formatted display
-- **Size**: Update `colony.base_size`, set `pending_infrastructure_growth = True` if
-  size increased, trigger full stat recalculation
+- **Base Size** (via Custom Modifiers): GM creates size modifiers, trigger full stat recalculation
 
 ### Calculation Chain
 
@@ -232,9 +245,7 @@ age_days edited
     ↓
 formatted_age recalculated (display only)
     ↓
-Size edited
-    ↓
-pending_infrastructure_growth = True (if size increased)
+base_size modified (via Custom Modifiers)
     ↓
 stat_calculator.run()
     ├─ base_stats (from ColonyType)
@@ -252,14 +263,11 @@ stat_calculator.run()
    is it purely for display/calculation purposes? (Currently: no auto-rolls, GM handles
    events manually)
 
-2. **Size decrease**: If user decreases Size, should `pending_infrastructure_growth`
-   be cleared? (Currently: flag only set on increase, GM clears manually)
-
-3. **Infrastructure summary sorting**: Within Hard Infrastructure and Support Upgrades
+2. **Infrastructure summary sorting**: Within Hard Infrastructure and Support Upgrades
    sections, what sort order? (Suggested: alphabetically by name, or by state with
    disrupted/faulty first)
 
-4. **Lore-friendly names**: Are these user-provided (custom names for each instance)
+3. **Lore-friendly names**: Are these user-provided (custom names for each instance)
    or generated from type? (Currently: user provides name when creating infrastructure)
 
 ---

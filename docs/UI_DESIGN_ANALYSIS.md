@@ -1,7 +1,7 @@
 # UI Design Data Analysis & Implementation Alignment
 
-**Version:** 1.1 (Updated)  
-**Date:** 2026-08-23  
+**Version:** 1.2 (Cleanup Complete)  
+**Date:** 2026-08-24  
 **Status:** ✅ Documentation Updates Complete  
 
 ---
@@ -23,6 +23,8 @@ The following documentation updates have been completed to align UI docs with im
    - Updated stat description rules to match `lore_state_resolver.py`
    - Updated API endpoints section to reflect actual implementation
    - Added response structure example for GET /api/v1/colonies/{id}
+   - **Clarified Size as calculated value** (base_size modifiable via Custom Modifiers)
+   - **Removed** `pending_infrastructure_growth` flag references
 
 3. **UI_DESIGN_SYSTEM.md**
    - Updated color variables to match actual CSS (`--mech-*` prefix)
@@ -30,20 +32,27 @@ The following documentation updates have been completed to align UI docs with im
    - Replaced BEM-style naming with actual simpler class names
    - Updated stat box examples to match production CSS
 
-4. **UI_DESIGN_ANALYSIS.md** (New)
-   - Created comprehensive analysis document
-   - Documents all inconsistencies found
-   - Provides resolution recommendations
-   - Lists action items and related documents
+4. **UI_QUICK_REFERENCE.md**
+   - Fixed PF calculation example (Size 3 Freehold, not "Size 50-75")
+
+5. **UI_ALIGNMENT_SUMMARY.md**
+   - **Removed** `pending_infrastructure_growth` from Phase 5 gaps
+   - Updated gap numbering (4 gaps → 3 gaps)
+
+6. **UI_DESIGN_ANALYSIS.md** (Updated)
+   - **Removed** `pending_infrastructure_growth` from all sections
+   - Updated Phase 5 gap count (3 → 2)
+   - Added note about flag removal per business requirements
 
 ### ⚠️ Remaining Implementation Gaps (Phase 5)
 
 The following items are documented gaps that require implementation:
 
-1. **Colony model** missing `pending_infrastructure_growth: bool = False`
-2. **Representative model** missing `special_trait_description: str | None`
-3. **PersonalityAssignment model** doesn't exist
-4. **Dashboard endpoint** `/api/v1/colonies/{id}/dashboard` not implemented (workaround documented)
+1. **Representative model** missing `special_trait_description: str | None`
+2. **PersonalityAssignment model** doesn't exist
+3. **Dashboard endpoint** `/api/v1/colonies/{id}/dashboard` not implemented (workaround documented)
+
+**Removed:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference (see `AGENT_BRIEFING.md`).
 
 ---
 
@@ -53,11 +62,12 @@ This document analyzes inconsistencies between UI design documentation and actua
 
 ### Critical Findings
 
-1. **3 Phase 5 model gaps** documented in `business_analysis.md` remain unimplemented
+1. **2 Phase 5 model gaps** documented in `business_analysis.md` remain unimplemented
 2. **Size description mapping** in UI docs doesn't match config/implementation
 3. **Dashboard endpoint** documented but not implemented
 4. **CSS class naming** differs between design docs and actual stylesheet
 5. **Lore state labels** incomplete in UI docs vs full enum in code
+6. **`pending_infrastructure_growth` flag** removed from business requirements — UI docs updated to match
 
 ---
 
@@ -173,13 +183,13 @@ Per `business_analysis.md` Assumptions Log:
 
 ### Missing Fields
 
-1. **Colony model** missing `pending_infrastructure_growth: bool = False`
-2. **Representative model** missing `special_trait_description: str | None`
-3. **PersonalityAssignment model** doesn't exist (should wrap `Personality` with `mad_order_roll` and `chosen_stat`)
+1. **Representative model** missing `special_trait_description: str | None`
+2. **PersonalityAssignment model** doesn't exist (should wrap `Personality` with `mad_order_roll` and `chosen_stat`)
+
+**Removed:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference.
 
 ### Impact on UI
 
-- UI cannot display/track pending infrastructure growth state
 - UI cannot show special trait descriptions for representatives
 - UI cannot handle Mad personality order roll or Scholarly/Ties chosen stat mechanics
 
@@ -242,10 +252,11 @@ Update UI docs with complete stat description rules from implementation.
 
 ### Implementation Gaps (Phase 5)
 
-- [ ] Add `pending_infrastructure_growth: bool` to Colony model
 - [ ] Add `special_trait_description: str | None` to Representative model
 - [ ] Create `PersonalityAssignment` model
 - [ ] Implement dashboard endpoint OR document alternative approach
+
+**Removed:** `pending_infrastructure_growth` flag removed per requirements alignment.
 
 ---
 

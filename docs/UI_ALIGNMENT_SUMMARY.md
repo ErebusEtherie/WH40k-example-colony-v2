@@ -1,7 +1,7 @@
 # UI Design Documentation Alignment — Summary Report
 
-**Date:** 2026-08-23  
-**Status:** ✅ Documentation Updates Complete  
+**Date:** 2026-08-24  
+**Status:** ✅ Documentation Updates Complete — Cleanup Phase  
 
 ---
 
@@ -70,16 +70,7 @@ This report summarizes the review and alignment of UI design documentation with 
 
 The following gaps are documented in `business_analysis.md` and remain to be implemented:
 
-### 1. Colony Model — Missing Field
-
-```python
-# Missing in domain/models/colony.py
-pending_infrastructure_growth: bool = False
-```
-
-**Impact:** Cannot track when colony size has increased and infrastructure growth roll is pending.
-
-### 2. Representative Model — Missing Field
+### 1. Representative Model — Missing Field
 
 ```python
 # Missing in domain/models/representative.py
@@ -88,7 +79,7 @@ special_trait_description: str | None
 
 **Impact:** Cannot display special trait descriptions for representatives.
 
-### 3. PersonalityAssignment Model — Missing
+### 2. PersonalityAssignment Model — Missing
 
 ```python
 # New model needed in domain/models/personality.py
@@ -100,11 +91,13 @@ class PersonalityAssignment(BaseModel):
 
 **Impact:** Cannot handle Mad/Scholarly/Ties personality mechanics.
 
-### 4. Dashboard Endpoint — Not Implemented
+### 3. Dashboard Endpoint — Not Implemented
 
 **Documented:** `GET /api/v1/colonies/{id}/dashboard`  
 **Status:** Not implemented  
 **Workaround:** Use `GET /api/v1/colonies/{id}` which returns complete state
+
+**Removed:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference (see `AGENT_BRIEFING.md`).
 
 ---
 
@@ -128,6 +121,14 @@ class PersonalityAssignment(BaseModel):
 ## Conclusion
 
 All UI design documentation has been aligned with the current implementation. Three Phase 5 model gaps remain to be implemented but are clearly documented.
+
+**Cleanup Phase Complete (2026-08-24):**
+
+- ✅ Removed all `pending_infrastructure_growth` references per business requirements
+- ✅ Clarified Size as calculated value (base_size modifiable via Custom Modifiers)
+- ✅ Fixed PF calculation example in UI_QUICK_REFERENCE.md
+- ✅ Updated all Phase 5 gap counts and numbering
+
 **Resolution:** Updated `UI_DESIGN_SYSTEM.md` component examples to match production CSS in `mechanicum-design-system.css`.
 
 ### 5. ✅ Color Variables
