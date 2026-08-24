@@ -154,6 +154,42 @@ class TestRepresentativeValidators:
         )
         assert rep.skills == []
         assert rep.talents == []
+    
+    def test_duplicate_personalities_rejected(self):
+        """Duplicate personalities are rejected per Rogue Trader rules.
+        
+        Per Core Principles #5 and Table 3-6:
+        "Personalities cannot be duplicated on the same Representative."
+        "Select any combination. No duplicates allowed."
+        """
+        with pytest.raises(ValueError, match="Duplicate personalities not allowed"):
+            Representative(
+                name="Test",
+                type=RepresentativeType.JUDGE,
+                personalities=[
+                    Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                    Personality(name="beloved", display_name="Beloved", description="Test duplicate"),
+                ],
+                stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+            )
+    
+    def test_unique_personalities_accepted(self):
+        """Multiple unique personalities are accepted."""
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                Personality(name="military_minded", display_name="Military-Minded", description="Test 2"),
+                Personality(name="zealous", display_name="Zealous", description="Test 3"),
+            ],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert len(rep.personalities) == 3
+        assert rep.personalities[0].name == "beloved"
+        assert rep.personalities[1].name == "military_minded"
+        assert rep.personalities[2].name == "zealous"
+        assert rep.talents == []
 
 
 class TestRepresentativeProperties:

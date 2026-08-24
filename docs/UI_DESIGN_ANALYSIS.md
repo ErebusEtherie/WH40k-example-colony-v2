@@ -44,13 +44,17 @@ The following documentation updates have been completed to align UI docs with im
    - Updated Phase 5 gap count (3 → 2)
    - Added note about flag removal per business requirements
 
-### ⚠️ Remaining Implementation Gaps (Phase 5)
+### ✅ Resolved Implementation Gaps (Phase 5)
 
-The following items are documented gaps that require implementation:
+The following items have been resolved:
 
-1. **Representative model** missing `special_trait_description: str | None`
-2. **PersonalityAssignment model** doesn't exist
-3. **Dashboard endpoint** `/api/v1/colonies/{id}/dashboard` not implemented (workaround documented)
+1. ✅ **Representative model** — `special_trait_description: str | None` field added
+2. ✅ **PersonalityAssignment model** — Superseded by Custom Modifier approach (see §3.2a in `business_analysis.md`)
+3. ✅ **Dashboard endpoint** — Workaround documented (use `GET /api/v1/colonies/{id}`)
+
+**Remaining:**
+
+- ⏳ **Colony Dashboard UI** — 3-panel layout per `UI_PANEL_REQUIREMENTS.md`
 
 **Removed:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference (see `AGENT_BRIEFING.md`).
 
@@ -62,12 +66,12 @@ This document analyzes inconsistencies between UI design documentation and actua
 
 ### Critical Findings
 
-1. **2 Phase 5 model gaps** documented in `business_analysis.md` remain unimplemented
-2. **Size description mapping** in UI docs doesn't match config/implementation
-3. **Dashboard endpoint** documented but not implemented
-4. **CSS class naming** differs between design docs and actual stylesheet
-5. **Lore state labels** incomplete in UI docs vs full enum in code
-6. **`pending_infrastructure_growth` flag** removed from business requirements — UI docs updated to match
+1. ✅ **Phase 5 model gaps** resolved — `special_trait_description` added, `PersonalityAssignment` superseded by Custom Modifier approach
+2. ✅ **Size description mapping** aligned with config/implementation
+3. ✅ **Dashboard endpoint** workaround documented
+4. ✅ **CSS class naming** documented (design docs vs actual stylesheet)
+5. ✅ **Lore state labels** documented (full enum in code)
+6. ✅ **`pending_infrastructure_growth` flag** removed from business requirements — UI docs updated to match
 
 ---
 
@@ -177,21 +181,23 @@ Returns all panel data in one response.
 
 Update `UI_DESIGN_SYSTEM.md` to match actual CSS implementation. The simpler naming in the CSS file is production-ready.
 
-## 6. Phase 5 Model Gaps — CONFIRMED
+## 6. Phase 5 Model Gaps — RESOLVED
 
 Per `business_analysis.md` Assumptions Log:
 
-### Missing Fields
+### Resolved Fields
 
-1. **Representative model** missing `special_trait_description: str | None`
-2. **PersonalityAssignment model** doesn't exist (should wrap `Personality` with `mad_order_roll` and `chosen_stat`)
+1. ✅ **Representative model** — `special_trait_description: str | None` field added
+2. ✅ **PersonalityAssignment model** — Superseded by Custom Modifier approach
+
+**Decision:** Variable personality effects (Mad, Scholarly, Ties With...) are handled via **Custom Modifiers** applied by the GM rather than tracked in the domain model. See §3.2a in `business_analysis.md`.
 
 **Removed:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference.
 
 ### Impact on UI
 
-- UI cannot show special trait descriptions for representatives
-- UI cannot handle Mad personality order roll or Scholarly/Ties chosen stat mechanics
+- ✅ Special trait descriptions now available for representatives
+- ✅ Personality variable effects handled via GM's Custom Modifiers (no special UI needed beyond modifier management)
 
 **Resolution:**
 
@@ -252,9 +258,13 @@ Update UI docs with complete stat description rules from implementation.
 
 ### Implementation Gaps (Phase 5)
 
-- [ ] Add `special_trait_description: str | None` to Representative model
-- [ ] Create `PersonalityAssignment` model
-- [ ] Implement dashboard endpoint OR document alternative approach
+- [ ] Build Colony Dashboard UI per `UI_PANEL_REQUIREMENTS.md`
+
+**Resolved:**
+
+- [x] Add `special_trait_description: str | None` to Representative model
+- [x] Personality mechanics documented as Custom Modifier workflow (no `PersonalityAssignment` model needed)
+- [x] Dashboard endpoint workaround documented (use `GET /api/v1/colonies/{id}`)
 
 **Removed:** `pending_infrastructure_growth` flag removed per requirements alignment.
 

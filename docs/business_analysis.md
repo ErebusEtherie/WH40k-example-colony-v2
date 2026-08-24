@@ -25,7 +25,6 @@ This is the **single source of truth** for all business rules, domain models, an
 - ✅ **Phase 4a:** Hard Infrastructure module complete
 - ✅ **Phase 5:** Support Upgrades, Planetary Resources, State Effects complete
 - ✅ **Phase 6-9:** API, CLI, Import/Export, tooling complete
-- ⚠️ **Phase 5 Gaps:** Representative Personality mechanics (`PersonalityAssignment` model, Mad roll, Scholarly `chosen_stat` — see §3.2 and §4.7a) pending. See `implementation_plan_phase_5.md`.
 - ✅ **Leadership Modifier table** — Complete for valid range 2-6 per Reference. Values outside this range are invalid per game rules.
 - 📋 **Future Phase:** Development Planning Panel — planned for future implementation, no impact on calculations
 
@@ -100,46 +99,27 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 | `id` | identifier | no | |
 | `name` | string | yes | Representative is a standalone entity — it can exist unassigned. **One Representative per Colony only (1:1 relationship)**. When assigned, the Colony holds the reference |
 | `type` | enum | yes | Exactly one. Fixed list (from reference sheet): **Satrap**, **Judge**, **Cardinal**, **Colonist Representative**, **Military Commander**, **Dynasty Member**. Each type has **descriptive text only, no mechanical bonus**, except for damage reduction protection (see §4.10). Satrap has special +5 to Acquisition Tests (tracked separately, not a stat modifier) |
-| `personalities` | list of `PersonalityAssignment` | yes | **Multiple allowed, no duplicates.** See §3.2a and §4.7a for the `PersonalityAssignment` wrapper and the confirmed 18-trait table with mechanical effects |
-| `special_trait_description` | string (nullable) | yes | **Phase 5 gap, not yet implemented.** Free-text GM note tied to `type` (e.g. narrative flavor for a Satrap's trade contacts). Reference-only, no mechanical effect |
+| `personalities` | list of `Personality` | yes | **Multiple allowed, no duplicates.** See §3.2a and §4.7a for the confirmed 18-trait table with mechanical effects. Variable effects (Mad, Scholarly, Ties With...) are handled via Custom Modifiers applied by the GM |
+| `special_trait_description` | string (nullable) | yes | Free-text GM note tied to `type` (e.g. narrative flavor for a Satrap's trade contacts). Reference-only, no mechanical effect |
 | `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
 | `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
 | `skills` | list of Skill | yes | `{name, level: known\|+10\|+20\|+30, description}` — **reference only, no mechanical effect** |
 | `talents` | list of Talent | yes | `{name, description}` — **reference only, no mechanical effect** |
 | `leadership_modifier` | integer | no (calculated) | Looked up from `max(Int_bonus, Per_bonus, Fel_bonus)` via a modifier table (see §4.5). This is the **only** confirmed mechanical link from Representative to Colony stats that targets `profit_factor` directly in V1 — Personality effects (§4.7a) apply separately to the four core colony stats, Type is descriptive only, Skills and Talents are reference-only |
 
-### 3.2a PersonalityAssignment (Phase 5 gap — not yet implemented)
+### 3.2a Personality Mechanics — GM Workflow
 
-Wraps a personality with any GM-provided input it requires. Replaces the bare
-`list[Personality]` originally planned for `Representative.personalities`.
+Personalities with variable effects (Mad, Scholarly, Ties With...) require GM input. Rather than tracking this data in the domain model, the GM applies these effects via **Custom Modifiers** on the Colony:
 
-```python
-class PersonalityAssignment(BaseModel):
-    personality_type: PersonalityType  # enum, see §4.7a
-    mad_order_roll: int | None = None       # 1-5, only for "Mad"
-    chosen_stat: ModifierStat | None = None # for "Scholarly" or "Ties With…"
-```
+| Personality | GM Action | How to Track |
+|-------------|-----------|--------------|
+| **Mad** | Roll 1d5 physically | Add Custom Modifier to Colony: `Order: -[roll value]`, Source: "Mad personality" |
+| **Scholarly** | Identify lowest stat (Complacency/Order/Productivity/Piety); choose if tied | Add Custom Modifier: `[stat]: +1`, Source: "Scholarly personality" |
+| **Ties With...** | Choose stat based on organization | Add Custom Modifier: `[stat]: +1`, Source: "Ties With [Organization]" |
 
-**Confirmed lifecycle rule for `mad_order_roll` / `chosen_stat`:**
+**Timing:** These modifiers must be created no later than completing the Representative's assignment to the Colony.
 
-- Both values are set at **Representative-to-Colony assignment time**, not at
-  Representative creation. A Representative can exist unassigned or be
-  reassigned to a different Colony (§3.2), so a value fixed at creation would carry
-  stale, Colony-A-specific context into a later Colony-B assignment.
-- On **reassignment** to a different Colony (or on unassignment), any existing
-  value **must be cleared**, forcing fresh input on the next assignment.
-- The assign-representative operation must **reject** assigning a
-  Representative whose personalities include Mad or Ties With…
-  if the corresponding input is not supplied — it must not silently default
-  to `None`/0.
-- **Scholarly special handling:** `chosen_stat` is set at assignment time based on
-  the lowest of (Complacency, Order, Productivity, Piety) **after** old Representative
-  modifiers are removed but **before** new Representative modifiers are applied.
-  If multiple stats are tied for lowest, GM chooses which tied stat receives it.
-  This avoids storing unnecessary data while respecting the assignment-time workflow.
-
-This directly resolves a lore/consistency concern with Scholarly specifically:
-the rulebook's "lowest stat" trigger is preserved, with GM choice only for ties.
+**Design Rationale:** This approach aligns with Core Principle #4 (GM Control) and avoids the complexity of tracking assignment-scoped state. The app provides the structure; the GM provides the narrative judgment and dice rolls.
 
 ### 3.3 Modifier (generic)
 
@@ -523,7 +503,7 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
 | Infrastructure types & mechanics | ✅ Complete (5 types) | `config/rule_tables.yaml` |
 | Roll interval configuration | ✅ Complete (global default, per-colony override) | `config/rule_tables.yaml` |
 | GM notes field (`gm_notes`) | ✅ Complete (free-form text, max 2000 chars) | §3.1 Colony entity |
-| `PersonalityAssignment` model + `chosen_stat`/`mad_order_roll` lifecycle | ⚠️ Not yet implemented — see §3.2a and `implementation_plan_phase_5.md` | `domain/models/personality.py` (new) |
+| Personality variable effects (Mad/Scholarly/Ties With...) | ✅ Complete via Custom Modifiers — GM applies manually per §3.2a | §3.2a, §3.3 |
 | Modifier category system (Permanent/Conditional/Custom) | ✅ Complete | §3.3 |
 | Damage Reduction mechanic | ✅ Complete | §4.10 |
 | Missing Infrastructure penalty | ✅ Complete | §3.1 |
@@ -553,12 +533,13 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
   reference is cleared rather than blocking the delete or deleting the
   Colony. Flagged as a default in `architecture_phase_1.md` §3.6.
 - **Scholarly's trigger is "lowest stat" per rulebook**, with GM choice only
-  when multiple stats are tied for lowest — confirmed design decision, see §4.7a.
-- **`chosen_stat`/`mad_order_roll` are set at assignment time and cleared on
-  reassignment**, not fixed at Representative creation — confirmed design
-  decision, see §3.2a. For Scholarly, `chosen_stat` is calculated based on the
-  lowest stat at assignment time (after old Representative removal, before new
-  Representative application).
+  when multiple stats are tied for lowest. The GM applies this via a Custom
+  Modifier rather than automatic tracking — see §3.2a.
+- **Personality mechanics use Custom Modifiers** — Mad, Scholarly, and Ties With...
+  personalities require GM input (dice roll or stat choice). Rather than implementing
+  a `PersonalityAssignment` wrapper with `mad_order_roll`/`chosen_stat` fields, the GM
+  applies these effects via Custom Modifiers on the Colony. This keeps the domain model
+  simpler and aligns with the "GM Control" principle — see §3.2a.
 - **All dice rolls are external** — The app never rolls dice. All 1d5, 1d10, 1d100 results are provided by GM/player as input values via Custom modifiers.
 - **Damage Reduction applies per-modifier** — Representative type reduces each negative modifier individually, not the total loss.
 - **Colony starts at Day 0** — We assume the colony is already founded with basic stats determined by the players' chosen colony type.

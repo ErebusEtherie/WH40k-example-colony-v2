@@ -3,9 +3,8 @@
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier
+from colony_manager.domain.models.personality import Personality, PersonalityEffect
 from colony_manager.domain.models.representative import (
-    Personality,
-    PersonalityEffect,
     Representative,
     RepresentativeStats,
     Skill,

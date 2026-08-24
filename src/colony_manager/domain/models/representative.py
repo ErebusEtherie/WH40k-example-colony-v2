@@ -1,6 +1,6 @@
 """Domain model for representatives."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from colony_manager.domain.enums import (
     DynastyOutcome,
@@ -8,10 +8,7 @@ from colony_manager.domain.enums import (
     RepresentativeType,
     SkillLevel,
 )
-from colony_manager.domain.models.personality import (
-    Personality,
-    PersonalityEffect,
-)
+from colony_manager.domain.models.personality import Personality
 
 
 class RepresentativeStats(BaseModel):
@@ -75,6 +72,32 @@ class Representative(BaseModel):
     assigned_to_colony_id: int | None = None
     # Special trait description (GM reference note, no mechanical effect)
     special_trait_description: str | None = None
+    
+    @model_validator(mode='after')
+    def validate_no_duplicate_personalities(self):
+        """Ensure no duplicate personalities are assigned.
+        
+        Per Rogue Trader Colony Rules (Core Principles #5, Table 3-6):
+        "Personalities cannot be duplicated on the same Representative."
+        "Select any combination. No duplicates allowed."
+        
+        Raises:
+            ValueError: If duplicate personality names are found.
+        """
+        if self.personalities:
+            seen_names = set()
+            duplicates = []
+            for personality in self.personalities:
+                if personality.name in seen_names:
+                    duplicates.append(personality.name)
+                seen_names.add(personality.name)
+            
+            if duplicates:
+                raise ValueError(
+                    f"Duplicate personalities not allowed: {', '.join(duplicates)}. "
+                    "Per Rogue Trader rules, each personality type can be selected only once."
+                )
+        return self
     
     @property
     def loss_mitigation_stat(self) -> ModifierStat | None:

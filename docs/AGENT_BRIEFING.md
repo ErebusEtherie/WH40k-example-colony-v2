@@ -30,11 +30,13 @@
 
 ### What's In Progress (Phase 5)
 
-- ⏳ `pending_infrastructure_growth` flag in Colony model
-- ⏳ `PersonalityAssignment` model with `mad_order_roll` and `chosen_stat`
-- ⏳ `special_trait_description` field in Representative model
-- ⏳ Representative rules for Mad, Scholarly, Ties With... personalities
 - ⏳ Colony Dashboard UI (3-panel layout)
+
+### What's Complete (Recently Finished)
+
+- ✅ `special_trait_description` field in Representative model
+- ✅ Personality duplicate validation (no duplicate personalities on same Representative)
+- ✅ Personality variable effects (Mad/Scholarly/Ties With...) handled via Custom Modifiers
 
 ### What's Future (Phase 6+)
 
@@ -101,15 +103,17 @@ When Representative is Dynasty Member, player/GM provides d100 (1-100):
 - Personalities with multiple effects (e.g., "Corrupt": +2 Productivity, -1 Order) apply **all listed effects**
 - Conditional personalities (e.g., "Administrative Expert": +2 Productivity **only if** Order > Size) check conditions at calculation time
 
-**Special Personalities Requiring Additional Input:**
+**Special Personalities Requiring GM Input:**
 
-| Personality | Input Required | Storage | Notes |
-|-------------|----------------|---------|-------|
-| **Mad** | Order penalty: -1d5 (GM provides 1-5) | `mad_order_roll: int` | Set at assignment time |
-| **Scholarly** | Choose which stat gets +1 (if tied for lowest) | `chosen_stat: Statistic` | GM chooses only if multiple stats tied for lowest; set at assignment |
-| **Ties With...** | Choose which stat based on organization | `chosen_stat: Statistic` | GM chooses based on organization; set at assignment |
+The following personalities require GM input (dice roll or stat choice). These are **not tracked automatically** by the app — the GM applies them via **Custom Modifiers** on the Colony:
 
-**Important:** `mad_order_roll` and `chosen_stat` are set at **assignment time** (when Representative is assigned to Colony), not at Representative creation. They are **cleared on reassignment** to a different Colony. For Scholarly, `chosen_stat` is calculated based on the lowest stat at assignment time (after old Representative removal, before new Representative application); GM chooses only if tied.
+| Personality | GM Action | Custom Modifier Example |
+|-------------|-----------|------------------------|
+| **Mad** | Roll 1d5 physically | `Order: -3`, Source: "Mad personality" |
+| **Scholarly** | Identify lowest stat; choose if tied | `Productivity: +1`, Source: "Scholarly personality" |
+| **Ties With...** | Choose stat based on organization | `Complacency: +1`, Source: "Ties With [Organization]" |
+
+**Timing:** These modifiers must be created no later than completing the Representative's assignment to the Colony. See §3.2a in `business_analysis.md` for full workflow.
 
 ### Infrastructure Status
 
@@ -234,21 +238,20 @@ Computed from final stat values:
 
 ## Current Tasks (Phase 5)
 
-**Note:** Phase 5 requires replanning after requirements changes. The following tasks are provisional and will be updated:
+**Note:** Phase 5 is mostly complete. Remaining work:
 
-1. Create `PersonalityAssignment` model with fields:
-   - `personality_type: PersonalityType` (from config)
-   - `mad_order_roll: int | None` (1-5, required for Mad personality)
-   - `chosen_stat: Statistic | None` (for Scholarly when tied, or Ties With...)
-2. Update `Representative.personalities` to `list[PersonalityAssignment]`
-3. Add `special_trait_description: str | None` to Representative
-4. Update representative rules for:
-   - **Mad**: Apply saved `mad_order_roll` as Order penalty (-1 to -5)
-   - **Scholarly**: Apply +1 to lowest stat; use saved `chosen_stat` only if tied (GM chooses which tied stat)
-   - **Ties With...**: Apply +1 to saved `chosen_stat` (GM chooses based on organization)
-5. Build Colony Dashboard UI per `UI_PANEL_REQUIREMENTS.md`
+1. Build Colony Dashboard UI per `UI_PANEL_REQUIREMENTS.md`
 
-**Removed tasks:** `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference.
+**Recently Completed:**
+
+- ✅ `special_trait_description` field added to Representative model
+- ✅ Duplicate personality validation added (no duplicates on same Representative)
+- ✅ Personality variable effects (Mad/Scholarly/Ties With...) documented as GM workflow via Custom Modifiers
+
+**Removed tasks:**
+
+- `PersonalityAssignment` model removed — variable personality effects handled via Custom Modifiers instead
+- `pending_infrastructure_growth` flag removed per requirements alignment with Rules Reference
 
 ---
 
@@ -265,14 +268,16 @@ Each personality maps to one or more modifiers. Process as follows:
    - `special_rule`: Optional text (e.g., "roll twice for calamitous events")
 
 2. **For each personality assigned to Representative:**
-   - Check if personality has conditional effects (e.g., "Administrative Expert", "Scholarly")
+   - Check if personality has conditional effects (e.g., "Administrative Expert")
    - If conditional, evaluate condition against current colony state
    - Apply all active effects as Permanent Modifiers
-   - For "Mad": use stored `mad_order_roll` value for Order penalty
-   - For "Scholarly": calculate lowest of (Complacency, Order, Productivity, Piety); use stored `chosen_stat` only if tied, otherwise use calculated lowest
-   - For "Ties With...": use stored `chosen_stat` for bonus target
 
-3. **"Quite a Character" special handling:**
+3. **Variable-effect personalities (Mad, Scholarly, Ties With...):**
+   - These require GM input (dice roll or stat choice) that is **not tracked automatically**
+   - GM applies these via Custom Modifiers on the Colony (see §3.2a in `business_analysis.md`)
+   - The app does not store `mad_order_roll` or `chosen_stat` — GM provides the final modifier values
+
+4. **"Quite a Character" special handling:**
    - Does not provide direct stat modifiers
    - Signals that GM rolled this result and selected 2 additional personalities
    - Store as a personality entry alongside the 2 chosen ones
@@ -293,19 +298,16 @@ Each personality maps to one or more modifiers. Process as follows:
 
 ## Files Requiring Updates (Phase 5)
 
-**Note:** Phase 5 requires replanning. The following list is provisional:
+**Note:** Phase 5 is mostly complete. The following was the original plan, now superseded by the Custom Modifier approach:
 
-| File | Change | Priority |
-|------|--------|----------|
-| `domain/models/representative.py` | Add `special_trait_description: str \| None`, change `personalities` type | Critical |
-| `domain/models/personality.py` | Create new file with `PersonalityAssignment` model | Critical |
-| `domain/rules/representative_rules.py` | Handle Mad roll, Scholarly lowest-stat logic, Ties chosen_stat | Critical |
-| `application/services/representative_service.py` | Validate + clear `mad_order_roll`/`chosen_stat` on assign/reassign; calculate Scholarly lowest stat | Critical |
-| `adapters/api/schemas/representative.py` | Update schemas | High |
-| `adapters/api/routers/representatives.py` | Accept assignment-time inputs | High |
-| `adapters/persistence/orm_models.py` | Add columns | High |
-| `adapters/persistence/mappers.py` | Update mapping logic | High |
-| `tests/domain/test_representative_rules.py` | Add personality + lifecycle tests | High |
+| File | Original Planned Change | Current Status |
+|------|------------------------|----------------|
+| `domain/models/representative.py` | Add `special_trait_description`, change `personalities` type | ✅ `special_trait_description` added; `personalities` remains `list[Personality]` |
+| `domain/models/personality.py` | Create `PersonalityAssignment` model | ❌ Removed — Custom Modifier approach adopted instead |
+| `domain/rules/representative_rules.py` | Handle Mad roll, Scholarly lowest-stat logic | ❌ Not needed — GM applies via Custom Modifiers |
+| `application/services/representative_service.py` | Validate/clear `mad_order_roll`/`chosen_stat` | ❌ Not needed — Custom Modifier approach |
+| `adapters/api/schemas/representative.py` | Update schemas | ✅ No changes needed beyond `special_trait_description` |
+| `adapters/api/routers/representatives.py` | Accept assignment-time inputs | ❌ Not needed — Custom Modifier approach |
 
 **Removed:** `pending_infrastructure_growth` flag removed from all files per requirements alignment.
 
@@ -313,16 +315,17 @@ Each personality maps to one or more modifiers. Process as follows:
 
 ## Acceptance Criteria for Phase 5
 
-**Note:** Phase 5 requires replanning. The following criteria are provisional:
+**Note:** Phase 5 is mostly complete. Updated criteria:
 
 1. ✅ All personality traits apply correct modifiers (per `docs/colony-manager-rules-reference.md` table, including Administrative Expert)
-2. ✅ Mad's Order penalty uses saved `mad_order_roll` value (1-5), required at assignment
-3. ✅ Scholarly applies +1 to lowest stat; `chosen_stat` used only when tied (GM chooses which tied stat), cleared on reassignment
-4. ✅ Ties With... uses saved `chosen_stat` value, required at assignment, cleared on reassignment
+2. ✅ Mad's Order penalty applied via Custom Modifier (GM rolls 1d5 physically, creates modifier with source "Mad personality")
+3. ✅ Scholarly applies +1 to lowest stat via Custom Modifier (GM identifies lowest, creates modifier with source "Scholarly personality")
+4. ✅ Ties With... applies +1 to chosen stat via Custom Modifier (GM chooses based on organization, creates modifier)
 5. ✅ "Quite a Character" can be assigned with 2 additional personalities (**with duplicate validation** — the 2 chosen cannot duplicate existing personalities or each other)
 6. ✅ Hard Infrastructure bonuses/penalties stack correctly (Working vs Not Working status)
-7. ✅ Colony Dashboard UI shows 3 panels with correct data
-8. ✅ All new tests passing (domain + integration)
+7. ✅ `special_trait_description` field available on Representative for GM notes
+8. ⏳ Colony Dashboard UI shows 3 panels with correct data (pending)
+9. ✅ All domain tests passing (644 tests, 3 skipped)
 9. ✅ Ruff ✅, Mypy ✅ on all modified files
 
 **Removed:** `pending_infrastructure_growth` flag criteria removed per requirements alignment.

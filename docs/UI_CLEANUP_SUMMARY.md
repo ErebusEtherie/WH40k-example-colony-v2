@@ -85,10 +85,14 @@ All UI documents updated to version 1.1 (Cleanup Complete) with date 2026-08-24:
 
 ## Remaining Phase 5 Gaps
 
-After cleanup, **2 implementation gaps** remain (down from 4):
+After cleanup, **1 implementation gap** remains (down from 4):
 
-1. **Representative model** missing `special_trait_description: str | None`
-2. **PersonalityAssignment model** doesn't exist (with `mad_order_roll` and `chosen_stat`)
+1. **Colony Dashboard UI** — 3-panel layout per `UI_PANEL_REQUIREMENTS.md`
+
+**Resolved:**
+
+- ✅ `special_trait_description` field added to Representative model
+- ✅ Personality variable effects (Mad/Scholarly/Ties With...) — handled via Custom Modifiers (see §3.2a in `business_analysis.md`)
 
 **Note:** Dashboard endpoint gap resolved via workaround documentation (use `GET /api/v1/colonies/{id}`).
 
@@ -148,10 +152,9 @@ UI docs now correctly reflect:
 ## Next Steps
 
 1. ✅ Documentation cleanup complete
-2. ⏳ Implement remaining Phase 5 gaps:
-   - Add `special_trait_description` to Representative model
-   - Create `PersonalityAssignment` model
-3. ⏳ Build Colony Dashboard UI per updated requirements
+2. ✅ `special_trait_description` field added to Representative model
+3. ✅ Personality mechanics documented as Custom Modifier workflow
+4. ⏳ Build Colony Dashboard UI per updated requirements
 
 ---
 

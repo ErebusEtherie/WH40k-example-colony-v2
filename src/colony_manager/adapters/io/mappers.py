@@ -17,15 +17,14 @@ from colony_manager.adapters.io.save_file_schema import (
     SaveSkill,
     SaveTalent,
 )
-from colony_manager.domain.enums import ColonyType, ModifierCategory
+from colony_manager.domain.enums import ColonyType
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.colony_user import ColonyUser
 from colony_manager.domain.models.development_plan import DevelopmentPlan, DevelopmentPlanStatus
 from colony_manager.domain.models.event import Event, EventModifier
 from colony_manager.domain.models.modifier import Modifier
+from colony_manager.domain.models.personality import Personality, PersonalityEffect
 from colony_manager.domain.models.representative import (
-    Personality,
-    PersonalityEffect,
     Representative,
     RepresentativeStats,
     Skill,

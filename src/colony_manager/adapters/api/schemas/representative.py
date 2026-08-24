@@ -3,12 +3,8 @@
 from pydantic import BaseModel, Field
 
 from colony_manager.domain.enums import RepresentativeType
-from colony_manager.domain.models.representative import (
-    Personality,
-    PersonalityEffect,
-    Skill,
-    Talent,
-)
+from colony_manager.domain.models.personality import Personality, PersonalityEffect
+from colony_manager.domain.models.representative import Skill, Talent
 
 
 class RepresentativeStatsCreate(BaseModel):

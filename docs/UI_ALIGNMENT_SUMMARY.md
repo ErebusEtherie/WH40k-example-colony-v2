@@ -79,17 +79,15 @@ special_trait_description: str | None
 
 **Impact:** Cannot display special trait descriptions for representatives.
 
-### 2. PersonalityAssignment Model — Missing
+**Status:** ✅ **RESOLVED** — `special_trait_description` field added to Representative model.
 
-```python
-# New model needed in domain/models/personality.py
-class PersonalityAssignment(BaseModel):
-    personality: Personality
-    mad_order_roll: int | None = None
-    chosen_stat: ModifierStat | None = None
-```
+### 2. PersonalityAssignment Model — Superseded
 
-**Impact:** Cannot handle Mad/Scholarly/Ties personality mechanics.
+**Original Plan:** Create `PersonalityAssignment` wrapper model with `mad_order_roll` and `chosen_stat` fields.
+
+**Decision:** ❌ **NOT IMPLEMENTED** — Variable personality effects (Mad, Scholarly, Ties With...) are handled via **Custom Modifiers** applied by the GM. See §3.2a in `business_analysis.md`.
+
+**Impact:** None — GM workflow provides same functionality without domain model complexity.
 
 ### 3. Dashboard Endpoint — Not Implemented
 
