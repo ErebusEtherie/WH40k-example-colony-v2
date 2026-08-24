@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
+from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
 from colony_manager.adapters.api.schemas.representative import (
     PersonalityCreate,
     RepresentativeCreate,
@@ -59,7 +60,7 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
     for pc in personalities_create:
         effects = parse_personality_effect(pc.effect)
         result.append(Personality(
-            name=pc.name, description=pc.description,
+            name=pc.name, display_name=pc.display_name, description=pc.description,
             stat_effects=effects, calamitous_modifier=pc.calamitous_modifier,
             special_rule=pc.special_rule,
         ))
@@ -190,7 +191,6 @@ async def unassign_from_colony(
         raise HTTPException(status_code=404, detail=f"Representative {rep_id} not found or not assigned")
     
     # Check permission on the colony
-    from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
     colony_user_repo = get_colony_user_repository(get_db_path())
     if current_user.id is None:
         raise HTTPException(status_code=500, detail="Authenticated user has no ID")

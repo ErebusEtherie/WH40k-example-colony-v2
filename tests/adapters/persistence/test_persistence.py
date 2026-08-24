@@ -5,6 +5,7 @@ from colony_manager.adapters.persistence.representative_repository_impl import (
     SqlAlchemyRepresentativeRepository,
 )
 from colony_manager.domain.enums import (
+    ModifierCategory,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -38,6 +39,7 @@ def test_colony_repository_round_trip():
             Modifier(
                 colony_id=0,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.ORDER,
                 modifier_value=2,
                 modifier_description="test",

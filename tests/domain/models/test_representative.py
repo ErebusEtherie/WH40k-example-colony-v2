@@ -10,7 +10,7 @@ from colony_manager.domain.models.representative import (
     Skill,
     Talent,
 )
-from colony_manager.domain.models.personality import Personality, PersonalityAssignment
+from colony_manager.domain.models.personality import Personality
 from colony_manager.domain.enums import DynastyOutcome, RepresentativeType, SkillLevel, ModifierStat
 
 
@@ -116,24 +116,22 @@ class TestRepresentativeStatsProperties:
 class TestRepresentativeValidators:
     """Tests for Representative model validators."""
 
-    def test_personalities_min_length_one(self):
-        """Representative requires at least one personality."""
-        with pytest.raises(ValidationError) as exc_info:
-            Representative(
-                name="Test Rep",
-                type=RepresentativeType.JUDGE,
-                personalities=[],
-                stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
-            )
-        assert "personalities" in str(exc_info.value)
-        assert "min_length" in str(exc_info.value).lower() or "at least 1" in str(exc_info.value).lower()
+    def test_personalities_can_be_empty(self):
+        """Representative can have zero personalities (empty list is valid)."""
+        rep = Representative(
+            name="Test Rep",
+            type=RepresentativeType.JUDGE,
+            personalities=[],
+            stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
+        )
+        assert rep.personalities == []
 
     def test_valid_representative_with_minimal_data(self):
         """Valid Representative with minimal required data."""
         rep = Representative(
             name="Judge Dredd",
             type=RepresentativeType.JUDGE,
-            personalities=[PersonalityAssignment(personality_type="lawful")],
+            personalities=[Personality(name="lawful", display_name="Lawful", description="Lawful")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.name == "Judge Dredd"
@@ -151,7 +149,7 @@ class TestRepresentativeValidators:
         rep = Representative(
             name="Test",
             type=RepresentativeType.JUDGE,
-            personalities=[PersonalityAssignment(personality_type="test")],
+            personalities=[Personality(name="test", display_name="Test", description="Test")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.skills == []
@@ -167,7 +165,7 @@ class TestRepresentativeProperties:
         rep = Representative(
             name="Judge",
             type=RepresentativeType.JUDGE,
-            personalities=[PersonalityAssignment(personality_type="test")],
+            personalities=[Personality(name="test", display_name="Test", description="Test")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.loss_mitigation_stat == ModifierStat.ORDER
@@ -178,7 +176,7 @@ class TestRepresentativeProperties:
         rep = Representative(
             name="Cardinal",
             type=RepresentativeType.CARDINAL,
-            personalities=[PersonalityAssignment(personality_type="test")],
+            personalities=[Personality(name="test", display_name="Test", description="Test")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.loss_mitigation_stat == ModifierStat.PIETY
@@ -189,7 +187,7 @@ class TestRepresentativeProperties:
         rep = Representative(
             name="Rep",
             type=RepresentativeType.COLONIST_REPRESENTATIVE,
-            personalities=[PersonalityAssignment(personality_type="test")],
+            personalities=[Personality(name="test", display_name="Test", description="Test")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.loss_mitigation_stat == ModifierStat.COMPLACENCY
@@ -200,146 +198,79 @@ class TestRepresentativeProperties:
         rep = Representative(
             name="Commander",
             type=RepresentativeType.MILITARY_COMMANDER,
-            personalities=[PersonalityAssignment(personality_type="test")],
+            personalities=[Personality(name="test", display_name="Test", description="Test")],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         assert rep.loss_mitigation_stat == ModifierStat.PRODUCTIVITY
 
     def test_get_total_personality_calamity_modifier(self):
-        """get_total_personality_calamity_modifier calculates total with templates."""
+        """get_total_personality_calamity_modifier calculates total from personality objects."""
         from colony_manager.domain.models.personality import Personality
-        
-        # Create personality templates
-        templates = {
-            "calm": Personality(
-                name="calm",
-                display_name="Calm",
-                description="Calm",
-                calamitous_modifier=1,
-            ),
-            "rash": Personality(
-                name="rash",
-                display_name="Rash",
-                description="Rash",
-                calamitous_modifier=2,
-            ),
-            "bold": Personality(
-                name="bold",
-                display_name="Bold",
-                description="Bold",
-                calamitous_modifier=0,
-            ),
-        }
         
         rep = Representative(
             name="Test",
             type=RepresentativeType.JUDGE,
             personalities=[
-                PersonalityAssignment(personality_type="calm"),
-                PersonalityAssignment(personality_type="rash"),
-                PersonalityAssignment(personality_type="bold"),
+                Personality(name="calm", display_name="Calm", description="Calm", calamitous_modifier=1),
+                Personality(name="rash", display_name="Rash", description="Rash", calamitous_modifier=2),
+                Personality(name="bold", display_name="Bold", description="Bold", calamitous_modifier=0),
             ],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         
-        # Without templates, returns 0
-        assert rep.get_total_personality_calamity_modifier() == 0
-        
-        # With templates, calculates actual total
-        assert rep.get_total_personality_calamity_modifier(templates) == 3
+        # Calculates total directly from personality objects
+        assert rep.get_total_personality_calamity_modifier() == 3
 
     def test_get_total_personality_calamity_modifier_excludes_roll_twice(self):
         """Personalities with 'roll twice' special rule are excluded from calamity sum."""
         from colony_manager.domain.models.personality import Personality
         
-        templates = {
-            "lucky": Personality(
-                name="lucky",
-                display_name="Lucky",
-                description="Lucky",
-                calamitous_modifier=5,
-                special_rule="Roll twice, take best",
-            ),
-            "normal": Personality(
-                name="normal",
-                display_name="Normal",
-                description="Normal",
-                calamitous_modifier=2,
-            ),
-        }
-        
         rep = Representative(
             name="Test",
             type=RepresentativeType.JUDGE,
             personalities=[
-                PersonalityAssignment(personality_type="lucky"),
-                PersonalityAssignment(personality_type="normal"),
+                Personality(name="lucky", display_name="Lucky", description="Lucky", calamitous_modifier=5, special_rule="Roll twice, take best"),
+                Personality(name="normal", display_name="Normal", description="Normal", calamitous_modifier=2),
             ],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         
         # 'lucky' is excluded due to 'roll twice' rule
-        assert rep.get_total_personality_calamity_modifier(templates) == 2
+        assert rep.get_total_personality_calamity_modifier() == 2
 
     def test_update_calamitous_modifier_without_dynasty(self):
         """update_calamitous_modifier calculates total without dynasty outcome."""
         from colony_manager.domain.models.personality import Personality
         
-        templates = {
-            "test": Personality(
-                name="test",
-                display_name="Test",
-                description="Test",
-                calamitous_modifier=3,
-            ),
-        }
-        
         rep = Representative(
             name="Test",
             type=RepresentativeType.JUDGE,
             personalities=[
-                PersonalityAssignment(personality_type="test"),
+                Personality(name="test", display_name="Test", description="Test", calamitous_modifier=3),
             ],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
         )
         
-        # Without templates, only dynasty outcome would apply (none in this case)
+        # Calculates total directly from personality objects
         rep.update_calamitous_modifier()
-        assert rep.calamitous_modifier == 0
-        
-        # With templates, includes personality modifier
-        rep.update_calamitous_modifier(templates)
         assert rep.calamitous_modifier == 3
 
     def test_update_calamitous_modifier_with_dynasty_outcome(self):
         """update_calamitous_modifier includes dynasty outcome modifier."""
         from colony_manager.domain.models.personality import Personality
         
-        templates = {
-            "test": Personality(
-                name="test",
-                display_name="Test",
-                description="Test",
-                calamitous_modifier=1,
-            ),
-        }
-        
         rep = Representative(
             name="Dynasty Rep",
             type=RepresentativeType.DYNASTY_MEMBER,
             personalities=[
-                PersonalityAssignment(personality_type="test"),
+                Personality(name="test", display_name="Test", description="Test", calamitous_modifier=1),
             ],
             stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
             dynasty_outcome=DynastyOutcome.YOU_BUILT_THE_PALACE_ON_A_VOLCANO,
         )
         
-        # Without templates: 0 from personality + 5 from dynasty = 5
+        # Includes both personality and dynasty modifiers
         rep.update_calamitous_modifier()
-        assert rep.calamitous_modifier == 5
-        
-        # With templates: 1 from personality + 5 from dynasty = 6
-        rep.update_calamitous_modifier(templates)
         assert rep.calamitous_modifier == 6  # 1 from personality + 5 from dynasty outcome
 
     def test_update_calamitous_modifier_dynasty_modifiers(self):
@@ -357,10 +288,10 @@ class TestRepresentativeProperties:
             rep = Representative(
                 name="Test",
                 type=RepresentativeType.DYNASTY_MEMBER,
-                personalities=[PersonalityAssignment(personality_type="test")],
+                personalities=[Personality(name="test", display_name="Test", description="Test", calamitous_modifier=0)],
                 stats=RepresentativeStats(ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10),
                 dynasty_outcome=outcome,
             )
-            # Without templates, only dynasty modifier applies
+            # Only dynasty modifier applies (personality has 0 calamitous modifier)
             rep.update_calamitous_modifier()
             assert rep.calamitous_modifier == expected_mod, f"Failed for {outcome}"

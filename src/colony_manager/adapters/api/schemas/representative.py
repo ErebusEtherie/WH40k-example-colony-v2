@@ -29,6 +29,7 @@ class PersonalityCreate(BaseModel):
     """Schema for creating a personality with simplified effect string."""
 
     name: str
+    display_name: str | None = None  # Domain model defaults to name if None
     description: str
     effect: str = Field(default="")
     calamitous_modifier: int = Field(default=0)

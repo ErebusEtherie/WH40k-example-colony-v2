@@ -3,6 +3,7 @@ from datetime import date
 from colony_manager.adapters.io.colony_exporter import ColonyExporter
 from colony_manager.adapters.io.colony_importer import ColonyImporter
 from colony_manager.domain.enums import (
+    ModifierCategory,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -35,6 +36,7 @@ def test_export_and_import_round_trip(tmp_path):
             Modifier(
                 colony_id=0,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.ORDER,
                 modifier_value=2,
                 modifier_description="test",

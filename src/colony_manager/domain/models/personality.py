@@ -1,6 +1,6 @@
 """Domain models for representative personalities."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from colony_manager.domain.enums import ModifierStat
 
@@ -17,20 +17,29 @@ class PersonalityEffect(BaseModel):
 
 class Personality(BaseModel):
     """Representative personality template with mechanical effects.
-    
+
     This is the template definition loaded from config/personalities.yaml.
-    For actual assignments to a Representative, use PersonalityAssignment.
+    Personalities are assigned directly to Representatives (not via the
+    PersonalityAssignment wrapper). The PersonalityAssignment class remains
+    for potential future use if mad_order_roll/chosen_stat tracking is needed.
     """
 
     name: str
-    display_name: str
+    display_name: str | None = None
     description: str
     stat_effects: list[PersonalityEffect] = Field(default_factory=list)
     calamitous_modifier: int = 0
     special_rule: str | None = None
 
+    @model_validator(mode='after')
+    def set_default_display_name(self):
+        """Default display_name to name if not provided."""
+        if self.display_name is None:
+            self.display_name = self.name
+        return self
 
-class PersonalityAssignment(BaseModel):
+
+class PersonalityAssignment(BaseModel):  # noqa: F401 - Retained for potential future use
     """A personality assigned to a Representative with roll/choice data.
     
     Per Rogue Trader Colony Rules, certain personalities require GM input
@@ -41,6 +50,10 @@ class PersonalityAssignment(BaseModel):
     
     The mad_order_roll and chosen_stat fields must be set when assigning
     these personalities, and cleared if the personality is removed/reassigned.
+    
+    Note: Currently unused in the main codebase. Personalities are assigned
+    directly as Personality objects. This class is retained for potential
+    future use if mad_order_roll/chosen_stat tracking is needed.
     """
 
     personality_type: str  # References Personality.name from config
