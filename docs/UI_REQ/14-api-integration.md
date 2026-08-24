@@ -60,18 +60,21 @@ Authorization: Bearer <access_token>
 ## 14.4 Key Endpoints
 
 ### Authentication
+
 - `POST /api/auth/login` — Login
 - `POST /api/auth/register` — Register
 - `POST /api/auth/refresh` — Refresh token
 - `POST /api/auth/logout` — Logout
 
 ### Colonies
+
 - `GET /api/v1/colonies` — List colonies
 - `POST /api/v1/colonies` — Create colony
 - `GET /api/v1/colonies/:id` — Get colony detail
 - `PATCH /api/v1/colonies/:id` — Update colony
 
 ### Infrastructure
+
 - `GET /api/v1/colonies/:id/infrastructure` — List
 - `POST /api/v1/colonies/:id/infrastructure` — Add
 - `PATCH /api/v1/colonies/:id/infrastructure/:id` — Update
@@ -79,12 +82,14 @@ Authorization: Bearer <access_token>
 - `GET /api/v1/infrastructure-types` — List types
 
 ### Support Upgrades
+
 - `GET /api/v1/colonies/:id/support-upgrades` — List
 - `POST /api/v1/colonies/:id/support-upgrades` — Add
 - `PATCH /api/v1/colonies/:id/support-upgrades/:id` — Update
 - `DELETE /api/v1/colonies/:id/support-upgrades/:id` — Delete
 
 ### Representatives
+
 - `GET /api/v1/representatives` — List
 - `POST /api/v1/representatives` — Create
 - `PATCH /api/v1/representatives/:id` — Update
@@ -92,12 +97,14 @@ Authorization: Bearer <access_token>
 - `POST /api/v1/colonies/:id/representative` — Assign
 
 ### Modifiers
+
 - `GET /api/v1/colonies/:id/modifiers` — List
 - `POST /api/v1/colonies/:id/modifiers` — Add
 - `PATCH /api/v1/colonies/:id/modifiers/:id` — Update
 - `DELETE /api/v1/colonies/:id/modifiers/:id` — Delete
 
 ### Admin
+
 - `GET /api/v1/users` — List users
 - `GET /api/v1/colonies/:id/access` — Get access
 - `POST /api/v1/colonies/:id/access` — Grant access
@@ -144,6 +151,7 @@ Update UI immediately, then sync with server. Rollback on error.
 ### Cache Invalidation
 
 Refetch colony stats after:
+
 - Adding/removing infrastructure
 - Adding/removing modifiers
 - Assigning representative
@@ -151,5 +159,6 @@ Refetch colony stats after:
 ---
 
 **Related Documents:**
+
 - [Authentication](./03-authentication.md)
 - [States & Errors](./13-states-and-errors.md)

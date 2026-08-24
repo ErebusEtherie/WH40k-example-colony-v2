@@ -27,6 +27,7 @@ This document defines reusable UI components used across the application. All co
 ```
 
 **Props:**
+
 - `title` (string, required)
 - `action` (slot/node, optional)
 - `variant` ('default' | 'warning' | 'error')
@@ -48,6 +49,7 @@ This document defines reusable UI components used across the application. All co
 ```
 
 **Props:**
+
 - `label` (string, required)
 - `value` (number, required)
 - `loreState` (string, optional)
@@ -70,6 +72,7 @@ This document defines reusable UI components used across the application. All co
 | Heretical | Red | [Heretical] |
 
 **Props:**
+
 - `state` (string, required)
 - `size` ('sm' | 'md' | 'lg')
 
@@ -94,6 +97,7 @@ This document defines reusable UI components used across the application. All co
 ```
 
 **Props:**
+
 - `label` (string, required)
 - `type` ('text' | 'email' | 'password' | 'number')
 - `value` (string/number)
@@ -109,6 +113,7 @@ This document defines reusable UI components used across the application. All co
 **Purpose:** Styled dropdown select.
 
 **Props:**
+
 - `label` (string, required)
 - `options` (array, required)
 - `value` (string)
@@ -127,6 +132,7 @@ This document defines reusable UI components used across the application. All co
 ```
 
 **Props:**
+
 - `checked` (boolean)
 - `label` (string)
 - `onChange` (function)
@@ -148,6 +154,7 @@ This document defines reusable UI components used across the application. All co
 | Ghost | Inline actions | Transparent |
 
 **Props:**
+
 - `variant` ('primary' | 'secondary' | 'danger' | 'ghost')
 - `size` ('sm' | 'md' | 'lg')
 - `disabled` (boolean)
@@ -172,6 +179,7 @@ This document defines reusable UI components used across the application. All co
 | Info | Blue | ℹ |
 
 **Props:**
+
 - `type` ('success' | 'error' | 'warning' | 'info')
 - `message` (string, required)
 - `duration` (number, ms)
@@ -194,6 +202,7 @@ This document defines reusable UI components used across the application. All co
 **Purpose:** Placeholder for loading content.
 
 **Variants:**
+
 - `text` - Horizontal bars
 - `card` - Card-shaped placeholder
 - `list` - List item placeholders
@@ -213,6 +222,7 @@ Dashboard > Yukonia III > Infrastructure
 ```
 
 **Props:**
+
 - `items` (array of {label, href})
 
 **CSS Class:** `.breadcrumb`
@@ -224,6 +234,7 @@ Dashboard > Yukonia III > Infrastructure
 **Purpose:** Main navigation sidebar.
 
 **Props:**
+
 - `items` (array of navigation items)
 - `collapsed` (boolean)
 - `onNavigate` (function)
@@ -254,5 +265,6 @@ Dashboard > Yukonia III > Infrastructure
 ---
 
 **Related Documents:**
+
 - [UI Design System](../UI_DESIGN_SYSTEM.md)
 - All screen specifications reference these components

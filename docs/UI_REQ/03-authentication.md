@@ -73,6 +73,7 @@ Allow existing users to authenticate and access the application.
 **Endpoint:** `POST /api/auth/login`
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -81,6 +82,7 @@ Allow existing users to authenticate and access the application.
 ```
 
 **Response (200):**
+
 ```json
 {
   "access_token": "eyJ...",
@@ -94,11 +96,14 @@ Allow existing users to authenticate and access the application.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` → "Invalid email or password"
 - `422 Validation Error` → Inline field errors
 
 ---
+
 ### API Integration
+
 ---
 
 ## 3.2 Registration Screen
@@ -183,6 +188,7 @@ Allow new users to create an account.
 **Endpoint:** `POST /api/auth/register`
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -192,6 +198,7 @@ Allow new users to create an account.
 ```
 
 **Response (201):**
+
 ```json
 {
   "access_token": "eyJ...",
@@ -205,6 +212,7 @@ Allow new users to create an account.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` → "Email already registered"
 - `422 Validation Error` → Inline field errors
 
@@ -237,12 +245,14 @@ Reset Password → Success Message
 ### Logout
 
 **User Initiated:**
+
 - Click "Logout" in user menu
 - Clear tokens from memory
 - Clear httpOnly cookie via API call
 - Redirect to login screen
 
 **Session Expired:**
+
 - Detect 401 on API call
 - Attempt refresh
 - If refresh fails → clear state → redirect to login
@@ -251,6 +261,7 @@ Reset Password → Success Message
 ---
 
 **Related Documents:**
+
 - [Application Structure](./02-application-structure.md)
 - [API Integration](./14-api-integration.md)
 - [States & Errors](./13-states-and-errors.md)

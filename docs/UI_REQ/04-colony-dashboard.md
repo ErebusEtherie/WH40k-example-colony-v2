@@ -13,6 +13,7 @@ The Colony Dashboard is the primary view for managing a colony. It displays all 
 **Detailed Specifications:** See [`../UI_PANEL_REQUIREMENTS.md`](../UI_PANEL_REQUIREMENTS.md) for complete panel specifications, calculations, and API integration details.
 
 This document provides:
+
 - Screen layout and navigation
 - Component integration summary
 - Permission-based UI behavior
@@ -186,6 +187,7 @@ GET /api/v1/colonies/:id/support-upgrades
 | Mobile (<768px) | Panels stack vertically; stats show 2 per row |
 
 **Mobile Considerations:**
+
 - Stats grid becomes 2 columns instead of 5
 - Edit icons become buttons below fields
 - "View All" links become prominent buttons
@@ -193,6 +195,7 @@ GET /api/v1/colonies/:id/support-upgrades
 ---
 
 **Related Documents:**
+
 - [Panel Specifications](../UI_PANEL_REQUIREMENTS.md) — Complete panel details
 - [Infrastructure Management](./05-infrastructure-management.md)
 - [Support Upgrades](./06-support-upgrades.md)

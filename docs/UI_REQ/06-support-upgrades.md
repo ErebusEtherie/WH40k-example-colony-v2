@@ -90,11 +90,13 @@ Support Upgrades are modular improvements that provide bonuses to colony stats. 
 ## 6.4 Edit Upgrade Modal
 
 **Editable Fields:**
+
 - Custom Name (text input)
 - Choice (dropdown, if applicable)
 - State (Working/Not Working toggle)
 
 **Read-only:**
+
 - Bonuses (determined by type and choice)
 
 ---
@@ -133,6 +135,7 @@ Support Upgrades are modular improvements that provide bonuses to colony stats. 
 ---
 
 **Related Documents:**
+
 - [Colony Dashboard](./04-colony-dashboard.md)
 - [Infrastructure](./05-infrastructure-management.md)
 - [Shared Components](./11-components.md)

@@ -19,6 +19,7 @@ Admin screens are restricted to users with Admin permission. These screens manag
 **Purpose:** Manage system users and their roles.
 
 **Features:**
+
 - View all users with role badges
 - Edit user roles (Viewer/Editor/Admin)
 - Reset passwords
@@ -33,6 +34,7 @@ Admin screens are restricted to users with Admin permission. These screens manag
 **Purpose:** Control which users can access a colony and at what permission level.
 
 **Features:**
+
 - View current access list
 - Add user with role selection
 - Remove user access
@@ -45,11 +47,13 @@ Admin screens are restricted to users with Admin permission. These screens manag
 ## 10.4 Export/Import
 
 **Export:**
+
 - Format: JSON or YAML
 - Options: Include infrastructure, upgrades, modifiers, representatives, events
 - Downloads file to user's device
 
 **Import:**
+
 - Upload JSON/YAML file
 - Warning about overwriting data
 - Validation before import
@@ -63,6 +67,7 @@ Admin screens are restricted to users with Admin permission. These screens manag
 **Purpose:** View history of all changes to a colony.
 
 **Features:**
+
 - Filter by action type
 - Filter by date range
 - Filter by user
@@ -84,5 +89,6 @@ Admin screens are restricted to users with Admin permission. These screens manag
 ---
 
 **Related Documents:**
+
 - [Application Structure](./02-application-structure.md)
 - [API Integration](./14-api-integration.md)

@@ -53,6 +53,7 @@ All screens respect the following permission model:
 ## Implementation Priority
 
 ### Phase 1: Core Functionality (Required for MVP)
+
 - 🔴 Authentication (login, registration, token handling)
 - 🔴 Colony Dashboard (view colony stats)
 - 🔴 Infrastructure Management (add/remove infrastructure)
@@ -61,12 +62,14 @@ All screens respect the following permission model:
 - 🔴 API Integration (auth, error handling)
 
 ### Phase 2: Extended Features
+
 - 🟠 Representatives (create, assign to colony)
 - 🟠 Modifiers (GM tools for custom bonuses/penalties)
 - 🟠 Resources & Events (view and track)
 - 🟠 User Flows (complete workflows documented)
 
 ### Phase 3: Polish & Administration
+
 - 🟡 Admin Screens (user management, access control)
 - 🟡 Responsive Design (tablet optimization)
 - 🟡 Accessibility (WCAG compliance)
@@ -83,6 +86,7 @@ All screens respect the following permission model:
 ---
 
 **Next Steps:**
+
 1. Review this index and confirm structure
 2. Begin Phase 1 implementation (authentication + colony dashboard)
 3. Reference individual section files during development

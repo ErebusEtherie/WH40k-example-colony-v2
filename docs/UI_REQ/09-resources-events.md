@@ -9,6 +9,7 @@
 ## 9.1 Planetary Resources
 
 ### Overview
+
 Track planetary resources available to the colony (e.g., Minerals, Agriculture, Void Trade).
 
 ### Screen Layout
@@ -51,6 +52,7 @@ Track planetary resources available to the colony (e.g., Minerals, Agriculture, 
 ## 9.2 Events Log
 
 ### Overview
+
 Track significant events affecting the colony (e.g., "Xenos Raid", "Discovery of STC Fragment").
 
 ### Screen Layout
@@ -116,5 +118,6 @@ Shows days until next event/development roll.
 ---
 
 **Related Documents:**
+
 - [Colony Dashboard](./04-colony-dashboard.md)
 - [Modifiers](./08-modifiers.md)

@@ -327,7 +327,7 @@ Each personality maps to one or more modifiers. Process as follows:
 7. ✅ `special_trait_description` field available on Representative for GM notes
 8. ⏳ Colony Dashboard UI shows 3 panels with correct data (pending)
 9. ✅ All domain tests passing (644 tests, 3 skipped)
-9. ✅ Ruff ✅, Mypy ✅ on all modified files
+10. ✅ Ruff ✅, Mypy ✅ on all modified files
 
 **Removed:** `pending_infrastructure_growth` flag criteria removed per requirements alignment.
 

@@ -77,6 +77,7 @@ Application Root
 ```
 
 ### Sidebar Navigation Items
+
 ### Sidebar Navigation Items
 
 | Item | Icon | Route | Permission | Description |
@@ -155,11 +156,13 @@ Application Root
 ### Permission Enforcement
 
 **UI Level:**
+
 - Hide edit/delete buttons for users without permission
 - Disable form inputs for Viewer role
 - Show "Upgrade Required" messaging where applicable
 
 **API Level:**
+
 - All endpoints validate permissions server-side
 - 403 Forbidden returned for unauthorized actions
 - UI handles 403 with appropriate messaging
@@ -199,6 +202,7 @@ All routes except `/login`, `/register`, and `/` (landing) require authenticatio
 ### Colony Context
 
 When accessing `/colony/:id/*`, verify user has access to that colony:
+
 - If no access → Show "Access Denied" page
 - If Viewer → Show read-only UI
 - If Editor/Admin → Show full UI
@@ -223,6 +227,7 @@ When accessing `/colony/:id/*`, verify user has access to that colony:
 ---
 
 **Related Documents:**
+
 - [Authentication Screens](./03-authentication.md)
 - [API Integration](./14-api-integration.md)
 - [User Flows](./12-user-flows.md)

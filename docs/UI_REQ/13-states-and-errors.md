@@ -19,6 +19,7 @@ This document defines standard UI states for loading, error, empty, and success 
 Used when content is being fetched from the API.
 
 **Pattern:**
+
 ```
 ╔═══════════════════════════════════════════════════════════╗
 ║ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ ║
@@ -28,6 +29,7 @@ Used when content is being fetched from the API.
 ```
 
 **Usage:**
+
 - Panel loading → Skeleton panel
 - List loading → Skeleton list items (3-5 items)
 - Stat loading → Skeleton stat cards
@@ -82,6 +84,7 @@ Used for button/loading states during actions.
 ```
 
 **Variants:**
+
 - Empty infrastructure: "No infrastructure built yet."
 - Empty upgrades: "No support upgrades installed."
 - Empty modifiers: "No custom modifiers applied."
@@ -120,5 +123,6 @@ Used for button/loading states during actions.
 ---
 
 **Related Documents:**
+
 - [Shared Components](./11-components.md)
 - [API Integration](./14-api-integration.md)

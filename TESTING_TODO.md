@@ -214,4 +214,3 @@ None — all service tests complete.
 - **Domain tests should not mock domain code** — domain has no I/O
 - **API tests verify wiring/serialization**, not domain math (covered in domain tests)
 - **Add corresponding tests when adding new models/repositories**
-

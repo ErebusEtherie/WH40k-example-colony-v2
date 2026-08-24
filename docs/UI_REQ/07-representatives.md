@@ -11,6 +11,7 @@
 Representatives are characters that govern colonies. They provide leadership modifiers and have skills/talents that may affect colony management.
 
 **Two Views:**
+
 1. **Global Representative List** - All representatives in the system
 2. **Colony Representative Assignment** - Assign a representative to a colony
 
@@ -60,6 +61,7 @@ Representatives are characters that govern colonies. They provide leadership mod
 ## 7.3 Add/Edit Representative
 
 **Fields:**
+
 - Name (text, required)
 - Title/Role (dropdown)
 - Level (number)
@@ -99,5 +101,6 @@ Dropdown selection from available representatives. Shows leadership modifier for
 ---
 
 **Related Documents:**
+
 - [Colony Dashboard](./04-colony-dashboard.md)
 - [Shared Components](./11-components.md)

@@ -5,6 +5,7 @@
   "MD036": false,
   "MD041": false,
   "MD060": false,
+  "MD040": false,
   "no-duplicate-heading": {
     "siblings_only": true
   }

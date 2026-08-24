@@ -112,6 +112,7 @@ Loaded from API: `GET /api/v1/infrastructure-types`
 ## 5.5 Edit Infrastructure Modal
 
 **Editable Fields:**
+
 - Custom Name (text input)
 - State (Working/Not Working toggle)
 - Bonuses are read-only (determined by type)
@@ -159,6 +160,7 @@ Requires confirmation modal before deletion. Shows affected bonuses that will be
 ---
 
 **Related Documents:**
+
 - [Colony Dashboard](./04-colony-dashboard.md)
 - [Support Upgrades](./06-support-upgrades.md)
 - [Shared Components](./11-components.md)

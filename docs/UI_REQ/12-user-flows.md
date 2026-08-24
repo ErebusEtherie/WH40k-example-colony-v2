@@ -200,6 +200,7 @@ This document describes end-to-end user flows through the application. Each flow
 ---
 
 **Related Documents:**
+
 - [Authentication](./03-authentication.md)
 - [States & Errors](./13-states-and-errors.md)
 - [API Integration](./14-api-integration.md)

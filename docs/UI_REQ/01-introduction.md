@@ -35,6 +35,7 @@ This document defines the complete user interface requirements for the WH40k Col
 **Description:** The GM administers the campaign, creates colonies, and manages game events.
 
 **Primary Tasks:**
+
 - Create new colonies for players
 - Apply event outcomes via modifiers
 - Manage user access and permissions
@@ -42,6 +43,7 @@ This document defines the complete user interface requirements for the WH40k Col
 - Export/import colony data for backup
 
 **UI Needs:**
+
 - Quick access to all colonies
 - Modifier management tools prominently available
 - Audit log visibility
@@ -54,6 +56,7 @@ This document defines the complete user interface requirements for the WH40k Col
 **Description:** A Rogue Trader or colony governor managing their assigned colony.
 
 **Primary Tasks:**
+
 - View colony statistics and status
 - Add/remove infrastructure
 - Add/remove support upgrades
@@ -61,6 +64,7 @@ This document defines the complete user interface requirements for the WH40k Col
 - Track colony age and development
 
 **UI Needs:**
+
 - Clear stat displays with lore states
 - Easy infrastructure management
 - Visual feedback on colony health
@@ -73,11 +77,13 @@ This document defines the complete user interface requirements for the WH40k Col
 **Description:** An observer or secondary player with read-only access.
 
 **Primary Tasks:**
+
 - View colony status
 - Review colony history
 - Check infrastructure and upgrades
 
 **UI Needs:**
+
 - Read-only dashboard access
 - Clear information hierarchy
 - No editing controls visible
@@ -109,6 +115,7 @@ This document defines the complete user interface requirements for the WH40k Col
 ### Frontend Framework
 
 These requirements are **framework-agnostic**. Implementation can use:
+
 - React
 - Vue 3
 - Svelte
@@ -127,6 +134,7 @@ These requirements are **framework-agnostic**. Implementation can use:
 ### CSS Framework
 
 Use the Mechanicum Design System:
+
 - **Location:** `../UI_DESIGN_SYSTEM.md`
 - **Implementation:** `src/assets/css/mechanicum-design-system.css`
 - **Key Classes:** `.mech-panel`, `.mech-input`, `.purity-seal`, etc.
@@ -152,18 +160,21 @@ Use the Mechanicum Design System:
 ## 1.6 Document Maintenance
 
 **When to Update:**
+
 - Adding new screens or features
 - Changing user flows
 - Adding new components
 - API endpoint changes affecting UI
 
 **Review Cycle:**
+
 - Review before each development sprint
 - Update after major feature completion
 
 ---
 
 **Related Documents:**
+
 - [Application Structure](./02-application-structure.md)
 - [UI Design System](../UI_DESIGN_SYSTEM.md)
 - [Business Analysis](../business_analysis.md)

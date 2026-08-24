@@ -73,6 +73,7 @@ This document defines responsive breakpoints and accessibility requirements for 
 | UI Components | 3:1 |
 
 **Mechanicum Palette Compliance:**
+
 - Plasma Blue on Dark: ✅ 7.2:1
 - Copper on Dark: ✅ 5.1:1
 - Red (Error) on Dark: ✅ 6.3:1
@@ -219,5 +220,6 @@ Do not rely on color alone to convey information:
 ---
 
 **Related Documents:**
+
 - [UI Design System](../UI_DESIGN_SYSTEM.md)
 - [Shared Components](./11-components.md)
