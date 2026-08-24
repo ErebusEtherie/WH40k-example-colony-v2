@@ -12,6 +12,13 @@ class ModifierSourceType(StrEnum):
     SUPPORT_UPGRADE = "support_upgrade"
 
 
+class ModifierCategory(StrEnum):
+    """Category of modifier for tracking and filtering purposes."""
+    PERMANENT = "permanent"  # Always active (infrastructure, support upgrades, resources)
+    CONDITIONAL = "conditional"  # Condition-based (state effects, growth/decay)
+    CUSTOM = "custom"  # GM-created custom modifiers
+
+
 class ModifierStat(StrEnum):
     SIZE = "size"
     COMPLACENCY = "complacency"

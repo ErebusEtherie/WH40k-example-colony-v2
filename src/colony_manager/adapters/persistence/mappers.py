@@ -20,6 +20,7 @@ from colony_manager.adapters.persistence.orm_models import (
 )
 from colony_manager.domain.enums import (
     ColonyType,
+    ModifierCategory,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -169,6 +170,7 @@ def orm_to_domain_modifier(orm: ModifierORM) -> Modifier:
         id=orm.id,
         colony_id=orm.colony_id,
         modifier_source_type=ModifierSourceType(orm.modifier_source_type),
+        modifier_category=ModifierCategory(orm.modifier_category),
         modifier_stat=ModifierStat(orm.modifier_stat),
         modifier_value=orm.modifier_value,
         description=orm.modifier_description,
@@ -182,6 +184,7 @@ def domain_to_orm_modifier(domain: Modifier) -> ModifierORM:
         id=domain.id,
         colony_id=domain.colony_id,
         modifier_source_type=domain.modifier_source_type.value,
+        modifier_category=domain.modifier_category.value,
         modifier_stat=domain.modifier_stat.value,
         modifier_value=domain.modifier_value,
         modifier_description=domain.modifier_description,

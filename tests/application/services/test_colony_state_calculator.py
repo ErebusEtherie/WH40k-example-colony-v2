@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import pytest
 
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
-from colony_manager.domain.enums import ColonyType, ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierSourceType, ModifierStat
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
@@ -44,6 +44,7 @@ class TestColonyStateCalculatorWithExpiry:
         permanent_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=5,
             description="Permanent bonus",
@@ -53,6 +54,7 @@ class TestColonyStateCalculatorWithExpiry:
         expired_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=10,
             description="Expired bonus",
@@ -81,6 +83,7 @@ class TestColonyStateCalculatorWithExpiry:
         future_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=10,
             description="Future bonus",
@@ -110,6 +113,7 @@ class TestColonyStateCalculatorWithExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=10,
             description="Temporary bonus",
@@ -141,6 +145,7 @@ class TestColonyStateCalculatorWithExpiry:
         inactive_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=10,
             description="Disabled bonus",

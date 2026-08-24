@@ -4,16 +4,17 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, ModifierStat
 
 
 class ModifierCreate(BaseModel):
     """Schema for creating a new modifier."""
 
     modifier_source_type: ModifierSourceType
+    modifier_category: ModifierCategory
     modifier_stat: ModifierStat
     modifier_value: int
-    modifier_description: str = Field(..., min_length=1, max_length=200)
+    modifier_description: str = Field(default="", max_length=200)
     is_active: bool = True
     expires_at: date | None = None
 
@@ -24,6 +25,7 @@ class ModifierResponse(BaseModel):
     id: int | None
     colony_id: int
     modifier_source_type: ModifierSourceType
+    modifier_category: ModifierCategory
     modifier_stat: ModifierStat
     modifier_value: int
     modifier_description: str

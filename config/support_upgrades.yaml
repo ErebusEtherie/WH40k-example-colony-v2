@@ -126,8 +126,6 @@
   description: "Refineries, foundries, and sprawling mine complexes that produce everything from rations to voidship components."
   stat_effects:
     - stat: "productivity"
-      value: 2
-    - stat: "profit_factor"
       value: 1
   mechanical_effects:
     - description: "The Explorers define a specific product (e.g., lasguns), which can lead to further trade-based adventures."

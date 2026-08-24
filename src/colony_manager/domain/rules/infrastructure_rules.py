@@ -14,7 +14,12 @@ Hard Infrastructure types:
 - Communications: working (+1 Prod, +1 Order), not_working (-2 Prod, -2 Order)
 """
 
-from colony_manager.domain.enums import InfrastructureState, InfrastructureType, ModifierStat
+from colony_manager.domain.enums import (
+    InfrastructureState,
+    InfrastructureType,
+    ModifierCategory,
+    ModifierStat,
+)
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 
@@ -39,6 +44,7 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
         Modifier(
             colony_id=infrastructure.colony_id,
             modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
+            modifier_category=ModifierCategory.PERMANENT,
             modifier_stat=ModifierStat(str(mod["stat"])),
             modifier_value=int(mod["value"]),  # type: ignore[call-overload]
             description=f"{infrastructure.infrastructure_type.value} ({infrastructure.state.value})",

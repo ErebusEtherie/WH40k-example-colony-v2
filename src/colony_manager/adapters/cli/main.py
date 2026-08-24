@@ -22,6 +22,7 @@ from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.enums import (
     ColonyType,
+    ModifierCategory,
     RepresentativeType,
     SkillLevel,
 )
@@ -176,6 +177,7 @@ def add_colony_modifier(
         modifier = Modifier(
             colony_id=colony_id,
             modifier_source_type=ModifierSourceType(modifier_source_type),
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat(modifier_stat),
             modifier_value=modifier_value,
             description=modifier_description,

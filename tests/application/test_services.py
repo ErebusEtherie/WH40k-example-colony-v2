@@ -7,6 +7,7 @@ from colony_manager.application.services.representative_service import Represent
 from colony_manager.domain.enums import (
     ColonyType,
     LoreState,
+    ModifierCategory,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -191,6 +192,7 @@ def test_colony_service_add_modifier_updates_colony():
     modifier = Modifier(
         colony_id=created_colony.id,
         modifier_source_type=ModifierSourceType.GM_CUSTOM,
+        modifier_category=ModifierCategory.CUSTOM,
         modifier_stat=ModifierStat.ORDER,
         modifier_value=2,
         description="test",

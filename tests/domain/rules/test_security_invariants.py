@@ -10,7 +10,7 @@ These tests verify critical security invariants that must always hold:
 import hypothesis.strategies as st
 from hypothesis import given
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 from colony_manager.domain.rules.stat_calculator import calculate_stat
@@ -29,6 +29,7 @@ class TestStatSecurityInvariants:
             Modifier(
                 colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.ORDER,
                 modifier_value=val,
                 is_active=True,
@@ -42,8 +43,8 @@ class TestStatSecurityInvariants:
         """Test: Locked stats ignore all positive modifiers."""
         base_value = 50
         modifiers = [
-            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=20, is_active=True),
-            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=-10, is_active=True),
+            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=20, is_active=True),
+            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=-10, is_active=True),
         ]
         locked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=True)
         unlocked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=False)
@@ -75,6 +76,7 @@ class TestProfitFactorSecurityInvariants:
             Modifier(
                 colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=custom_pf_mod,
                 is_active=True,
@@ -111,6 +113,7 @@ class TestProfitFactorSecurityInvariants:
             Modifier(
                 colony_id=1,
                 modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=custom_pf_mod,
                 is_active=True,
@@ -163,7 +166,7 @@ class TestProfitFactorSecurityInvariants:
             current_piety=100,
             actual_size=5,
             modifiers=[
-                Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_stat=ModifierStat.PROFIT_FACTOR, modifier_value=1000, is_active=True),
+                Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.PROFIT_FACTOR, modifier_value=1000, is_active=True),
             ],
             leadership_modifier=50,
             is_orderly=False,

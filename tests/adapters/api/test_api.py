@@ -99,6 +99,7 @@ def test_colony_modifiers(auth_client):
     
     modifier_data = {
         "modifier_source_type": "infrastructure",
+        "modifier_category": "permanent",
         "modifier_stat": "complacency",
         "modifier_value": 5,
         "modifier_description": "Test infrastructure"
@@ -198,6 +199,7 @@ def test_list_all_modifiers(auth_client):
 
         modifier_data = {
             "modifier_source_type": "infrastructure",
+            "modifier_category": "permanent",
             "modifier_stat": "order",
             "modifier_value": 3,
             "modifier_description": f"Test {i}"

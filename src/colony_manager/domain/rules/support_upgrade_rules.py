@@ -7,7 +7,7 @@ Per Rogue Trader Colony Rules:
 - Cultural Improvement allows choosing any stat except Size
 """
 
-from colony_manager.domain.enums import ColonyType, ModifierStat, SupportUpgradeType
+from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierStat, SupportUpgradeType
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 
@@ -39,6 +39,7 @@ def get_support_upgrade_modifiers(
                 Modifier(
                     colony_id=upgrade.colony_id,
                     modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
+                    modifier_category=ModifierCategory.PERMANENT,
                     modifier_stat=upgrade.custom_stat_choice,
                     modifier_value=1,
                     description="Cultural Improvement (chosen)",
@@ -61,9 +62,8 @@ def _get_base_modifiers(
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Arbites Precinct", colony_id))
     
     elif upgrade_type == SupportUpgradeType.ECCLESIOARCHY_MISSION:
+        # Per Rogue Trader Colony Rules: Ecclesiarchy Mission provides +1 Piety only
         modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission", colony_id))
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Ecclesiarchy Mission", colony_id))
-        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Ecclesiarchy Mission", colony_id))
     
     elif upgrade_type == SupportUpgradeType.MECHANICUM_STATION:
         # Base +1, +2 for Mining/Industry/Mining_and_Industry, +3 for Research Mission
@@ -86,6 +86,7 @@ def _get_base_modifiers(
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Imperial Navy Station", colony_id))
     
     elif upgrade_type == SupportUpgradeType.INDUSTRIAL_FACILITY:
+        # Per Rogue Trader Colony Rules: Industrial Facility provides Productivity +1
         modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility", colony_id))
     
     elif upgrade_type == SupportUpgradeType.PERSONAL_LODGINGS:
@@ -104,6 +105,7 @@ def _make_modifier(stat: ModifierStat, value: int, source_name: str, colony_id: 
     return Modifier(
         colony_id=colony_id,
         modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
+        modifier_category=ModifierCategory.PERMANENT,
         modifier_stat=stat,
         modifier_value=value,
         description=source_name,

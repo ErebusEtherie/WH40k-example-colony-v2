@@ -79,6 +79,7 @@ class ModifierORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     modifier_source_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    modifier_category: Mapped[str] = mapped_column(String(50), nullable=False)
     modifier_stat: Mapped[str] = mapped_column(String(255), nullable=False)
     modifier_value: Mapped[int] = mapped_column(Integer, nullable=False)
     modifier_description: Mapped[str] = mapped_column(Text, nullable=False)

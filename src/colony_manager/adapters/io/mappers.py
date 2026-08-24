@@ -17,7 +17,7 @@ from colony_manager.adapters.io.save_file_schema import (
     SaveSkill,
     SaveTalent,
 )
-from colony_manager.domain.enums import ColonyType
+from colony_manager.domain.enums import ColonyType, ModifierCategory
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.colony_user import ColonyUser
 from colony_manager.domain.models.development_plan import DevelopmentPlan, DevelopmentPlanStatus
@@ -57,6 +57,7 @@ def domain_to_save_file(
         modifiers=[
             SaveModifier(
                 modifier_source_type=modifier.modifier_source_type,
+                modifier_category=modifier.modifier_category,
                 modifier_stat=modifier.modifier_stat,
                 modifier_value=modifier.modifier_value,
                 modifier_description=modifier.modifier_description,
@@ -94,6 +95,7 @@ def save_file_to_domain(save_file: ColonySaveFile) -> dict:
             Modifier(
                 colony_id=0,
                 modifier_source_type=modifier.modifier_source_type,
+                modifier_category=modifier.modifier_category,
                 modifier_stat=modifier.modifier_stat,
                 modifier_value=modifier.modifier_value,
                 description=modifier.modifier_description,

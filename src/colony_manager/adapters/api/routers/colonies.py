@@ -234,8 +234,10 @@ async def list_colony_modifiers(
     colony = _check_colony_exists(service, colony_id)
     return [ModifierResponse(
         id=mod.id, colony_id=colony_id, modifier_source_type=mod.modifier_source_type,
+        modifier_category=mod.modifier_category,
         modifier_stat=mod.modifier_stat, modifier_value=mod.modifier_value,
         modifier_description=mod.modifier_description, is_active=mod.is_active,
+        expires_at=mod.expires_at,
     ) for mod in colony.modifiers]
 
 
@@ -250,16 +252,22 @@ async def add_colony_modifier(
     _check_colony_exists(service, colony_id)
     modifier = Modifier(
         colony_id=colony_id,
-        modifier_source_type=modifier_data.modifier_source_type, modifier_stat=modifier_data.modifier_stat,
-        modifier_value=modifier_data.modifier_value, description=modifier_data.modifier_description,
+        modifier_source_type=modifier_data.modifier_source_type,
+        modifier_category=modifier_data.modifier_category,
+        modifier_stat=modifier_data.modifier_stat,
+        modifier_value=modifier_data.modifier_value,
+        description=modifier_data.modifier_description,
         is_active=modifier_data.is_active,
+        expires_at=modifier_data.expires_at,
     )
     updated = service.add_modifier(colony_id, modifier, changed_by=current_user.id)
     new_modifier = updated.modifiers[-1]
     return ModifierResponse(
         id=new_modifier.id, colony_id=colony_id, modifier_source_type=new_modifier.modifier_source_type,
+        modifier_category=new_modifier.modifier_category,
         modifier_stat=new_modifier.modifier_stat, modifier_value=new_modifier.modifier_value,
         modifier_description=new_modifier.modifier_description, is_active=new_modifier.is_active,
+        expires_at=new_modifier.expires_at,
     )
 
 

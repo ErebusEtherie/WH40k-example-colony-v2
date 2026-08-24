@@ -34,10 +34,12 @@ async def list_all_modifiers(
                     id=mod.id,
                     colony_id=colony.id,
                     modifier_source_type=mod.modifier_source_type,
+                    modifier_category=mod.modifier_category,
                     modifier_stat=mod.modifier_stat,
                     modifier_value=mod.modifier_value,
                     modifier_description=mod.modifier_description,
                     is_active=mod.is_active,
+                    expires_at=mod.expires_at,
                 )
             )
     return all_modifiers
@@ -59,9 +61,11 @@ async def get_modifier(
                     id=mod.id,
                     colony_id=colony.id,
                     modifier_source_type=mod.modifier_source_type,
+                    modifier_category=mod.modifier_category,
                     modifier_stat=mod.modifier_stat,
                     modifier_value=mod.modifier_value,
                     modifier_description=mod.modifier_description,
                     is_active=mod.is_active,
+                    expires_at=mod.expires_at,
                 )
     raise HTTPException(status_code=404, detail=f"Modifier {modifier_id} not found")

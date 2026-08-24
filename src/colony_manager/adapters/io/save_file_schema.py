@@ -7,6 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from colony_manager.domain.enums import (
+    ModifierCategory,
     ModifierSourceType,
     ModifierStat,
     RepresentativeType,
@@ -17,6 +18,7 @@ from colony_manager.domain.models.colony_user import ColonyUserRole
 
 class SaveModifier(BaseModel):
     modifier_source_type: ModifierSourceType
+    modifier_category: ModifierCategory
     modifier_stat: ModifierStat
     modifier_value: int
     modifier_description: str

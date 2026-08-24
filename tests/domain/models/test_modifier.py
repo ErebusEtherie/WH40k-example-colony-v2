@@ -2,7 +2,7 @@
 
 from datetime import date, timedelta
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 
 
@@ -14,6 +14,7 @@ class TestModifierExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=2,
             description="Test modifier",
@@ -29,6 +30,7 @@ class TestModifierExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=2,
             description="Test modifier",
@@ -42,6 +44,7 @@ class TestModifierExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=2,
             description="Test modifier",
@@ -55,6 +58,7 @@ class TestModifierExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=2,
             description="Test modifier",
@@ -73,6 +77,7 @@ class TestModifierExpiry:
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PRODUCTIVITY,
             modifier_value=2,
             description="Test modifier",

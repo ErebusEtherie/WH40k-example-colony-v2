@@ -240,7 +240,7 @@ pf_base = lookup(actual_size)            # Size → PF table, from reference "Da
 pf_raw  = pf_base
         + (1 if current_complacency > actual_size else 0)   # Placated bonus
         + (2 if current_productivity > actual_size else 0)  # Productive bonus
-        + sum(active permanent modifiers where stat == 'profit_factor')  # e.g. Industrial Facility
+        + sum(active permanent modifiers where stat == 'profit_factor')  # e.g. colony type specials
         + sum(active custom modifiers where stat == 'profit_factor')     # GM input
         + leadership_modifier            # from Representative, see below
 

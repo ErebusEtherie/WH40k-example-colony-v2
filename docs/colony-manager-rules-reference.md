@@ -466,7 +466,7 @@ Until a required infrastructure is built (moved from In Progress to Working):
 | **Infantry Garrison** | Order +1 | One only | A barracks and headquarters for Imperial Guard or other military forces stationed to protect the colony. Their presence deters external threats and internal rebellion through show of force and martial discipline. |
 | **Imperial Navy Station** | Order +1 | One only | A void-port, orbital dock, or aerospace facility maintained by the Imperial Navy. Enables system defense, void transport, and maintains the Rogue Trader's connection to the wider stellar neighborhood. |
 | **Cultural Improvement** | Player Choice +1 | Once per stat | A theater, museum, garden, or other cultural institution that elevates the colony beyond mere survival, improving quality of life and community spirit in the chosen area. |
-| **Industrial Facility** | Productivity +2, PF_Value +1 | — | A manufactorum, refinery, or production center that significantly increases the colony's industrial output and economic value. |
+| **Industrial Facility** | Productivity +1| — | A manufactorum, refinery, or production center that significantly increases the colony's industrial output and economic value. |
 | **Personal Lodgings** | Order +1 | Once (no benefit after first) | Rogue Traders frequently build lavish personal accommodations on their colonised worlds, from fortified compounds to grand palaces, or humble prefabricated hab units. Security measures, armouries, dungeons, teleportariums, or ostentatious banqueting halls may be included. +10 to Charm, Commerce, and Deceive Tests while entertaining dignitaries here. |
 | **Contacts** | Special (see below) | Cumulative | A network of 1d5 NPCs who have risen above the faceless masses—each with connections to local groups (Ecclesiarchy, Mechanicus, underworld, mutant societies, hidden cults). +10 to Fellowship-based Tests with affiliated groups. Can be used to investigate shadowy portions of the colony. |
 | **Trappings** | Complacency +1 | Cumulative | Large-scale and grandiose signs of the Rogue Trader's skill, courage, and cunning—the prow of a rival's flagship as a monument, the skeleton of an exotic predator, or a massive effigy of the Rogue Trader. These inspire the populace and keep them blinded by the shining legend of their leader. |
@@ -628,7 +628,6 @@ At end of 90-day cycle, player selects:
 |---|---:|---|
 | Placated | +1 | Complacency > Size |
 | Productive | +2 | Productivity > Size |
-| Industrial Facility | +1 | Per Working facility |
 | Leader Quality | -2 to +2 | Based on stat |
 | Colony Type Special | Variable | See Colony Type section |
 

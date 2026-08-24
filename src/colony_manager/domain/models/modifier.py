@@ -4,7 +4,7 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, ModifierStat
 
 
 class Modifier(BaseModel):
@@ -18,6 +18,7 @@ class Modifier(BaseModel):
         id: Database ID (None if not yet persisted).
         colony_id: ID of the colony this modifier belongs to.
         modifier_source_type: Source of the modifier (e.g., infrastructure, GM custom).
+        modifier_category: Category of modifier (permanent, conditional, custom).
         modifier_stat: Which stat this modifier affects.
         modifier_value: Numeric value of the modifier (positive or negative).
         modifier_description: Human-readable description of the modifier source.
@@ -27,6 +28,7 @@ class Modifier(BaseModel):
     id: int | None = None
     colony_id: int
     modifier_source_type: ModifierSourceType
+    modifier_category: ModifierCategory
     modifier_stat: ModifierStat
     modifier_value: int
     modifier_description: str = Field(alias="description", default="")
@@ -51,4 +53,4 @@ class Modifier(BaseModel):
         return check_date > self.expires_at
 
 
-__all__ = ["Modifier", "ModifierSourceType", "ModifierStat"]
+__all__ = ["Modifier", "ModifierCategory", "ModifierSourceType", "ModifierStat"]

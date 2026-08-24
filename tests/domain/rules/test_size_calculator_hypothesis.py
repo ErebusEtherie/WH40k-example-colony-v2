@@ -3,7 +3,7 @@
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ColonyType, ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.size_calculator import (
     GrowthRollResult,
@@ -22,6 +22,7 @@ def size_modifiers(draw):
         modifier = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=draw(st.integers(min_value=-5, max_value=5)),
             description=draw(st.text(min_size=1, max_size=50)),
@@ -52,6 +53,7 @@ class TestCalculateSizeProperties:
     def test_single_positive_modifier_increases_size(self, base_size: int, mod_value: int):
         """A single positive modifier increases size."""
         modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                          modifier_category=ModifierCategory.CUSTOM,
                           modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
                           description="Test", is_active=True)
         result = calculate_size(base_size, [modifier])
@@ -62,6 +64,7 @@ class TestCalculateSizeProperties:
     def test_single_negative_modifier_decreases_size(self, base_size: int, mod_value: int):
         """A single negative modifier decreases size (but not below 0)."""
         modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                          modifier_category=ModifierCategory.CUSTOM,
                           modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
                           description="Test", is_active=True)
         result = calculate_size(base_size, [modifier])

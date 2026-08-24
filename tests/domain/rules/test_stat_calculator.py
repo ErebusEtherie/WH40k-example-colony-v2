@@ -2,7 +2,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.stat_calculator import calculate_stat
 
@@ -14,6 +14,7 @@ def test_calculate_stat_with_active_modifiers():
             id=1,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=5,
             modifier_description="Bonus",
@@ -23,6 +24,7 @@ def test_calculate_stat_with_active_modifiers():
             id=2,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.ORDER,
             modifier_value=-3,
             modifier_description="Penalty",
@@ -40,6 +42,7 @@ def test_calculate_stat_ignores_inactive_modifiers():
             id=1,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=-20,
             modifier_description="Inactive penalty",
@@ -57,6 +60,7 @@ def test_calculate_stat_never_negative():
             id=1,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=-5,
             modifier_description="Penalty",
@@ -78,6 +82,7 @@ def test_calculate_stat_never_negative_property(base_value, modifier_values):
             id=i,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=value,
             modifier_description=f"Modifier {i}",
@@ -100,6 +105,7 @@ def test_calculate_stat_locked_prevents_increases_property(base_value, modifier_
             id=i,
             colony_id=1,
             modifier_source_type="gm_custom",
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.ORDER,
             modifier_value=value,
             modifier_description=f"Modifier {i}",

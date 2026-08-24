@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, ModifierStat
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.size_calculator import calculate_size
 
@@ -13,6 +13,7 @@ def test_calculate_size_with_active_modifiers():
             id=1,
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=3,
             description="Growth",
@@ -30,6 +31,7 @@ def test_calculate_size_ignores_non_size_modifiers():
             id=1,
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.ORDER,
             modifier_value=10,
             description="Misapplied",
@@ -47,6 +49,7 @@ def test_calculate_size_never_negative():
             id=1,
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=-5,
             description="Shrink",
@@ -68,6 +71,7 @@ def test_calculate_size_never_negative_property(base_size, modifier_values):
             id=i,
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.SIZE,
             modifier_value=value,
             description=f"Modifier {i}",
