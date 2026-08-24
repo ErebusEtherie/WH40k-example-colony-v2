@@ -1,7 +1,7 @@
 # Project Status & ToDo List
 
-**Last Updated:** 2026-08-22
-**Status:** ✅ All 627 tests passing, zero Pylance errors
+**Last Updated:** 2026-08-24
+**Status:** ✅ All 640 tests passing, zero Pylance errors
 
 ---
 
@@ -9,7 +9,7 @@
 
 The WH40k Colony Manager project is in a **stable, production-ready state** for core functionality:
 
-- ✅ **627 tests passing** (100% pass rate)
+- ✅ **640 tests passing** (100% pass rate)
 - ✅ **Zero Pylance type errors** across the entire codebase
 - ✅ **All domain models** have validator tests
 - ✅ **All persistence repositories** have round-trip tests
@@ -25,13 +25,13 @@ The WH40k Colony Manager project is in a **stable, production-ready state** for 
 |----------|-------|-------|--------|
 | **Domain Models** | 10 files | 100+ | ✅ Complete |
 | **Domain Rules** | 9 files | 80+ | ✅ Complete (includes Hypothesis) |
-| **Application Services** | 6 files | 50+ | ⚠️ Missing 2 service tests |
+| **Application Services** | 8 files | 50+ | ✅ Complete |
 | **Persistence Repositories** | 9 files | 60+ | ✅ Complete |
 | **API Routers** | 13 files | 200+ | ✅ Complete |
 | **Security** | 4 files | 40+ | ✅ Complete |
 | **Integration** | 3 files | 20+ | ✅ Complete |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **48 files** | **627 tests** | ✅ **100% passing** |
+| **Total** | **48 files** | **640 tests** | ✅ **100% passing** |
 
 ---
 
@@ -77,44 +77,13 @@ The WH40k Colony Manager project is in a **stable, production-ready state** for 
 
 ### HIGH PRIORITY
 
-#### 1. Complete Application Service Tests
-
-**Files missing:** `test_infrastructure_service.py`, `test_support_upgrade_service.py`
-
-These services are implemented and tested indirectly through API tests, but direct service-level tests would improve coverage.
-
-**Scope:**
-
-- `test_infrastructure_service.py`: Test `InfrastructureService` methods
-- `test_support_upgrade_service.py`: Test `SupportUpgradeService` methods
-
-**Estimated effort:** 2-3 hours
+None — all core features complete and tested.
 
 ---
 
 ## Open Questions
 
-### 1. Hard Infrastructure Timing (Resolved?)
-
-**Question:** Should Hard Infrastructure rules be implemented before Phase 4b?
-
-**Current Status:** Phase 4b is marked as complete with Hard Infrastructure implemented.
-
-**Action:** Update DECISIONS_AND_QUESTIONS.md to reflect this is resolved.
-
----
-
-### 2. Roll Interval Configuration (Resolved?)
-
-**Question:** Per-colony vs. global config for roll intervals?
-
-**Current Status:** Implemented as global config with per-colony override capability.
-
-**Action:** Update DECISIONS_AND_QUESTIONS.md to reflect this is resolved.
-
----
-
-### 3. Production Authentication
+### 1. Production Authentication
 
 **Question:** Is the current JWT-based auth sufficient for production?
 
@@ -124,7 +93,7 @@ These services are implemented and tested indirectly through API tests, but dire
 
 ---
 
-### 4. Config Data Validation
+### 2. Config Data Validation
 
 **Question:** Should placeholder config values be validated against reference Excel?
 
@@ -152,8 +121,6 @@ These services are implemented and tested indirectly through API tests, but dire
 
 | Item | Severity | Effort | Notes |
 |------|----------|--------|-------|
-| TESTING_TODO.md out of date | Low | 1 hour | Many MISSING items actually exist |
-| DECISIONS_AND_QUESTIONS.md outdated | Low | 1 hour | Phase 4b completion not reflected |
 | No CI/CD pipeline | Medium | 4 hours | Would catch errors early |
 | No documentation site | Low | 8 hours | API docs exist via Swagger |
 
@@ -161,30 +128,20 @@ These services are implemented and tested indirectly through API tests, but dire
 
 ## Recommended Next Steps
 
-1. **Update documentation** (1-2 hours)
-   - Mark resolved items in DECISIONS_AND_QUESTIONS.md
-   - Update TESTING_TODO.md to reflect actual test coverage
-
-2. **Complete service tests** (2-3 hours)
-   - `test_infrastructure_service.py`
-   - `test_support_upgrade_service.py`
-
-3. **Decide on frontend approach** (discussion)
+1. **Decide on frontend approach** (discussion)
    - Review FRONTEND_REQUIREMENTS_*.md files
    - Choose framework and architecture
 
-4. **Consider Excel migration utility** (decision needed)
+2. **Consider Excel migration utility** (decision needed)
 
-5. **Set up CI/CD** (optional, 4 hours)
+3. **Set up CI/CD** (optional, 4 hours)
 
 ---
 
 ## Files Requiring Updates
 
-1. `TESTING_TODO.md` — Mark completed tests, remove duplicates
-2. `docs/DECISIONS_AND_QUESTIONS.md` — Mark resolved questions
-3. `README.md` — Add API usage examples
-4. `tools/excel_migration.py` — Either implement or remove stub
+1. `README.md` — Add API usage examples
+2. `tools/excel_migration.py` — Either implement or remove stub
 
 ---
 
@@ -192,9 +149,9 @@ These services are implemented and tested indirectly through API tests, but dire
 
 **The project is in excellent shape.** All core functionality is implemented, tested, and type-safe. The remaining work falls into three categories:
 
-1. **Documentation updates** — Reflect the current state accurately
-2. **Test completion** — Two service test files would round out coverage
-3. **Frontend/UX** — Make the API accessible to non-technical users
+1. **Documentation updates** — Keep documentation synchronized with implementation
+2. **Frontend/UX** — Make the API accessible to non-technical users
+3. **DevOps** — CI/CD pipeline for automated testing and deployment
 
 The architecture is sound, the test suite is comprehensive, and the codebase follows the established patterns and rules.
 
@@ -254,3 +211,5 @@ The architecture is sound, the test suite is comprehensive, and the codebase fol
 **Estimated effort:** 4-8 hours
 
 ---
+
+

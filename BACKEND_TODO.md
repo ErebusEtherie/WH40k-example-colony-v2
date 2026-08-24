@@ -1,7 +1,7 @@
 # Backend Development TODO
 
-**Last Updated:** 2026-08-22
-**Project Status:** Core backend complete, 121 Python modules, 630 tests passing
+**Last Updated:** 2026-08-24
+**Project Status:** Core backend complete, 121 Python modules, 640 tests passing
 
 This document tracks remaining backend development work for the WH40k Colony Manager project.
 
@@ -78,7 +78,7 @@ This document tracks remaining backend development work for the WH40k Colony Man
 
 ### Testing
 
-- [x] 630 tests, 100% pass rate
+- [x] 640 tests, 100% pass rate
 - [x] Hypothesis property-based tests for domain rules
 - [x] Repository round-trip tests
 - [x] API integration tests
@@ -88,20 +88,7 @@ This document tracks remaining backend development work for the WH40k Colony Man
 
 ## 🔴 High Priority
 
-### 1. Missing Service Tests
-
-**Estimated:** 2-3 hours
-
-Two service test files are marked as missing in TESTING_TODO.md:
-
-- [ ] `tests/application/services/test_infrastructure_service.py`
-- [ ] `tests/application/services/test_support_upgrade_service.py`
-
-**Acceptance Criteria:**
-
-- All service methods tested
-- Edge cases covered (invalid IDs, permission denied, not found)
-- Integration with repository layer verified
+### 1. Missing Service Tests (COMPLETE)\n\n**Status:** ✅ COMPLETE\n\nBoth service test files exist and pass:\n\n- [x] tests/application/services/test_infrastructure_service.py\n- [x] tests/application/services/test_support_upgrade_service.py
 
 ---
 
@@ -131,9 +118,9 @@ Create a one-off migration script to import data from the existing Excel workboo
 
 ### 3. Event System Completion
 
-**Estimated:** 3-4 hours
+**Status:** ✓ Clarified per rules reference
 
-The event system is implemented but may need rule configuration.
+Per the rules reference, events are GM-defined only. No auto-roll or automated triggering needed.
 
 **Tasks:**
 
@@ -333,7 +320,7 @@ No API versioning strategy yet.
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| Test Count | 630 | 650+ |
+| Test Count | 640 | 650+ |
 | Test Pass Rate | 100% | 100% |
 | Domain Coverage | ~95% | 95%+ |
 | API Coverage | ~90% | 95%+ |
@@ -360,3 +347,5 @@ No API versioning strategy yet.
 | 🟢 **Low** | Nice to have, can be deferred |
 
 - [ ] Add tests for event effects on colony stats
+
+

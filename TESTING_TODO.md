@@ -1,7 +1,7 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-22
-**Current Status:** 630 tests passing, 100% pass rate
+**Last Updated:** 2026-08-24
+**Current Status:** 640 tests passing, 100% pass rate
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -16,13 +16,13 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 |----------|-------|-------|--------|
 | **Domain Models** | 10 files | 100+ | ✅ Complete |
 | **Domain Rules** | 9 files | 80+ | ✅ Complete (includes Hypothesis) |
-| **Application Services** | 6 files | 50+ | ⚠️ Missing 2 service tests |
+| **Application Services** | 8 files | 50+ | ✅ Complete |
 | **Persistence Repositories** | 9 files | 60+ | ✅ Complete |
 | **API Routers** | 13 files | 200+ | ✅ Complete |
 | **Security** | 4 files | 40+ | ✅ Complete |
 | **Integration** | 3 files | 20+ | ✅ Complete |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **48 files** | **630 tests** | ✅ **100% passing** |
+| **Total** | **48 files** | **640 tests** | ✅ **100% passing** |
 
 ### Test Patterns in Use
 
@@ -97,7 +97,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ### Phase 4: Application Service Tests (Priority: MEDIUM)
 
-**Status:** ⚠️ MOSTLY COMPLETE — 2 files missing
+**Status:** ✅ COMPLETE — All 8 service test files exist and pass
 
 - [x]  ests/application/services/test_colony_service.py (via test_services.py)
 - [x]  ests/application/services/test_colony_service_roll_status.py
@@ -107,8 +107,8 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 - [x]  ests/application/services/test_colony_user_service.py
 - [x]  ests/application/services/test_event_service.py
 - [x]  ests/application/services/test_development_plan_service.py
-- [ ]  ests/application/services/test_infrastructure_service.py **(MISSING)**
-- [ ]  ests/application/services/test_support_upgrade_service.py **(MISSING)**
+- [x] tests/application/services/test_infrastructure_service.py ✅
+- [x] tests/application/services/test_support_upgrade_service.py ✅
 
 ---
 
@@ -193,9 +193,7 @@ def test_property(...): ...
 
 ### HIGH PRIORITY
 
-1. **Complete Application Service Tests** (2-3 hours)
-   - ests/application/services/test_infrastructure_service.py
-   - ests/application/services/test_support_upgrade_service.py
+None — all service tests complete.
 
 ### MEDIUM PRIORITY
 
@@ -217,3 +215,4 @@ def test_property(...): ...
 - **Domain tests should not mock domain code** — domain has no I/O
 - **API tests verify wiring/serialization**, not domain math (covered in domain tests)
 - **Add corresponding tests when adding new models/repositories**
+

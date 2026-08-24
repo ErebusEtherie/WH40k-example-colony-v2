@@ -1,6 +1,6 @@
 # Architectural Decisions & Open Questions
 
-**Last Updated:** 2026-08-22
+**Last Updated:** 2026-08-24
 
 This document tracks key architectural decisions and open questions for the WH40k Colony Manager project.
 
@@ -90,6 +90,37 @@ This document tracks key architectural decisions and open questions for the WH40
 - Explicit assertion satisfies type checker and documents assumption
 
 **Status:** ✅ Implemented in test code and API routers
+---
+
+### 7. No Dice Rolls or Event System (2026-08-24)
+
+**Decision:** Per the rules reference, the system does NOT implement dice rolls or automated event processing.
+
+**Rationale:**
+
+- All random results (1d5, 1d10, 1d100) are provided by Player/GM as input values
+- Colony Manager tracks state only; events are handled externally
+- No automated tests (Acquisition Tests, skill checks) are performed by the app
+- GM maintains full control via Custom Modifiers for situational bonuses/penalties
+
+**Status:** ✅ Implemented — domain rules explicitly exclude randomness
+
+---
+
+### 8. Application Service Tests Complete (2026-08-24)
+
+**Decision:** Both infrastructure and support upgrade service test files exist and pass.
+
+**Files:**
+
+- `tests/application/services/test_infrastructure_service.py` ✅
+- `tests/application/services/test_support_upgrade_service.py` ✅
+
+**Status:** ✅ Implemented — all 10 application service test files complete
+
+---
+
+## ❓ Open Questions
 
 ---
 
@@ -110,23 +141,7 @@ This document tracks key architectural decisions and open questions for the WH40
 
 ---
 
-### 2. Dice Rolling for Events
-
-**Question:** Should random dice rolls (e.g., 1d10 for event outcomes) use a `DiceRoller` interface injected into services, or direct `random` calls?
-
-**Context:** Some events may require randomness for outcomes.
-
-**Options:**
-
-- **A:** `DiceRoller` interface in domain, deterministic fake for tests (recommended)
-- **B:** Direct `random` calls with `pytest-randomly` seed control
-- **C:** Service layer handles all randomness, domain stays pure
-
-**Status:** ⏳ Pending — no event rules requiring dice rolls yet
-
----
-
-### 3. Multi-Colony User Support
+### 2. Multi-Colony User Support
 
 **Question:** Can a single user account belong to multiple colonies with different roles?
 
@@ -141,7 +156,7 @@ This document tracks key architectural decisions and open questions for the WH40
 
 ---
 
-### 4. Audit Log Retention Policy
+### 3. Audit Log Retention Policy
 
 **Question:** How long should audit logs be retained? Should there be automatic cleanup?
 
@@ -157,7 +172,7 @@ This document tracks key architectural decisions and open questions for the WH40
 
 ---
 
-### 5. Rate Limiting Configuration
+### 4. Rate Limiting Configuration
 
 **Question:** Should rate limits be configurable per-endpoint or global?
 
@@ -183,6 +198,8 @@ This document tracks key architectural decisions and open questions for the WH40
 | 2026-08-22 | Repository pattern | ✅ Resolved |
 | 2026-08-22 | Error message constants | ✅ Resolved |
 | 2026-08-22 | Type safety for nullable IDs | ✅ Resolved |
+| 2026-08-24 | No dice rolls or event system | ✅ Resolved |
+| 2026-08-24 | Application service tests complete | ✅ Resolved |
 
 ---
 
@@ -191,3 +208,5 @@ This document tracks key architectural decisions and open questions for the WH40
 - Decisions should be moved to "Resolved" when implementation is complete
 - Open questions should have a clear owner and target resolution date
 - Major decisions should reference the relevant `.clinerules/` file if applicable
+
+

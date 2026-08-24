@@ -129,7 +129,7 @@ REQUIRE_PASSWORD_COMPLEXITY=true
 
 1. **Rate Limiting**: Basic rate limiting is implemented using SlowAPI but consider adding a reverse proxy (nginx, Cloudflare) for production-grade protection.
 
-2. **Account Lockout**: Login attempt tracking is not yet implemented. Brute force protection should be added at the infrastructure level.
+2. **Account Lockout**: Login attempt tracking is implemented via `LoginAttempt` model and repository. The `AuthService` uses this to enforce account lockout after failed attempts (configurable via `MAX_LOGIN_ATTEMPTS` and `LOCKOUT_DURATION_MINUTES`).
 
 3. **Token Blacklist Cleanup**: Expired blacklist entries can be cleaned up via the CLI command:
 
@@ -172,4 +172,5 @@ pip-audit
 
 ## Last Updated
 
-2026-08-22 - Fixed token blacklist bulk revocation; documented cleanup CLI commands
+2026-08-24 - Updated account lockout status bulk revocation; documented cleanup CLI commands
+

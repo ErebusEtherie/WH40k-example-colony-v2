@@ -99,8 +99,6 @@ enum UpgradeType {
   IMPERIAL_NAVY_STATION = "Imperial Navy Station",
   CULTURAL_IMPROVEMENT = "Cultural Improvement",
   INDUSTRIAL_FACILITY = "Industrial Facility",
-
-  // New Upgrades
   PERSONAL_LODGINGS = "Personal Lodgings",
   CONTACTS = "Contacts",
   TRAPPINGS = "Trappings"
