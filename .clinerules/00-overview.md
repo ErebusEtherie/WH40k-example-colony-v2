@@ -35,7 +35,7 @@ simultaneously — they are not alternatives.
 | --- | --- |
 | `01-architecture.md` | Layering, dependency direction, where things live |
 | `02-domain-modeling.md` | Domain models vs. API schemas vs. persistence models, rule engine design |
-| `03-persistence-and-io.md` | Repository pattern, SQLite, JSON/YAML import/export, Excel migration |
+| `03-persistence-and-io.md` | Repository pattern, SQLite, JSON/YAML import/export |
 | `04-testing-strategy.md` | pytest + hypothesis, what to test and how much |
 | `05-code-style-and-documentation.md` | Type hints, docstrings, linting/formatting |
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |

@@ -125,24 +125,7 @@ This document tracks key architectural decisions and open questions for the WH40
 
 ---
 
-## Open Questions
-
-### 1. Excel Migration Utility
-
-**Question:** Should the Excel import utility be a one-off script in tools/ or a proper API endpoint?
-
-**Context:** Current source of truth is an Excel workbook with Colony/Representative/Data/Calculations sheets.
-
-**Options:**
-
-- **A:** One-off migration script (recommended) - brittle, throwaway, uses same import logic
-- **B:** Full API endpoint - ongoing maintenance, but users can re-import
-
-**Status:** Pending decision
-
----
-
-### 2. Multi-Colony User Support
+## Open Questions`n`n### 1. Multi-Colony User Support
 
 **Question:** Can a single user account belong to multiple colonies with different roles?
 

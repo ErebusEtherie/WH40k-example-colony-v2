@@ -197,8 +197,7 @@ None — all service tests complete.
 
 ### MEDIUM PRIORITY
 
-1. **Excel Migration Utility Tests** (if utility is implemented)
-   - ests/tools/test_excel_migration.py
+None — all service tests complete.
 
 ### LOW PRIORITY
 

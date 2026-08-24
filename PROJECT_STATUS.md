@@ -132,16 +132,13 @@ None — all core features complete and tested.
    - Review FRONTEND_REQUIREMENTS_*.md files
    - Choose framework and architecture
 
-2. **Consider Excel migration utility** (decision needed)
-
-3. **Set up CI/CD** (optional, 4 hours)
+2. **Set up CI/CD** (optional, 4 hours)
 
 ---
 
 ## Files Requiring Updates
 
 1. `README.md` — Add API usage examples
-2. `tools/excel_migration.py` — Either implement or remove stub
 
 ---
 
@@ -157,20 +154,7 @@ The architecture is sound, the test suite is comprehensive, and the codebase fol
 
 ### MEDIUM PRIORITY
 
-#### 2. Excel Migration Utility
-
-**File:** `tools/excel_migration.py` (currently raises `NotImplementedError`)
-
-**Questions:**
-
-- Is this still needed, or are users expected to manually enter data?
-- Should it output JSON or seed the database directly?
-
-**Estimated effort:** 4-8 hours
-
----
-
-#### 3. Frontend Implementation
+#### 1. Frontend Implementation
 
 **Status:** Not started. API is complete and documented.
 
@@ -186,7 +170,7 @@ The architecture is sound, the test suite is comprehensive, and the codebase fol
 
 ### LOW PRIORITY
 
-#### 4. Additional Hypothesis Tests
+#### 2. Additional Hypothesis Tests
 
 **File:** `tests/domain/rules/test_state_effects_hypothesis.py` (exists, could be expanded)
 
@@ -200,7 +184,7 @@ The architecture is sound, the test suite is comprehensive, and the codebase fol
 
 ---
 
-#### 5. CLI Enhancements
+#### 3. CLI Enhancements
 
 **Status:** Basic CLI exists, could be expanded
 
@@ -209,7 +193,3 @@ The architecture is sound, the test suite is comprehensive, and the codebase fol
 - Interactive mode, batch operations, roll simulation
 
 **Estimated effort:** 4-8 hours
-
----
-
-

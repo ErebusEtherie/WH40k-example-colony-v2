@@ -92,31 +92,7 @@ This document tracks remaining backend development work for the WH40k Colony Man
 
 ---
 
-### 2. Excel Migration Utility
-
-**Estimated:** 4-6 hours
-
-Create a one-off migration script to import data from the existing Excel workbook.
-
-**Requirements:**
-
-- Read Colony, Representative, Data, and Calculations sheets
-- Map to domain models
-- Export as JSON/YAML or seed SQLite directly
-- Handle data validation and transformation
-
-**Location:** `tools/excel_migration.py` (not part of main application)
-
-**Acceptance Criteria:**
-
-- [ ] Can read existing Excel workbook
-- [ ] Validates data against domain models
-- [ ] Produces valid JSON/YAML import file
-- [ ] Documents any data that couldn't be migrated
-
----
-
-### 3. Event System Completion
+### 2. Event System Completion
 
 **Status:** ✓ Clarified per rules reference
 
@@ -132,7 +108,7 @@ Per the rules reference, events are GM-defined only. No auto-roll or automated t
 
 ## 🟡 Medium Priority
 
-### 4. Development Plan Status Transitions
+### 3. Development Plan Status Transitions
 
 **Estimated:** 2-3 hours
 
@@ -147,7 +123,7 @@ Development plans have a `status` field but transitions aren't fully implemented
 
 ---
 
-### 5. Resource System Integration
+### 4. Resource System Integration
 
 **Estimated:** 3-4 hours
 
@@ -162,7 +138,7 @@ Resource model exists but integration with colony stats is unclear.
 
 ---
 
-### 6. Notification System
+### 5. Notification System
 
 **Estimated:** 4-6 hours
 
@@ -180,7 +156,7 @@ Notification endpoints exist as placeholders.
 
 ---
 
-### 7. Audit Log Query API
+### 6. Audit Log Query API
 
 **Estimated:** 2-3 hours
 
@@ -196,7 +172,7 @@ Audit logs are recorded but query capabilities are limited.
 
 ## 🟢 Low Priority
 
-### 8. Representative Skill/Talent Effects
+### 7. Representative Skill/Talent Effects
 
 **Estimated:** 3-4 hours
 
@@ -210,7 +186,7 @@ Representative model has skills and talents, but effects on colony aren't implem
 
 ---
 
-### 9. Advanced Search & Filtering
+### 8. Advanced Search & Filtering
 
 **Estimated:** 2-3 hours
 
@@ -225,7 +201,7 @@ Current API endpoints have basic filtering.
 
 ---
 
-### 10. Caching Layer
+### 9. Caching Layer
 
 **Estimated:** 3-4 hours
 
@@ -242,7 +218,7 @@ Colony stats are recalculated on every request.
 
 ---
 
-### 11. Background Task Processing
+### 10. Background Task Processing
 
 **Estimated:** 4-6 hours
 
@@ -258,7 +234,7 @@ Time-based effects (daily decay, event triggers) need background processing.
 
 ---
 
-### 12. API Versioning
+### 11. API Versioning
 
 **Estimated:** 1-2 hours
 
@@ -276,7 +252,7 @@ No API versioning strategy yet.
 
 ## 📋 Infrastructure & DevOps
 
-### 13. Docker Containerization
+### 12. Docker Containerization
 
 **Estimated:** 2-3 hours
 
@@ -288,7 +264,7 @@ No API versioning strategy yet.
 
 ---
 
-### 14. CI/CD Pipeline
+### 13. CI/CD Pipeline
 
 **Estimated:** 3-4 hours
 
@@ -302,7 +278,7 @@ No API versioning strategy yet.
 
 ---
 
-### 15. Monitoring & Observability
+### 14. Monitoring & Observability
 
 **Estimated:** 3-4 hours
 

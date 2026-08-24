@@ -29,19 +29,6 @@ Don't rely on Pydantic's `.model_dump()`/`.model_validate()` matching
 by accident between unrelated models — that coupling breaks silently the
 moment one model changes shape.
 
-## Migrating from the existing Excel sheet
-
-The current source of truth is an Excel workbook (Colony / Representative /
-Data / Calculations sheets). Treat a one-off Excel importer as a **migration
-utility**, not a core application feature:
-
-- Put it in `tools/` or `scripts/`, separate from `adapters/io`.
-- Its job is to read the existing workbook(s) and produce a JSON/YAML save
-  file (or seed the SQLite DB directly) using the same Importer path the
-  app would otherwise use — don't duplicate mapping logic.
-- Expect it to be brittle/throwaway; don't over-engineer it or give it the
-  same design rigor as the rest of the app.
-
 ## Schema evolution
 
 Since this project is greenfield, don't add migration tooling (e.g. Alembic)

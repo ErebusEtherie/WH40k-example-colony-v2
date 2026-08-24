@@ -122,10 +122,6 @@ This document tracks key architectural decisions and open questions for the WH40
 
 ## ❓ Open Questions
 
----
-
-## ❓ Open Questions
-
 ### 1. Excel Migration Utility
 
 **Question:** Should the Excel import utility be a one-off script in `tools/` or a proper API endpoint?
@@ -208,5 +204,3 @@ This document tracks key architectural decisions and open questions for the WH40
 - Decisions should be moved to "Resolved" when implementation is complete
 - Open questions should have a clear owner and target resolution date
 - Major decisions should reference the relevant `.clinerules/` file if applicable
-
-

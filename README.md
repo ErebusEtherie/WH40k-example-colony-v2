@@ -22,4 +22,3 @@ This repository contains a prototype of the Colony Manager system described in `
 ## Notes
 
 - `config/*.yaml` currently contains placeholder entries. Replace them with confirmed game data before production use.
-- `tools/excel_migration.py` is a stub for future Excel migration tooling.
