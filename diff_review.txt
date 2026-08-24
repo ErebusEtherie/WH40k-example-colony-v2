@@ -1,0 +1,113 @@
+diff --git a/src/colony_manager/domain/rules/profit_factor_calculator.py b/src/colony_manager/domain/rules/profit_factor_calculator.py
+index 802ca95..b438c60 100644
+--- a/src/colony_manager/domain/rules/profit_factor_calculator.py
++++ b/src/colony_manager/domain/rules/profit_factor_calculator.py
+@@ -8,12 +8,13 @@ Per Rogue Trader Colony Rules:
+ - Leadership modifier from Representative
+ - Custom modifiers (GM, resources, etc.)
+ - Anarchy (Order = 0): PF = 0
+-- Halted (Productivity = 0): PF halved (round up)
++- Halted (Productivity = 0): PF halved (round down)
+ """
+ 
++from math import floor
++
+ from colony_manager.domain.enums import ModifierStat
+ from colony_manager.domain.models.modifier import Modifier
+-from colony_manager.domain.util.rounding import round_half_up
+ 
+ 
+ def calculate_profit_factor(
+@@ -73,6 +74,6 @@ def calculate_profit_factor(
+     if current_order == 0:
+         return 0  # Anarchy
+     if current_productivity == 0:
+-        return max(round_half_up(pf_raw / 2), 0)  # Halted
++        return max(floor(pf_raw / 2), 0)  # Halted (round down)
+     
+     return max(pf_raw, 0)
+diff --git a/tests/domain/rules/test_profit_factor_calculator.py b/tests/domain/rules/test_profit_factor_calculator.py
+index f8ef2f1..76446a8 100644
+--- a/tests/domain/rules/test_profit_factor_calculator.py
++++ b/tests/domain/rules/test_profit_factor_calculator.py
+@@ -45,6 +45,32 @@ def test_profit_factor_halved_when_productivity_zero():
+     assert result == 5  # (5 + 3 + 2) / 2 = 5.0
+ 
+ 
++def test_profit_factor_halved_rounds_down():
++    """When halving produces a fraction, floor() rounds down. Example: PF 3 Ôćĺ 1."""
++    result = calculate_profit_factor(
++        base_profit_factor=1,
++        current_complacency=0,
++        current_order=10,
++        current_productivity=0,
++        current_piety=10,
++        actual_size=5,
++        modifiers=[
++            Modifier(
++                id=1,
++                colony_id=1,
++                modifier_source_type=ModifierSourceType.GM_CUSTOM,
++                modifier_category=ModifierCategory.CUSTOM,
++                modifier_stat=ModifierStat.PROFIT_FACTOR,
++                modifier_value=2,
++                description="PF bonus",
++                is_active=True,
++            )
++        ],
++        leadership_modifier=0,
++    )
++    assert result == 1  # (1 + 2) / 2 = 1.5 Ôćĺ floor(1.5) = 1
++
++
+ def test_profit_factor_does_not_go_negative():
+     result = calculate_profit_factor(
+         base_profit_factor=0,
+@@ -122,7 +148,7 @@ def test_profit_factor_zero_when_order_is_zero_property(
+ def test_profit_factor_halved_when_productivity_zero_property(
+     base_pf, complacency, order, productivity, piety, size, leadership_mod, custom_pf_mod
+ ):
+-    """Property: Productivity == 0 halves the Profit Factor (round up)."""
++    """Property: Productivity == 0 halves the Profit Factor (round down)."""
+     modifiers = [
+         Modifier(
+             id=1,
+diff --git a/tests/domain/rules/test_security_invariants.py b/tests/domain/rules/test_security_invariants.py
+index 25a0783..2bbc624 100644
+--- a/tests/domain/rules/test_security_invariants.py
++++ b/tests/domain/rules/test_security_invariants.py
+@@ -134,13 +134,13 @@ class TestProfitFactorSecurityInvariants:
+ 
+     def test_profit_factor_halved_when_productivity_zero(self) -> None:
+         """Test: Productivity == 0 halves Profit Factor (Halted)."""
+-        # Test with various base values - round_half_up rounds 0.5 up
+-        # Minimum PF of 1 is enforced in calculate_profit_factor() to prevent zero/negative PF
++        # Test with various base values - floor() rounds down
++        # Note: Placated bonus (+1) applies when complacency > size
+         test_cases = [
+-            (10, 6),   # 10 / 2 = 5, +1 state bonus (Halted) = 6
+-            (5, 3),    # 5 / 2 = 2.5 Ôćĺ 3, +0 state bonus = 3
+-            (1, 1),    # 1 / 2 = 0.5 Ôćĺ 1, +0 state bonus = 1
+-            (0, 1),    # 0 Ôćĺ minimum PF floor of 1 applied
++            (10, 5),   # (10 + 1) / 2 = 5.5 Ôćĺ floor = 5
++            (5, 3),    # (5 + 1) / 2 = 3
++            (1, 1),    # (1 + 1) / 2 = 1
++            (0, 0),    # (0 + 1) / 2 = 0.5 Ôćĺ floor = 0
+         ]
+         for base_pf, expected in test_cases:
+             result = calculate_profit_factor(
+diff --git a/tests/domain/rules/test_state_effects.py b/tests/domain/rules/test_state_effects.py
+index e805301..072ba8a 100644
+--- a/tests/domain/rules/test_state_effects.py
++++ b/tests/domain/rules/test_state_effects.py
+@@ -108,8 +108,8 @@ class TestStateEffectsOnProfitFactor:
+         """When Productivity is 0, Profit Factor should be halved."""
+         colony = base_colony.model_copy(update={"base_productivity": 0})
+         state = colony_state_calculator.calculate(colony)
+-        # Base PF for size 5 is 6, leadership modifier adds +1 = 7, halved = 3.5 -> 4
+-        assert state["profit_factor"] == 4
++        # Base PF for size 5 is 6, leadership modifier adds +1 = 7, halved = 3.5 -> floor(3.5) = 3
++        assert state["profit_factor"] == 3
+ 
+     def test_placated_adds_bonus_to_profit_factor(
+         self, base_colony: Colony, colony_state_calculator

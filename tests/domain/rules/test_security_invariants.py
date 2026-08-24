@@ -133,14 +133,16 @@ class TestProfitFactorSecurityInvariants:
         assert result == 0, f"PF should be 0 when Order=0, got {result}"
 
     def test_profit_factor_halved_when_productivity_zero(self) -> None:
-        """Test: Productivity == 0 halves Profit Factor (Halted)."""
-        # Test with various base values - round_half_up rounds 0.5 up
-        # Minimum PF of 1 is enforced in calculate_profit_factor() to prevent zero/negative PF
+        """Test: Productivity == 0 halves Profit Factor (Halted).
+        
+        Note: Test uses complacency=10, size=5, so Placated bonus (+1) applies.
+        """
+        # Test with various base values - floor() rounds down
         test_cases = [
-            (10, 6),   # 10 / 2 = 5, +1 state bonus (Halted) = 6
-            (5, 3),    # 5 / 2 = 2.5 → 3, +0 state bonus = 3
-            (1, 1),    # 1 / 2 = 0.5 → 1, +0 state bonus = 1
-            (0, 1),    # 0 → minimum PF floor of 1 applied
+            (10, 5),   # (10 + 1) / 2 = 5.5 → floor = 5
+            (5, 3),    # (5 + 1) / 2 = 3
+            (1, 1),    # (1 + 1) / 2 = 1
+            (0, 0),    # (0 + 1) / 2 = 0.5 → floor = 0
         ]
         for base_pf, expected in test_cases:
             result = calculate_profit_factor(

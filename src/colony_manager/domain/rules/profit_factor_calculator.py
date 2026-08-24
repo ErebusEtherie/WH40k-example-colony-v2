@@ -8,12 +8,13 @@ Per Rogue Trader Colony Rules:
 - Leadership modifier from Representative
 - Custom modifiers (GM, resources, etc.)
 - Anarchy (Order = 0): PF = 0
-- Halted (Productivity = 0): PF halved (round up)
+- Halted (Productivity = 0): PF halved (round down)
 """
+
+from math import floor
 
 from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.modifier import Modifier
-from colony_manager.domain.util.rounding import round_half_up
 
 
 def calculate_profit_factor(
@@ -73,6 +74,6 @@ def calculate_profit_factor(
     if current_order == 0:
         return 0  # Anarchy
     if current_productivity == 0:
-        return max(round_half_up(pf_raw / 2), 0)  # Halted
+        return max(floor(pf_raw / 2), 0)  # Halted (round down)
     
     return max(pf_raw, 0)

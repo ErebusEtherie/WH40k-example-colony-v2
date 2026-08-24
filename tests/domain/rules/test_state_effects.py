@@ -108,8 +108,8 @@ class TestStateEffectsOnProfitFactor:
         """When Productivity is 0, Profit Factor should be halved."""
         colony = base_colony.model_copy(update={"base_productivity": 0})
         state = colony_state_calculator.calculate(colony)
-        # Base PF for size 5 is 6, leadership modifier adds +1 = 7, halved = 3.5 -> 4
-        assert state["profit_factor"] == 4
+        # Base PF for size 5 is 6, leadership modifier adds +1 = 7, halved = 3.5 -> floor(3.5) = 3
+        assert state["profit_factor"] == 3
 
     def test_placated_adds_bonus_to_profit_factor(
         self, base_colony: Colony, colony_state_calculator

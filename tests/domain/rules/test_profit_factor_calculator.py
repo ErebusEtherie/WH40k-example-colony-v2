@@ -45,6 +45,58 @@ def test_profit_factor_halved_when_productivity_zero():
     assert result == 5  # (5 + 3 + 2) / 2 = 5.0
 
 
+def test_profit_factor_halved_rounds_down():
+    """When halving produces a fraction, floor() rounds down. Example: PF 3 → 1."""
+    result = calculate_profit_factor(
+        base_profit_factor=1,
+        current_complacency=0,
+        current_order=10,
+        current_productivity=0,
+        current_piety=10,
+        actual_size=5,
+        modifiers=[
+            Modifier(
+                id=1,
+                colony_id=1,
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
+                modifier_stat=ModifierStat.PROFIT_FACTOR,
+                modifier_value=2,
+                description="PF bonus",
+                is_active=True,
+            )
+        ],
+        leadership_modifier=0,
+    )
+    assert result == 1  # (1 + 2) / 2 = 1.5 → floor(1.5) = 1
+
+
+def test_profit_factor_halved_even_number():
+    """When halving produces an integer, floor() has no effect. Example: PF 4 → 2."""
+    result = calculate_profit_factor(
+        base_profit_factor=2,
+        current_complacency=0,
+        current_order=10,
+        current_productivity=0,
+        current_piety=10,
+        actual_size=5,
+        modifiers=[
+            Modifier(
+                id=1,
+                colony_id=1,
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
+                modifier_stat=ModifierStat.PROFIT_FACTOR,
+                modifier_value=2,
+                description="PF bonus",
+                is_active=True,
+            )
+        ],
+        leadership_modifier=0,
+    )
+    assert result == 2  # (2 + 2) / 2 = 2.0 → floor(2.0) = 2
+
+
 def test_profit_factor_does_not_go_negative():
     result = calculate_profit_factor(
         base_profit_factor=0,
@@ -122,7 +174,7 @@ def test_profit_factor_zero_when_order_is_zero_property(
 def test_profit_factor_halved_when_productivity_zero_property(
     base_pf, complacency, order, productivity, piety, size, leadership_mod, custom_pf_mod
 ):
-    """Property: Productivity == 0 halves the Profit Factor (round up)."""
+    """Property: Productivity == 0 halves the Profit Factor (round down)."""
     modifiers = [
         Modifier(
             id=1,
