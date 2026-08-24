@@ -8,6 +8,11 @@ from colony_manager.domain.enums import (
     RepresentativeType,
     SkillLevel,
 )
+from colony_manager.domain.models.personality import (
+    Personality,
+    PersonalityAssignment,
+    PersonalityEffect,
+)
 
 
 class RepresentativeStats(BaseModel):
@@ -44,22 +49,6 @@ class RepresentativeStats(BaseModel):
         return max(self.int_bonus, self.per_bonus, self.fel_bonus)
 
 
-class PersonalityEffect(BaseModel):
-    """A single stat effect from a personality."""
-    stat: str
-    value: int
-    condition: str | None = None
-
-
-class Personality(BaseModel):
-    """Representative personality with mechanical effects."""
-    name: str
-    description: str
-    stat_effects: list[PersonalityEffect] = Field(default_factory=list)
-    calamitous_modifier: int = 0
-    special_rule: str | None = None
-
-
 class Skill(BaseModel):
     name: str
     level: SkillLevel
@@ -75,7 +64,7 @@ class Representative(BaseModel):
     id: int | None = None
     name: str
     type: RepresentativeType
-    personalities: list[Personality] = Field(min_length=1)
+    personalities: list[PersonalityAssignment] = Field(min_length=1)
     stats: RepresentativeStats
     skills: list[Skill] = Field(default_factory=list)
     talents: list[Talent] = Field(default_factory=list)
@@ -85,6 +74,8 @@ class Representative(BaseModel):
     calamitous_modifier: int = 0
     # Colony this representative is assigned to (if any)
     assigned_to_colony_id: int | None = None
+    # Special trait description (GM reference note, no mechanical effect)
+    special_trait_description: str | None = None
     
     @property
     def loss_mitigation_stat(self) -> ModifierStat | None:
@@ -97,18 +88,51 @@ class Representative(BaseModel):
         }
         return mitigation_map.get(self.type)
     
-    def get_total_personality_calamity_modifier(self) -> int:
-        """Sum calamitous modifiers from all personalities."""
+    def get_total_personality_calamity_modifier(
+        self,
+        personality_templates: dict[str, "Personality"] | None = None,
+    ) -> int:
+        """Sum calamitous modifiers from all personalities.
+        
+        Args:
+            personality_templates: Optional dict mapping personality_type names to 
+                Personality templates. If provided, calculates the actual total.
+                If None, returns 0 (caller should use service layer with template access).
+        
+        Returns:
+            Total calamitous modifier from personalities (excluding 'roll twice' personalities).
+            Returns 0 if no personality_templates provided.
+        
+        Note:
+            Per Rogue Trader rules, personalities with 'roll twice' special rule
+            are excluded from the calamitous modifier calculation as they represent
+            additional personality rolls rather than direct modifiers.
+        """
+        if not personality_templates:
+            return 0
+        
         total = 0
-        for personality in self.personalities:
-            if personality.special_rule and "roll twice" in personality.special_rule.lower():
-                continue
-            total += personality.calamitous_modifier
+        for assignment in self.personalities:
+            personality = personality_templates.get(assignment.personality_type)
+            if personality:
+                # Skip personalities with 'roll twice' special rule
+                if personality.special_rule and "roll twice" in personality.special_rule.lower():
+                    continue
+                total += personality.calamitous_modifier
         return total
     
-    def update_calamitous_modifier(self) -> None:
-        """Recalculate total calamitous modifier from personalities and dynasty outcome."""
-        total = self.get_total_personality_calamity_modifier()
+    def update_calamitous_modifier(
+        self,
+        personality_templates: dict[str, "Personality"] | None = None,
+    ) -> None:
+        """Recalculate total calamitous modifier from personalities and dynasty outcome.
+        
+        Args:
+            personality_templates: Optional dict mapping personality_type names to 
+                Personality templates. If provided, includes personality calamitous modifiers.
+                If None, only dynasty outcome modifiers are applied.
+        """
+        total = self.get_total_personality_calamity_modifier(personality_templates)
         
         # Add dynasty outcome modifier if applicable
         if self.dynasty_outcome:
