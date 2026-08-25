@@ -5,7 +5,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from colony_manager.adapters.api.dependencies import get_audit_log_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.audit_log import AuditLogResponse
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
