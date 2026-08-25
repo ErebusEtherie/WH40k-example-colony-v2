@@ -88,7 +88,7 @@ class UserRepository(Protocol):
         """
         ...
     
-    def list_users(self, limit: int = 100, offset: int = 0) -> list[User]:
+    def list_users(self, limit: int = 100, offset: int = 0) -> tuple[list[User], int]:
         """List users with pagination.
         
         Args:
@@ -96,6 +96,6 @@ class UserRepository(Protocol):
             offset: Number of users to skip
             
         Returns:
-            List of users
+            Tuple of (list of users, total count)
         """
         ...

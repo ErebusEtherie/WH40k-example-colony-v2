@@ -9,7 +9,6 @@ Security Features:
 - Refresh token rotation
 """
 
-import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -38,7 +37,7 @@ from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.application.services.auth_service import AuthService
-from colony_manager.domain.util.auth import hash_password, verify_password
+from colony_manager.domain.util.auth import PasswordValidationError, hash_password, validate_password, verify_password
 from colony_manager.domain.util.token import (
     TokenError,
     create_access_token,
@@ -48,35 +47,6 @@ from colony_manager.domain.util.token import (
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 limiter = get_limiter()
-
-
-class PasswordValidationError(Exception):
-    """Exception raised when password validation fails."""
-
-
-def validate_password(password: str, require_complexity: bool = True, min_length: int = 8) -> None:
-    """Validate password meets security requirements.
-    
-    Args:
-        password: Password to validate
-        require_complexity: Whether to require mixed case, numbers, and special chars
-        min_length: Minimum password length
-        
-    Raises:
-        PasswordValidationError: If password does not meet requirements
-    """
-    if len(password) < min_length:
-        raise PasswordValidationError(f"Password must be at least {min_length} characters long")
-    
-    if require_complexity:
-        if not re.search(r"[A-Z]", password):
-            raise PasswordValidationError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", password):
-            raise PasswordValidationError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", password):
-            raise PasswordValidationError("Password must contain at least one number")
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-            raise PasswordValidationError("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)")
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, openapi_extra={"security": []})

@@ -4,7 +4,39 @@ Uses bcrypt for secure password hashing. This is a domain utility that
 can be used by both domain services and adapters.
 """
 
+import re
+
 import bcrypt
+
+
+class PasswordValidationError(ValueError):
+    """Exception raised when password does not meet security requirements."""
+    pass
+
+
+def validate_password(password: str, require_complexity: bool = True, min_length: int = 8) -> None:
+    """Validate password meets security requirements.
+    
+    Args:
+        password: Password to validate
+        require_complexity: Whether to require mixed case, numbers, and special chars
+        min_length: Minimum password length
+        
+    Raises:
+        PasswordValidationError: If password does not meet requirements
+    """
+    if len(password) < min_length:
+        raise PasswordValidationError(f"Password must be at least {min_length} characters long")
+    
+    if require_complexity:
+        if not re.search(r"[A-Z]", password):
+            raise PasswordValidationError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", password):
+            raise PasswordValidationError("Password must contain at least one lowercase letter")
+        if not re.search(r"\d", password):
+            raise PasswordValidationError("Password must contain at least one number")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise PasswordValidationError("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)")
 
 
 def hash_password(password: str) -> str:

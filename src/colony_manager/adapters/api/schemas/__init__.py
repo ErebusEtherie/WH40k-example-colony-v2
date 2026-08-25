@@ -22,6 +22,13 @@ from colony_manager.adapters.api.schemas.representative import (
     RepresentativeResponse,
     RepresentativeUpdate,
 )
+from colony_manager.adapters.api.schemas.user import (
+    UserCreate,
+    UserListResponse,
+    UserPasswordReset,
+    UserResponse,
+    UserUpdate,
+)
 
 __all__ = [
     "ColonyCreate",
@@ -38,4 +45,9 @@ __all__ = [
     "RepresentativeListItem",
     "RepresentativeResponse",
     "RepresentativeUpdate",
+    "UserCreate",
+    "UserListResponse",
+    "UserPasswordReset",
+    "UserResponse",
+    "UserUpdate",
 ]

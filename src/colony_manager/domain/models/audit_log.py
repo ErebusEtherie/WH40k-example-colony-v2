@@ -47,7 +47,7 @@ class AuditLog(BaseModel):
     new_value: str | None = Field(default=None, max_length=10000)
     changed_by: int
     changed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    colony_id: int
+    colony_id: int | None = None  # Optional for non-colony entities like users
     
     @field_validator("changed_at")
     @classmethod

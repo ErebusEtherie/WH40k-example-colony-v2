@@ -214,7 +214,7 @@ class AuditLogORM(Base):
     new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     changed_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
     changed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
+    colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=True)
 
     # Relationships
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="audit_logs")

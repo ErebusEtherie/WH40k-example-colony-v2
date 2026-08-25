@@ -12,7 +12,7 @@ from fastapi import Depends, HTTPException, status
 from colony_manager.adapters.api.dependencies import get_colony_user_repository
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.domain.models.colony_user import ColonyUserRole
-from colony_manager.domain.models.user import User
+from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 
 # Role hierarchy for colony permissions
@@ -139,3 +139,27 @@ def require_colony_permission(permission: str) -> Callable[..., User]:
         return current_user
     
     return check_permission
+
+
+def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """Require admin role for endpoint access.
+    
+    This dependency checks that the authenticated user has the ADMIN role.
+    Use this for endpoints that should only be accessible by system administrators.
+    
+    Args:
+        current_user: Authenticated user from get_current_user dependency.
+        
+    Returns:
+        The authenticated user if they have admin role.
+        
+    Raises:
+        HTTPException: 403 if user is not an admin.
+    """
+    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    if user_role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user

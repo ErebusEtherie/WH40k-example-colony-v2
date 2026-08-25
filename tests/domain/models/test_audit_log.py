@@ -90,17 +90,18 @@ class TestAuditLogValidators:
             })
         assert "changed_by" in str(exc_info.value)
 
-    def test_colony_id_required(self):
-        """colony_id is required."""
-        with pytest.raises(ValidationError) as exc_info:
-            AuditLog.model_validate({
-                "entity_type": "colony",
-                "entity_id": 1,
-                "action": "update",
-                "changed_by": 2,
-                "changed_at": datetime.now(timezone.utc),
-            })
-        assert "colony_id" in str(exc_info.value)
+    def test_colony_id_optional(self):
+        """colony_id is optional for non-colony entities like users."""
+        # Should succeed without colony_id
+        audit_log = AuditLog.model_validate({
+            "entity_type": "user",
+            "entity_id": 1,
+            "action": "create",
+            "changed_by": 2,
+            "changed_at": datetime.now(timezone.utc),
+        })
+        assert audit_log.colony_id is None
+        assert audit_log.entity_type == "user"
 
     def test_valid_audit_log(self):
         """Valid AuditLog with all required fields."""

@@ -142,11 +142,16 @@ class SqlAlchemyUserRepository(UserRepository):
             session.delete(orm_user)
             session.commit()
     
-    def list_users(self, limit: int = 100, offset: int = 0) -> list[User]:
+    def list_users(self, limit: int = 100, offset: int = 0) -> tuple[list[User], int]:
         """List users with pagination."""
         with self._get_session() as session:
+            # Get total count
+            from sqlalchemy import func
+            total = session.execute(select(func.count(UserORM.id))).scalar() or 0
+            
+            # Get paginated results
             result = session.execute(
                 select(UserORM).offset(offset).limit(limit)
             )
             orm_users = result.scalars().all()
-            return [orm_to_domain_user(orm) for orm in orm_users]
+            return [orm_to_domain_user(orm) for orm in orm_users], total

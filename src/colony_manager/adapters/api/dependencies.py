@@ -37,6 +37,7 @@ from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.application.services.event_service import EventService
 from colony_manager.application.services.representative_service import RepresentativeService
+from colony_manager.application.services.user_service import UserService
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
@@ -170,3 +171,10 @@ def get_auth_service(
 ) -> AuthService:
     """Get auth service instance with dependencies."""
     return AuthService(token_blacklist_repository, user_repository, login_attempt_repository, token_issuance_repository)
+
+def get_user_service(
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+) -> UserService:
+    """Get user service instance with dependencies."""
+    return UserService(user_repository, audit_log_repository)

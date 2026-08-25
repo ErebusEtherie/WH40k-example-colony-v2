@@ -13,6 +13,7 @@ from colony_manager.adapters.api.routers.notifications import router as notifica
 from colony_manager.adapters.api.routers.representatives import router as representatives_router
 from colony_manager.adapters.api.routers.resources import router as resources_router
 from colony_manager.adapters.api.routers.support_upgrades import router as support_upgrades_router
+from colony_manager.adapters.api.routers.users import router as users_router
 
 __all__ = [
     "auth_router",
@@ -28,4 +29,5 @@ __all__ = [
     "representatives_router",
     "resources_router",
     "support_upgrades_router",
+    "users_router",
 ]

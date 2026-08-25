@@ -31,6 +31,7 @@ from colony_manager.adapters.api.routers import (
     representatives_router,
     resources_router,
     support_upgrades_router,
+    users_router,
 )
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.config.settings import get_cors_settings, get_security_settings
@@ -83,20 +84,6 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
         openapi_tags=[
-            {"name": "root", "description": "Root endpoint and API info"},
-            {"name": "auth", "description": "User authentication and authorization"},
-            {"name": "colonies", "description": "Colony management operations"},
-            {"name": "events", "description": "Event management operations"},
-            {"name": "development_plans", "description": "Development plan tracking"},
-            {"name": "audit_logs", "description": "Audit log and history queries"},
-            {"name": "colony_users", "description": "Colony membership management"},
-            {"name": "export_import", "description": "Colony data export and import"},
-            {"name": "notifications", "description": "Real-time notifications via SSE"},
-            {"name": "representatives", "description": "Representative management"},
-            {"name": "infrastructure", "description": "Hard infrastructure management"},
-            {"name": "support_upgrades", "description": "Support upgrades management"},
-            {"name": "modifiers", "description": "Custom modifier management"},
-            {"name": "resources", "description": "Infrastructure/upgrade reference data"},
         ],
     )
     
@@ -161,6 +148,7 @@ def create_app() -> FastAPI:
     app.include_router(modifiers_router, prefix=API_V1_PREFIX)
     app.include_router(resources_router, prefix=API_V1_PREFIX)
     app.include_router(support_upgrades_router, prefix=API_V1_PREFIX)
+    app.include_router(users_router, prefix=API_V1_PREFIX)
 
     # Exception handlers
     @app.exception_handler(NotFoundError)
@@ -197,3 +185,5 @@ def create_app() -> FastAPI:
         }
 
     return app
+
+
