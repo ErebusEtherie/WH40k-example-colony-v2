@@ -255,7 +255,6 @@ def orm_to_domain_user(orm: UserORM) -> User:
         is_active=orm.is_active,
         created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
         updated_at=datetime.combine(orm.updated_at, datetime.min.time()) if orm.updated_at else None,
-        managed_colony_id=orm.managed_colony_id,
     )
 
 
@@ -279,7 +278,6 @@ def domain_to_orm_user(domain: User) -> UserORM:
         is_active=domain.is_active,
         created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
         updated_at=date(domain.updated_at.year, domain.updated_at.month, domain.updated_at.day) if domain.updated_at else None,
-        managed_colony_id=domain.managed_colony_id,
     )
 
 

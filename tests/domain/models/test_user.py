@@ -99,10 +99,6 @@ class TestUserDefaults:
         user = User(username="testuser", email="test@example.com", password_hash="hash123")
         assert user.updated_at is None
 
-    def test_managed_colony_id_defaults_to_none(self):
-        """managed_colony_id defaults to None."""
-        user = User(username="testuser", email="test@example.com", password_hash="hash123")
-        assert user.managed_colony_id is None
 
     def test_can_set_explicit_role(self):
         """User role can be explicitly set."""

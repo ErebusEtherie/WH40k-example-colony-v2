@@ -51,3 +51,10 @@ class ColonyMemberResponse(BaseModel):
     joined_at: datetime
     
     model_config = {"from_attributes": True}
+
+
+class ColonyOwnershipTransfer(BaseModel):
+    """Request schema for transferring colony ownership."""
+    
+    new_owner_id: int = Field(..., gt=0, description="User ID of the new owner")
+    demote_current: bool = Field(default=True, description="Whether to demote current owner to editor")

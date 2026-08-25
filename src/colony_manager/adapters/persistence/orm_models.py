@@ -51,8 +51,7 @@ class ColonyORM(Base):
     infrastructure: Mapped[list[InfrastructureORM]] = relationship("InfrastructureORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
     support_upgrades: Mapped[list[SupportUpgradeORM]] = relationship("SupportUpgradeORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
     resources: Mapped[list[ResourceORM]] = relationship("ResourceORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
-    manager: Mapped[UserORM] = relationship("UserORM", back_populates="managed_colony")
-    
+
     # Phase 4+ relationships
     events: Mapped[list[EventORM]] = relationship("EventORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
     development_plans: Mapped[list[DevelopmentPlanORM]] = relationship("DevelopmentPlanORM", back_populates="colony", cascade=CASCADE_DELETE_ORPHAN)
@@ -138,10 +137,9 @@ class UserORM(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[date] = mapped_column(Date, nullable=True)
     updated_at: Mapped[date] = mapped_column(Date, nullable=True)
-    managed_colony_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK), nullable=True)
-
-    # Relationship to colony this user manages (optional)
-    managed_colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="manager")
+    # Note: Colony membership is managed via ColonyUserORM, not this field.
+    # The managed_colony_id field was removed in favor of proper many-to-many
+    # relationships through the ColonyUserORM model with role-based access control.
     
     # Phase 4+ relationships
     colony_memberships: Mapped[list[ColonyUserORM]] = relationship("ColonyUserORM", foreign_keys="ColonyUserORM.user_id", back_populates="user", cascade=CASCADE_DELETE_ORPHAN)

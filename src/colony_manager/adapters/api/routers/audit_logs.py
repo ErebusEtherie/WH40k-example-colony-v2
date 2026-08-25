@@ -2,22 +2,23 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from colony_manager.adapters.api.dependencies import get_audit_log_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.audit_log import AuditLogResponse
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.models.user import User
 
-router = APIRouter(prefix="/audit-logs", tags=["audit_logs"])
+router = APIRouter(prefix="/colonies/{colony_id}/audit-logs", tags=["audit_logs"])
 
 
-@router.get("/colonies/{colony_id}", response_model=list[AuditLogResponse])
+@router.get("", response_model=list[AuditLogResponse])
 def get_audit_logs_by_colony(
     colony_id: int,
     repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
-    current_user: Annotated[User, Depends(require_role("colony_manager"))],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     entity_type: str | None = Query(default=None, description="Filter by entity type"),
     limit: int = Query(default=100, ge=1, le=500, description="Maximum number of results"),
     offset: int = Query(default=0, ge=0, description="Number of results to skip"),
@@ -25,7 +26,7 @@ def get_audit_logs_by_colony(
     """Get audit logs for a colony.
     
     Returns a chronological history of changes made to the colony.
-    Requires colony_manager role or higher.
+    Requires colony owner role.
     """
     logs = repository.get_by_colony(
         colony_id=colony_id,
@@ -59,20 +60,23 @@ def get_audit_logs_by_colony(
 @router.get("/{log_id}", response_model=AuditLogResponse)
 def get_audit_log(
     log_id: int,
+    colony_id: int,
     repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
-    current_user: Annotated[User, Depends(require_role("colony_manager"))],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> AuditLogResponse:
     """Get a specific audit log entry by ID.
     
-    Requires colony_manager role or higher.
+    Requires colony owner role.
     """
     log = repository.get_by_id(log_id)
     if log is None:
-        from fastapi import HTTPException, status
+        raise HTTPException(status_code=404, detail="Audit log entry not found")
+    
+    # Validate the log belongs to the specified colony to prevent cross-colony access
+    if log.colony_id != colony_id:
         raise HTTPException(status_code=404, detail="Audit log entry not found")
     
     if log.id is None or log.changed_at is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=500, detail="Audit log data is incomplete")
     
     assert log.id is not None

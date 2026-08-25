@@ -120,7 +120,6 @@ def register(
         email=created_user.email,
         role=created_user.role.value if hasattr(created_user.role, "value") else created_user.role,
         is_active=created_user.is_active,
-        managed_colony_id=created_user.managed_colony_id,
     )
 
 
@@ -290,7 +289,6 @@ def get_current_user_info(
         email=current_user.email,
         role=current_user.role.value if hasattr(current_user.role, "value") else current_user.role,
         is_active=current_user.is_active,
-        managed_colony_id=current_user.managed_colony_id,
     )
 
 

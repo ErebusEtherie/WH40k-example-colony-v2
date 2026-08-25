@@ -29,7 +29,9 @@ class User(BaseModel):
     is_active: bool = True
     created_at: datetime | None = None
     updated_at: datetime | None = None
-    # Optional: link to a specific colony if user manages only one
-    managed_colony_id: int | None = None
+    
+    # Note: Colony membership is managed via ColonyUser model, not this field.
+    # The managed_colony_id field was removed in favor of proper many-to-many
+    # relationships through the ColonyUser model with role-based access control.
     
     model_config = {"use_enum_values": False}

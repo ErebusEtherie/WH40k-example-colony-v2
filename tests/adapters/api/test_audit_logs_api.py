@@ -13,7 +13,7 @@ class TestAuditLogsAPI:
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
         auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs")
         assert response.status_code == 200
         logs = response.json()
         assert len(logs) >= 1
@@ -27,7 +27,7 @@ class TestAuditLogsAPI:
         event_id = event_response.json()["id"]
         auth_client.patch(f"/api/v1/events/{event_id}", json={"name": "Updated Event"})
         # Filter by entity_type (event) instead of action (not supported)
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}?entity_type=event")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs?entity_type=event")
         assert response.status_code == 200
         logs = response.json()
         assert len(logs) >= 1
@@ -39,7 +39,7 @@ class TestAuditLogsAPI:
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
         auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}?entity_type=event")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs?entity_type=event")
         assert response.status_code == 200
         logs = response.json()
         assert len(logs) >= 1
@@ -51,9 +51,9 @@ class TestAuditLogsAPI:
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
         auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
-        logs_response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}")
+        logs_response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs")
         log_id = logs_response.json()[0]["id"]
-        response = auth_client.get(f"/api/v1/audit-logs/{log_id}")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs/{log_id}")
         assert response.status_code == 200
         log = response.json()
         assert log["id"] == log_id
@@ -66,11 +66,11 @@ class TestAuditLogsAPI:
         for i in range(5):
             event_data = {"name": f"Event {i}", "description": f"Test {i}", "modifiers": []}
             auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}?limit=2&offset=0")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs?limit=2&offset=0")
         assert response.status_code == 200
         logs = response.json()
         assert len(logs) == 2
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}?limit=2&offset=2")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs?limit=2&offset=2")
         assert response.status_code == 200
         logs = response.json()
         assert len(logs) == 2
@@ -79,7 +79,7 @@ class TestAuditLogsAPI:
         """Test audit logs for colony with no logs."""
         colony_response = auth_client.post("/api/v1/colonies", json={"name": "Empty Logs Test", "owner": "Owner", "colony_type": "mining_and_industry"})
         colony_id = colony_response.json()["id"]
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs")
         assert response.status_code == 200
         logs = response.json()
         # Colony creation is now logged, so we expect 1 log entry
@@ -88,7 +88,27 @@ class TestAuditLogsAPI:
 
     def test_get_audit_log_not_found(self, auth_client: TestClient):
         """Test 404 when audit log doesn't exist."""
-        response = auth_client.get("/api/v1/audit-logs/99999")
+        response = auth_client.get("/api/v1/colonies/1/audit-logs/99999")
+        assert response.status_code == 404
+
+    def test_get_audit_log_cross_colony_access_denied(self, auth_client: TestClient):
+        """Test that accessing audit log from different colony returns 404."""
+        # Create two colonies
+        colony1_response = auth_client.post("/api/v1/colonies", json={"name": "Colony 1", "owner": "Owner1", "colony_type": "mining_and_industry"})
+        colony1_id = colony1_response.json()["id"]
+        colony2_response = auth_client.post("/api/v1/colonies", json={"name": "Colony 2", "owner": "Owner2", "colony_type": "mining_and_industry"})
+        colony2_id = colony2_response.json()["id"]
+        
+        # Create an event in colony 1
+        event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
+        auth_client.post(f"/api/v1/events/colonies/{colony1_id}", json=event_data)
+        
+        # Get the log ID from colony 1
+        logs_response = auth_client.get(f"/api/v1/colonies/{colony1_id}/audit-logs")
+        log_id = logs_response.json()[0]["id"]
+        
+        # Try to access colony 1's log through colony 2's endpoint - should fail
+        response = auth_client.get(f"/api/v1/colonies/{colony2_id}/audit-logs/{log_id}")
         assert response.status_code == 404
 
     def test_audit_log_contains_required_fields(self, auth_client: TestClient):
@@ -97,7 +117,7 @@ class TestAuditLogsAPI:
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
         auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
-        response = auth_client.get(f"/api/v1/audit-logs/colonies/{colony_id}")
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/audit-logs")
         log = response.json()[0]
         required_fields = ["id", "colony_id", "entity_type", "entity_id", "action", "changed_by", "changed_at"]
         for field in required_fields:

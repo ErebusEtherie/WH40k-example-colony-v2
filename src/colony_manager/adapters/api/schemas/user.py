@@ -15,7 +15,6 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime | None = None
     updated_at: datetime | None = None
-    managed_colony_id: int | None = None
     
     model_config = {"from_attributes": True}
 
@@ -28,18 +27,17 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128, description="Initial password")
     role: str = Field(default="viewer", description="User role: viewer, colony_manager, or admin")
     is_active: bool = Field(default=True, description="Whether the user account is active")
-    managed_colony_id: int | None = Field(default=None, description="Optional colony ID this user manages")
 
 
 class UserUpdate(BaseModel):
     """Request schema for updating a user (admin only).
     
-    Note: username and email are immutable. Only role, is_active, and managed_colony_id can be updated.
+    Note: username and email are immutable. Only role and is_active can be updated.
+    Colony membership is managed separately via the /colonies/{colony_id}/members endpoints.
     """
     
     role: str | None = Field(default=None, description="User role: viewer, colony_manager, or admin")
     is_active: bool | None = Field(default=None, description="Whether the user account is active")
-    managed_colony_id: int | None = Field(default=None, description="Optional colony ID this user manages")
 
 
 class UserPasswordReset(BaseModel):

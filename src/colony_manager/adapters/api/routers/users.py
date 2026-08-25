@@ -32,9 +32,6 @@ def _user_to_response(user: User) -> UserResponse:
         email=user.email,
         role=user.role.value if isinstance(user.role, UserRole) else user.role,
         is_active=user.is_active,
-        created_at=user.created_at,
-        updated_at=user.updated_at,
-        managed_colony_id=user.managed_colony_id,
     )
 
 
@@ -102,7 +99,6 @@ async def create_user(
             password=user_data.password,
             role=user_data.role,
             is_active=user_data.is_active,
-            managed_colony_id=user_data.managed_colony_id,
             created_by=current_user.id,
         )
         return _user_to_response(created_user)
@@ -175,7 +171,6 @@ async def update_user(
             user_id=user_id,
             role=user_data.role,
             is_active=user_data.is_active,
-            managed_colony_id=user_data.managed_colony_id,
             changed_by=current_user.id,
         )
         return _user_to_response(updated_user)

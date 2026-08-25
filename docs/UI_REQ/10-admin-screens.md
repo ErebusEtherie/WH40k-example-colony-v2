@@ -40,7 +40,7 @@ Admin screens are restricted to users with Admin permission. These screens manag
 - Remove user access
 - Transfer ownership
 
-**API:** `GET/POST/DELETE /api/v1/colonies/:id/access`
+**API:** `GET /api/v1/colonies/:id/members`, `POST /api/v1/colonies/:id/members`, `DELETE /api/v1/colonies/:id/members/:user_id`, `POST /api/v1/colonies/:id/members/transfer-ownership`
 
 ---
 
@@ -79,12 +79,17 @@ Admin screens are restricted to users with Admin permission. These screens manag
 
 ## 10.6 Permission Summary
 
-| Screen | Viewer | Editor | Admin |
-|--------|--------|--------|-------|
-| User Management | ❌ | ❌ | ✅ |
-| Colony Access | ❌ | ❌ | ✅ |
-| Export/Import | ❌ | ❌ | ✅ |
-| Audit Log | ❌ | ❌ | ✅ |
+| Screen | Viewer | Editor | Admin (Colony Owner) |
+|--------|--------|--------|----------------------|
+| User Management | ❌ | ❌ | ✅ (System Admin only) |
+| Colony Access | ❌ | ❌ | ✅ (Colony Owner) |
+| Export/Import | ❌ | ❌ | ✅ (Colony Owner) |
+| Audit Log | ❌ | ❌ | ✅ (Colony Owner) |
+
+**Notes:**
+- "Admin" in colony context means the colony OWNER role, not system admin
+- System admin role can access all colonies regardless of membership
+- Colony Access, Export/Import, and Audit Log require colony OWNER role
 
 ---
 

@@ -123,7 +123,6 @@ class SqlAlchemyUserRepository(UserRepository):
             orm_user.password_hash = user.password_hash
             orm_user.role = user.role.value if hasattr(user.role, "value") else user.role
             orm_user.is_active = user.is_active
-            orm_user.managed_colony_id = user.managed_colony_id
             orm_user.updated_at = datetime.now(UTC).date()
             
             session.commit()

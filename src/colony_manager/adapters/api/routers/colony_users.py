@@ -8,6 +8,7 @@ from colony_manager.adapters.api.dependencies import get_colony_user_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.colony_user import (
+    ColonyOwnershipTransfer,
     ColonyUserCreate,
     ColonyUserResponse,
     ColonyUserUpdate,
@@ -196,3 +197,60 @@ def remove_colony_member(
         )
     
     service.remove_member(membership.id, changed_by=current_user.id)
+
+
+@router.post("/transfer-ownership", response_model=dict)
+def transfer_colony_ownership(
+    colony_id: int,
+    transfer_data: ColonyOwnershipTransfer,
+    service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
+    current_user: Annotated[User, Depends(require_colony_permission("admin"))],
+) -> dict:
+    """Transfer colony ownership to another user.
+    
+    Requires owner-level permissions. The current owner is demoted to editor
+    by default (can be disabled with demote_current=False).
+    
+    Returns:
+        Dictionary with new_owner and previous_owner user IDs.
+    """
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ERR_USER_NO_ID,
+        )
+    
+    # Verify current user is the owner
+    current_membership = service.get_membership_by_colony_and_user(colony_id, current_user.id)
+    if current_membership is None or current_membership.role != ColonyUserRole.OWNER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the colony owner can transfer ownership",
+        )
+    
+    try:
+        new_owner_membership, previous_owner_membership = service.transfer_ownership(
+            colony_id=colony_id,
+            current_owner_id=current_user.id,
+            new_owner_id=transfer_data.new_owner_id,
+            demote_current=transfer_data.demote_current,
+            changed_by=current_user.id,
+        )
+        
+        return {
+            "message": "Ownership transferred successfully",
+            "colony_id": colony_id,
+            "new_owner_id": new_owner_membership.user_id,
+            "previous_owner_id": current_user.id,
+            "previous_owner_demoted": transfer_data.demote_current,
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except NotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )

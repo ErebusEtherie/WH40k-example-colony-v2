@@ -42,7 +42,6 @@ class UserResponse(BaseModel):
     email: str
     role: str
     is_active: bool
-    managed_colony_id: int | None = None
 
 
 class ChangePasswordRequest(BaseModel):

@@ -167,3 +167,95 @@ class ColonyUserService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
+    
+    def transfer_ownership(
+        self,
+        colony_id: int,
+        current_owner_id: int,
+        new_owner_id: int,
+        demote_current: bool = True,
+        changed_by: int | None = None,
+    ) -> tuple[ColonyUser, ColonyUser | None]:
+        """Transfer colony ownership from one user to another.
+        
+        Args:
+            colony_id: ID of the colony.
+            current_owner_id: ID of the current owner.
+            new_owner_id: ID of the new owner.
+            demote_current: Whether to demote current owner to editor (default True).
+            changed_by: User ID making the change (optional, for audit log).
+            
+        Returns:
+            Tuple of (new_owner_membership, current_owner_membership_or_none).
+            
+        Raises:
+            NotFoundError: If either user is not a member of the colony.
+            ValueError: If new_owner_id is the same as current_owner_id.
+        """
+        if current_owner_id == new_owner_id:
+            raise ValueError("Cannot transfer ownership to the same user")
+        
+        # Get current owner's membership
+        current_owner_membership = self._membership_repository.get_by_colony_and_user(
+            colony_id, current_owner_id
+        )
+        if current_owner_membership is None:
+            raise NotFoundError(f"Current owner (user {current_owner_id}) is not a member of colony {colony_id}")
+        
+        # Get or create new owner's membership
+        new_owner_membership = self._membership_repository.get_by_colony_and_user(
+            colony_id, new_owner_id
+        )
+        
+        # Update current owner's role to editor if demoting
+        old_owner_role = current_owner_membership.role
+        if demote_current:
+            current_owner_membership.role = ColonyUserRole.EDITOR
+            self._membership_repository.update(current_owner_membership)
+        
+        # Update or create new owner's membership
+        if new_owner_membership is None:
+            # Create new membership for new owner
+            new_owner_membership = ColonyUser(
+                colony_id=colony_id,
+                user_id=new_owner_id,
+                role=ColonyUserRole.OWNER,
+                invited_by=changed_by,
+            )
+            new_owner_membership = self._membership_repository.create(new_owner_membership)
+        else:
+            old_new_owner_role = new_owner_membership.role
+            new_owner_membership.role = ColonyUserRole.OWNER
+            new_owner_membership = self._membership_repository.update(new_owner_membership)
+        
+        # Log the ownership transfer
+        if self._audit_log_repository and changed_by:
+            from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
+            
+            # Log current owner role change
+            audit_log = AuditLog(
+                entity_type="colony_membership",
+                entity_id=current_owner_membership.id,
+                action=AuditLogAction.UPDATE,
+                field="role",
+                old_value=old_owner_role.value,
+                new_value=current_owner_membership.role.value,
+                changed_by=changed_by,
+                colony_id=colony_id,
+            )
+            self._audit_log_repository.create(audit_log)
+            
+            # Log new owner role change
+            audit_log = AuditLog(
+                entity_type="colony_membership",
+                entity_id=new_owner_membership.id,
+                action=AuditLogAction.UPDATE,
+                field="role",
+                old_value=old_new_owner_role.value if new_owner_membership else "none",
+                new_value=ColonyUserRole.OWNER.value,
+                changed_by=changed_by,
+                colony_id=colony_id,
+            )
+            self._audit_log_repository.create(audit_log)
+        
+        return new_owner_membership, current_owner_membership if demote_current else None

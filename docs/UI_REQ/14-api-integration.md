@@ -106,8 +106,10 @@ Authorization: Bearer <access_token>
 ### Admin
 
 - `GET /api/v1/users` — List users
-- `GET /api/v1/colonies/:id/access` — Get access
-- `POST /api/v1/colonies/:id/access` — Grant access
+- `GET /api/v1/colonies/:id/members` — Get colony members
+- `POST /api/v1/colonies/:id/members` — Add member
+- `DELETE /api/v1/colonies/:id/members/:user_id` — Remove member
+- `POST /api/v1/colonies/:id/members/transfer-ownership` — Transfer ownership
 - `GET /api/v1/colonies/:id/audit-log` — Audit log
 - `GET /api/v1/colonies/:id/export` — Export
 - `POST /api/v1/colonies/:id/import` — Import

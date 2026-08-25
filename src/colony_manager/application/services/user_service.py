@@ -65,7 +65,6 @@ class UserService:
         password: str,
         role: str = "viewer",
         is_active: bool = True,
-        managed_colony_id: int | None = None,
         created_by: int | None = None,
     ) -> User:
         """Create a new user.
@@ -76,7 +75,6 @@ class UserService:
             password: Plain text password (will be hashed).
             role: User role (viewer, colony_manager, admin).
             is_active: Whether the account is active.
-            managed_colony_id: Optional colony ID this user manages.
             created_by: User ID who created this account (for audit logging).
             
         Returns:
@@ -101,7 +99,6 @@ class UserService:
             password_hash=hash_password(password),
             role=UserRole(role),
             is_active=is_active,
-            managed_colony_id=managed_colony_id,
         )
         
         created_user = self._user_repository.create(user)
@@ -158,7 +155,6 @@ class UserService:
         user_id: int,
         role: str | None = None,
         is_active: bool | None = None,
-        managed_colony_id: int | None = None,
         changed_by: int | None = None,
     ) -> User:
         """Update a user.
@@ -169,7 +165,6 @@ class UserService:
             user_id: ID of the user to update.
             role: New role (optional).
             is_active: New active status (optional).
-            managed_colony_id: New managed colony ID (optional).
             changed_by: User ID making the change (for audit logging).
             
         Returns:
@@ -201,12 +196,6 @@ class UserService:
         if is_active is not None and target_user.is_active != is_active:
             changes.append(("is_active", str(target_user.is_active), str(is_active)))
             target_user.is_active = is_active
-        
-        if managed_colony_id is not None and target_user.managed_colony_id != managed_colony_id:
-            old_colony = str(target_user.managed_colony_id) if target_user.managed_colony_id else None
-            new_colony = str(managed_colony_id) if managed_colony_id else None
-            changes.append(("managed_colony_id", old_colony, new_colony))
-            target_user.managed_colony_id = managed_colony_id
         
         target_user.updated_at = datetime.now(timezone.utc)
         
