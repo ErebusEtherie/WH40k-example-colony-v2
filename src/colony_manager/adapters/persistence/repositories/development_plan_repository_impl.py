@@ -5,7 +5,10 @@ from typing import Any
 
 from sqlalchemy import select
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_development_plan, orm_to_domain_development_plan
+from colony_manager.adapters.persistence.mappers import (
+    domain_to_orm_development_plan,
+    orm_to_domain_development_plan,
+)
 from colony_manager.adapters.persistence.orm_models import DevelopmentPlanORM
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.development_plan import DevelopmentPlan
@@ -28,7 +31,6 @@ class SqlAlchemyDevelopmentPlanRepository(DevelopmentPlanRepository):
     
     def _get_session(self) -> Any:
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     
@@ -74,14 +76,13 @@ class SqlAlchemyDevelopmentPlanRepository(DevelopmentPlanRepository):
             
             # Update fields
             orm_plan.upgrade_type = plan.upgrade_type
+            orm_plan.target_type = plan.target_type
             orm_plan.target_name = plan.target_name
             orm_plan.priority = plan.priority
             orm_plan.description = plan.description
-            orm_plan.acquisition_plan = plan.acquisition_plan
-            orm_plan.progress = plan.progress
+            orm_plan.notes = plan.notes
+            orm_plan.order = plan.order
             orm_plan.status = plan.status.value if hasattr(plan.status, "value") else plan.status
-            if plan.completed_at:
-                orm_plan.completed_at = plan.completed_at
             
             session.commit()
             session.refresh(orm_plan)

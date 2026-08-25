@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import delete, select, update
 
 from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
 from colony_manager.domain.models.token_issuance import TokenIssuance
@@ -21,7 +21,6 @@ class SqlAlchemyTokenIssuanceRepository(TokenIssuanceRepository):
     
     def _get_session(self):
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     

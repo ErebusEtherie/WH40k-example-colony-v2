@@ -5,7 +5,10 @@ from typing import Any
 
 from sqlalchemy import desc, select
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_audit_log, orm_to_domain_audit_log
+from colony_manager.adapters.persistence.mappers import (
+    domain_to_orm_audit_log,
+    orm_to_domain_audit_log,
+)
 from colony_manager.adapters.persistence.orm_models import AuditLogORM
 from colony_manager.domain.models.audit_log import AuditLog
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
@@ -27,7 +30,6 @@ class SqlAlchemyAuditLogRepository(AuditLogRepository):
     
     def _get_session(self) -> Any:
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     

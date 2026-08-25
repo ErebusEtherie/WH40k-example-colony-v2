@@ -4,15 +4,15 @@ This service orchestrates user operations, including creation, updates,
 deletion (soft delete), password resets, and integration with the audit logging system.
 """
 
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
 
+from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.errors import NotFoundError, ValidationError
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.auth import hash_password, validate_password
-from colony_manager.config.settings import get_security_settings
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +197,7 @@ class UserService:
             changes.append(("is_active", str(target_user.is_active), str(is_active)))
             target_user.is_active = is_active
         
-        target_user.updated_at = datetime.now(timezone.utc)
+        target_user.updated_at = datetime.now(UTC)
         
         updated_user = self._user_repository.update(target_user)
         
@@ -240,7 +240,7 @@ class UserService:
         
         # Soft delete - set is_active to False
         target_user.is_active = False
-        target_user.updated_at = datetime.now(timezone.utc)
+        target_user.updated_at = datetime.now(UTC)
         
         self._user_repository.update(target_user)
         
@@ -301,7 +301,7 @@ class UserService:
         
         # Hash and set new password
         target_user.password_hash = hash_password(temporary_password)
-        target_user.updated_at = datetime.now(timezone.utc)
+        target_user.updated_at = datetime.now(UTC)
         
         updated_user = self._user_repository.update(target_user)
         

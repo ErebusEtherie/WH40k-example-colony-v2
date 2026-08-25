@@ -5,9 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
+from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
-from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.representative import (
     PersonalityCreate,
@@ -19,8 +19,8 @@ from colony_manager.adapters.api.schemas.representative import (
     parse_personality_effect,
 )
 from colony_manager.application.services.representative_service import RepresentativeService
-from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 from colony_manager.domain.enums import RepresentativeType
+from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 from colony_manager.domain.models.representative import (
     Personality,
     Representative,

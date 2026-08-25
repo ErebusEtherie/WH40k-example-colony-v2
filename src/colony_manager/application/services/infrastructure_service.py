@@ -1,9 +1,8 @@
 """Infrastructure service for managing colony infrastructure."""
 
 from colony_manager.domain.enums import InfrastructureState
-from colony_manager.domain.models.audit_log import AuditLogAction
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.models.audit_log import AuditLog
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository

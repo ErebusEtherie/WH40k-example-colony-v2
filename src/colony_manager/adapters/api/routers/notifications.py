@@ -1,10 +1,10 @@
 """Server-Sent Events (SSE) router for real-time notifications."""
 
-from collections.abc import AsyncGenerator
 import json
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from colony_manager.adapters.api.middleware.auth import get_current_user

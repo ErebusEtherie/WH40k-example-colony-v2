@@ -14,7 +14,8 @@ Security Note: Rate limiting is critical for production deployments to prevent:
 - Token enumeration attacks
 """
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from fastapi import Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -25,7 +26,6 @@ from colony_manager.config.settings import get_security_settings
 
 if TYPE_CHECKING:
     from starlette.responses import Response
-    from starlette.testclient import TestClient
 
 
 def get_client_ip(request: Request) -> str:

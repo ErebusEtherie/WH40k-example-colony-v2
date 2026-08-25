@@ -3798,8 +3798,7 @@
           "planned",
           "in_progress",
           "acquired",
-          "completed",
-          "abandoned"
+          "delivered"
         ],
         "title": "DevelopmentPlanStatusEnum",
         "description": "Enum for development plan status."

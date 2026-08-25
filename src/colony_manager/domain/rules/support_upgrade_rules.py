@@ -7,7 +7,12 @@ Per Rogue Trader Colony Rules:
 - Cultural Improvement allows choosing any stat except Size
 """
 
-from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierStat, SupportUpgradeType
+from colony_manager.domain.enums import (
+    ColonyType,
+    ModifierCategory,
+    ModifierStat,
+    SupportUpgradeType,
+)
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 

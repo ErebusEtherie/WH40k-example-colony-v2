@@ -28,7 +28,6 @@ class SqlAlchemyEventRepository(EventRepository):
     
     def _get_session(self) -> Any:
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     

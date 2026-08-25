@@ -11,7 +11,6 @@ import bcrypt
 
 class PasswordValidationError(ValueError):
     """Exception raised when password does not meet security requirements."""
-    pass
 
 
 def validate_password(password: str, require_complexity: bool = True, min_length: int = 8) -> None:

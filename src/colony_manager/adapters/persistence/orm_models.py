@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import date, datetime
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, MappedColumn
-
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Foreign key constants - avoid string duplication
 USERS_ID_FK = "users.id"
@@ -185,15 +184,15 @@ class DevelopmentPlanORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     colony_id: Mapped[int] = mapped_column(Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False)
     upgrade_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    target_type: Mapped[str] = mapped_column(String(100), nullable=False)
     target_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    priority: Mapped[int] = mapped_column(Integer, nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    acquisition_plan: Mapped[str] = mapped_column(Text, nullable=False)
-    progress: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    notes: Mapped[str] = mapped_column(Text, nullable=True, default="")
+    order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="planned")
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey(USERS_ID_FK), nullable=False)
-    created_at: Mapped[date] = mapped_column(DateTime, nullable=True)
-    completed_at: Mapped[date] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     # Relationships
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="development_plans")

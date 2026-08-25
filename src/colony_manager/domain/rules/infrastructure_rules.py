@@ -187,7 +187,7 @@ def get_missing_infrastructure_penalty(
             modifier_category=ModifierCategory.PERMANENT,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=total_penalty,
-            description=f"Missing Infrastructure (-1 per type not Working)",
+            description="Missing Infrastructure (-1 per type not Working)",
             is_active=True,
         )
     ]

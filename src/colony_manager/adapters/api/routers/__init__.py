@@ -1,7 +1,7 @@
 """API routers."""
 
-from colony_manager.adapters.api.routers.auth_router import router as auth_router
 from colony_manager.adapters.api.routers.audit_logs import router as audit_logs_router
+from colony_manager.adapters.api.routers.auth_router import router as auth_router
 from colony_manager.adapters.api.routers.colonies import router as colonies_router
 from colony_manager.adapters.api.routers.colony_users import router as colony_users_router
 from colony_manager.adapters.api.routers.config import router as config_router
@@ -17,8 +17,8 @@ from colony_manager.adapters.api.routers.support_upgrades import router as suppo
 from colony_manager.adapters.api.routers.users import router as users_router
 
 __all__ = [
-    "auth_router",
     "audit_logs_router",
+    "auth_router",
     "colonies_router",
     "colony_users_router",
     "config_router",

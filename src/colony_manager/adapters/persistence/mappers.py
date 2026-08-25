@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from colony_manager.adapters.persistence.orm_models import (
     AuditLogORM,
@@ -33,8 +33,8 @@ from colony_manager.domain.models.development_plan import DevelopmentPlan, Devel
 from colony_manager.domain.models.event import Event, EventModifier
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier
+from colony_manager.domain.models.personality import Personality
 from colony_manager.domain.models.representative import (
-    Personality,
     Representative,
     RepresentativeStats,
     Skill,
@@ -45,8 +45,9 @@ from colony_manager.domain.models.user import User, UserRole
 
 
 def orm_to_domain_colony(orm: ColonyORM) -> Colony:
-    from colony_manager.domain.enums import DynastyOutcome, ResourceType
     import json
+
+    from colony_manager.domain.enums import DynastyOutcome, ResourceType
     
     # Parse planetary_resources from JSON
     planetary_resources = []
@@ -244,7 +245,6 @@ def orm_to_domain_user(orm: UserORM) -> User:
     Returns:
         The corresponding domain User object.
     """
-    from datetime import datetime
     
     return User(
         id=orm.id,
@@ -285,7 +285,6 @@ def domain_to_orm_user(domain: User) -> UserORM:
 
 def orm_to_domain_event(orm: EventORM) -> Event:
     """Convert an EventORM to an Event domain model."""
-    from datetime import datetime
     
     return Event(
         id=orm.id,
@@ -340,41 +339,39 @@ def domain_to_orm_event_modifier(domain: EventModifier) -> EventModifierORM:
 
 def orm_to_domain_development_plan(orm: DevelopmentPlanORM) -> DevelopmentPlan:
     """Convert a DevelopmentPlanORM to a DevelopmentPlan domain model."""
-    from datetime import datetime
-    
     return DevelopmentPlan(
         id=orm.id,
         colony_id=orm.colony_id,
         upgrade_type=orm.upgrade_type,
+        target_type=orm.target_type,
         target_name=orm.target_name,
         priority=orm.priority,
         description=orm.description,
-        acquisition_plan=orm.acquisition_plan,
-        progress=orm.progress,
+        notes=orm.notes or "",
+        order=orm.order,
         status=DevelopmentPlanStatus(orm.status),
         created_by=orm.created_by,
-        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
-        completed_at=datetime.combine(orm.completed_at, datetime.min.time()) if orm.completed_at else None,
+        created_at=orm.created_at,
     )
+
+
 
 
 def domain_to_orm_development_plan(domain: DevelopmentPlan) -> DevelopmentPlanORM:
     """Convert a DevelopmentPlan domain model to a DevelopmentPlanORM."""
-    from datetime import date
-    
     return DevelopmentPlanORM(
         id=domain.id,
         colony_id=domain.colony_id,
         upgrade_type=domain.upgrade_type,
+        target_type=domain.target_type,
         target_name=domain.target_name,
         priority=domain.priority,
         description=domain.description,
-        acquisition_plan=domain.acquisition_plan,
-        progress=domain.progress,
+        notes=domain.notes,
+        order=domain.order,
         status=domain.status.value if hasattr(domain.status, "value") else domain.status,
         created_by=domain.created_by,
-        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
-        completed_at=date(domain.completed_at.year, domain.completed_at.month, domain.completed_at.day) if domain.completed_at else None,
+        created_at=domain.created_at,
     )
 
 
@@ -382,7 +379,6 @@ def domain_to_orm_development_plan(domain: DevelopmentPlan) -> DevelopmentPlanOR
 
 def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
     """Convert an AuditLogORM to an AuditLog domain model."""
-    from datetime import datetime
     
     return AuditLog(
         id=orm.id,
@@ -393,7 +389,7 @@ def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
         old_value=orm.old_value,
         new_value=orm.new_value,
         changed_by=orm.changed_by,
-        changed_at=datetime.combine(orm.changed_at, datetime.min.time()).replace(tzinfo=timezone.utc) if orm.changed_at else datetime.now(timezone.utc),
+        changed_at=datetime.combine(orm.changed_at, datetime.min.time()).replace(tzinfo=UTC) if orm.changed_at else datetime.now(UTC),
         colony_id=orm.colony_id,
     )
 
@@ -420,7 +416,6 @@ def domain_to_orm_audit_log(domain: AuditLog) -> AuditLogORM:
 
 def orm_to_domain_colony_user(orm: ColonyUserORM) -> ColonyUser:
     """Convert a ColonyUserORM to a ColonyUser domain model."""
-    from datetime import datetime
     
     return ColonyUser(
         id=orm.id,
@@ -444,4 +439,5 @@ def domain_to_orm_colony_user(domain: ColonyUser) -> ColonyUserORM:
         joined_at=date(domain.joined_at.year, domain.joined_at.month, domain.joined_at.day) if domain.joined_at else None,
         invited_by=domain.invited_by,
     )
+
 

@@ -5,7 +5,10 @@ from typing import Any
 
 from sqlalchemy import select
 
-from colony_manager.adapters.persistence.mappers import domain_to_orm_colony_user, orm_to_domain_colony_user
+from colony_manager.adapters.persistence.mappers import (
+    domain_to_orm_colony_user,
+    orm_to_domain_colony_user,
+)
 from colony_manager.adapters.persistence.orm_models import ColonyUserORM
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony_user import ColonyUser
@@ -28,7 +31,6 @@ class SqlAlchemyColonyUserRepository(ColonyUserRepository):
     
     def _get_session(self) -> Any:
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     

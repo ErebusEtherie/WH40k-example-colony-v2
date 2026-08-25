@@ -9,8 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from colony_manager.adapters.api.dependencies import get_colony_service
-from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
-from colony_manager.adapters.api.middleware.permissions import require_colony_permission
+from colony_manager.adapters.api.middleware.auth import require_role
 from colony_manager.adapters.api.schemas.modifier import ModifierResponse
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.models.user import User

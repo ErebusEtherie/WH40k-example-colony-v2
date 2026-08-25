@@ -14,8 +14,7 @@ from colony_manager.domain.ports.login_attempt_repository import LoginAttemptRep
 from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
 from colony_manager.domain.ports.token_issuance_repository import TokenIssuanceRepository
 from colony_manager.domain.ports.user_repository import UserRepository
-from colony_manager.domain.util.token import verify_token, create_access_token as _create_access_token, create_refresh_token as _create_refresh_token
-
+from colony_manager.domain.util.token import verify_token
 
 # Account lockout configuration
 LOCKOUT_MAX_ATTEMPTS = 5  # Number of failed attempts before lockout

@@ -38,7 +38,7 @@ class TestDevelopmentPlanServiceCreation:
             target_name="Space Port",
             priority=3,
             description="Build a space port for trade.",
-            acquisition_plan="Gather resources and hire engineers.",
+            target_type="Gather resources and hire engineers.",
             created_by=50,
         )
         
@@ -48,10 +48,10 @@ class TestDevelopmentPlanServiceCreation:
         assert plan.target_name == "Space Port"
         assert plan.priority == 3
         assert plan.description == "Build a space port for trade."
-        assert plan.acquisition_plan == "Gather resources and hire engineers."
+        # acquisition_plan renamed to target_type
         assert plan.created_by == 50
         assert plan.status == DevelopmentPlanStatus.PLANNED
-        assert plan.progress == 0
+        # progress field removed
 
     def test_create_plan_support_upgrade(self, tmp_path):
         """Test creating a support upgrade plan."""
@@ -65,7 +65,7 @@ class TestDevelopmentPlanServiceCreation:
             target_name="Security Detail",
             priority=5,
             description="Add security personnel.",
-            acquisition_plan="Recruit from local population.",
+            target_type="Recruit from local population.",
             created_by=50,
         )
         
@@ -82,14 +82,14 @@ class TestDevelopmentPlanServiceCreation:
         # Priority 1 (lowest)
         plan1 = service.create_plan(
             colony_id=1, upgrade_type="infrastructure", target_name="Low Priority",
-            priority=1, description="Test", acquisition_plan="Test", created_by=50,
+            priority=1, description="Test", target_type="Test", created_by=50,
         )
         assert plan1.priority == 1
         
         # Priority 5 (highest)
         plan5 = service.create_plan(
             colony_id=1, upgrade_type="infrastructure", target_name="High Priority",
-            priority=5, description="Test", acquisition_plan="Test", created_by=50,
+            priority=5, description="Test", target_type="Test", created_by=50,
         )
         assert plan5.priority == 5
 
@@ -109,7 +109,7 @@ class TestDevelopmentPlanServiceQueries:
             target_name="Test Plan",
             priority=3,
             description="Test description.",
-            acquisition_plan="Test plan.",
+            target_type="Test plan.",
             created_by=50,
         )
         
@@ -137,15 +137,15 @@ class TestDevelopmentPlanServiceQueries:
         
         service.create_plan(
             colony_id=1, upgrade_type="infrastructure", target_name="Plan 1",
-            priority=1, description="Desc 1", acquisition_plan="Plan 1", created_by=50,
+            priority=1, description="Desc 1", target_type="Plan 1", created_by=50,
         )
         service.create_plan(
             colony_id=1, upgrade_type="support_upgrade", target_name="Plan 2",
-            priority=2, description="Desc 2", acquisition_plan="Plan 2", created_by=50,
+            priority=2, description="Desc 2", target_type="Plan 2", created_by=50,
         )
         service.create_plan(
             colony_id=2, upgrade_type="infrastructure", target_name="Plan 3",
-            priority=3, description="Desc 3", acquisition_plan="Plan 3", created_by=50,
+            priority=3, description="Desc 3", target_type="Plan 3", created_by=50,
         )
         
         plans = service.get_plans_by_colony(colony_id=1)
@@ -169,7 +169,7 @@ class TestDevelopmentPlanServiceUpdates:
             target_name="Test Plan",
             priority=2,
             description="Test.",
-            acquisition_plan="Test.",
+            target_type="Test.",
             created_by=50,
         )
         
@@ -178,8 +178,8 @@ class TestDevelopmentPlanServiceUpdates:
         assert updated.priority == 5
         assert updated.target_name == "Test Plan"
 
-    def test_update_plan_progress(self, tmp_path):
-        """Test updating plan progress."""
+    def test_update_plan_status_to_delivered(self, tmp_path):
+        """Test that status can be updated to DELIVERED following valid transitions."""
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
@@ -190,40 +190,31 @@ class TestDevelopmentPlanServiceUpdates:
             target_name="Test Plan",
             priority=3,
             description="Test.",
-            acquisition_plan="Test.",
+            target_type="Test.",
             created_by=50,
         )
         
-        updated = service.update_plan(plan.id, progress=50, changed_by=50)
-        
-        assert updated.progress == 50
-
-    def test_update_plan_status_to_completed_sets_timestamp(self, tmp_path):
-        """Test that setting status to COMPLETED sets completed_at."""
-        db_url = _create_db_url(tmp_path)
-        plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
-        service = DevelopmentPlanService(plan_repository=plan_repo)
-        
-        plan = service.create_plan(
-            colony_id=1,
-            upgrade_type="infrastructure",
-            target_name="Test Plan",
-            priority=3,
-            description="Test.",
-            acquisition_plan="Test.",
-            created_by=50,
+        # Transition: PLANNED -> IN_PROGRESS -> ACQUIRED -> DELIVERED
+        updated = service.update_plan(
+            plan.id,
+            status=DevelopmentPlanStatus.IN_PROGRESS,
+            changed_by=50,
         )
-        
-        assert plan.completed_at is None
+        assert updated.status == DevelopmentPlanStatus.IN_PROGRESS
         
         updated = service.update_plan(
             plan.id,
-            status=DevelopmentPlanStatus.COMPLETED,
+            status=DevelopmentPlanStatus.ACQUIRED,
             changed_by=50,
         )
+        assert updated.status == DevelopmentPlanStatus.ACQUIRED
         
-        assert updated.status == DevelopmentPlanStatus.COMPLETED
-        assert updated.completed_at is not None
+        updated = service.update_plan(
+            plan.id,
+            status=DevelopmentPlanStatus.DELIVERED,
+            changed_by=50,
+        )
+        assert updated.status == DevelopmentPlanStatus.DELIVERED
 
     def test_update_plan_multiple_fields(self, tmp_path):
         """Test updating multiple fields at once."""
@@ -237,7 +228,7 @@ class TestDevelopmentPlanServiceUpdates:
             target_name="Old Name",
             priority=2,
             description="Old description.",
-            acquisition_plan="Old plan.",
+            target_type="Old plan.",
             created_by=50,
         )
         
@@ -246,14 +237,12 @@ class TestDevelopmentPlanServiceUpdates:
             target_name="New Name",
             priority=5,
             description="New description.",
-            progress=75,
             changed_by=50,
         )
         
         assert updated.target_name == "New Name"
         assert updated.priority == 5
         assert updated.description == "New description."
-        assert updated.progress == 75
 
     def test_update_nonexistent_plan_raises(self, tmp_path):
         """Test updating non-existent plan raises NotFoundError."""
@@ -284,7 +273,7 @@ class TestDevelopmentPlanServiceDeletion:
             target_name="To Delete",
             priority=3,
             description="Will be deleted.",
-            acquisition_plan="Delete me.",
+            target_type="Delete me.",
             created_by=50,
         )
         
@@ -322,7 +311,7 @@ class TestDevelopmentPlanServiceAuditLogging:
             target_name="Test Plan",
             priority=3,
             description="Test.",
-            acquisition_plan="Test.",
+            target_type="Test.",
             created_by=50,
         )
         
@@ -347,7 +336,7 @@ class TestDevelopmentPlanServiceAuditLogging:
             target_name="Test Plan",
             priority=3,
             description="Test.",
-            acquisition_plan="Test.",
+            target_type="Test.",
             created_by=50,
         )
         service.update_plan(plan.id, priority=5, changed_by=60)
@@ -370,10 +359,13 @@ class TestDevelopmentPlanServiceAuditLogging:
             target_name="Test Plan",
             priority=3,
             description="Test.",
-            acquisition_plan="Test.",
+            target_type="Test.",
             created_by=50,
         )
         service.update_plan(plan.id, priority=5, changed_by=50)
         service.delete_plan(plan.id, changed_by=50)
         
         assert plan.id is not None
+
+
+

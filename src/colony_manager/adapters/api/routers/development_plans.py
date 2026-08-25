@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
-from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.development_plan import (
     DevelopmentPlanCreate,
     DevelopmentPlanResponse,
     DevelopmentPlanUpdate,
+    InstallationResult,
 )
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.domain.models.development_plan import DevelopmentPlanStatus
@@ -46,10 +46,12 @@ def create_development_plan(
     plan = service.create_plan(
         colony_id=colony_id,
         upgrade_type=plan_data.upgrade_type,
+        target_type=plan_data.target_type,
         target_name=plan_data.target_name,
         priority=plan_data.priority,
         description=plan_data.description,
-        acquisition_plan=plan_data.acquisition_plan,
+        notes=plan_data.notes,
+        order=plan_data.order,
         created_by=current_user.id,
     )
     
@@ -63,15 +65,15 @@ def create_development_plan(
         id=plan.id,
         colony_id=plan.colony_id,
         upgrade_type=plan.upgrade_type,
+        target_type=plan.target_type,
         target_name=plan.target_name,
         priority=plan.priority,
         description=plan.description,
-        acquisition_plan=plan.acquisition_plan,
-        progress=plan.progress,
+        notes=plan.notes,
+        order=plan.order,
         status=plan.status.value,
         created_by=plan.created_by,
         created_at=plan.created_at,
-        completed_at=plan.completed_at,
     )
 @router.get("/{plan_id}", response_model=DevelopmentPlanResponse)
 def get_development_plan(
@@ -104,15 +106,15 @@ def get_development_plan(
         id=plan.id,
         colony_id=plan.colony_id,
         upgrade_type=plan.upgrade_type,
+        target_type=plan.target_type,
         target_name=plan.target_name,
         priority=plan.priority,
         description=plan.description,
-        acquisition_plan=plan.acquisition_plan,
-        progress=plan.progress,
+        notes=plan.notes,
+        order=plan.order,
         status=plan.status.value,
         created_by=plan.created_by,
         created_at=plan.created_at,
-        completed_at=plan.completed_at,
     )
 
 
@@ -140,15 +142,15 @@ def get_development_plans_by_colony(
                 id=p.id,
                 colony_id=p.colony_id,
                 upgrade_type=p.upgrade_type,
+                target_type=p.target_type,
                 target_name=p.target_name,
                 priority=p.priority,
                 description=p.description,
-                acquisition_plan=p.acquisition_plan,
-                progress=p.progress,
+                notes=p.notes,
+                order=p.order,
                 status=p.status.value,
                 created_by=p.created_by,
                 created_at=p.created_at,
-                completed_at=p.completed_at,
             )
         )
     return result
@@ -180,11 +182,12 @@ def update_development_plan(
     updated_plan = service.update_plan(
         plan_id=plan_id,
         upgrade_type=plan_data.upgrade_type,
+        target_type=plan_data.target_type,
         target_name=plan_data.target_name,
         priority=plan_data.priority,
         description=plan_data.description,
-        acquisition_plan=plan_data.acquisition_plan,
-        progress=plan_data.progress,
+        notes=plan_data.notes,
+        order=plan_data.order,
         status=status_value,
         changed_by=current_user.id,
     )
@@ -199,15 +202,15 @@ def update_development_plan(
         id=updated_plan.id,
         colony_id=updated_plan.colony_id,
         upgrade_type=updated_plan.upgrade_type,
+        target_type=updated_plan.target_type,
         target_name=updated_plan.target_name,
         priority=updated_plan.priority,
         description=updated_plan.description,
-        acquisition_plan=updated_plan.acquisition_plan,
-        progress=updated_plan.progress,
+        notes=updated_plan.notes,
+        order=updated_plan.order,
         status=updated_plan.status.value,
         created_by=updated_plan.created_by,
         created_at=updated_plan.created_at,
-        completed_at=updated_plan.completed_at,
     )
 
 
@@ -229,5 +232,38 @@ def delete_development_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_PLAN_NOT_FOUND)
     
     service.delete_plan(plan_id, changed_by=current_user.id)
+
+
+@router.post("/{plan_id}/install", response_model=InstallationResult)
+def install_development_plan(
+    plan_id: int,
+    service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
+    current_user: Annotated[User, Depends(require_role("colony_manager"))],
+) -> InstallationResult:
+    """Install a development plan as an Infrastructure or Support Upgrade.
+    
+    Only plans in DELIVERED status can be installed. This creates the actual
+    Infrastructure or SupportUpgrade entity and deletes the development plan.
+    Requires colony_manager role or higher.
+    """
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ERR_USER_NO_ID,
+        )
+    
+    result = service.install_plan(
+        plan_id=plan_id,
+        installed_by=current_user.id,
+    )
+    
+    return InstallationResult(
+        plan_id=result["plan_id"],
+        plan_name=result["plan_name"],
+        plan_target_type=result["plan_target_type"],
+        installed_type=result["installed_type"],
+        installed_id=result["installed_id"],
+        installed_data=result["installed_data"],
+    )
 
 

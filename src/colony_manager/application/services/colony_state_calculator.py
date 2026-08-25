@@ -11,8 +11,8 @@ from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 from colony_manager.domain.rules.size_calculator import calculate_size
-from colony_manager.domain.rules.state_effects import apply_orderly_effect, apply_pious_effect
 from colony_manager.domain.rules.stat_calculator import calculate_stat
+from colony_manager.domain.rules.state_effects import apply_orderly_effect, apply_pious_effect
 
 
 class ColonyStateCalculator:

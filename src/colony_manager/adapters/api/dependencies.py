@@ -8,6 +8,9 @@ from fastapi import Depends
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.db import build_database_url
+from colony_manager.adapters.persistence.infrastructure_repository_impl import (
+    SqlAlchemyInfrastructureRepository,
+)
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,
 )
@@ -32,6 +35,9 @@ from colony_manager.adapters.persistence.repositories.token_issuance_repository_
 from colony_manager.adapters.persistence.representative_repository_impl import (
     SqlAlchemyRepresentativeRepository,
 )
+from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
+    SqlAlchemySupportUpgradeRepository,
+)
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
 from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.colony_service import ColonyService
@@ -45,9 +51,11 @@ from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 from colony_manager.domain.ports.development_plan_repository import DevelopmentPlanRepository
 from colony_manager.domain.ports.event_repository import EventRepository
+from colony_manager.domain.ports.infrastructure_repository import InfrastructureRepository
 from colony_manager.domain.ports.login_attempt_repository import LoginAttemptRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+from colony_manager.domain.ports.support_upgrade_repository import SupportUpgradeRepository
 from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
 from colony_manager.domain.ports.token_issuance_repository import TokenIssuanceRepository
 from colony_manager.domain.ports.user_repository import UserRepository
@@ -165,12 +173,24 @@ def get_event_service(
     return EventService(event_repository, audit_log_repository)
 
 
+def get_infrastructure_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> InfrastructureRepository:
+    """Get infrastructure repository instance."""
+    return SqlAlchemyInfrastructureRepository(build_database_url(db_path))
+
+
+def get_support_upgrade_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> SupportUpgradeRepository:
+    """Get support upgrade repository instance."""
+    return SqlAlchemySupportUpgradeRepository(build_database_url(db_path))
+
+
 def get_development_plan_service(
     plan_repository: Annotated[DevelopmentPlanRepository, Depends(get_development_plan_repository)],
     audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+    infrastructure_repository: Annotated[InfrastructureRepository, Depends(get_infrastructure_repository)],
+    support_upgrade_repository: Annotated[SupportUpgradeRepository, Depends(get_support_upgrade_repository)],
 ) -> DevelopmentPlanService:
     """Get development plan service instance with dependencies."""
-    return DevelopmentPlanService(plan_repository, audit_log_repository)
+    return DevelopmentPlanService(plan_repository, audit_log_repository, infrastructure_repository, support_upgrade_repository)
 
 
 def get_colony_user_service(

@@ -13,14 +13,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from colony_manager.adapters.api.dependencies import get_user_repository, get_auth_service
+from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
 from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
 from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
     login_rate_limit,
     password_change_rate_limit,
-    register_rate_limit,
     refresh_token_rate_limit,
+    register_rate_limit,
 )
 from colony_manager.adapters.api.schemas.auth import (
     ChangePasswordRequest,
@@ -33,11 +33,16 @@ from colony_manager.adapters.api.schemas.auth import (
     TokenRevokeResponse,
     UserResponse,
 )
+from colony_manager.application.services.auth_service import AuthService
 from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.user_repository import UserRepository
-from colony_manager.application.services.auth_service import AuthService
-from colony_manager.domain.util.auth import PasswordValidationError, hash_password, validate_password, verify_password
+from colony_manager.domain.util.auth import (
+    PasswordValidationError,
+    hash_password,
+    validate_password,
+    verify_password,
+)
 from colony_manager.domain.util.token import (
     TokenError,
     create_access_token,

@@ -148,7 +148,7 @@ class TestColonyLifecycleDevelopment:
         colony_id = colony["id"]
         
         # Add development plan (correct endpoint: /development-plans/colonies/{id})
-        plan_data = {"upgrade_type": "infrastructure", "target_name": "New Facility", "priority": 2, "description": "Expand colony borders", "acquisition_plan": "Build it"}
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "New Facility", "priority": 2, "description": "Expand colony borders", "target_type": "Build it"}
         plan_response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
         assert plan_response.status_code == 201
         
@@ -231,3 +231,4 @@ class TestColonyLifecycleStats:
         assert "lore_state" in state["order"]
         # Lore states should be defined (e.g., "Growing", "Stable", etc.)
         assert isinstance(state["size"]["lore_state"], str)
+

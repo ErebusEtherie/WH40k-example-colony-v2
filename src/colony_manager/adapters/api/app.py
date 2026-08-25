@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
+from slowapi.errors import RateLimitExceeded
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.rate_limiter import (
@@ -18,8 +19,8 @@ from colony_manager.adapters.api.middleware.security_headers import (
     SecurityHeadersMiddleware,
 )
 from colony_manager.adapters.api.routers import (
-    auth_router,
     audit_logs_router,
+    auth_router,
     colonies_router,
     colony_users_router,
     config_router,
@@ -35,9 +36,8 @@ from colony_manager.adapters.api.routers import (
     users_router,
 )
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.config.settings import get_cors_settings, get_security_settings
+from colony_manager.config.settings import get_cors_settings
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
-from slowapi.errors import RateLimitExceeded
 
 logger = logging.getLogger(__name__)
 

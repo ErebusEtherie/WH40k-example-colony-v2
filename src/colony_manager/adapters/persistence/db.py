@@ -39,7 +39,6 @@ def init_db(db_path: str | Path) -> None:
     Args:
         db_path: Path to the SQLite database file.
     """
-    from sqlalchemy import create_engine
     
     engine = create_engine(build_database_url(db_path))
     Base.metadata.create_all(engine)

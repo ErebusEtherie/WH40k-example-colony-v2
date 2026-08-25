@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-
 from typing import TypedDict
 
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator

@@ -5,18 +5,21 @@ authentication. It extracts and validates tokens from the Authorization header,
 and checks tokens against the blacklist for revocation support.
 """
 
-import os
-from typing import Annotated, Callable
+from collections.abc import Callable
+from typing import Annotated
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import jwt
 
-from colony_manager.adapters.api.dependencies import get_user_repository, get_token_blacklist_repository
+from colony_manager.adapters.api.dependencies import (
+    get_token_blacklist_repository,
+    get_user_repository,
+)
 from colony_manager.config.settings import get_security_settings
 from colony_manager.domain.models.user import User
-from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
+from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.token import TokenError, verify_token
 
 # Security scheme for Bearer token

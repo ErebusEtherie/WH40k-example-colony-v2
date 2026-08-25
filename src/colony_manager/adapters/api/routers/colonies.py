@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from colony_manager.adapters.api.dependencies import get_colony_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
-from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.colony import (
     ColonyCreate,
     ColonyListItem,
@@ -17,6 +16,7 @@ from colony_manager.adapters.api.schemas.colony import (
     ColonyStateStat,
     ColonyUpdate,
 )
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.modifier import ModifierCreate, ModifierResponse
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.errors import NotFoundError

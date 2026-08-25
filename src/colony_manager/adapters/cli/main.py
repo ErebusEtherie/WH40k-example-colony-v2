@@ -12,11 +12,11 @@ from colony_manager.adapters.io.colony_exporter import ColonyExporter
 from colony_manager.adapters.io.colony_importer import ColonyImporter
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.db import build_database_url
-from colony_manager.adapters.persistence.representative_repository_impl import (
-    SqlAlchemyRepresentativeRepository,
-)
 from colony_manager.adapters.persistence.repositories.colony_user_repository_impl import (
     SqlAlchemyColonyUserRepository,
+)
+from colony_manager.adapters.persistence.representative_repository_impl import (
+    SqlAlchemyRepresentativeRepository,
 )
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService

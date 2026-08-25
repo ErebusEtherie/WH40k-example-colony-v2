@@ -5,15 +5,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
-from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.support_upgrade import (
     SupportUpgradeCreate,
     SupportUpgradeListItem,
     SupportUpgradeResponse,
     SupportUpgradeUpdate,
 )
-from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
     SqlAlchemySupportUpgradeRepository,

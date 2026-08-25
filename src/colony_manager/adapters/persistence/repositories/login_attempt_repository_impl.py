@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import func, select, delete
+from sqlalchemy import delete, func, select
 
 from colony_manager.adapters.persistence.orm_models import LoginAttemptORM
 from colony_manager.domain.models.login_attempt import LoginAttempt
@@ -25,7 +25,6 @@ class SqlAlchemyLoginAttemptRepository(LoginAttemptRepository):
     
     def _get_session(self):
         """Get a database session."""
-        from sqlalchemy.orm import Session
         
         return self._session_factory()
     

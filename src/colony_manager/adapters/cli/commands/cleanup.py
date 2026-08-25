@@ -3,11 +3,11 @@
 import typer
 
 from colony_manager.adapters.persistence.db import build_database_url
-from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
-    SqlAlchemyTokenBlacklistRepository,
-)
 from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
     SqlAlchemyLoginAttemptRepository,
+)
+from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
+    SqlAlchemyTokenBlacklistRepository,
 )
 from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
     SqlAlchemyTokenIssuanceRepository,
@@ -23,7 +23,9 @@ def cleanup_token_blacklist(
 ):
     """Remove expired entries from the token blacklist."""
     from datetime import UTC, datetime
+
     from sqlalchemy import func, select
+
     from colony_manager.adapters.persistence.orm_models import TokenBlacklistORM
     
     database_url = build_database_url(db_path)
@@ -49,7 +51,9 @@ def cleanup_login_attempts(
 ):
     """Remove old login attempt records."""
     from datetime import UTC, datetime, timedelta
+
     from sqlalchemy import func, select
+
     from colony_manager.adapters.persistence.orm_models import LoginAttemptORM
     
     database_url = build_database_url(db_path)
@@ -76,7 +80,9 @@ def cleanup_token_issuance(
 ):
     """Remove old token issuance records."""
     from datetime import UTC, datetime, timedelta
+
     from sqlalchemy import func, select
+
     from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
     
     database_url = build_database_url(db_path)

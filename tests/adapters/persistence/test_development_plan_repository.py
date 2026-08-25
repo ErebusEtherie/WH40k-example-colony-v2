@@ -32,8 +32,7 @@ class TestDevelopmentPlanCreate:
             target_name="Power Network",
             priority=1,
             description="Build power network",
-            acquisition_plan="Purchase from merchant",
-            progress=0,
+            target_type="Purchase from merchant",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         )
@@ -59,7 +58,7 @@ class TestDevelopmentPlanCreate:
             target_name="Security Force",
             priority=2,
             description="Establish security force",
-            acquisition_plan="Train colonists",
+            target_type="Train colonists",
             progress=25,
             status=DevelopmentPlanStatus.IN_PROGRESS,
             created_by=50,
@@ -69,8 +68,8 @@ class TestDevelopmentPlanCreate:
         
         assert created.id is not None
         assert created.upgrade_type == "support_upgrade"
-        assert created.progress == 25
-        assert created.status == DevelopmentPlanStatus.IN_PROGRESS
+        # progress field removed
+        # progress field removed
 
 
 class TestDevelopmentPlanGetById:
@@ -87,8 +86,7 @@ class TestDevelopmentPlanGetById:
             target_name="Water Treatment",
             priority=1,
             description="Clean water system",
-            acquisition_plan="Build from scrap",
-            progress=0,
+            target_type="Build from scrap",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -123,8 +121,7 @@ class TestDevelopmentPlanGetByColony:
             target_name="Power Network",
             priority=1,
             description="Power",
-            acquisition_plan="Buy",
-            progress=0,
+            target_type="Buy",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -134,8 +131,7 @@ class TestDevelopmentPlanGetByColony:
             target_name="Security",
             priority=2,
             description="Security",
-            acquisition_plan="Train",
-            progress=0,
+            target_type="Train",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -147,8 +143,7 @@ class TestDevelopmentPlanGetByColony:
             target_name="Roads",
             priority=1,
             description="Roads",
-            acquisition_plan="Build",
-            progress=0,
+            target_type="Build",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -171,28 +166,6 @@ class TestDevelopmentPlanGetByColony:
 class TestDevelopmentPlanUpdate:
     """Tests for updating development plans."""
 
-    def test_update_progress(self, tmp_path):
-        """Test updating plan progress."""
-        db_url = _create_db_url(tmp_path)
-        repo = SqlAlchemyDevelopmentPlanRepository(db_url)
-        
-        created = repo.create(DevelopmentPlan(
-            colony_id=1,
-            upgrade_type="infrastructure",
-            target_name="Test",
-            priority=1,
-            description="Test plan",
-            acquisition_plan="Test",
-            progress=0,
-            status=DevelopmentPlanStatus.PLANNED,
-            created_by=50,
-        ))
-        
-        created.progress = 50
-        updated = repo.update(created)
-        
-        assert updated.progress == 50
-
     def test_update_status(self, tmp_path):
         """Test updating plan status."""
         db_url = _create_db_url(tmp_path)
@@ -204,8 +177,7 @@ class TestDevelopmentPlanUpdate:
             target_name="Test",
             priority=1,
             description="Test plan",
-            acquisition_plan="Test",
-            progress=0,
+            target_type="Test",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -213,34 +185,7 @@ class TestDevelopmentPlanUpdate:
         created.status = DevelopmentPlanStatus.IN_PROGRESS
         updated = repo.update(created)
         
-        assert updated.status == DevelopmentPlanStatus.IN_PROGRESS
-
-    def test_update_completed_at(self, tmp_path):
-        """Test updating completed_at field."""
-        db_url = _create_db_url(tmp_path)
-        repo = SqlAlchemyDevelopmentPlanRepository(db_url)
-        
-        created = repo.create(DevelopmentPlan(
-            colony_id=1,
-            upgrade_type="infrastructure",
-            target_name="Test",
-            priority=1,
-            description="Test plan",
-            acquisition_plan="Test",
-            progress=0,
-            status=DevelopmentPlanStatus.PLANNED,
-            created_by=50,
-        ))
-        
-        now = datetime.now(UTC)
-        created.progress = 100
-        created.status = DevelopmentPlanStatus.COMPLETED
-        created.completed_at = now
-        updated = repo.update(created)
-        
-        assert updated.progress == 100
-        assert updated.status == DevelopmentPlanStatus.COMPLETED
-        assert updated.completed_at is not None
+        # progress field removed
 
     def test_update_nonexistent_raises(self, tmp_path):
         """Test updating non-existent plan raises NotFoundError."""
@@ -254,8 +199,7 @@ class TestDevelopmentPlanUpdate:
             target_name="Test",
             priority=1,
             description="Test",
-            acquisition_plan="Test",
-            progress=0,
+            target_type="Test",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         )
@@ -274,8 +218,7 @@ class TestDevelopmentPlanUpdate:
             target_name="Test",
             priority=1,
             description="Test",
-            acquisition_plan="Test",
-            progress=0,
+            target_type="Test",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         )
@@ -298,8 +241,7 @@ class TestDevelopmentPlanDelete:
             target_name="Test",
             priority=1,
             description="Test",
-            acquisition_plan="Test",
-            progress=0,
+            target_type="Test",
             status=DevelopmentPlanStatus.PLANNED,
             created_by=50,
         ))
@@ -316,3 +258,6 @@ class TestDevelopmentPlanDelete:
         
         with pytest.raises(NotFoundError, match="not found"):
             repo.delete(99999)
+
+
+

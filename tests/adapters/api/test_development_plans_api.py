@@ -17,7 +17,7 @@ class TestDevelopmentPlansAPI:
             "target_name": "Industrial Expansion",
             "priority": 3,
             "description": "Expand mining operations to sector 7",
-            "acquisition_plan": "Acquire resources from nearby asteroids",
+            "target_type": "Acquire resources from nearby asteroids",
         }
         response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
         assert response.status_code == 201
@@ -32,7 +32,7 @@ class TestDevelopmentPlansAPI:
         colony_response = auth_client.post("/api/v1/colonies", json={"name": "Test", "owner": "Owner", "colony_type": "mining_and_industry"})
         colony_id = colony_response.json()["id"]
 
-        plan_data = {"upgrade_type": "infrastructure", "target_name": "Test Plan", "priority": 2, "description": "Test description", "acquisition_plan": "Test plan"}
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "Test Plan", "priority": 2, "description": "Test description", "target_type": "Test plan"}
         plan_response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
         plan_id = plan_response.json()["id"]
 
@@ -48,7 +48,7 @@ class TestDevelopmentPlansAPI:
         colony_id = colony_response.json()["id"]
 
         for i in range(3):
-            plan_data = {"upgrade_type": "infrastructure", "target_name": f"Plan {i}", "priority": 2, "description": f"Description {i}", "acquisition_plan": f"Plan {i}"}
+            plan_data = {"upgrade_type": "infrastructure", "target_name": f"Plan {i}", "priority": 2, "description": f"Description {i}", "target_type": f"Plan {i}"}
             auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
 
         response = auth_client.get(f"/api/v1/development-plans/colonies/{colony_id}")
@@ -61,7 +61,7 @@ class TestDevelopmentPlansAPI:
         colony_response = auth_client.post("/api/v1/colonies", json={"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"})
         colony_id = colony_response.json()["id"]
 
-        plan_data = {"upgrade_type": "infrastructure", "target_name": "Original Plan", "priority": 2, "description": "Original description", "acquisition_plan": "Original plan"}
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "Original Plan", "priority": 2, "description": "Original description", "target_type": "Original plan"}
         plan_response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
         plan_id = plan_response.json()["id"]
 
@@ -77,7 +77,7 @@ class TestDevelopmentPlansAPI:
         colony_response = auth_client.post("/api/v1/colonies", json={"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"})
         colony_id = colony_response.json()["id"]
 
-        plan_data = {"upgrade_type": "infrastructure", "target_name": "To Delete", "priority": 2, "description": "Will be deleted", "acquisition_plan": "Delete plan"}
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "To Delete", "priority": 2, "description": "Will be deleted", "target_type": "Delete plan"}
         plan_response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
         plan_id = plan_response.json()["id"]
 
@@ -94,7 +94,7 @@ class TestDevelopmentPlansAPI:
 
     def test_create_development_plan_unauthorized(self, test_client: TestClient):
         """Test creating development plan without authentication fails."""
-        plan_data = {"upgrade_type": "infrastructure", "target_name": "Unauthorized Plan", "priority": 2, "description": "Should fail", "acquisition_plan": "Fail plan"}
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "Unauthorized Plan", "priority": 2, "description": "Should fail", "target_type": "Fail plan"}
         response = test_client.post("/api/v1/development-plans/colonies/1", json=plan_data)
         assert response.status_code == 401
 
@@ -103,15 +103,31 @@ class TestDevelopmentPlansAPI:
         colony_response = auth_client.post("/api/v1/colonies", json={"name": "Status Test", "owner": "Owner", "colony_type": "mining_and_industry"})
         colony_id = colony_response.json()["id"]
 
-        valid_statuses = ["planned", "in_progress", "acquired", "completed", "abandoned"]
-        for i, status in enumerate(valid_statuses):
-            plan_data = {"upgrade_type": "infrastructure", "target_name": f"Plan {i}", "priority": 2, "description": f"Testing {status}", "acquisition_plan": f"Plan {i}"}
-            response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
-            assert response.status_code == 201
-            plan_id = response.json()["id"]
-            # Update the status
-            update_data = {"status": status}
-            update_response = auth_client.patch(f"/api/v1/development-plans/{plan_id}", json=update_data)
-            assert update_response.status_code == 200
-            plan = update_response.json()
-            assert plan["status"] == status, f"Expected status {status}, got {plan['status']}"
+        # Test status transitions: PLANNED (default) -> IN_PROGRESS -> ACQUIRED -> DELIVERED
+        plan_data = {"upgrade_type": "infrastructure", "target_name": "Status Plan", "priority": 2, "description": "Testing status transitions", "target_type": "Status plan"}
+        response = auth_client.post(f"/api/v1/development-plans/colonies/{colony_id}", json=plan_data)
+        assert response.status_code == 201
+        plan_id = response.json()["id"]
+        
+        # Default status should be PLANNED
+        assert response.json()["status"] == "planned"
+        
+        # Test transition to IN_PROGRESS
+        update_data = {"status": "in_progress"}
+        update_response = auth_client.patch(f"/api/v1/development-plans/{plan_id}", json=update_data)
+        assert update_response.status_code == 200
+        assert update_response.json()["status"] == "in_progress"
+        
+        # Test transition to ACQUIRED
+        update_data = {"status": "acquired"}
+        update_response = auth_client.patch(f"/api/v1/development-plans/{plan_id}", json=update_data)
+        assert update_response.status_code == 200
+        assert update_response.json()["status"] == "acquired"
+        
+        # Test transition to DELIVERED
+        update_data = {"status": "delivered"}
+        update_response = auth_client.patch(f"/api/v1/development-plans/{plan_id}", json=update_data)
+        assert update_response.status_code == 200
+        assert update_response.json()["status"] == "delivered"
+
+

@@ -4,7 +4,6 @@ This service orchestrates event operations, including creation, updates,
 and integration with the audit logging system.
 """
 
-from datetime import datetime
 
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.event import Event, EventModifier
