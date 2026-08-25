@@ -5,6 +5,7 @@ from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.rules.infrastructure_rules import (
     apply_infrastructure_modifiers,
     get_infrastructure_modifiers,
+    get_missing_infrastructure_penalty,
 )
 
 
@@ -210,3 +211,95 @@ class TestInfrastructureIntegration:
         assert productivity == base_productivity
         assert complacency == base_complacency
         assert order == base_order
+
+
+class TestMissingInfrastructurePenalty:
+    """Tests for the missing infrastructure penalty rule.
+    
+    Per business_analysis.md §3.1:
+    Until each required infrastructure type is built (moved to Working),
+    the colony suffers Complacency -1 per missing type.
+    """
+    
+    def test_all_infrastructure_present_no_penalty(self):
+        """When all 5 infrastructure types are Working, no penalty applies."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert penalties == []
+    
+    def test_one_missing_type_penalty(self):
+        """When 1 infrastructure type is missing, -1 Complacency penalty."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert len(penalties) == 1
+        assert penalties[0].modifier_stat == ModifierStat.COMPLACENCY
+        assert penalties[0].modifier_value == -1
+        assert "Missing Infrastructure" in penalties[0].modifier_description
+    
+    def test_multiple_missing_types_penalty(self):
+        """When multiple infrastructure types are missing, -1 per type."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert len(penalties) == 1
+        assert penalties[0].modifier_stat == ModifierStat.COMPLACENCY
+        assert penalties[0].modifier_value == -4  # 4 missing types
+    
+    def test_planned_counts_as_missing(self):
+        """Planned infrastructure counts as missing (not Working)."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.PLANNED),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert len(penalties) == 1
+        assert penalties[0].modifier_value == -1  # Transport is Planned, not Working
+    
+    def test_not_working_counts_as_missing(self):
+        """Not Working infrastructure counts as missing (not Working)."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.NOT_WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert len(penalties) == 1
+        assert penalties[0].modifier_value == -1  # Transport is Not Working
+    
+    def test_empty_infrastructure_list_max_penalty(self):
+        """When no infrastructure exists, -5 Complacency penalty (all 5 types missing)."""
+        infra_list = []
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert len(penalties) == 1
+        assert penalties[0].modifier_stat == ModifierStat.COMPLACENCY
+        assert penalties[0].modifier_value == -5  # All 5 types missing
+    
+    def test_duplicate_types_only_one_counts(self):
+        """Multiple Working infrastructure of same type only satisfies that type once."""
+        infra_list = [
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.FOOD_PRODUCTION, state=InfrastructureState.WORKING),
+            Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.COMMUNICATIONS, state=InfrastructureState.WORKING),
+        ]
+        penalties = get_missing_infrastructure_penalty(infra_list, colony_id=1)
+        assert penalties == []  # All types satisfied, no penalty

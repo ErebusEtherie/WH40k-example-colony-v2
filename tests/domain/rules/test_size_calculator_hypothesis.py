@@ -125,9 +125,9 @@ class TestResolveGrowthRollProperties:
     def test_non_agricultural_ignores_resilience_roll(self, roll: int):
         """Non-Agricultural colonies don't benefit from resilience roll."""
         result_industry = resolve_growth_roll(roll, pf_investment=0, resource_bonus=0,
-                                             colony_type=ColonyType.INDUSTRY, resilience_roll=10)
+                                             colony_type=ColonyType.MINING_AND_INDUSTRY, resilience_roll=10)
         result_mining = resolve_growth_roll(roll, pf_investment=0, resource_bonus=0,
-                                           colony_type=ColonyType.MINING, resilience_roll=10)
+                                           colony_type=ColonyType.MINING_AND_INDUSTRY, resilience_roll=10)
         assert result_industry.agricultural_resilience_rolled is False
         assert result_mining.agricultural_resilience_rolled is False
 

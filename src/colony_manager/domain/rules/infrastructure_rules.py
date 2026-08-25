@@ -1,9 +1,11 @@
 """Infrastructure rules for the colony manager.
 
 Per Rogue Trader Colony Rules:
-- Infrastructure has three states: planned, working, not_working
+- Infrastructure has five states: planned, in_progress, working, needed, not_working
 - planned: No mechanical effect (not yet installed)
+- in_progress: No mechanical effect (currently being installed)
 - working: Bonuses apply
+- needed: Counts toward missing infrastructure penalty (-1 Complacency)
 - not_working: Penalties apply
 
 Hard Infrastructure types:
@@ -32,9 +34,9 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
         infrastructure: The infrastructure to get modifiers from.
     
     Returns:
-        List of modifiers (empty if state is planned).
+        List of modifiers (empty if state is planned or in_progress).
     """
-    if infrastructure.state == InfrastructureState.PLANNED:
+    if infrastructure.state in (InfrastructureState.PLANNED, InfrastructureState.IN_PROGRESS):
         return []
     
     # Define modifiers by type and state
@@ -130,3 +132,62 @@ def apply_infrastructure_modifiers(
     for infra in infrastructure_list:
         all_modifiers.extend(get_infrastructure_modifiers(infra))
     return all_modifiers
+
+
+def get_missing_infrastructure_penalty(
+    infrastructure_list: list[Infrastructure],
+    colony_id: int = 1,
+) -> list[Modifier]:
+    """
+    Get penalty for missing required infrastructure types.
+    
+    Per business_analysis.md §3.1:
+    Until each required infrastructure type is built (moved to Working),
+    the colony suffers Complacency -1 per missing type.
+    
+    Required types: Transport, Power Network, Water Management, Food Production, Communications
+    
+    Args:
+        infrastructure_list: List of all infrastructure in the colony.
+        colony_id: The colony ID for the modifier.
+    
+    Returns:
+        List containing a single penalty modifier if any types are missing,
+        or empty list if all types are present and Working.
+    """
+    # All required infrastructure types
+    required_types = {
+        InfrastructureType.TRANSPORT,
+        InfrastructureType.POWER_NETWORK,
+        InfrastructureType.WATER_MANAGEMENT,
+        InfrastructureType.FOOD_PRODUCTION,
+        InfrastructureType.COMMUNICATIONS,
+    }
+    
+    # Find which types have at least one Working instance
+    working_types = {
+        infra.infrastructure_type
+        for infra in infrastructure_list
+        if infra.state == InfrastructureState.WORKING
+    }
+    
+    # Count missing types (not Working)
+    missing_count = len(required_types - working_types)
+    
+    if missing_count == 0:
+        return []
+    
+    # Apply -1 Complacency per missing type
+    total_penalty = -1 * missing_count
+    
+    return [
+        Modifier(
+            colony_id=colony_id,
+            modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
+            modifier_category=ModifierCategory.PERMANENT,
+            modifier_stat=ModifierStat.COMPLACENCY,
+            modifier_value=total_penalty,
+            description=f"Missing Infrastructure (-1 per type not Working)",
+            is_active=True,
+        )
+    ]

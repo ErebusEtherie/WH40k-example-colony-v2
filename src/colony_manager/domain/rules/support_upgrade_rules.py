@@ -66,14 +66,10 @@ def _get_base_modifiers(
         modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission", colony_id))
     
     elif upgrade_type == SupportUpgradeType.MECHANICUM_STATION:
-        # Base +1, +2 for Mining/Industry/Mining_and_Industry, +3 for Research Mission
+        # Base +1, +2 for Mining_and_Industry, +3 for Research Mission
         productivity_bonus = 1
         if colony_type:
-            if colony_type in (
-                ColonyType.MINING,
-                ColonyType.INDUSTRY,
-                ColonyType.MINING_AND_INDUSTRY,
-            ):
+            if colony_type == ColonyType.MINING_AND_INDUSTRY:
                 productivity_bonus = 2
             elif colony_type == ColonyType.RESEARCH_MISSION:
                 productivity_bonus = 3

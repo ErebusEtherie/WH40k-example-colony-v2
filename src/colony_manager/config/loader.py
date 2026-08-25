@@ -1,9 +1,9 @@
 """Configuration loader for rule tables."""
 
+from pathlib import Path
 from typing import Any
 
 import yaml
-from pathlib import Path
 
 from colony_manager.config.models import RuleTablesConfig
 

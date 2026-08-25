@@ -95,11 +95,8 @@ def get_mining_industry_resource_bonus(colony: Colony) -> tuple[int, int]:
         Tuple of (Productivity bonus, Profit Factor bonus).
         Returns (0, 0) if not Mining/Industry or not exploiting Minerals.
     """
-    if colony.colony_type not in (
-        ColonyType.MINING,
-        ColonyType.INDUSTRY,
-        ColonyType.MINING_AND_INDUSTRY,
-    ):
+    # Per GM ruling: MINING and INDUSTRY colony types merged into MINING_AND_INDUSTRY
+    if colony.colony_type != ColonyType.MINING_AND_INDUSTRY:
         return (0, 0)
     
     if ResourceType.MINERAL not in colony.planetary_resources:

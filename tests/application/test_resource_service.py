@@ -25,7 +25,7 @@ class TestResourceService:
         colony = Colony(
             name="Test Colony",
             owner="Owner",
-            colony_type="mining",
+            colony_type="mining_and_industry",
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=10,

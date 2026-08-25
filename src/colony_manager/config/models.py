@@ -152,9 +152,18 @@ class LeaderQualityModifiersConfig(BaseModel):
     model_config = {"extra": "allow"}
 
     def get_modifier(self, quality: int) -> int:
-        """Get the PF modifier for a leader quality stat (2-6)."""
-        # Try int key first, then string key
-        return self.model_dump().get(quality, self.model_dump().get(str(quality), 0))
+        """Get the PF modifier for a leader quality stat (2-6).
+        
+        Args:
+            quality: Leader quality stat value (2-6).
+            
+        Returns:
+            PF modifier value (e.g., -2 for quality 2, +2 for quality 6).
+        """
+        # Keys are stored as strings for Pydantic compatibility (converted by loader)
+        dumped = self.model_dump()
+        value = dumped.get(str(quality))
+        return int(value) if value is not None else 0
 
 
 class ThresholdEffectSingle(BaseModel):
@@ -213,7 +222,7 @@ class HarvestProfitsAbsentExplorersConfig(BaseModel):
     """Configuration for harvest profits when explorers are absent."""
 
     complacency_penalty: str  # "gm_roll_negative_1d5"
-    note: str
+    note: str | None = None
 
 
 class HarvestProfitsConfig(BaseModel):
@@ -230,7 +239,7 @@ class GrowthDecayConfig(BaseModel):
     Source: "Colony Growth System" and "Resource Harvesting" sections.
     """
 
-    event_roll_interval_days: int = 90
+    event_roll_interval_days: int = 60
     development_roll_interval_days: int = 90
     growth_outcomes: dict[str, GrowthOutcomeConfig] | None = None
     harvest_profits: HarvestProfitsConfig | None = None

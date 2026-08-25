@@ -8,6 +8,7 @@ from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.infrastructure_repository import InfrastructureRepository
+from colony_manager.domain.rules.infrastructure_rules import get_missing_infrastructure_penalty
 
 
 class InfrastructureService:
@@ -71,6 +72,9 @@ class InfrastructureService:
             raise NotFoundError(f"Colony {infrastructure.colony_id} not found")
         result = self._repository.create(infrastructure)
         
+        # Update missing infrastructure penalty
+        self._update_missing_infrastructure_penalty(infrastructure.colony_id)
+        
         # Log audit entry
         if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
             self._log_audit(
@@ -114,6 +118,9 @@ class InfrastructureService:
         infra.state = state
         result = self._repository.update(infra)
         
+        # Update missing infrastructure penalty
+        self._update_missing_infrastructure_penalty(infra.colony_id)
+        
         # Log audit entry
         if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
             self._log_audit(
@@ -144,6 +151,9 @@ class InfrastructureService:
             infra_type = infra.infrastructure_type.value
             self._repository.delete(infrastructure_id)
             
+            # Update missing infrastructure penalty
+            self._update_missing_infrastructure_penalty(colony_id)
+            
             # Log audit entry
             if self._audit_log_repository is not None and changed_by is not None:
                 self._log_audit(
@@ -167,3 +177,40 @@ class InfrastructureService:
     def colony_exists(self, colony_id: int) -> bool:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
+    
+    def _update_missing_infrastructure_penalty(self, colony_id: int) -> None:
+        """
+        Update the missing infrastructure penalty modifier for a colony.
+        
+        Removes any existing penalty modifier and adds a new one if needed
+        based on current infrastructure state.
+        
+        Per business_analysis.md §3.1:
+        Until each required infrastructure type is built (moved to Working),
+        the colony suffers Complacency -1 per missing type.
+        
+        Args:
+            colony_id: The colony ID to update.
+        """
+        colony = self._colony_repository.get(colony_id)
+        if colony is None:
+            return
+        
+        # Get all infrastructure for this colony
+        infrastructure_list = self._repository.list_by_colony(colony_id)
+        
+        # Get the missing infrastructure penalty
+        penalty_modifiers = get_missing_infrastructure_penalty(infrastructure_list, colony_id)
+        
+        # Remove any existing missing infrastructure penalty modifier
+        colony.modifiers = [
+            mod for mod in colony.modifiers
+            if "Missing Infrastructure" not in mod.modifier_description
+        ]
+        
+        # Add the new penalty if applicable
+        if penalty_modifiers:
+            colony.modifiers.extend(penalty_modifiers)
+        
+        # Save the updated colony
+        self._colony_repository.update(colony)

@@ -61,7 +61,7 @@ def get_personality_modifiers(
                 Modifier(
                     colony_id=colony_id,
                     modifier_source_type=ModifierSourceType.REPRESENTATIVE_LEADERSHIP,
-                    modifier_category=ModifierCategory.CONDITIONAL,
+                    modifier_category=ModifierCategory.PERMANENT,
                     modifier_stat=ModifierStat(effect.stat),
                     modifier_value=effect.value,
                     description=f"Personality: {personality.name}",
@@ -83,11 +83,18 @@ def _evaluate_condition(condition: str, current_order: int, current_size: int) -
     
     Returns:
         True if condition is met, False otherwise.
+    
+    Note:
+        Unknown conditions log a warning and return False to prevent silent failures.
+        This ensures new conditional personalities require explicit handler updates.
     """
     if condition == "order_greater_than_size":
         return current_order > current_size
     
-    # Unknown conditions default to False (effect not applied)
+    # Unknown conditions: log warning for debugging, return False to prevent silent failures
+    # If you see this warning, add a handler for the new condition type above
+    import warnings
+    warnings.warn(f"Unknown personality condition: '{condition}'. Effect not applied. Add handler in representative_rules._evaluate_condition()")
     return False
 
 

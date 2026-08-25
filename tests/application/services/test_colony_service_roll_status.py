@@ -40,7 +40,7 @@ class TestColonyServiceRollStatus:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=180,  # Multiple of both 60 and 90
             age_last_updated=date.today(),
             base_complacency=10,
@@ -66,7 +66,7 @@ class TestColonyServiceRollStatus:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=45,
             age_last_updated=date.today(),
             base_complacency=10,
@@ -91,7 +91,7 @@ class TestColonyServiceRollStatus:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=30,
             age_last_updated=date.today(),
             base_complacency=10,

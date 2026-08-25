@@ -12,7 +12,9 @@ class Infrastructure(BaseModel):
     
     States:
     - planned: Not yet installed, no mechanical effect
+    - in_progress: Currently being installed, no mechanical effect
     - working: Operational, bonuses apply
+    - needed: Required but not yet built, counts toward missing infrastructure penalty
     - not_working: Incapacitated, penalties apply
     """
     model_config = ConfigDict(validate_assignment=True)

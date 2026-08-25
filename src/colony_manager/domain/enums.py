@@ -71,10 +71,19 @@ class InfrastructureType(StrEnum):
 
 
 class InfrastructureState(StrEnum):
-    """State of infrastructure installation/operation."""
-    PLANNED = "planned"  # Not yet installed, no effect
-    WORKING = "working"  # Operational, bonuses apply
-    NOT_WORKING = "not_working"  # Incapacitated, penalties apply
+    """State of infrastructure installation/operation.
+    
+    Per colony-manager-rules-reference.md:
+    - planned: Not yet installed, no mechanical effect
+    - in_progress: Currently being installed, no mechanical effect
+    - working: Operational, bonuses apply
+    - needed: Required but not yet built, counts toward missing infrastructure penalty
+    """
+    PLANNED = "planned"
+    IN_PROGRESS = "in_progress"
+    WORKING = "working"
+    NEEDED = "needed"
+    NOT_WORKING = "not_working"
 
 
 class SupportUpgradeType(StrEnum):
@@ -104,10 +113,12 @@ class ResourceType(StrEnum):
 
 
 class ColonyType(StrEnum):
-    """Colony archetypes defining starting characteristics and specializations."""
+    """Colony archetypes defining starting characteristics and specializations.
+    
+    Per colony_types.yaml - note that MINING and INDUSTRY were merged into
+    MINING_AND_INDUSTRY per GM ruling.
+    """
     RESEARCH_MISSION = "research_mission"
-    MINING = "mining"
-    INDUSTRY = "industry"
     MINING_AND_INDUSTRY = "mining_and_industry"
     ECCLESIASTICAL = "ecclesiastical"
     AGRICULTURAL = "agricultural"

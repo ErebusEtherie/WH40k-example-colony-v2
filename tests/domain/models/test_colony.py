@@ -18,7 +18,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=-1,
                 age_last_updated=date.today(),
                 base_complacency=5,
@@ -51,7 +51,7 @@ class TestColonyValidators:
         colony = Colony(
             name="Old Colony",
             owner="Test Owner",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=365,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -68,7 +68,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
                 base_complacency=-1,
@@ -85,7 +85,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
                 base_complacency=5,
@@ -102,7 +102,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
                 base_complacency=5,
@@ -119,7 +119,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
                 base_complacency=5,
@@ -136,7 +136,7 @@ class TestColonyValidators:
             Colony(
                 name="Test Colony",
                 owner="Test Owner",
-                colony_type=ColonyType.INDUSTRY,
+                colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
                 base_complacency=5,
@@ -152,7 +152,7 @@ class TestColonyValidators:
         colony = Colony(
             name="Critical Colony",
             owner="Test Owner",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=0,
@@ -172,7 +172,7 @@ class TestColonyValidators:
         colony = Colony(
             name="Thriving Colony",
             owner="Test Owner",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=10,
@@ -196,7 +196,7 @@ class TestColonyLockFlags:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -214,7 +214,7 @@ class TestColonyLockFlags:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -239,7 +239,7 @@ class TestColonyCollections:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -258,7 +258,7 @@ class TestColonyCollections:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -276,7 +276,7 @@ class TestColonyCollections:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -293,7 +293,7 @@ class TestColonyCollections:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -314,7 +314,7 @@ class TestColonyGetCycleInfo:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=45,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -332,7 +332,7 @@ class TestColonyGetCycleInfo:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -350,7 +350,7 @@ class TestColonyGetCycleInfo:
         colony = Colony(
             name="Test",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=180,
             age_last_updated=date.today(),
             base_complacency=5,
@@ -370,7 +370,7 @@ class TestColonyGetCycleInfo:
         colony = Colony(
             name="New",
             owner="Test",
-            colony_type=ColonyType.INDUSTRY,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
             base_complacency=5,

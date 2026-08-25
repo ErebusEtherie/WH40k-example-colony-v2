@@ -3,6 +3,7 @@
 from colony_manager.domain.rules.infrastructure_rules import (
     apply_infrastructure_modifiers,
     get_infrastructure_modifiers,
+    get_missing_infrastructure_penalty,
 )
 from colony_manager.domain.rules.leadership_modifier_resolver import (
     resolve_leadership_modifier,
@@ -40,6 +41,7 @@ __all__ = [
     "calculate_size_decrease_penalty",
     "calculate_stat",
     "get_infrastructure_modifiers",
+    "get_missing_infrastructure_penalty",
     "get_personality_modifiers",
     "get_support_upgrade_modifiers",
     "resolve_growth_roll",

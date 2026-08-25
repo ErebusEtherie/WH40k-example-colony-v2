@@ -31,7 +31,7 @@ class TestColonyStateCalculatorWithExpiry:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
             base_complacency=10,
@@ -71,7 +71,7 @@ class TestColonyStateCalculatorWithExpiry:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
             base_complacency=10,
@@ -101,7 +101,7 @@ class TestColonyStateCalculatorWithExpiry:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
             base_complacency=10,
@@ -136,7 +136,7 @@ class TestColonyStateCalculatorWithExpiry:
         colony = Colony(
             name="Test Colony",
             owner="Test Owner",
-            colony_type=ColonyType.MINING,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
             base_complacency=10,
