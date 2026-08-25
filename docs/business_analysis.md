@@ -99,7 +99,7 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 | `id` | identifier | no | |
 | `name` | string | yes | Representative is a standalone entity — it can exist unassigned. **One Representative per Colony only (1:1 relationship)**. When assigned, the Colony holds the reference |
 | `type` | enum | yes | Exactly one. Fixed list (from reference sheet): **Satrap**, **Judge**, **Cardinal**, **Colonist Representative**, **Military Commander**, **Dynasty Member**. Each type has **descriptive text only, no mechanical bonus**, except for damage reduction protection (see §4.10). Satrap has special +5 to Acquisition Tests (tracked separately, not a stat modifier) |
-| `personalities` | list of `Personality` | yes | **Multiple allowed, no duplicates.** See §3.2a and §4.7a for the confirmed 18-trait table with mechanical effects. Variable effects (Mad, Scholarly, Ties With...) are handled via Custom Modifiers applied by the GM |
+| `personalities` | list of `Personality` | yes | **Multiple allowed, no duplicates.** See §3.2a and §4.7a for the confirmed 19-trait table with mechanical effects. All personality effects — fixed and variable-value alike (Mad, Scholarly, Ties With...) — are **Permanent** category modifiers; GM supplies the value for the variable-value ones, but they apply in the Permanent pipeline stage like every other personality effect |
 | `special_trait_description` | string (nullable) | yes | Free-text GM note tied to `type` (e.g. narrative flavor for a Satrap's trade contacts). Reference-only, no mechanical effect |
 | `stats` | 9 × integer > 0 | yes | WS, BS, S, T, Ag, Int, Per, WP, Fel |
 | `stat_bonus` (per stat) | integer | no (calculated) | `floor(stat_value / 10)` |
@@ -109,13 +109,29 @@ displays cycle information, but does not auto-roll or enforce outcomes.
 
 ### 3.2a Personality Mechanics — GM Workflow
 
-Personalities with variable effects (Mad, Scholarly, Ties With...) require GM input. Rather than tracking this data in the domain model, the GM applies these effects via **Custom Modifiers** on the Colony:
+**Category ruling (2026-08-25):** All personality effects, including the three
+below whose *value* requires GM input, are **Permanent** category modifiers —
+consistent with every other personality (Beloved, Corrupt, etc.), which are
+already Permanent. This was previously modeled as Custom; that placement has
+been corrected. The practical effect: these modifiers now apply in the
+Permanent pipeline stage (§4.2 step 2), **before** Conditional thresholds are
+checked (§4.2 step 3) — meaning e.g. a Ties With bonus can now help trigger
+Orderly/Pious this same calculation pass, and Mad's Order penalty can now push
+Order to 0 and trigger Anarchy this same pass, where previously (as Custom,
+applied after Conditional) neither could. This is an intentional, confirmed
+rules-behavior decision, not merely a label change.
+
+Personalities with variable effects (Mad, Scholarly, Ties With...) still
+require GM input for their *value* — the GM applies these as Permanent
+Modifiers on the Colony (or on the Representative-to-Colony assignment, see
+implementation), same as any other personality effect, just with a
+GM-supplied number instead of a fixed one:
 
 | Personality | GM Action | How to Track |
 |-------------|-----------|--------------|
-| **Mad** | Roll 1d5 physically | Add Custom Modifier to Colony: `Order: -[roll value]`, Source: "Mad personality" |
-| **Scholarly** | Identify lowest stat (Complacency/Order/Productivity/Piety); choose if tied | Add Custom Modifier: `[stat]: +1`, Source: "Scholarly personality" |
-| **Ties With...** | Choose stat based on organization | Add Custom Modifier: `[stat]: +1`, Source: "Ties With [Organization]" |
+| **Mad** | Roll 1d5 physically | Add Permanent Modifier: `Order: -[roll value]`, Source: "Mad personality" |
+| **Scholarly** | Identify lowest stat (Complacency/Order/Productivity/Piety); choose if tied | Add Permanent Modifier: `[stat]: +1`, Source: "Scholarly personality" |
+| **Ties With...** | Choose stat based on organization | Add Permanent Modifier: `[stat]: +1`, Source: "Ties With [Organization]" |
 
 **Timing:** These modifiers must be created no later than completing the Representative's assignment to the Colony.
 
@@ -314,7 +330,7 @@ These effects apply automatically based on colony stat thresholds. They are
 
 ---
 
-### 4.7a Representative Personality Mechanics (18 traits, confirmed)
+### 4.7a Representative Personality Mechanics (19 traits, confirmed)
 
 **Source of truth:** rulebook personality text, supplied directly and verified
 trait-by-trait — this supersedes an earlier, fabricated personality table that
@@ -376,7 +392,7 @@ Certain colony types have unique abilities per Rogue Trader rules:
 - Implementation: `check_agricultural_resilience(dice_roll: int) -> bool`
 - Applies to: Anarchy decay, events, or any other Size decrease
 
-**Mining Colony / Industry Colony / Mining & Industry Colony**:
+**Mining & Industry Colony**:
 
 - Condition: Colony must be exploiting **Mineral** resources
 - Effect: +2 Productivity, +2 Profit Factor
@@ -502,7 +518,7 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
 | Infrastructure types & mechanics | ✅ Complete (5 types) | `config/rule_tables.yaml` |
 | Roll interval configuration | ✅ Complete (global default, per-colony override) | `config/rule_tables.yaml` |
 | GM notes field (`gm_notes`) | ✅ Complete (free-form text, max 2000 chars) | §3.1 Colony entity |
-| Personality variable effects (Mad/Scholarly/Ties With...) | ✅ Complete via Custom Modifiers — GM applies manually per §3.2a | §3.2a, §3.3 |
+| Personality variable effects (Mad/Scholarly/Ties With...) | ✅ Complete via Permanent Modifiers (GM supplies the variable value) — see §3.2a | §3.2a, §3.3 |
 | Modifier category system (Permanent/Conditional/Custom) | ✅ Complete | §3.3 |
 | Damage Reduction mechanic | ✅ Complete | §4.10 |
 | Missing Infrastructure penalty | ✅ Complete | §3.1 |
@@ -532,14 +548,22 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
   reference is cleared rather than blocking the delete or deleting the
   Colony. Flagged as a default in `architecture_phase_1.md` §3.6.
 - **Scholarly's trigger is "lowest stat" per rulebook**, with GM choice only
-  when multiple stats are tied for lowest. The GM applies this via a Custom
-  Modifier rather than automatic tracking — see §3.2a.
-- **Personality mechanics use Custom Modifiers** — Mad, Scholarly, and Ties With...
-  personalities require GM input (dice roll or stat choice). Rather than implementing
+  when multiple stats are tied for lowest. The GM applies this via a Permanent
+  Modifier (GM-supplied value, not the effect category) rather than automatic
+  tracking — see §3.2a.
+- **Personality mechanics use GM-supplied Permanent Modifiers for variable values** —
+  Mad, Scholarly, and Ties With... personalities require GM input (dice roll or
+  stat choice) for their *value*, but their *category* is Permanent, same as every
+  other personality effect (see Category ruling, §3.2a). Rather than implementing
   a `PersonalityAssignment` wrapper with `mad_order_roll`/`chosen_stat` fields, the GM
-  applies these effects via Custom Modifiers on the Colony. This keeps the domain model
+  applies these effects as Permanent Modifiers on the Colony. This keeps the domain model
   simpler and aligns with the "GM Control" principle — see §3.2a.
-- **All dice rolls are external** — The app never rolls dice. All 1d5, 1d10, 1d100 results are provided by GM/player as input values via Custom modifiers.
+- **All dice rolls are external** — The app never rolls dice. All 1d5, 1d10, 1d100 results
+  are provided by GM/player as input values. **Note:** the resulting modifier's *category*
+  depends on its source, not on the fact that a die was involved — Mad's roll-derived
+  penalty is Permanent (tied to the Representative), while Riots and Unrest / Heretical
+  roll-derived penalties (§4.8) remain Custom (event-triggered, not tied to a
+  Representative or other standing entity).
 - **Damage Reduction applies per-modifier** — Representative type reduces each negative modifier individually, not the total loss.
 - **Colony starts at Day 0** — We assume the colony is already founded with basic stats determined by the players' chosen colony type.
 - **Leadership Modifier table is complete for valid range 2-6** — values outside this range are invalid per game rules (0-1: character dead/incapacitated; 7+: impossible in-game).

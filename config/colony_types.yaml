@@ -41,9 +41,21 @@
     piety: 1
   special_effects:
     - name: "industrial_powerhouse"
-      description: "Starts with either a Mining or Manufactorum Upgrade. When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor."
+      # GM RULING (2026-08-25): Rulebook text confirms Mining and Industry Colonies
+      # "begin with either a Mine or Manufactorum Upgrade," but the rulebook is
+      # internally inconsistent — no "Mine" or "Manufactorum" upgrade exists in the
+      # Upgrade list itself (the confirmed UpgradeType enum has no such entries),
+      # and the closest thematic match, Mechanicum Station, explicitly requires a
+      # Lesser Endeavour to acquire elsewhere in the same rulebook, contradicting a
+      # free starting grant. GM has resolved this by mapping the free starting
+      # upgrade to Industrial Facility (a valid UpgradeType, thematically the
+      # "heart and soul of Industrial and Mining Colonies" per its own rulebook
+      # entry, Productivity +1, cumulative). This is a confirmed GM interpretation,
+      # not a rulebook-literal implementation — see project principle "GM
+      # interpretation takes precedence where confirmed."
+      description: "Begins with a free Industrial Facility Upgrade (GM ruling; see comment). When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor."
       starts_with_upgrade: true
-      upgrade_choices: ["mining", "manufactorum"]
+      upgrade_type: "industrial_facility"
       resource_types: ["mineral_resources"]
       productivity_bonus: 2
       additional_pf: 2
@@ -65,7 +77,21 @@
     piety: 2
   special_effects:
     - name: "shield_of_faith"
-      description: "Starts with a Cultural Improvement Upgrade (e.g., chapel, cloister). If Order would decrease, the owner can choose to decrease Piety instead."
+      # GM RULING (2026-08-25): Rulebook text confirms Ecclesiastical Colonies
+      # "begin with a Cultural District Upgrade," but no "Cultural District" upgrade
+      # exists in the Upgrade list itself (the confirmed UpgradeType enum has no such
+      # entry), and the thematically closest upgrade, Ecclesiarchy Mission, explicitly
+      # requires a Lesser Endeavour to acquire elsewhere in the same rulebook,
+      # contradicting a free starting grant. GM has resolved this by mapping the free
+      # starting upgrade to Cultural Improvement (a valid UpgradeType — "Largely the
+      # purview of the Ecclesiarchy," grants +1 to a Colony's Explorer-chosen
+      # Characteristic other than Size, purchasable once per Characteristic,
+      # cumulative). This is a confirmed GM interpretation, not a rulebook-literal
+      # implementation — see project principle "GM interpretation takes precedence
+      # where confirmed." Note the chosen stat for this free instance is an
+      # assignment-time GM/player choice, same pattern as other Characteristic-choice
+      # effects in this project (chosen_stat).
+      description: "Begins with a free Cultural Improvement Upgrade (GM ruling; see comment), stat chosen by GM/player. If Order would decrease, the owner can choose to decrease Piety instead."
       starts_with_upgrade: true
       upgrade_type: "cultural_improvement"
       order_piety_swap: true
@@ -87,5 +113,11 @@
     piety: 1
   special_effects:
     - name: "resilient_to_famine"
-      description: "If the colony Size would decrease due to growth rolls, the player rolls 1d10; on a result of 8 or higher, the size does not decrease."
+      # CORRECTED (2026-08-25): scope broadened from "growth rolls" to "any Size
+      # decrease" to match colony-manager-rules-reference.md (Agricultural
+      # Colony Type Specialties: "when Size would decrease") and
+      # business_analysis.md §4.8 (applies to Anarchy decay, events, or any
+      # other Size decrease). The narrower "growth rolls only" wording was
+      # inconsistent with both other sources.
+      description: "Any time the colony Size would decrease for any reason (growth rolls, Anarchy decay, GM events, etc.), the player rolls 1d10; on a result of 8 or higher, the size does not decrease."
       famine_resilience_roll: 8

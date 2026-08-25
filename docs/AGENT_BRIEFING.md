@@ -17,9 +17,9 @@
 
 ## Project Stage
 
-**Phase 5 In Progress:** Representative Personalities & Hard Infrastructure
+**Current Status:** All Core Phases Complete (Phases 1-9)
 
-### What's Done (Phases 1-4)
+### What's Done (Phases 1-9)
 
 - ✅ Domain layer with all models and calculation rules
 - ✅ Application services orchestrating business logic
@@ -27,19 +27,15 @@
 - ✅ JSON/YAML import/export
 - ✅ FastAPI REST API with JWT authentication
 - ✅ CLI interface (Typer)
+- ✅ Hard Infrastructure module
+- ✅ Support Upgrades, Planetary Resources, State Effects
 - ✅ 188+ tests passing
 
-### What's In Progress (Phase 5)
+### What's In Progress
 
 - ⏳ Colony Dashboard UI (3-panel layout)
 
-### What's Complete (Recently Finished)
-
-- ✅ `special_trait_description` field in Representative model
-- ✅ Personality duplicate validation (no duplicate personalities on same Representative)
-- ✅ Personality variable effects (Mad/Scholarly/Ties With...) handled via Custom Modifiers
-
-### What's Future (Phase 6+)
+### What's Future
 
 - 📋 Development Planning Panel — planned for future, no calculation impact
 - 📋 Audit logs
@@ -106,9 +102,16 @@ When Representative is Dynasty Member, player/GM provides d100 (1-100):
 
 **Special Personalities Requiring GM Input:**
 
-The following personalities require GM input (dice roll or stat choice). These are **not tracked automatically** by the app — the GM applies them via **Custom Modifiers** on the Colony:
+The following personalities require GM input (dice roll or stat choice) for
+their *value* — but their **category is Permanent**, same as every other
+personality effect, not Custom. This matters mechanically: Permanent modifiers
+apply *before* Conditional thresholds are checked (Orderly, Pious, Anarchy,
+etc.), so these values can help trigger — or, for Mad's penalty, help avert —
+a Conditional state in the same calculation pass. These are **not tracked
+automatically** by the app — the GM applies them as Permanent Modifiers on
+the Colony:
 
-| Personality | GM Action | Custom Modifier Example |
+| Personality | GM Action | Permanent Modifier Example |
 |-------------|-----------|------------------------|
 | **Mad** | Roll 1d5 physically | `Order: -3`, Source: "Mad personality" |
 | **Scholarly** | Identify lowest stat; choose if tied | `Productivity: +1`, Source: "Scholarly personality" |
@@ -121,8 +124,9 @@ The following personalities require GM input (dice roll or stat choice). These a
 Use **"Not Working"** (not "disrupted") for the non-functional status:
 
 - `Working` — Apply positive modifiers
-- `Not Working` — Apply penalty modifiers
+- `Not Working` — Apply penalty modifiers Not Working Penalties (see colony-manager-rules-reference.md)
 - `In Progress` — No modifiers apply
+- `Needed` —  Apply penalty modifiers Missing Infrastructure Penalty (see colony-manager-rules-reference.md)
 
 ### Leadership Modifier Table
 
@@ -166,13 +170,14 @@ All modifiers use the Rules Reference category system:
    - GM rolls 1d5 externally (e.g., result = 2)
    - GM creates Custom Modifier: Productivity -2, source "Riots and Unrest: GM Roll"
 
-2. **Ties With... Personality**:
-   - GM decides Representative has ties with Military
-   - GM creates Custom Modifier: Order +1, source "Ties With Military (GM Decision)"
-
-3. **Event Consequences**:
+2. **Event Consequences**:
    - Plague Event: Size -1, source "GM Event: Plague"
    - Ork Raid: Order -2, source "GM Event: Ork Raid"
+
+**Note:** Ties With... and Mad personalities were previously listed here as
+Custom Modifier examples. They are **Permanent** category (see "Special
+Personalities Requiring GM Input" above) — the GM still supplies the value,
+but the modifier applies in the Permanent pipeline stage, not here.
 
 ### Modifier Structure
 
@@ -247,7 +252,7 @@ Computed from final stat values:
 
 - ✅ `special_trait_description` field added to Representative model
 - ✅ Duplicate personality validation added (no duplicates on same Representative)
-- ✅ Personality variable effects (Mad/Scholarly/Ties With...) documented as GM workflow via Custom Modifiers
+- ✅ Personality variable effects (Mad/Scholarly/Ties With...) documented as GM workflow via Permanent Modifiers (GM-supplied values)
 
 **Removed tasks:**
 
@@ -274,8 +279,8 @@ Each personality maps to one or more modifiers. Process as follows:
    - Apply all active effects as Permanent Modifiers
 
 3. **Variable-effect personalities (Mad, Scholarly, Ties With...):**
-   - These require GM input (dice roll or stat choice) that is **not tracked automatically**
-   - GM applies these via Custom Modifiers on the Colony (see §3.2a in `business_analysis.md`)
+   - These require GM input (dice roll or stat choice) for their *value* — not tracked automatically
+   - GM applies these as **Permanent** Modifiers on the Colony (see Category ruling, §3.2a in `business_analysis.md`) — same category as every other personality, applied in the same pipeline stage, before Conditional thresholds are checked
    - The app does not store `mad_order_roll` or `chosen_stat` — GM provides the final modifier values
 
 4. **"Quite a Character" special handling:**
@@ -305,8 +310,8 @@ Each personality maps to one or more modifiers. Process as follows:
 |------|------------------------|----------------|
 | `domain/models/representative.py` | Add `special_trait_description`, change `personalities` type | ✅ `special_trait_description` added; `personalities` remains `list[Personality]` |
 | `domain/models/personality.py` | Create `PersonalityAssignment` model | ❌ Removed — Custom Modifier approach adopted instead |
-| `domain/rules/representative_rules.py` | Handle Mad roll, Scholarly lowest-stat logic | ❌ Not needed — GM applies via Custom Modifiers |
-| `application/services/representative_service.py` | Validate/clear `mad_order_roll`/`chosen_stat` | ❌ Not needed — Custom Modifier approach |
+| `domain/rules/representative_rules.py` | Handle Mad roll, Scholarly lowest-stat logic | ❌ Not needed — GM applies as Permanent Modifiers |
+| `application/services/representative_service.py` | Validate/clear `mad_order_roll`/`chosen_stat` | ❌ Not needed — Permanent Modifier approach |
 | `adapters/api/schemas/representative.py` | Update schemas | ✅ No changes needed beyond `special_trait_description` |
 | `adapters/api/routers/representatives.py` | Accept assignment-time inputs | ❌ Not needed — Custom Modifier approach |
 
@@ -319,9 +324,9 @@ Each personality maps to one or more modifiers. Process as follows:
 **Note:** Phase 5 is mostly complete. Updated criteria:
 
 1. ✅ All personality traits apply correct modifiers (per `docs/colony-manager-rules-reference.md` table, including Administrative Expert)
-2. ✅ Mad's Order penalty applied via Custom Modifier (GM rolls 1d5 physically, creates modifier with source "Mad personality")
-3. ✅ Scholarly applies +1 to lowest stat via Custom Modifier (GM identifies lowest, creates modifier with source "Scholarly personality")
-4. ✅ Ties With... applies +1 to chosen stat via Custom Modifier (GM chooses based on organization, creates modifier)
+2. ✅ Mad's Order penalty applied via Permanent Modifier (GM rolls 1d5 physically, creates modifier with source "Mad personality")
+3. ✅ Scholarly applies +1 to lowest stat via Permanent Modifier (GM identifies lowest, creates modifier with source "Scholarly personality")
+4. ✅ Ties With... applies +1 to chosen stat via Permanent Modifier (GM chooses based on organization, creates modifier)
 5. ✅ "Quite a Character" can be assigned with 2 additional personalities (**with duplicate validation** — the 2 chosen cannot duplicate existing personalities or each other)
 6. ✅ Hard Infrastructure bonuses/penalties stack correctly (Working vs Not Working status)
 7. ✅ `special_trait_description` field available on Representative for GM notes
