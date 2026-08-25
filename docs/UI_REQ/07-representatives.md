@@ -81,11 +81,22 @@ Dropdown selection from available representatives. Shows leadership modifier for
 | Action | Method | Endpoint | Permission |
 |--------|--------|----------|------------|
 | List representatives | GET | `/api/v1/representatives` | All |
+| List representatives (filtered) | GET | `/api/v1/representatives?available_only=true&type=judge&name_search=cardinal` | All |
 | Create representative | POST | `/api/v1/representatives` | Admin |
 | Update representative | PATCH | `/api/v1/representatives/:id` | Admin |
 | Delete representative | DELETE | `/api/v1/representatives/:id` | Admin |
-| Assign to colony | POST | `/api/v1/colonies/:id/representative` | Editor+ |
-| Remove from colony | DELETE | `/api/v1/colonies/:id/representative` | Editor+ |
+| Assign to colony | POST | `/api/v1/representatives/:id/assign?colony_id=:id` | Editor+ |
+| Remove from colony | POST | `/api/v1/representatives/:id/unassign` | Editor+ |
+
+**Query Parameters for List Endpoint:**
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `available_only` | boolean | Only show unassigned representatives | `?available_only=true` |
+| `type` | string | Filter by representative type | `?type=judge` |
+| `name_search` | string | Search by name (case-insensitive substring) | `?name_search=cardinal` |
+
+**Representative Types:** `satrap`, `judge`, `cardinal`, `colonist_representative`, `military_commander`, `dynasty_member`
 
 ---
 

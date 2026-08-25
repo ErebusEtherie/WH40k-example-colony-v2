@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
@@ -19,13 +19,13 @@ from colony_manager.adapters.api.schemas.representative import (
 )
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
+from colony_manager.domain.enums import RepresentativeType
 from colony_manager.domain.models.representative import (
     Personality,
     Representative,
     RepresentativeStats,
 )
 from colony_manager.domain.models.user import User
-from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 
 router = APIRouter(prefix="/representatives", tags=["representatives"])
 
@@ -71,11 +71,49 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
 async def list_representatives(
     current_user: Annotated[User, Depends(get_current_user)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
+    available_only: bool = Query(default=False, description="Only show unassigned representatives"),
+    type_filter: RepresentativeType | None = Query(
+        default=None, 
+        alias="type", 
+        description="Filter by representative type",
+        examples=["judge", "cardinal", "satrap"]
+    ),
+    name_search: str | None = Query(
+        default=None, 
+        description="Search by name (case-insensitive substring match)",
+        examples=["cardinal", "valmar"]
+    ),
+    # FIXME: Add pagination (offset/limit) if 100+ representatives expected
 ) -> list[RepresentativeListItem]:
-    """List all representatives."""
+    """List all representatives with optional filtering.
+    
+    Use query parameters to filter representatives for assignment:
+    - `available_only=true`: Show only unassigned representatives
+    - `type=judge`: Filter by representative type
+    - `name_search=cardinal`: Search by name (case-insensitive)
+    
+    Filters can be combined. Example:
+    `GET /api/v1/representatives?available_only=true&type=cardinal&name_search=saint`
+    """
     representatives = service._representative_repository.list()
+    
+    # Filter by availability (unassigned only)
+    if available_only:
+        representatives = [r for r in representatives if r.assigned_to_colony_id is None]
+    
+    # Filter by type
+    if type_filter:
+        representatives = [r for r in representatives if r.type == type_filter]
+    
+    # Filter by name search (case-insensitive substring match)
+    if name_search:
+        name_search_lower = name_search.lower()
+        representatives = [r for r in representatives if name_search_lower in r.name.lower()]
+    
     return [RepresentativeListItem(
-        id=rep.id, name=rep.name, type=rep.type,
+        id=rep.id,
+        name=rep.name,
+        type=rep.type,
         leadership_modifier=_get_leadership_modifier(rep.stats),
         assigned_to_colony_id=rep.assigned_to_colony_id,
     ) for rep in representatives]
@@ -191,12 +229,13 @@ async def unassign_from_colony(
         raise HTTPException(status_code=404, detail=f"Representative {rep_id} not found or not assigned")
     
     # Check permission on the colony
-    colony_user_repo = get_colony_user_repository(get_db_path())
-    if current_user.id is None:
-        raise HTTPException(status_code=500, detail="Authenticated user has no ID")
-    membership = colony_user_repo.get_by_colony_and_user(rep.assigned_to_colony_id, current_user.id)
-    if membership is None and current_user.role.value != "admin":
-        raise HTTPException(status_code=403, detail=f"User is not a member of colony {rep.assigned_to_colony_id}")
+    if current_user.role.value != "admin":
+        colony_user_repo = get_colony_user_repository(get_db_path())
+        if current_user.id is None:
+            raise HTTPException(status_code=500, detail="Authenticated user has no ID")
+        membership = colony_user_repo.get_by_colony_and_user(rep.assigned_to_colony_id, current_user.id)
+        if membership is None:
+            raise HTTPException(status_code=403, detail=f"User is not a member of colony {rep.assigned_to_colony_id}")
     
     try:
         updated = service.unassign_from_colony(rep_id)

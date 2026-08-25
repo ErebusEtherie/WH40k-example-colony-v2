@@ -90,11 +90,19 @@ Authorization: Bearer <access_token>
 
 ### Representatives
 
-- `GET /api/v1/representatives` — List
+- `GET /api/v1/representatives` — List all representatives
+- `GET /api/v1/representatives?available_only=true&type=judge&name_search=cardinal` — List with filters
 - `POST /api/v1/representatives` — Create
 - `PATCH /api/v1/representatives/:id` — Update
 - `DELETE /api/v1/representatives/:id` — Delete
-- `POST /api/v1/colonies/:id/representative` — Assign
+- `POST /api/v1/representatives/:id/assign?colony_id=:id` — Assign to colony
+- `POST /api/v1/representatives/:id/unassign` — Unassign from colony
+
+**Query Parameters:**
+
+- `available_only=true` — Filter to only unassigned representatives (useful for assignment dropdowns)
+- `type=judge` — Filter by representative type: `satrap`, `judge`, `cardinal`, `colonist_representative`, `military_commander`, `dynasty_member`
+- `name_search=cardinal` — Case-insensitive substring search on name
 
 ### Modifiers
 
