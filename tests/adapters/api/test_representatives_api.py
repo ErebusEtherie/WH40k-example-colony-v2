@@ -66,24 +66,24 @@ class TestListRepresentatives:
         response = auth_client.get("/api/v1/representatives")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 3
+        assert len(data["items"]) == 3
     
     def test_list_representatives_available_only(self, auth_client: TestClient, representatives_with_data: list[dict]) -> None:
         """Test that available_only=true filters out assigned representatives."""
         response = auth_client.get("/api/v1/representatives?available_only=true")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 2  # One is assigned
-        assert all(rep["assigned_to_colony_id"] is None for rep in data)
+        assert len(data["items"]) == 2  # One is assigned
+        assert all(rep["assigned_to_colony_id"] is None for rep in data["items"])
     
     def test_list_representatives_filter_by_type(self, auth_client: TestClient, representatives_with_data: list[dict]) -> None:
         """Test that type filter returns only matching representatives."""
         response = auth_client.get("/api/v1/representatives?type=judge")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["type"] == "judge"
-        assert data[0]["name"] == "Judge Dredd"
+        assert len(data["items"]) == 1
+        assert data["items"][0]["type"] == "judge"
+        assert data["items"][0]["name"] == "Judge Dredd"
     
     def test_list_representatives_name_search_case_insensitive(self, auth_client: TestClient, representatives_with_data: list[dict]) -> None:
         """Test that name search is case-insensitive substring match."""
@@ -91,20 +91,20 @@ class TestListRepresentatives:
         response1 = auth_client.get("/api/v1/representatives?name_search=saint")
         assert response1.status_code == status.HTTP_200_OK
         data1 = response1.json()
-        assert len(data1) == 1
-        assert "Saint" in data1[0]["name"]
+        assert len(data1["items"]) == 1
+        assert "Saint" in data1["items"][0]["name"]
         
         response2 = auth_client.get("/api/v1/representatives?name_search=SAINT")
         assert response2.status_code == status.HTTP_200_OK
         data2 = response2.json()
-        assert len(data2) == 1
+        assert len(data2["items"]) == 1
         
         # Partial match
         response3 = auth_client.get("/api/v1/representatives?name_search=dred")
         assert response3.status_code == status.HTTP_200_OK
         data3 = response3.json()
-        assert len(data3) == 1
-        assert "Dredd" in data3[0]["name"]
+        assert len(data3["items"]) == 1
+        assert "Dredd" in data3["items"][0]["name"]
     
     def test_list_representatives_combined_filters(self, auth_client: TestClient, representatives_with_data: list[dict]) -> None:
         """Test that multiple filters work together."""
@@ -112,22 +112,22 @@ class TestListRepresentatives:
         response = auth_client.get("/api/v1/representatives?available_only=true&type=cardinal")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 0
+        assert len(data["items"]) == 0
         
         # Available non-Cardinals
         response2 = auth_client.get("/api/v1/representatives?available_only=true&type=military_commander")
         assert response2.status_code == status.HTTP_200_OK
         data2 = response2.json()
-        assert len(data2) == 1
-        assert data2[0]["type"] == "military_commander"
+        assert len(data2["items"]) == 1
+        assert data2["items"][0]["type"] == "military_commander"
     
     def test_list_representatives_empty_result(self, auth_client: TestClient) -> None:
         """Test that non-matching filters return empty list."""
         response = auth_client.get("/api/v1/representatives?type=judge&name_search=NonExistent")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 0
-        assert data == []
+        assert len(data["items"]) == 0
+        assert data["items"] == []
     
     def test_list_representatives_requires_auth(self, test_client: TestClient) -> None:
         """Test that endpoint requires authentication."""

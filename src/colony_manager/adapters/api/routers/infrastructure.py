@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
@@ -13,6 +13,7 @@ from colony_manager.adapters.api.schemas.infrastructure import (
     InfrastructureResponse,
     InfrastructureUpdate,
 )
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.infrastructure_repository_impl import (
     SqlAlchemyInfrastructureRepository,
@@ -39,26 +40,41 @@ def _check_colony_exists(service: InfrastructureService, colony_id: int) -> None
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=list[InfrastructureListItem])
+@router.get("", response_model=PaginatedResponse[InfrastructureListItem])
 async def list_infrastructure(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
-) -> list[InfrastructureListItem]:
-    """List all infrastructure for a colony."""
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[InfrastructureListItem]:
+    """List all infrastructure for a colony with pagination."""
     _check_colony_exists(service, colony_id)
-    infrastructure = service.list_by_colony(colony_id)
-    return [
-        InfrastructureListItem(
-            id=infra.id,
-            infrastructure_type=infra.infrastructure_type,
-            state=infra.state,
-            has_effect=infra.has_effect,
-            is_working=infra.is_working,
-            is_not_working=infra.is_not_working,
-        )
-        for infra in infrastructure
-    ]
+    all_infrastructure = service.list_by_colony(colony_id)
+    
+    # Calculate pagination
+    total = len(all_infrastructure)
+    items = all_infrastructure[offset:offset + limit]
+    
+    return PaginatedResponse(
+        items=[
+            InfrastructureListItem(
+                id=infra.id,
+                infrastructure_type=infra.infrastructure_type,
+                state=infra.state,
+                has_effect=infra.has_effect,
+                is_working=infra.is_working,
+                is_not_working=infra.is_not_working,
+            )
+            for infra in items
+        ],
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.post("", response_model=InfrastructureResponse, status_code=status.HTTP_201_CREATED)

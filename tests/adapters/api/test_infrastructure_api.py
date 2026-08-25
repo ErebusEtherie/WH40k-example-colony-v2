@@ -20,7 +20,9 @@ class TestInfrastructureAPI:
     def test_list_infrastructure_empty(self, auth_client, colony):
         response = auth_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure")
         assert response.status_code == 200
-        assert response.json() == []
+        data = response.json()
+        assert data["items"] == []
+        assert data["meta"]["total"] == 0
 
     def test_create_infrastructure(self, auth_client, colony):
         create_data = {"infrastructure_type": "power_network", "state": "working"}

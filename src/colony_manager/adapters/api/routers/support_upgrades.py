@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
@@ -13,6 +13,7 @@ from colony_manager.adapters.api.schemas.support_upgrade import (
     SupportUpgradeResponse,
     SupportUpgradeUpdate,
 )
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
     SqlAlchemySupportUpgradeRepository,
@@ -41,26 +42,41 @@ def _check_colony_exists(service: SupportUpgradeService, colony_id: int) -> None
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=list[SupportUpgradeListItem])
+@router.get("", response_model=PaginatedResponse[SupportUpgradeListItem])
 async def list_upgrades(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
-) -> list[SupportUpgradeListItem]:
-    """List all support upgrades for a colony."""
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[SupportUpgradeListItem]:
+    """List all support upgrades for a colony with pagination."""
     _check_colony_exists(service, colony_id)
-    upgrades = service.list_by_colony(colony_id)
-    return [
-        SupportUpgradeListItem(
-            id=upg.id,
-            upgrade_type=upg.upgrade_type,
-            custom_stat_choice=upg.custom_stat_choice,
-            custom_product=upg.custom_product,
-            affiliated_group=upg.affiliated_group,
-            has_stat_effect=upg.has_stat_effect,
-        )
-        for upg in upgrades
-    ]
+    all_upgrades = service.list_by_colony(colony_id)
+    
+    # Calculate pagination
+    total = len(all_upgrades)
+    items = all_upgrades[offset:offset + limit]
+    
+    return PaginatedResponse(
+        items=[
+            SupportUpgradeListItem(
+                id=upg.id,
+                upgrade_type=upg.upgrade_type,
+                custom_stat_choice=upg.custom_stat_choice,
+                custom_product=upg.custom_product,
+                affiliated_group=upg.affiliated_group,
+                has_stat_effect=upg.has_stat_effect,
+            )
+            for upg in items
+        ],
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.post("", response_model=SupportUpgradeResponse, status_code=status.HTTP_201_CREATED)

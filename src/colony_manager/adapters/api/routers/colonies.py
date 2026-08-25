@@ -2,11 +2,12 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api.dependencies import get_colony_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.colony import (
     ColonyCreate,
     ColonyListItem,
@@ -66,18 +67,28 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
     )
 
 
-@router.get("", response_model=list[ColonyListItem])
+@router.get("", response_model=PaginatedResponse[ColonyListItem])
 async def list_colonies(
     current_user: Annotated[User, Depends(get_current_user)],
     service: ColonyService = Depends(get_colony_service),
-) -> list[ColonyListItem]:
-    """List all colonies with summary information."""
-    colonies = service._colony_repository.list()
-    items = []
-    for colony in colonies:
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[ColonyListItem]:
+    """List all colonies with pagination.
+    
+    Returns a paginated list of colonies. Use offset/limit for pagination.
+    """
+    all_colonies = service._colony_repository.list()
+    
+    # Calculate pagination
+    total = len(all_colonies)
+    items = all_colonies[offset:offset + limit]
+    
+    result_items = []
+    for colony in items:
         assert colony.id is not None
         state = service.get_state(colony.id)
-        items.append(ColonyListItem(
+        result_items.append(ColonyListItem(
             id=colony.id, name=colony.name, owner=colony.owner, colony_type=colony.colony_type,
             age_days=colony.age_days, current_size=int(state["size"]),  # type: ignore[call-overload]
             current_complacency=int(state["complacency"]),  # type: ignore[call-overload]
@@ -86,7 +97,16 @@ async def list_colonies(
             current_piety=int(state["piety"]),  # type: ignore[call-overload]
             profit_factor=int(state["profit_factor"]),  # type: ignore[call-overload]
         ))
-    return items
+    
+    return PaginatedResponse(
+        items=result_items,
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.post("", response_model=ColonyResponse, status_code=status.HTTP_201_CREATED)

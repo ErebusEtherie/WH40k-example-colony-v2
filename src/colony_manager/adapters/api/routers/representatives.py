@@ -8,6 +8,7 @@ from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.representative import (
     PersonalityCreate,
     RepresentativeCreate,
@@ -67,7 +68,7 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
     return result
 
 
-@router.get("", response_model=list[RepresentativeListItem])
+@router.get("", response_model=PaginatedResponse[RepresentativeListItem])
 async def list_representatives(
     current_user: Annotated[User, Depends(get_current_user)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
@@ -83,18 +84,45 @@ async def list_representatives(
         description="Search by name (case-insensitive substring match)",
         examples=["cardinal", "valmar"]
     ),
-    # FIXME: Add pagination (offset/limit) if 100+ representatives expected
-) -> list[RepresentativeListItem]:
-    """List all representatives with optional filtering.
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[RepresentativeListItem]:
+    """List all representatives with pagination and filtering.
     
-    Use query parameters to filter representatives for assignment:
-    - `available_only=true`: Show only unassigned representatives
-    - `type=judge`: Filter by representative type
-    - `name_search=cardinal`: Search by name (case-insensitive)
-    
-    Filters can be combined. Example:
-    `GET /api/v1/representatives?available_only=true&type=cardinal&name_search=saint`
+    Returns a paginated list of representatives. Use offset/limit for pagination.
     """
+    all_reps = service.list_representatives()
+    
+    # Apply filters
+    filtered = all_reps
+    if available_only:
+        filtered = [r for r in filtered if r.assigned_to_colony_id is None]
+    if type_filter is not None:
+        filtered = [r for r in filtered if r.type == type_filter]
+    if name_search:
+        search_lower = name_search.lower()
+        filtered = [r for r in filtered if search_lower in r.name.lower()]
+    
+    # Calculate pagination
+    total = len(filtered)
+    items = filtered[offset:offset + limit]
+    
+    return PaginatedResponse(
+        items=[
+            RepresentativeListItem(
+                id=r.id, name=r.name, type=r.type,
+                leadership_modifier=_get_leadership_modifier(r.stats),
+                assigned_to_colony_id=r.assigned_to_colony_id,
+            )
+            for r in items
+        ],
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
     representatives = service._representative_repository.list()
     
     # Filter by availability (unassigned only)

@@ -111,6 +111,14 @@ class RepresentativeService:
             raise NotFoundError(f"Representative {representative_id} not found")
         return representative
 
+    def list_representatives(self) -> list[Representative]:
+        """List all representatives.
+
+        Returns:
+            List of all representatives in the system.
+        """
+        return self._representative_repository.list()
+
     def assign_to_colony(
         self, colony_id: int, representative_id: int, changed_by: int | None = None
     ) -> Representative:

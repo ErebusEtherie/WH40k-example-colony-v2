@@ -22,6 +22,7 @@ from colony_manager.adapters.api.routers import (
     audit_logs_router,
     colonies_router,
     colony_users_router,
+    config_router,
     development_plans_router,
     events_router,
     export_import_router,
@@ -68,10 +69,21 @@ def get_allowed_origins() -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Initialize database on startup."""
+    """Initialize database and load configuration on startup."""
+    from pathlib import Path
+    
+    from colony_manager.config import load_and_set_config
+    
+    # Load configuration
+    config_path = Path(__file__).parent.parent.parent.parent / "config" / "rule_tables.yaml"
+    load_and_set_config(config_path)
+    logger.info(f"Loaded configuration from {config_path}")
+    
     # Initialize database tables
     db_path = dependencies.get_db_path()
     init_db(db_path)
+    logger.info("Database initialized")
+    
     yield
     # Cleanup on shutdown (if needed)
 
@@ -149,6 +161,7 @@ def create_app() -> FastAPI:
     app.include_router(resources_router, prefix=API_V1_PREFIX)
     app.include_router(support_upgrades_router, prefix=API_V1_PREFIX)
     app.include_router(users_router, prefix=API_V1_PREFIX)
+    app.include_router(config_router, prefix=API_V1_PREFIX)
 
     # Exception handlers
     @app.exception_handler(NotFoundError)

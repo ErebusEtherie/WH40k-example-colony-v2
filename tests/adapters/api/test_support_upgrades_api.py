@@ -20,7 +20,9 @@ class TestSupportUpgradesAPI:
     def test_list_upgrades_empty(self, auth_client, colony):
         response = auth_client.get(f"/api/v1/colonies/{colony['id']}/upgrades")
         assert response.status_code == 200
-        assert response.json() == []
+        data = response.json()
+        assert data["items"] == []
+        assert data["meta"]["total"] == 0
 
     def test_create_upgrade(self, auth_client, colony):
         create_data = {"upgrade_type": "arbites_precinct"}

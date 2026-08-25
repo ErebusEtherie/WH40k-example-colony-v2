@@ -19,6 +19,15 @@ class MessageResponse(BaseModel):
     message: str
 
 
+class PaginationMeta(BaseModel):
+    """Pagination metadata."""
+
+    total: int
+    offset: int
+    limit: int
+    has_more: bool
+
+
 T = TypeVar("T")
 
 
@@ -26,6 +35,4 @@ class PaginatedResponse[T](BaseModel):
     """Paginated list response."""
 
     items: list[T]
-    total: int
-    page: int
-    page_size: int
+    meta: PaginationMeta

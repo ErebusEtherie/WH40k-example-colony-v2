@@ -22,7 +22,9 @@ def test_list_colonies_empty(auth_client):
     """Test listing colonies when empty."""
     response = auth_client.get("/api/v1/colonies")
     assert response.status_code == 200
-    assert response.json() == []
+    data = response.json()
+    assert data["items"] == []
+    assert data["meta"]["total"] == 0
 
 
 def test_create_and_get_colony(auth_client):

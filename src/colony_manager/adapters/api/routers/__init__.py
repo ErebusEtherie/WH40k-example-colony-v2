@@ -4,6 +4,7 @@ from colony_manager.adapters.api.routers.auth_router import router as auth_route
 from colony_manager.adapters.api.routers.audit_logs import router as audit_logs_router
 from colony_manager.adapters.api.routers.colonies import router as colonies_router
 from colony_manager.adapters.api.routers.colony_users import router as colony_users_router
+from colony_manager.adapters.api.routers.config import router as config_router
 from colony_manager.adapters.api.routers.development_plans import router as development_plans_router
 from colony_manager.adapters.api.routers.events import router as events_router
 from colony_manager.adapters.api.routers.export_import import router as export_import_router
@@ -20,6 +21,7 @@ __all__ = [
     "audit_logs_router",
     "colonies_router",
     "colony_users_router",
+    "config_router",
     "development_plans_router",
     "events_router",
     "export_import_router",
