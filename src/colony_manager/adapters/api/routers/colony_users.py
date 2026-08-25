@@ -1,6 +1,6 @@
 """API router for colony user membership endpoints."""
 
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -13,6 +13,7 @@ from colony_manager.adapters.api.schemas.colony_user import (
     ColonyUserUpdate,
 )
 from colony_manager.application.services.colony_user_service import ColonyUserService
+from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony_user import ColonyUserRole
 from colony_manager.domain.models.user import User
 
@@ -204,7 +205,7 @@ def transfer_colony_ownership(
     transfer_data: ColonyOwnershipTransfer,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
-) -> dict:
+) -> dict[str, Any]:
     """Transfer colony ownership to another user.
     
     Requires owner-level permissions. The current owner is demoted to editor
@@ -228,7 +229,7 @@ def transfer_colony_ownership(
         )
     
     try:
-        new_owner_membership, previous_owner_membership = service.transfer_ownership(
+        new_owner_membership, _previous_owner_membership = service.transfer_ownership(
             colony_id=colony_id,
             current_owner_id=current_user.id,
             new_owner_id=transfer_data.new_owner_id,

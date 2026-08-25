@@ -1,5 +1,7 @@
 """Infrastructure service for managing colony infrastructure."""
 
+import logging
+
 from colony_manager.domain.enums import InfrastructureState
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
@@ -8,6 +10,8 @@ from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.infrastructure_repository import InfrastructureRepository
 from colony_manager.domain.rules.infrastructure_rules import get_missing_infrastructure_penalty
+
+logger = logging.getLogger(__name__)
 
 
 class InfrastructureService:
@@ -50,8 +54,8 @@ class InfrastructureService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to create audit log: %s", e)
 
     def create_infrastructure(
         self, infrastructure: Infrastructure, changed_by: int | None = None

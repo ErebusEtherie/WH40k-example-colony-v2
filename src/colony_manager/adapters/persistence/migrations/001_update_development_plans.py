@@ -41,9 +41,9 @@ def migrate(db_path: Path) -> None:
         conn.close()
         return
     
-    # Get existing data if any
+    # Get existing data if any (not migrated due to schema changes)
     cursor.execute("SELECT * FROM development_plans")
-    existing_data = cursor.fetchall()
+    cursor.fetchall()
     
     # Drop the old table
     cursor.execute("DROP TABLE development_plans")
@@ -80,12 +80,13 @@ def migrate(db_path: Path) -> None:
 
 if __name__ == "__main__":
     import os
+    import sys
     
     db_path_str = os.environ.get("COLONY_DB_PATH", "colony.db")
     db_path = Path(db_path_str)
     
     if not db_path.exists():
         print(f"Database not found at {db_path}")
-        exit(1)
+        sys.exit(1)
     
     migrate(db_path)

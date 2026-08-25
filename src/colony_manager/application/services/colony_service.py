@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, date, datetime
 from typing import TypedDict
 
@@ -15,6 +16,8 @@ from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+
+logger = logging.getLogger(__name__)
 
 
 class RollStatusDict(TypedDict):
@@ -86,10 +89,10 @@ class ColonyService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        except Exception:
+        except Exception as e:  # noqa: BLE001
             # Don't fail the operation if audit logging fails
             # In production, you might want to log this to a monitoring system
-            pass
+            logger.warning("Failed to create audit log: %s", e)
 
     def create_colony(self, colony: Colony, changed_by: int | None = None) -> Colony:
         """Create a new colony.

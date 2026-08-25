@@ -1,11 +1,15 @@
 """Support Upgrade service for managing colony support upgrades."""
 
+import logging
+
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.support_upgrade_repository import SupportUpgradeRepository
+
+logger = logging.getLogger(__name__)
 
 
 class SupportUpgradeService:
@@ -48,8 +52,8 @@ class SupportUpgradeService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to create audit log: %s", e)
 
     def create_upgrade(
         self, upgrade: SupportUpgrade, changed_by: int | None = None
@@ -104,6 +108,8 @@ class SupportUpgradeService:
             The updated support upgrade.
         """
         # Verify upgrade exists
+        if upgrade.id is None:
+            raise NotFoundError("Upgrade ID is required for update")
         self.get_upgrade(upgrade.id)
         
         result = self._repository.update(upgrade)

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
+
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.representative import Representative
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
+
+logger = logging.getLogger(__name__)
 
 
 class RepresentativeService:
@@ -62,8 +66,8 @@ class RepresentativeService:
                 colony_id=colony_id or 0,
             )
             self._audit_log_repository.create(audit_log)
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to create audit log: %s", e)
 
     def create_representative(
         self, representative: Representative, changed_by: int | None = None

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 
 from colony_manager.domain.enums import ResourceType
@@ -11,6 +12,8 @@ from colony_manager.domain.models.resource import ColonyResource
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.resource_repository import ResourceRepository
+
+logger = logging.getLogger(__name__)
 
 
 class ResourceService:
@@ -53,8 +56,8 @@ class ResourceService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to create audit log: %s", e)
 
     def add_resource(
         self,
