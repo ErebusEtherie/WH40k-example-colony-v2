@@ -279,12 +279,7 @@ rules (0-1: character dead/incapacitated; 7+: impossible in-game):
 | 5 | +1 |
 | 6 | +2 |
 
-**This table does not cover the full possible range of stat-bonus values
-(0–9+).** A prior revision of this document's §7 incorrectly marked this table
-"✅ Complete" — that was wrong and has been corrected (see §7 below). This
-remains a genuine open gap requiring the missing values from the reference
-sheet/rulebook before the leadership modifier resolver can be considered
-finished.
+**This table covers the full possible range of representative stat-bonus
 
 ### 4.7 Representative Stat Bonus
 

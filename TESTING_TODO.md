@@ -1,7 +1,7 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-24
-**Current Status:** 640 tests passing, 100% pass rate
+**Last Updated:** 2026-08-25
+**Current Status:** 695 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -10,7 +10,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (48 files, 630 tests)
+### ✅ Existing Tests (52+ files, 685 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
@@ -18,11 +18,11 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **Domain Rules** | 9 files | 80+ | ✅ Complete (includes Hypothesis) |
 | **Application Services** | 8 files | 50+ | ✅ Complete |
 | **Persistence Repositories** | 9 files | 60+ | ✅ Complete |
-| **API Routers** | 13 files | 200+ | ✅ Complete |
+| **API Routers** | 14 files | 200+ | ✅ Complete |
 | **Security** | 4 files | 40+ | ✅ Complete |
 | **Integration** | 3 files | 20+ | ✅ Complete |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **48 files** | **640 tests** | ✅ **100% passing** |
+| **Total** | **52+ files** | **685 tests** | ✅ **100% passing** |
 
 ### Test Patterns in Use
 
@@ -189,6 +189,64 @@ def test_property(...): ...
 
 ---
 
+## Completed Migrations
+
+### ✅ Config System Migration (2026-08-25)
+
+**Status:** COMPLETE — All 695 tests passing
+
+Migrated from legacy global config system to protocol-driven dependency injection.
+
+**Changes:**
+
+- Created `RuleConfigProvider` protocol in `domain/ports/rule_config_provider.py`
+- Implemented `FileRuleConfigProvider` singleton in `adapters/config/loader.py`
+- Updated all 8 config API endpoints to use dependency injection
+- Archived legacy `colony_manager/config/` module to `config_archive/`
+- Kept `config/settings.py` for application settings (JWT, CORS, database)
+
+**Files Modified:**
+
+- `domain/ports/rule_config_provider.py` — Protocol definition (14 methods/properties)
+- `adapters/config/loader.py` — Implementation with YAML loading
+- `adapters/api/dependencies.py` — Singleton pattern (`init_rule_config_provider()`)
+- `adapters/api/app.py` — Lifespan initialization
+- `adapters/api/routers/config.py` — Uses protocol methods
+- `tests/conftest.py` — Test fixtures initialize config provider
+
+**Architecture Benefits:**
+
+- Clean separation: domain layer has zero I/O
+- Testable: protocol allows easy mocking in tests
+- Encapsulated: no private attribute access from adapters
+- Singleton: single config instance shared across application
+
+### ✅ Hypothesis Test Expansion (2026-08-25)
+
+**Status:** COMPLETE — 10 new hypothesis tests added
+
+Expanded property-based testing coverage for the rule engine.
+
+**Changes:**
+
+- Added cascading effects tests (multiple states active simultaneously)
+- Added multiple modifier stacking tests
+- Added state transition boundary tests
+
+**Files Modified:**
+
+- `tests/domain/rules/test_state_effects_hypothesis.py` — Added `TestCascadingEffects` class with 4 tests
+- `tests/domain/rules/test_stat_calculator.py` — Added 4 tests for modifier stacking
+- `tests/domain/rules/test_profit_factor_calculator.py` — Added 2 tests for PF modifier stacking
+
+**Test Coverage:**
+
+- Cascading effects: Anarchy + Piety = 0, Complacency = 0 + Piety = 0, Orderly + Pious coexistence
+- Modifier stacking: Multiple modifiers combine additively, positive/negative combination, inactive modifiers ignored
+- All tests use Hypothesis property-based testing with 100 examples each
+
+---
+
 ## Remaining Work
 
 ### HIGH PRIORITY
@@ -202,9 +260,9 @@ None — all service tests complete.
 ### LOW PRIORITY
 
 1. **Expand Hypothesis Tests** (2-4 hours)
-   - Additional state effects properties
-   - Cascading effects verification
-   - Multiple bonus stacking
+   - [x] Additional state effects properties
+   - [x] Cascading effects verification
+   - [x] Multiple bonus stacking
 
 ---
 

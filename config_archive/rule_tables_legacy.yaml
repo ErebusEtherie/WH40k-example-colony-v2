@@ -1,0 +1,519 @@
+# WH40k Colony Manager - Rule Tables and Configuration
+# Source: docs/colony-manager-rules-reference.md
+
+colony_types:
+  - id: research_mission
+    name: Research Mission
+    description: Focused on scientific discovery and archeotech recovery
+    base_stats:
+      size: 1
+      complacency: 2
+      order: 1
+      productivity: 1
+      piety: 1
+    specialties:
+      - description: Productivity +2 when harvesting Organic Compounds, Archeotech Caches, or Xenos Ruins
+        pf_bonus: 1
+  - id: mining_and_industry
+    name: Mining and Industry
+    description: Combined extraction and manufacturing operations
+    base_stats:
+      size: 1
+      complacency: 1
+      order: 1
+      productivity: 2
+      piety: 1
+    specialties:
+      - description: Begins with Mine or Manufactorum (free Working upgrade)
+      - description: Productivity +2 when harvesting Mineral Resources
+        pf_bonus: 2
+  - id: ecclesiastical
+    name: Ecclesiastical
+    description: Religious colony focused on spreading Imperial faith
+    base_stats:
+      size: 1
+      complacency: 1
+      order: 2
+      productivity: 1
+      piety: 2
+    specialties:
+      - description: When Order would decrease, may decrease Piety instead
+      - description: Begins with Cultural District (free Working upgrade)
+  - id: agricultural
+    name: Agricultural
+    description: Focused on food production and organic compounds
+    base_stats:
+      size: 1
+      complacency: 1
+      order: 2
+      productivity: 1
+      piety: 1
+    specialties:
+      - description: When Size would decrease, player/GM may roll 1d10; on 8+ ignore the decrease
+
+representative_types:
+  - id: satrap
+    name: Satrap
+    description: Planetary governor with administrative expertise
+    protected_stat: null
+    special: +5 to Acquisition Tests on this colony
+  - id: judge
+    name: Judge
+    description: Law enforcement authority and arbiter of justice
+    protected_stat: order
+    damage_reduction: 1
+  - id: cardinal
+    name: Cardinal
+    description: High-ranking ecclesiastical leader
+    protected_stat: piety
+    damage_reduction: 1
+  - id: colonist_representative
+    name: Colonist Representative
+    description: Elected voice of the common colonists
+    protected_stat: complacency
+    damage_reduction: 1
+  - id: military_commander
+    name: Military Commander
+    description: Veteran leader of colonial defense forces
+    protected_stat: productivity
+    damage_reduction: 1
+  - id: dynasty_member
+    name: Dynasty Member
+    description: Member of the Rogue Trader own dynasty
+    protected_stat: null
+
+dynasty_member_rolls:
+  - range_min: 1
+    range_max: 20
+    stat: player_choice
+    value: 1
+    source: Dynasty Potential
+  - range_min: 21
+    range_max: 40
+    stat: productivity
+    value: 1
+    source: One To Keep an Eye On
+  - range_min: 41
+    range_max: 60
+    stat: piety
+    value: 1
+    source: Thrilling Heroics
+  - range_min: 61
+    range_max: 80
+    stat: order
+    value: 1
+    source: Come On, It's Just a Grox!
+  - range_min: 81
+    range_max: 100
+    stat: complacency
+    value: 1
+    source: Volcano Palace
+
+representative_personalities:
+  - id: beloved
+    name: Beloved
+    modifiers:
+      - stat: complacency
+        value: 1
+    description: Genuinely loved by the people
+  - id: military_minded
+    name: Military-Minded
+    modifiers:
+      - stat: order
+        value: 1
+    description: Views all problems through military lens
+  - id: corrupt
+    name: Corrupt
+    modifiers:
+      - stat: productivity
+        value: 2
+      - stat: order
+        value: -1
+    description: Skims resources but keeps things running
+  - id: idle
+    name: Idle
+    modifiers:
+      - stat: complacency
+        value: 2
+      - stat: productivity
+        value: -1
+    description: Lazy administrator, benign neglect
+  - id: ambitious
+    name: Ambitious
+    modifiers:
+      - stat: productivity
+        value: 2
+      - stat: complacency
+        value: -1
+    description: Driven to prove themselves
+  - id: zealous
+    name: Zealous
+    modifiers:
+      - stat: piety
+        value: 1
+    description: Deeply devoted to Imperial Creed
+  - id: patron_of_arts
+    name: Patron of the Arts
+    modifiers:
+      - stat: complacency
+        value: 2
+      - stat: piety
+        value: -1
+    description: Sponsors culture and entertainment
+  - id: unlucky
+    name: Unlucky
+    modifiers:
+      - stat: piety
+        value: 2
+    description: Turned to faith as solace from disasters
+  - id: ties_with
+    name: Ties With
+    modifiers:
+      - stat: player_choice
+        value: 1
+    description: Connections to specific organization (GM decides stat)
+  - id: administrative_expert
+    name: Administrative Expert
+    modifiers:
+      - stat: productivity
+        value: 2
+    condition:
+      stat: order
+      operator: greater
+      compare_to: size
+    description: Master of bureaucracy and logistics (only if Order > Size)
+  - id: cruel
+    name: Cruel
+    modifiers:
+      - stat: productivity
+        value: 2
+      - stat: complacency
+        value: -1
+    description: Rules through fear and harsh discipline
+  - id: spymaster
+    name: Spymaster
+    modifiers:
+      - stat: order
+        value: 2
+      - stat: complacency
+        value: -1
+    description: Extensive network of informants
+  - id: generalissimo
+    name: Generalissimo
+    modifiers:
+      - stat: order
+        value: 2
+      - stat: piety
+        value: -1
+    description: Military dictator with absolute authority
+  - id: paranoid
+    name: Paranoid
+    modifiers:
+      - stat: order
+        value: 2
+      - stat: productivity
+        value: -1
+    description: Sees enemies everywhere
+  - id: mad
+    name: Mad
+    modifiers:
+      - stat: complacency
+        value: 1
+      - stat: piety
+        value: 1
+      - stat: productivity
+        value: 1
+      - stat: order
+        value: gm_roll_negative_1d5
+    description: Eccentric and unpredictable
+  - id: charitable
+    name: Charitable
+    modifiers:
+      - stat: complacency
+        value: 1
+      - stat: piety
+        value: 1
+      - stat: productivity
+        value: -1
+    description: Gives generously to the poor
+  - id: vainglorious
+    name: Vainglorious
+    modifiers:
+      - stat: productivity
+        value: 2
+      - stat: piety
+        value: -1
+    description: Builds monuments to own glory
+  - id: scholarly
+    name: Scholarly
+    modifiers:
+      - stat: lowest_stat
+        value: 1
+    description: Studies and applies knowledge to weakest area
+  - id: avaricious
+    name: Avaricious
+    modifiers:
+      - stat: productivity
+        value: 1
+    description: Greed drives resource extraction
+  - id: quite_a_character
+    name: Quite a Character
+    modifiers: []
+    note: Select two other compatible personalities
+    description: Exceptionally complex individual
+
+infrastructure_types:
+  - id: transport
+    name: Transport
+    description: Roads railways mag-levs and void-shuttles
+    d5_result: 1
+    bonuses:
+      working:
+        productivity: 1
+        complacency: 1
+      not_working:
+        productivity: -2
+        order: -2
+  - id: power
+    name: Power
+    description: Plasma generators solar arrays geothermal taps
+    d5_result: 2
+    bonuses:
+      working:
+        productivity: 2
+      not_working:
+        productivity: -3
+        complacency: -1
+  - id: water
+    name: Water
+    description: Purification plants wells recycling systems
+    d5_result: 3
+    bonuses:
+      working:
+        order: 1
+        complacency: 1
+      not_working:
+        order: -2
+        complacency: -2
+  - id: food_production
+    name: Food Production
+    description: Agri-domes protein vats hydroponic bays
+    d5_result: 4
+    bonuses:
+      working:
+        productivity: 1
+        complacency: 1
+      not_working:
+        productivity: -2
+        complacency: -2
+  - id: communications
+    name: Communications
+    description: Vox-casters data networks astropathic relays
+    d5_result: 5
+    bonuses:
+      working:
+        productivity: 1
+        order: 1
+      not_working:
+        productivity: -2
+        order: -2
+
+missing_infrastructure_penalty:
+  stat: complacency
+  value: -1
+  source: Missing Infrastructure
+
+support_upgrades:
+  - id: arbites_precinct
+    name: Arbites Precinct
+    description: Fortress-courthouse of the Adeptus Arbites
+    bonus_stat: order
+    bonus_value: 1
+    limit: cumulative
+  - id: ecclesiarchy_mission
+    name: Ecclesiarchy Mission
+    description: Church shrine or missionary station
+    bonus_stat: piety
+    bonus_value: 1
+    limit: cumulative
+  - id: mechanicum_station
+    name: Mechanicum Station
+    description: Small forge or laboratory maintained by Adeptus Mechanicus
+    bonus_stat: productivity
+    bonus_value: 1
+    bonus_value_mining_industry: 2
+    bonus_value_research: 3
+    limit: one_only
+  - id: infantry_garrison
+    name: Infantry Garrison
+    description: Barracks for Imperial Guard or military forces
+    bonus_stat: order
+    bonus_value: 1
+    limit: one_only
+  - id: imperial_navy_station
+    name: Imperial Navy Station
+    description: Void-port orbital dock or aerospace facility
+    bonus_stat: order
+    bonus_value: 1
+    limit: one_only
+  - id: cultural_improvement
+    name: Cultural Improvement
+    description: Theater museum garden or cultural institution
+    bonus_stat: player_choice
+    bonus_value: 1
+    limit: once_per_stat
+  - id: industrial_facility
+    name: Industrial Facility
+    description: Manufactorum refinery or production center
+    bonus_stat: productivity
+    bonus_value: 1
+    limit: null
+  - id: personal_lodgings
+    name: Personal Lodgings
+    description: Rogue Trader personal accommodations
+    bonus_stat: order
+    bonus_value: 1
+    limit: one_only
+    note: 'No benefit after first; +10 to Charm/Commerce/Deceive while entertaining'
+  - id: contacts
+    name: Contacts
+    description: Network of NPCs with connections
+    bonus_stat: null
+    bonus_value: 0
+    limit: cumulative
+    note: 'Player/GM inputs contact count (1-5). +10 Fellowship with affiliated groups (narrative)'
+  - id: trappings
+    name: Trappings
+    description: Monuments and signs of Rogue Trader legend
+    bonus_stat: complacency
+    bonus_value: 1
+    limit: cumulative
+
+leader_quality_modifiers:
+  2: -2
+  3: -1
+  4: 0
+  5: 1
+  6: 2
+
+colony_size_to_pf:
+  0: 0
+  1: 1
+  2: 2
+  3: 3
+  4: 4
+  5: 6
+  6: 8
+  7: 10
+  8: 12
+  9: 14
+  10: 18
+
+thresholds:
+  placated:
+    stat: complacency
+    condition: greater
+    compare_to: size
+    effect:
+      stat: profit_factor
+      value: 1
+  orderly:
+    stat: order
+    condition: greater
+    compare_to: size
+    effect:
+      stat: productivity
+      value: 2
+  productive:
+    stat: productivity
+    condition: greater
+    compare_to: size
+    effect:
+      stat: profit_factor
+      value: 2
+  pious:
+    stat: piety
+    condition: greater
+    compare_to: size
+    effect:
+      - stat: order
+        value: 1
+      - stat: complacency
+        value: 1
+  riots_unrest:
+    stat: complacency
+    condition: equals
+    value: 0
+    effect:
+      - stat: order
+        value: gm_roll_negative_1d5
+      - stat: productivity
+        value: gm_roll_negative_1d5
+  anarchy:
+    stat: order
+    condition: equals
+    value: 0
+    effect:
+      stat: profit_factor
+      set_to: 0
+  production_halted:
+    stat: productivity
+    condition: equals
+    value: 0
+  heretical:
+    stat: piety
+    condition: equals
+    value: 0
+    effect:
+      - stat: order
+        value: gm_roll_negative_1d5
+      - stat: complacency
+        value: gm_roll_negative_1d5
+    note: Lose Imperial recognition
+
+growth_decay:
+  event_roll_interval_days: 60
+  development_roll_interval_days: 90
+  growth_outcomes:
+    decline:
+      roll_range:
+        - 1
+        - 2
+      effect:
+        - stat: size
+          value: -1
+    stagnation:
+      roll_range:
+        - 3
+        - 7
+      effect: []
+    growth:
+      roll_range:
+        - 8
+        - 10
+      effect:
+        - stat: size
+          value: 1
+  harvest_profits:
+    size_1_to_4:
+      pf_bonus: 1
+    size_5_plus:
+      pf_bonus: 2
+    absent_explorers:
+      complacency_penalty: gm_roll_negative_1d5
+      note: Alternative if Explorers not present
+
+stat_constraints:
+  size:
+    min: 0
+    max: 10
+  complacency:
+    min: 0
+  order:
+    min: 0
+  productivity:
+    min: 0
+  piety:
+    min: 0
+  profit_factor:
+    min: 0

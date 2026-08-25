@@ -17,23 +17,25 @@ from colony_manager.adapters.persistence.repositories.colony_user_repository_imp
 from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import (
     SqlAlchemyDevelopmentPlanRepository,
 )
-from colony_manager.adapters.persistence.repositories.event_repository_impl import SqlAlchemyEventRepository
-from colony_manager.adapters.persistence.representative_repository_impl import (
-    SqlAlchemyRepresentativeRepository,
-)
-from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
-from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
-    SqlAlchemyTokenBlacklistRepository,
+from colony_manager.adapters.persistence.repositories.event_repository_impl import (
+    SqlAlchemyEventRepository,
 )
 from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
     SqlAlchemyLoginAttemptRepository,
 )
+from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
+    SqlAlchemyTokenBlacklistRepository,
+)
 from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
     SqlAlchemyTokenIssuanceRepository,
 )
+from colony_manager.adapters.persistence.representative_repository_impl import (
+    SqlAlchemyRepresentativeRepository,
+)
+from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.colony_user_service import ColonyUserService
-from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.application.services.event_service import EventService
 from colony_manager.application.services.representative_service import RepresentativeService
@@ -43,12 +45,12 @@ from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 from colony_manager.domain.ports.development_plan_repository import DevelopmentPlanRepository
 from colony_manager.domain.ports.event_repository import EventRepository
+from colony_manager.domain.ports.login_attempt_repository import LoginAttemptRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
-from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
-from colony_manager.domain.ports.login_attempt_repository import LoginAttemptRepository
 from colony_manager.domain.ports.token_issuance_repository import TokenIssuanceRepository
+from colony_manager.domain.ports.user_repository import UserRepository
 
 # Default paths - config is at project root, not src/config
 DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3].parent / "config"
@@ -63,6 +65,42 @@ def get_config_dir() -> Path:
 def get_db_path() -> Path:
     """Get the database file path."""
     return DEFAULT_DB_PATH
+
+
+# Global singleton for rule config provider
+_rule_config_provider: RuleConfigProvider | None = None
+
+
+def get_rule_config_provider() -> RuleConfigProvider:
+    """Get the global rule config provider singleton.
+    
+    Returns:
+        RuleConfigProvider instance loaded at startup.
+        
+    Raises:
+        RuntimeError: If config provider hasn't been initialized yet.
+    """
+    if _rule_config_provider is None:
+        raise RuntimeError(
+            "Rule config provider not initialized. Call init_rule_config_provider() during application startup."
+        )
+    return _rule_config_provider
+
+
+def init_rule_config_provider(config_dir: Path | None = None) -> RuleConfigProvider:
+    """Initialize the global rule config provider singleton.
+    
+    Args:
+        config_dir: Optional config directory path. Defaults to DEFAULT_CONFIG_DIR.
+        
+    Returns:
+        Initialized RuleConfigProvider instance.
+    """
+    global _rule_config_provider
+    if config_dir is None:
+        config_dir = get_config_dir()
+    _rule_config_provider = FileRuleConfigProvider(config_dir=config_dir)
+    return _rule_config_provider
 
 
 def get_colony_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> ColonyRepository:
@@ -98,11 +136,6 @@ def get_audit_log_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> 
 def get_colony_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> ColonyUserRepository:
     """Get colony user repository instance."""
     return SqlAlchemyColonyUserRepository(build_database_url(db_path))
-
-
-def get_rule_config_provider() -> RuleConfigProvider:
-    """Get rule config provider instance."""
-    return FileRuleConfigProvider(config_dir=get_config_dir())
 
 
 def get_colony_service(

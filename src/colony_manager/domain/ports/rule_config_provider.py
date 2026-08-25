@@ -31,3 +31,44 @@ class RuleConfigProvider(Protocol):
     def get_pf_state_bonuses(self) -> dict[str, int]:
         """Get Profit Factor bonuses for colony states (placated, productive, orderly)."""
         ...
+
+    def get_infrastructure_type_config(self, infrastructure_name: str) -> dict[str, object]:
+        """Get infrastructure type configuration by name."""
+        ...
+
+    def get_representative_type_config(self, representative_name: str) -> dict[str, object]:
+        """Get representative type configuration by name."""
+        ...
+
+    def get_support_upgrade_config(self, upgrade_name: str) -> dict[str, object]:
+        """Get support upgrade configuration by name."""
+        ...
+
+    # List accessors for API endpoints
+    @property
+    def colony_types(self) -> list:
+        """Get list of all colony type configurations."""
+        ...
+
+    @property
+    def representative_types(self) -> list:
+        """Get list of all representative type configurations."""
+        ...
+
+    @property
+    def infrastructure_types(self) -> list:
+        """Get list of all infrastructure type configurations."""
+        ...
+
+    @property
+    def support_upgrades(self) -> list:
+        """Get list of all support upgrade configurations."""
+        ...
+
+    def get_profit_factor_table(self) -> dict[str, int]:
+        """Get colony size to profit factor lookup table."""
+        ...
+
+    def get_lore_thresholds(self) -> dict[str, object]:
+        """Get threshold configuration for state transitions."""
+        ...

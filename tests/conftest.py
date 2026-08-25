@@ -5,14 +5,16 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+import colony_manager.adapters.api.dependencies as deps
 from colony_manager.adapters.api.app import create_app
 from colony_manager.adapters.persistence.db import init_db
-import colony_manager.adapters.api.dependencies as deps
 
 
 @pytest.fixture(scope="function")
 def test_client(tmp_path):
     """Create test client with isolated database."""
+    from colony_manager.adapters.api.dependencies import init_rule_config_provider
+    
     db_path = tmp_path / "test.db"
     
     # Override dependencies to use test database
@@ -20,6 +22,10 @@ def test_client(tmp_path):
         return db_path
     
     init_db(db_path)
+    
+    # Initialize rule config provider singleton for tests
+    init_rule_config_provider()
+    
     app = create_app()
     
     # Override the dependency after app creation
@@ -65,11 +71,16 @@ def auth_client(test_client, request):
 @pytest.fixture
 def test_client_with_auth(tmp_path):
     """Create test client with initialized database (for auth tests)."""
-    from colony_manager.adapters.persistence.db import init_db
     import colony_manager.adapters.api.dependencies as deps
+    from colony_manager.adapters.api.dependencies import init_rule_config_provider
+    from colony_manager.adapters.persistence.db import init_db
     
     db_path = tmp_path / "test.db"
     init_db(db_path)
+    
+    # Initialize rule config provider singleton for tests
+    init_rule_config_provider()
+    
     app = create_app()
     
     def override_get_db_path() -> Path:

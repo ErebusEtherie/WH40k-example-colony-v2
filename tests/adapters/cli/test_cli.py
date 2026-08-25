@@ -22,6 +22,18 @@ def _write_test_config(tmp_path: Path) -> Path:
         "size_to_profit_factor:\n  - size: 5\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: \"> size\"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: \"> size\"\n    default: stable\n  productivity:\n    productive_threshold: \"> size\"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: \"> size\"\n    zero_state: heretical\n    default: stable\n",
         encoding="utf-8",
     )
+    (config_dir / "infrastructure_types.yaml").write_text(
+        "- name: test_infra\n  display_name: Test Infrastructure\n  description: Test\n  states:\n    working:\n      description: Working\n      modifiers: []\n",
+        encoding="utf-8",
+    )
+    (config_dir / "representative_types.yaml").write_text(
+        "- name: judge\n  display_name: Judge\n  description: Test\n  special_effects: []\n  themes: []\n",
+        encoding="utf-8",
+    )
+    (config_dir / "support_upgrades.yaml").write_text(
+        "- name: test_upgrade\n  display_name: Test Upgrade\n  description: Test\n  stat_effects: []\n  mechanical_effects: []\n  lore_effects: []\n",
+        encoding="utf-8",
+    )
     return config_dir
 
 

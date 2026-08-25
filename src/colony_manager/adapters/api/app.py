@@ -70,14 +70,11 @@ def get_allowed_origins() -> list[str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize database and load configuration on startup."""
-    from pathlib import Path
+    from colony_manager.adapters.api.dependencies import init_rule_config_provider
     
-    from colony_manager.config import load_and_set_config
-    
-    # Load configuration
-    config_path = Path(__file__).parent.parent.parent.parent / "config" / "rule_tables.yaml"
-    load_and_set_config(config_path)
-    logger.info(f"Loaded configuration from {config_path}")
+    # Initialize rule config provider singleton
+    init_rule_config_provider()
+    logger.info("Rule config provider initialized")
     
     # Initialize database tables
     db_path = dependencies.get_db_path()

@@ -88,7 +88,7 @@ class TestColonyLifecycleCreation:
         list_response = auth_client.get("/api/v1/colonies")
         assert list_response.status_code == 200
         colony_list = list_response.json()
-        assert len(colony_list) == 3
+        assert len(colony_list["items"]) == 3
 class TestColonyLifecycleInfrastructure:
     """Tests for adding infrastructure to colony."""
     

@@ -238,3 +238,90 @@ def test_profit_factor_never_negative_property(
         leadership_modifier=leadership_mod,
     )
     assert result >= 0
+
+
+@given(
+    base_pf=st.integers(min_value=0, max_value=20),
+    complacency=st.integers(min_value=0, max_value=10),
+    order=st.integers(min_value=1, max_value=10),
+    productivity=st.integers(min_value=1, max_value=10),  # Must be > 0 to avoid Halted penalty
+    piety=st.integers(min_value=0, max_value=10),
+    size=st.integers(min_value=10, max_value=20),  # Size high enough to prevent state bonuses
+    modifier_values=st.lists(st.integers(min_value=-5, max_value=5), min_size=1, max_size=10),
+)
+def test_multiple_pf_modifiers_stack_additively(
+    base_pf, complacency, order, productivity, piety, size, modifier_values
+):
+    """Property: Multiple PF modifiers stack additively."""
+    modifiers = [
+        Modifier(
+            id=i,
+            colony_id=1,
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
+            modifier_stat=ModifierStat.PROFIT_FACTOR,
+            modifier_value=value,
+            description=f"PF modifier {i}",
+            is_active=True,
+        )
+        for i, value in enumerate(modifier_values)
+    ]
+    
+    result = calculate_profit_factor(
+        base_profit_factor=base_pf,
+        current_complacency=complacency,
+        current_order=order,
+        current_productivity=productivity,
+        current_piety=piety,
+        actual_size=size,
+        modifiers=modifiers,
+        leadership_modifier=0,
+    )
+    
+    # Verify modifiers stack additively (clamped at 0)
+    # Stats are kept <= size to prevent state bonuses from applying
+    expected_raw = base_pf + sum(modifier_values)
+    assert result == max(expected_raw, 0)
+
+
+@given(
+    base_pf=st.integers(min_value=0, max_value=20),
+    size=st.integers(min_value=1, max_value=10),
+    leadership_mod=st.integers(min_value=-2, max_value=2),
+    modifier_values=st.lists(st.integers(min_value=-3, max_value=3), min_size=1, max_size=10),
+)
+def test_state_bonuses_and_modifiers_combine(base_pf, size, leadership_mod, modifier_values):
+    """Property: State bonuses (Placated, Productive, Orderly) combine with modifiers."""
+    modifiers = [
+        Modifier(
+            id=i,
+            colony_id=1,
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
+            modifier_stat=ModifierStat.PROFIT_FACTOR,
+            modifier_value=value,
+            description=f"PF modifier {i}",
+            is_active=True,
+        )
+        for i, value in enumerate(modifier_values)
+    ]
+    
+    # Set up colony with all state bonuses active
+    result = calculate_profit_factor(
+        base_profit_factor=base_pf,
+        current_complacency=size + 5,  # Placated
+        current_order=size + 5,  # Orderly
+        current_productivity=size + 5,  # Productive
+        current_piety=size + 5,
+        actual_size=size,
+        modifiers=modifiers,
+        leadership_modifier=leadership_mod,
+        is_orderly=True,
+    )
+    
+    # Should have all bonuses: Placated (+1), Productive (+2), Orderly (+2), leadership, and modifiers
+    expected_bonus = 1 + 2 + 2 + leadership_mod + sum(modifier_values)
+    expected_raw = base_pf + expected_bonus
+    
+    # Result should match expected (clamped at 0)
+    assert result == max(expected_raw, 0)
