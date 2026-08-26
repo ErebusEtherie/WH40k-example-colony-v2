@@ -65,7 +65,7 @@ def create_access_token(
     }
 
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
-    return encoded_jwt  # type: ignore[no-any-return]
+    return encoded_jwt
 
 
 def create_refresh_token(
@@ -107,7 +107,7 @@ def create_refresh_token(
     }
 
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
-    return encoded_jwt  # type: ignore[no-any-return]
+    return encoded_jwt
 
 
 def verify_token(
@@ -137,7 +137,7 @@ def verify_token(
         if payload.get("type") != token_type:
             raise TokenError(f"Invalid token type. Expected {token_type}")
 
-        return payload  # type: ignore[no-any-return]
+        return payload
 
     except jwt.ExpiredSignatureError as e:
         raise TokenError("Token has expired") from e

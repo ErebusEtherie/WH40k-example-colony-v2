@@ -47,7 +47,7 @@ def get_client_ip(request: Request) -> str:
         # X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2, ...
         # Take the first (original client) IP
         return forwarded.split(",")[0].strip()
-    return get_remote_address(request)  # type: ignore[no-any-return]
+    return get_remote_address(request)
 
 
 def get_limiter() -> Limiter:
@@ -91,7 +91,7 @@ def get_rate_limit_exceeded_handler() -> Callable[["Request", RateLimitExceeded]
     Usage:
         app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
     """
-    return _rate_limit_exceeded_handler  # type: ignore[no-any-return]
+    return _rate_limit_exceeded_handler
 
 
 # Rate limit decorators for common scenarios

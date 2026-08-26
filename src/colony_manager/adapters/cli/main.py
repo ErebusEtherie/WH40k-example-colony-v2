@@ -49,7 +49,7 @@ def cli() -> None:
     app()
 
 
-@app.callback()  # type: ignore[misc]
+@app.callback()
 def main(
     config_dir: str | None = typer.Option(
         None, "--config-dir", help="Directory containing YAML config files"
@@ -62,7 +62,7 @@ def main(
     _db_path = _config_dir.parent / "colony_manager.sqlite"
 
 
-@app.command("serve")  # type: ignore[misc]
+@app.command("serve")
 def serve(
     host: str = typer.Option("127.0.0.1", "--host", help="Host to bind the API server"),
     port: int = typer.Option(8000, "--port", help="Port to bind the API server"),
@@ -77,7 +77,7 @@ def serve(
     uvicorn.run(create_app(), host=host, port=port, log_level="info")
 
 
-@colony_app.command("create")  # type: ignore[misc]
+@colony_app.command("create")
 def create_colony(name: str, owner: str, colony_type: str) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
@@ -102,7 +102,7 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     typer.echo(f"Created colony {created.id}: {created.name}")
 
 
-@colony_app.command("show")  # type: ignore[misc]
+@colony_app.command("show")
 def show_colony(colony_id: int) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
@@ -134,7 +134,7 @@ def show_colony(colony_id: int) -> None:
     typer.echo(f"  Lore state: {state['lore_state']}")
 
 
-@colony_app.command("list")  # type: ignore[misc]
+@colony_app.command("list")
 def list_colonies() -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     colonies = colony_repo.list()
@@ -147,7 +147,7 @@ def list_colonies() -> None:
         typer.echo(f"- #{colony.id}: {colony.name} ({colony.colony_type}) — owner: {colony.owner}")
 
 
-@colony_app.command("set-age")  # type: ignore[misc]
+@colony_app.command("set-age")
 def set_colony_age(colony_id: int, days: int) -> None:
     """Set the age of a colony in days."""
     provider = FileRuleConfigProvider(config_dir=_config_dir)
@@ -165,7 +165,7 @@ def set_colony_age(colony_id: int, days: int) -> None:
     )
 
 
-@colony_app.command("add-modifier")  # type: ignore[misc]
+@colony_app.command("add-modifier")
 def add_colony_modifier(
     colony_id: int,
     modifier_source_type: str,
@@ -202,7 +202,7 @@ def add_colony_modifier(
     )
 
 
-@representative_app.command("create")  # type: ignore[misc]
+@representative_app.command("create")
 def create_representative(name: str, representative_type: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
@@ -219,7 +219,7 @@ def create_representative(name: str, representative_type: str) -> None:
     typer.echo(f"Created representative {created.id}: {created.name}")
 
 
-@representative_app.command("assign")  # type: ignore[misc]
+@representative_app.command("assign")
 def assign_representative(colony_id: int, representative_id: int) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
@@ -234,7 +234,7 @@ def assign_representative(colony_id: int, representative_id: int) -> None:
     )
 
 
-@colony_app.command("export")  # type: ignore[misc]
+@colony_app.command("export")
 def export_colony(colony_id: int, path: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     colony = colony_repo.get(colony_id)
@@ -246,7 +246,7 @@ def export_colony(colony_id: int, path: str) -> None:
     typer.echo(f"Exported colony {colony_id} to {path}")
 
 
-@colony_app.command("import")  # type: ignore[misc]
+@colony_app.command("import")
 def import_colony(path: str) -> None:
     importer = ColonyImporter()
     import_data = importer.import_from_path(path)
@@ -262,7 +262,7 @@ def import_colony(path: str) -> None:
 # =============================================================================
 
 
-@colony_app.command("add-resource")  # type: ignore[misc]
+@colony_app.command("add-resource")
 def add_resource(
     colony_id: int,
     resource_type: str,
@@ -300,7 +300,7 @@ def add_resource(
         typer.echo(f"  Notes: {resource.notes}")
 
 
-@colony_app.command("list-resources")  # type: ignore[misc]
+@colony_app.command("list-resources")
 def list_resources(colony_id: int) -> None:
     """List all planetary resources for a colony."""
     from colony_manager.adapters.persistence.resource_repository_impl import (
@@ -334,7 +334,7 @@ def list_resources(colony_id: int) -> None:
         typer.echo()
 
 
-@colony_app.command("update-resource")  # type: ignore[misc]
+@colony_app.command("update-resource")
 def update_resource(
     colony_id: int,
     resource_name: str,
@@ -384,7 +384,7 @@ def update_resource(
         typer.echo(f"  Notes: {updated.notes}")
 
 
-@colony_app.command("remove-resource")  # type: ignore[misc]
+@colony_app.command("remove-resource")
 def remove_resource(colony_id: int, resource_name: str) -> None:
     """Remove a planetary resource from a colony."""
     from colony_manager.adapters.persistence.resource_repository_impl import (

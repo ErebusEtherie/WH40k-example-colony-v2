@@ -60,7 +60,7 @@ limiter = get_limiter()
     status_code=status.HTTP_201_CREATED,
     openapi_extra={"security": []},
 )
-@limiter.limit(register_rate_limit())  # type: ignore[misc]
+@limiter.limit(register_rate_limit())
 def register(
     request: Request,
     register_request: RegisterRequest,
@@ -134,7 +134,7 @@ def register(
 
 
 @router.post("/login", response_model=TokenResponse, openapi_extra={"security": []})
-@limiter.limit(login_rate_limit())  # type: ignore[misc]
+@limiter.limit(login_rate_limit())
 def login(
     request: Request,
     login_request: LoginRequest,
@@ -239,7 +239,7 @@ def login(
 
 
 @router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []})
-@limiter.limit(refresh_token_rate_limit())  # type: ignore[misc]
+@limiter.limit(refresh_token_rate_limit())
 def refresh_token_endpoint(
     request: Request,
     refresh_request: RefreshTokenRequest,
@@ -303,7 +303,7 @@ def get_current_user_info(
 
 
 @router.post("/change-password")
-@limiter.limit(password_change_rate_limit())  # type: ignore[misc]
+@limiter.limit(password_change_rate_limit())
 def change_password(
     request: Request,
     password_change_request: ChangePasswordRequest,
@@ -332,7 +332,7 @@ def change_password(
 
 
 @router.post("/revoke", response_model=TokenRevokeResponse)
-@limiter.limit(refresh_token_rate_limit())  # type: ignore[misc]
+@limiter.limit(refresh_token_rate_limit())
 def revoke_token(
     request: Request,
     revoke_request: TokenRevokeRequest,

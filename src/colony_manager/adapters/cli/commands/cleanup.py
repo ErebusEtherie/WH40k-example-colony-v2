@@ -16,7 +16,7 @@ from colony_manager.adapters.persistence.repositories.token_issuance_repository_
 cleanup_app = typer.Typer(help="Cleanup and maintenance commands")
 
 
-@cleanup_app.command("token-blacklist")  # type: ignore[misc]
+@cleanup_app.command("token-blacklist")
 def cleanup_token_blacklist(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
@@ -43,7 +43,7 @@ def cleanup_token_blacklist(
         typer.echo(f"Removed {removed} expired token blacklist entries")
 
 
-@cleanup_app.command("login-attempts")  # type: ignore[misc]
+@cleanup_app.command("login-attempts")
 def cleanup_login_attempts(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     days: int = typer.Option(30, "--days", help="Days to keep login attempt records"),
@@ -72,7 +72,7 @@ def cleanup_login_attempts(
         typer.echo(f"Removed {removed} login attempt records older than {days} days")
 
 
-@cleanup_app.command("token-issuance")  # type: ignore[misc]
+@cleanup_app.command("token-issuance")
 def cleanup_token_issuance(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     days: int = typer.Option(90, "--days", help="Days to keep token issuance records"),
@@ -101,7 +101,7 @@ def cleanup_token_issuance(
         typer.echo(f"Removed {removed} token issuance records older than {days} days")
 
 
-@cleanup_app.command("all")  # type: ignore[misc]
+@cleanup_app.command("all")
 def cleanup_all(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     login_attempt_days: int = typer.Option(

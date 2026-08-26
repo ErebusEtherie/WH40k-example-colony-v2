@@ -137,7 +137,7 @@ def create_app() -> FastAPI:
     # Rate limiting middleware
     limiter = get_limiter()
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
+    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())  # type: ignore[arg-type]
 
     # Security headers middleware
     app.add_middleware(SecurityHeadersMiddleware)
