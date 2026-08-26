@@ -1,5 +1,6 @@
 """Colony API router."""
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -17,14 +18,17 @@ from colony_manager.adapters.api.schemas.colony import (
     ColonyUpdate,
 )
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
-from colony_manager.adapters.api.schemas.modifier import ModifierCreate, ModifierResponse
+from colony_manager.adapters.api.schemas.modifier import ModifierCreate, ModifierResponse, ModifierUpdate
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.audit_log import AuditLogAction
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies", tags=["colonies"])
+
+logger = logging.getLogger(__name__)
 
 
 def _check_colony_exists(service: ColonyService, colony_id: int) -> Colony:
@@ -372,6 +376,86 @@ async def remove_colony_modifier(
         raise HTTPException(status_code=404, detail=f"Modifier {modifier_id} not found")
     colony.modifiers.remove(modifier_to_remove)
     service._colony_repository.update(colony)
+    
+    # Log audit entry if audit logging is enabled
+    if service._audit_log_repository is not None:
+        service._log_audit(
+            colony_id=colony_id,
+            entity_type="modifier",
+            entity_id=modifier_id,
+            action=AuditLogAction.DELETE,
+            field=None,
+            old_value=f"Modifier: {modifier_to_remove.modifier_stat.value} = {modifier_to_remove.modifier_value}",
+            new_value=None,
+            changed_by=current_user.id,
+        )
+
+
+@router.patch("/{colony_id}/modifiers/{modifier_id}", response_model=ModifierResponse)
+async def update_colony_modifier(
+    colony_id: int,
+    modifier_id: int,
+    modifier_data: ModifierUpdate,
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    service: ColonyService = Depends(get_colony_service),
+) -> ModifierResponse:
+    """Update a modifier (partial update).
+    
+    Typically used to toggle is_active status without deleting and re-adding.
+    """
+    colony = _check_colony_exists(service, colony_id)
+    modifier_to_update = next((mod for mod in colony.modifiers if mod.id == modifier_id), None)
+    if modifier_to_update is None:
+        raise HTTPException(status_code=404, detail=f"Modifier {modifier_id} not found")
+    
+    # Store old values for audit log
+    old_is_active = modifier_to_update.is_active
+    old_description = modifier_to_update.modifier_description
+    
+    # Apply updates
+    if modifier_data.is_active is not None:
+        modifier_to_update.is_active = modifier_data.is_active
+    if modifier_data.modifier_description is not None:
+        modifier_to_update.modifier_description = modifier_data.modifier_description
+    
+    # Save colony with error handling
+    try:
+        service._colony_repository.update(colony)
+    except Exception as e:
+        logger.exception("Failed to update modifier %s for colony %s", modifier_id, colony_id)
+        raise HTTPException(status_code=500, detail="Failed to update modifier") from e
+    
+    # Log audit entry if audit logging is enabled
+    if service._audit_log_repository is not None:
+        changes = []
+        if modifier_data.is_active is not None and modifier_data.is_active != old_is_active:
+            changes.append(f"is_active: {old_is_active} -> {modifier_data.is_active}")
+        if modifier_data.modifier_description is not None and modifier_data.modifier_description != old_description:
+            changes.append(f"description: {old_description} -> {modifier_data.modifier_description}")
+        
+        if changes:
+            service._log_audit(
+                colony_id=colony_id,
+                entity_type="modifier",
+                entity_id=modifier_id,
+                action="update",
+                field=None,
+                old_value=None,
+                new_value="; ".join(changes),
+                changed_by=current_user.id,
+            )
+    
+    return ModifierResponse(
+        id=modifier_to_update.id,
+        colony_id=colony_id,
+        modifier_source_type=modifier_to_update.modifier_source_type,
+        modifier_category=modifier_to_update.modifier_category,
+        modifier_stat=modifier_to_update.modifier_stat,
+        modifier_value=modifier_to_update.modifier_value,
+        modifier_description=modifier_to_update.modifier_description,
+        is_active=modifier_to_update.is_active,
+        expires_at=modifier_to_update.expires_at,
+    )
 
 
 @router.get("/{colony_id}/roll-status", response_model=ColonyRollStatus)

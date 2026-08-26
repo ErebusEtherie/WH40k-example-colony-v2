@@ -31,3 +31,10 @@ class ModifierResponse(BaseModel):
     modifier_description: str
     is_active: bool
     expires_at: date | None = None
+
+
+class ModifierUpdate(BaseModel):
+    """Schema for updating a modifier (partial update)."""
+
+    is_active: bool | None = None
+    modifier_description: str | None = None

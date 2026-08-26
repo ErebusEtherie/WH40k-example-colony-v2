@@ -822,6 +822,71 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Update Colony Modifier",
+        "description": "Update a modifier (partial update).\n\nTypically used to toggle is_active status without deleting and re-adding.",
+        "operationId": "update_colony_modifier_api_v1_colonies__colony_id__modifiers__modifier_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "modifier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Modifier Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifierUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/colonies/{colony_id}/roll-status": {
@@ -5368,6 +5433,35 @@
           "profit_factor"
         ],
         "title": "ModifierStat"
+      },
+      "ModifierUpdate": {
+        "properties": {
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "modifier_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modifier Description"
+          }
+        },
+        "type": "object",
+        "title": "ModifierUpdate",
+        "description": "Schema for updating a modifier (partial update)."
       },
       "PaginatedResponse_ColonyListItem_": {
         "properties": {

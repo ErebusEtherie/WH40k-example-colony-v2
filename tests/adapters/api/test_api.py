@@ -224,3 +224,88 @@ def test_docs_available(test_client):
     response = test_client.get("/docs")
     assert response.status_code == 200
     assert "swagger" in response.text.lower() or "openapi" in response.text.lower()
+
+
+def test_update_colony_modifier(auth_client):
+    """Test updating a colony modifier (PATCH endpoint)."""
+    # Create colony
+    create_data = {"name": "Modifier Update Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    colony_id = response.json()["id"]
+
+    # Add a modifier
+    modifier_data = {
+        "modifier_source_type": "infrastructure",
+        "modifier_category": "permanent",
+        "modifier_stat": "order",
+        "modifier_value": 3,
+        "modifier_description": "Test modifier",
+        "is_active": True,  # Explicitly set to verify default behavior
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=modifier_data)
+    assert response.status_code == 201
+    modifier = response.json()
+    modifier_id = modifier["id"]
+    assert modifier["is_active"] == modifier_data["is_active"]
+
+    # Update the modifier (toggle is_active)
+    update_data = {"is_active": False}
+    response = auth_client.patch(f"/api/v1/colonies/{colony_id}/modifiers/{modifier_id}", json=update_data)
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["is_active"] is False
+    assert updated["modifier_description"] == "Test modifier"
+    assert updated["modifier_value"] == 3
+
+    # Update description
+    update_data = {"modifier_description": "Updated description"}
+    response = auth_client.patch(f"/api/v1/colonies/{colony_id}/modifiers/{modifier_id}", json=update_data)
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["modifier_description"] == "Updated description"
+    assert updated["is_active"] is False  # Should still be False
+
+
+def test_update_colony_modifier_not_found(auth_client):
+    """Test updating a non-existent modifier returns 404."""
+    # Create colony
+    create_data = {"name": "Modifier 404 Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    colony_id = response.json()["id"]
+
+    # Try to update non-existent modifier
+    update_data = {"is_active": False}
+    response = auth_client.patch(f"/api/v1/colonies/{colony_id}/modifiers/999", json=update_data)
+    assert response.status_code == 404
+    assert "detail" in response.json()
+
+
+def test_update_colony_modifier_partial_update(auth_client):
+    """Test that PATCH only updates provided fields."""
+    # Create colony
+    create_data = {"name": "Partial Update Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    colony_id = response.json()["id"]
+
+    # Add a modifier (use valid enum values)
+    modifier_data = {
+        "modifier_source_type": "gm_custom",
+        "modifier_category": "conditional",
+        "modifier_stat": "productivity",
+        "modifier_value": -2,
+        "modifier_description": "Original description",
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=modifier_data)
+    assert response.status_code == 201
+    modifier = response.json()
+    modifier_id = modifier["id"]
+
+    # Update only is_active, leave description unchanged
+    update_data = {"is_active": False}
+    response = auth_client.patch(f"/api/v1/colonies/{colony_id}/modifiers/{modifier_id}", json=update_data)
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["is_active"] is False
+    assert updated["modifier_description"] == "Original description"
+    assert updated["modifier_stat"] == "productivity"
+    assert updated["modifier_value"] == -2
