@@ -195,5 +195,5 @@
   display_name: "Quite a character"
   description: "This representative is uniquely complex."
   stat_effects: []
-  special_rule: "Roll twice more on this table and apply both results."
+  special_rule: "Roll twice more on this table and apply both results. Increases maximum personality limit based on position: first=4, second=3, third+=2."
   calamitous_modifier: 0

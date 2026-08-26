@@ -84,17 +84,15 @@ class Representative(BaseModel):
 
     @staticmethod
     def _is_quite_a_character(personality: Personality) -> bool:
-        """Check if a personality is 'Quite a Character' based on special rule.
+        """Check if a personality is 'Quite a Character' based on name.
 
         Args:
             personality: The personality to check.
 
         Returns:
-            True if the personality has the 'roll twice' special rule.
+            True if the personality name is 'quite_a_character'.
         """
-        if personality.special_rule:
-            return "roll twice" in personality.special_rule.lower()
-        return False
+        return personality.name == "quite_a_character"
 
     @model_validator(mode="after")
     def validate_no_duplicate_personalities(self) -> "Representative":
@@ -193,17 +191,17 @@ class Representative(BaseModel):
         """Sum calamitous modifiers from all personalities.
 
         Returns:
-            Total calamitous modifier from personalities (excluding 'roll twice' personalities).
+            Total calamitous modifier from personalities (excluding 'Quite a Character').
 
         Note:
-            Per Rogue Trader rules, personalities with 'roll twice' special rule
-            are excluded from the calamitous modifier calculation as they represent
-            additional personality rolls rather than direct modifiers.
+            Per Rogue Trader rules, 'Quite a Character' is excluded from the calamitous
+            modifier calculation as it represents additional personality selections
+            rather than a direct modifier.
         """
         total = 0
         for personality in self.personalities:
-            # Skip personalities with 'roll twice' special rule
-            if personality.special_rule and "roll twice" in personality.special_rule.lower():
+            # Skip 'Quite a Character' personality
+            if personality.name == "quite_a_character":
                 continue
             total += personality.calamitous_modifier
         return total

@@ -306,7 +306,7 @@ class TestRepresentativeValidators:
             name="quite_a_character",
             display_name="Quite a character",
             description="This representative is uniquely complex.",
-            special_rule="Roll twice more on this table and apply both results.",
+            special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
         )
 
         # 4 personalities with Quite a Character first is valid
@@ -353,7 +353,7 @@ class TestRepresentativeValidators:
             name="quite_a_character",
             display_name="Quite a character",
             description="This representative is uniquely complex.",
-            special_rule="Roll twice more on this table and apply both results.",
+            special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
         )
 
         # 3 personalities with Quite a Character second is valid
@@ -398,7 +398,7 @@ class TestRepresentativeValidators:
             name="quite_a_character",
             display_name="Quite a character",
             description="This representative is uniquely complex.",
-            special_rule="Roll twice more on this table and apply both results.",
+            special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
         )
 
         # 3 personalities with Quite a Character third is invalid (exceeds base limit)
@@ -420,16 +420,16 @@ class TestRepresentativeValidators:
 
     def test_is_quite_a_character_helper_method(self):
         """Test the _is_quite_a_character static helper method."""
-        # With special_rule containing "roll twice"
+        # With name "quite_a_character"
         quite_a_character = Personality(
             name="quite_a_character",
             display_name="Quite a character",
             description="Test",
-            special_rule="Roll twice more on this table and apply both results.",
+            special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
         )
         assert Representative._is_quite_a_character(quite_a_character) is True
 
-        # Without special_rule
+        # Without quite_a_character name
         normal_personality = Personality(
             name="beloved",
             display_name="Beloved",
@@ -437,23 +437,14 @@ class TestRepresentativeValidators:
         )
         assert Representative._is_quite_a_character(normal_personality) is False
 
-        # With different special_rule
+        # With different name but similar special_rule
         other_personality = Personality(
             name="test",
             display_name="Test",
             description="Test",
-            special_rule="Some other rule",
+            special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
         )
         assert Representative._is_quite_a_character(other_personality) is False
-
-        # Case insensitive check
-        quite_a_character_upper = Personality(
-            name="quite_a_character",
-            display_name="Quite a character",
-            description="Test",
-            special_rule="ROLL TWICE MORE",
-        )
-        assert Representative._is_quite_a_character(quite_a_character_upper) is True
 
 
 class TestRepresentativeProperties:
@@ -530,8 +521,8 @@ class TestRepresentativeProperties:
         # Calculates total directly from personality objects
         assert rep.get_total_personality_calamity_modifier() == 3
 
-    def test_get_total_personality_calamity_modifier_excludes_roll_twice(self):
-        """Personalities with 'roll twice' special rule are excluded from calamity sum."""
+    def test_get_total_personality_calamity_modifier_excludes_quite_a_character(self):
+        """'Quite a Character' personality is excluded from calamity sum."""
         from colony_manager.domain.models.personality import Personality
 
         rep = Representative(
@@ -539,11 +530,11 @@ class TestRepresentativeProperties:
             type=RepresentativeType.JUDGE,
             personalities=[
                 Personality(
-                    name="lucky",
-                    display_name="Lucky",
-                    description="Lucky",
+                    name="quite_a_character",
+                    display_name="Quite a character",
+                    description="This representative is uniquely complex.",
                     calamitous_modifier=5,
-                    special_rule="Roll twice, take best",
+                    special_rule="Increases maximum personality limit based on position: first=4, second=3, third+=2.",
                 ),
                 Personality(
                     name="normal",
@@ -557,7 +548,7 @@ class TestRepresentativeProperties:
             ),
         )
 
-        # 'lucky' is excluded due to 'roll twice' rule
+        # 'quite_a_character' is excluded from calamity calculation
         assert rep.get_total_personality_calamity_modifier() == 2
 
     def test_update_calamitous_modifier_without_dynasty(self):

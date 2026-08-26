@@ -439,7 +439,7 @@ Select any combination. **No duplicates allowed.**
 | **Vainglorious** | Piety | -1 | "Vainglorious" | Their self-aggrandizement borders on hubris, troubling the faithful who believe glory belongs to the Emperor alone. |
 | **Scholarly** | Lowest Stat | +1 | "Scholarly" | The Representative studies and applies knowledge to improve the colony's weakest area through careful analysis and learning. If multiple stats are tied for lowest, GM/player chooses which receives the bonus. |
 | **Avaricious** | Productivity | +1 | "Avaricious" | The Representative's greed drives them to maximize resource extraction and profit, though they may skim some for themselves. |
-| **Quite a character** | — | — | "Quite a Character" | An exceptionally complex individual combining two distinct personality traits. Select two other personalities (must be compatible). |
+| **Quite a character** | — | — | "Quite a Character" | An exceptionally complex individual whose presence allows additional distinct and compatibil personality traits. Compatibility is decided by GM. Maximum personalities allowed depends on this trait's position: first=4, second=3, third+=2. |
 
 ---
 

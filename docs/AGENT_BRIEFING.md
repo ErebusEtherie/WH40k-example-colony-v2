@@ -95,7 +95,11 @@ When Representative is Dynasty Member, player/GM provides d100 (1-100):
 
 - Multiple personalities allowed per Representative
 - **No duplicates** — each personality type can be selected only once
-- "Quite a Character" is a meta-personality: when selected, GM/player chooses **two additional personalities** (resulting in 3 total: "Quite a Character" + 2 others). **The 2 chosen personalities must be unique** (cannot duplicate existing personalities or each other).
+- "Quite a Character" is a meta-personality that increases the maximum personality limit based on its position:
+  - **First position (index 0)**: Up to 4 personalities allowed
+  - **Second position (index 1)**: Up to 3 personalities allowed
+  - **Third or later**: Base limit of 2 personalities applies
+  - **Minimum**: 1 personality required
 - "Compatibility" between personalities is a **GM/Player decision**, not enforced by the app
 - Personalities with multiple effects (e.g., "Corrupt": +2 Productivity, -1 Order) apply **all listed effects**
 - Conditional personalities (e.g., "Administrative Expert": +2 Productivity **only if** Order > Size) check conditions at calculation time
@@ -271,7 +275,7 @@ Each personality maps to one or more modifiers. Process as follows:
    - `name`: Personality name (e.g., "Corrupt", "Mad")
    - `effects`: List of `{stat, value, condition?}` objects
    - `calamitous_modifier`: Integer for event roll penalties
-   - `special_rule`: Optional text (e.g., "roll twice for calamitous events")
+   - `special_rule`: Optional text (e.g., "Increases maximum personality limit based on position")
 
 2. **For each personality assigned to Representative:**
    - Check if personality has conditional effects (e.g., "Administrative Expert")
@@ -285,9 +289,9 @@ Each personality maps to one or more modifiers. Process as follows:
 
 4. **"Quite a Character" special handling:**
    - Does not provide direct stat modifiers
-   - Signals that GM rolled this result and selected 2 additional personalities
-   - Store as a personality entry alongside the 2 chosen ones
-   - **Validate all 3 personalities** (Quite a Character + 2 choices) against uniqueness rule — the 2 chosen personalities cannot duplicate existing personalities or each other
+   - Increases maximum personality limit based on position (first=4, second=3, third+=2)
+   - Store as a personality entry alongside other selected personalities
+   - **Validate total count** against position-based limit — all personalities must be unique (no duplicates)
 
 ---
 

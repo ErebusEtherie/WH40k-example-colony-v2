@@ -43,8 +43,8 @@ def get_personality_modifiers(
     modifiers = []
 
     for personality in representative.personalities:
-        # Skip "Quite a character" special rule - already rolled into results
-        if personality.special_rule and "roll twice" in personality.special_rule.lower():
+        # Skip "Quite a character" personality - doesn't provide direct modifiers
+        if personality.name == "quite_a_character":
             continue
 
         for effect in personality.stat_effects:
