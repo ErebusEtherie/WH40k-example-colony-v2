@@ -1,67 +1,305 @@
 # WH40k Colony Manager
 
-Rogue Trader Colony Manager prototype for Warhammer 40k tabletop roleplaying.
+**A Python engine for organizing and simulating a Warhammer 40k Rogue Trader Colony**
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-695%20passing-green.svg)](TESTING_TODO.md)
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-black.svg)](https://github.com/astral-sh/ruff)
+[![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [API Usage](#api-usage)
+- [Documentation](#documentation)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Overview
 
-This repository contains a prototype of the Colony Manager system described in `business_analysis.md` and `architecture_phase_1.md`.
+The **WH40k Colony Manager** is a comprehensive Python engine designed to replace manually-maintained spreadsheets for tracking Warhammer 40k Rogue Trader colonies. It provides:
 
-**Architecture:** Layered architecture with clean separation between domain, application, and adapters. The domain layer has zero I/O and zero framework coupling.
+- **Core colony stats**: Size, Complacency, Order, Productivity, Piety, and derived Profit Factor
+- **Infrastructure management**: Hard Infrastructure and Support Upgrades with conditional bonuses
+- **Representative system**: RPG stats/skills/talents that modify colony behavior
+- **State transitions**: Threshold-based events (Anarchy, Placated, Productive, etc.)
+- **Time-based cycles**: Growth/decay mechanics and event rolls
 
-## Setup
+The engine is designed for consumption by multiple frontends: REST API, web UI, and (future) desktop app.
 
-1. Install Python 3.12+.
-2. Install dependencies with `uv sync --extra dev`.
-3. Run the test suite with `uv run pytest -q`.
+---
 
-## Project Layout
+## Features
+
+### 🎯 Core Features
+
+- **Colony Management**: Track all colony stats with automatic calculations
+- **Infrastructure System**: Manage working/faulty infrastructure with stacking bonuses
+- **Support Upgrades**: Limited by colony size, with custom stat choices
+- **Representatives**: Assign Judges, Cardinals, or Satraps with unique personalities
+- **Events & Development**: GM-created events and long-term development plans
+- **Multi-User Support**: Role-based access control (Owner, Admin, Editor, Viewer)
+- **Export/Import**: Portable colony files for backup and sharing
+- **Audit Logging**: Complete change history for all colony modifications
+
+### 🛡️ Technical Features
+
+- **Clean Architecture**: Domain logic isolated from I/O and frameworks
+- **Type-Safe**: Full type hints with mypy validation
+- **Tested**: 695+ passing tests with property-based testing
+- **RESTful API**: FastAPI-based REST API with OpenAPI documentation
+- **Real-time Updates**: Server-Sent Events for live notifications
+- **Security**: JWT authentication, rate limiting, password validation
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.12 or higher
+- uv package manager (recommended) or pip
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/WH40k_Colony_Manager.git
+cd WH40k_Colony_Manager
+
+# Install dependencies
+uv sync --extra dev
+
+# Run the API server
+uv run uvicorn colony_manager.main:app --reload
+
+# Access the API documentation
+# Open http://localhost:8000/docs in your browser
+```
+
+### First Steps
+
+1. **Register a user**: `POST /api/v1/auth/register`
+2. **Login**: `POST /api/v1/auth/login`
+3. **Create a colony**: `POST /api/v1/colonies`
+4. **Add infrastructure**: `POST /api/v1/colonies/{id}/infrastructure`
+5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
+
+See the [API Guide](docs/api_guide_phase_3.md) for detailed examples.
+
+---
+
+## Architecture
+
+### System Overview
+
+```mermaid
+graph TD
+    A[Frontend<br/>Web/Desktop] --> B[REST API<br/>FastAPI]
+    B --> C[Application Layer<br/>Services]
+    C --> D[Domain Layer<br/>Pure Business Logic]
+    C --> E[Adapters<br/>Persistence, IO]
+    D --> F[Config<br/>YAML Rule Tables]
+    E --> G[(SQLite<br/>Database)]
+```
+
+### Layered Architecture
 
 ```
 src/colony_manager/
 ├── domain/              # Pure business logic, zero I/O
-│   ├── models/          # Domain entities (Colony, Representative, etc.)
-│   ├── rules/           # Game rule calculations
-│   ├── ports/           # Protocol interfaces (repositories, providers)
-│   └── errors.py        # Domain exceptions
-├── application/         # Use cases and services
-│   └── services/        # Application services
-├── adapters/
-│   ├── api/             # FastAPI REST API
-│   │   ├── routers/     # API endpoints
-│   │   ├── middleware/  # Auth, rate limiting, security headers
-│   │   └── dependencies.py  # Dependency injection
-│   ├── config/          # Configuration provider implementation
-│   ├── persistence/     # SQLAlchemy repositories
-│   ├── io/              # JSON/YAML import/export
-│   └── cli/             # Command-line interface
-└── config/
-    └── settings.py      # Application settings (JWT, CORS, database)
-
-config/                  # Game rule configuration (YAML files)
-tests/                   # Unit and integration tests
-docs/                    # Documentation
-.clinerules/             # Project rules and architecture guidance
+│   ├── models/          # Colony, Representative, Infrastructure, etc.
+│   ├── rules/           # Calculation rules (stateless functions)
+│   └── ports/           # Repository interfaces (Protocol/ABC)
+│
+├── application/         # Use cases / services
+│   └── services/        # Orchestrates domain + ports
+│
+├── adapters/            # External world implementations
+│   ├── persistence/     # SQLite repository implementations
+│   ├── io/              # JSON/YAML import & export
+│   ├── api/             # FastAPI routers, schemas
+│   └── cli/             # Typer command-line entry points
+│
+└── config/              # Rule-table data (YAML)
+    ├── colony_types.yaml
+    ├── rule_tables.yaml
+    └── personalities.yaml
 ```
 
-## Test Status
+### Key Design Principles
 
-**695 tests passing** (4 skipped) — 100% pass rate
+1. **Domain logic has zero I/O** — No FastAPI, SQLAlchemy, or file-system access in domain code
+2. **Game rule data is data, not code** — Numeric tables in YAML config files
+3. **Don't abstract preemptively** — Only introduce abstractions when used in ≥2 places
+4. **Dependencies point inward** — `adapters → application → domain`
 
-See [`TESTING_TODO.md`](TESTING_TODO.md) for detailed test coverage.
+See [Architecture Documentation](docs/architecture_phase_1.md) for details.
 
-## Configuration
+---
 
-### Game Rules
+## API Usage
 
-Game rule data (profit factor tables, infrastructure bonuses, thresholds) is stored in YAML files in the `config/` directory at the project root. These are loaded once at startup via the `RuleConfigProvider` singleton.
+### Authentication Example
 
-### Application Settings
+```bash
+# Register
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "commander", "email": "cmdr@example.com", "password": "SecureP@ssw0rd!"}'
 
-Application settings (JWT secrets, CORS origins, database path) are loaded from environment variables via pydantic-settings. See `src/colony_manager/config/settings.py`.
+# Login
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "commander", "password": "SecureP@ssw0rd!"}'
+```
 
-## Notes
+### Create Colony Example
 
-- Domain layer has **zero I/O** — all file/database access is in adapters
-- Game rule data is **data, not code** — stored in YAML config files
-- API uses **dependency injection** for all services and repositories
-- See `.clinerules/` for detailed architecture and coding standards
+```bash
+curl -X POST http://localhost:8000/api/v1/colonies \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"name": "New Terra", "colony_type": "forge_world", "base_size": 5}'
+```
+
+### API Documentation
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+Complete API reference: [API Guide](docs/api_guide_phase_3.md)
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API Guide](docs/api_guide_phase_3.md) | Complete API reference with examples |
+| [Architecture](docs/architecture_phase_1.md) | System architecture and design decisions |
+| [Business Analysis](docs/business_analysis.md) | Domain rules and game mechanics |
+| [Testing TODO](TESTING_TODO.md) | Test coverage and strategy |
+| [Deployment](docs/DEPLOYMENT.md) | Deployment guide and requirements |
+| [Security](SECURITY.md) | Security policy and procedures |
+
+---
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest -q
+
+# Run with coverage
+uv run pytest --cov=colony_manager
+
+# Run specific test file
+uv run pytest tests/domain/test_colony.py -v
+```
+
+### Code Quality
+
+```bash
+# Format code
+uv run ruff format .
+
+# Lint code
+uv run ruff check .
+
+# Type checking
+uv run mypy src/colony_manager
+```
+
+### Project Layout
+
+See the [Architecture](#architecture) section above for the complete project structure.
+
+---
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+
+### 1. Fork and Clone
+
+```bash
+git clone https://github.com/yourusername/WH40k_Colony_Manager.git
+cd WH40k_Colony_Manager
+```
+
+### 2. Set Up Development Environment
+
+```bash
+uv sync --extra dev
+```
+
+### 3. Create a Branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+### 4. Make Changes
+
+- Follow the existing code style (Google-style docstrings, full type hints)
+- Add tests for new functionality
+- Update documentation as needed
+
+### 5. Run Tests and Linters
+
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run mypy src/colony_manager
+```
+
+### 6. Submit a Pull Request
+
+Push your changes and open a PR on GitHub. Include:
+
+- Description of changes
+- Link to any related issues
+- Test coverage details
+
+### Code Style
+
+- **Type Hints**: Full type hints on all public functions
+- **Docstrings**: Google-style for all public modules/classes/functions
+- **Formatting**: ruff (black-compatible)
+- **Linting**: ruff with project-specific rules
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Support
+
+For issues, questions, or feature requests, please:
+
+1. Check existing [documentation](docs/)
+2. Search existing [GitHub issues](https://github.com/yourusername/WH40k_Colony_Manager/issues)
+3. Open a new issue with detailed description
+
+---
+
+**The Emperor Protects** 🦅

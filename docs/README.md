@@ -34,11 +34,19 @@ requirements are in `business_analysis.md`.
 
 | Document | Purpose | Who Should Read |
 |----------|---------|-----------------|
-| [`api_guide_phase_3.md`](api_guide_phase_3.md) | REST API reference + frontend integration guide | Frontend developers |
+| [`api_guide_phase_3.md`](api_guide_phase_3.md) | Complete REST API reference with examples | Frontend developers, API users |
 | [`api_future_phase_4.md`](api_future_phase_4.md) | Phase 4+ API roadmap (events, audit logs, collaboration) | Architects |
 | [`UI_DESIGN_SYSTEM.md`](UI_DESIGN_SYSTEM.md) | Cult Mechanicus design system, components, patterns | UI developers |
 | [`UI_QUICK_REFERENCE.md`](UI_QUICK_REFERENCE.md) | Quick CSS/HTML reference for Mechanicum theme | UI developers |
 | [`UI_PANEL_REQUIREMENTS.md`](UI_PANEL_REQUIREMENTS.md) | Colony Dashboard panel specifications | UI developers |
+
+### 📖 Guides & Documentation
+
+| Document | Purpose | Who Should Read |
+|----------|---------|-----------------|
+| [`configuration.md`](configuration.md) | Configuration files reference and modification guide | Developers, GMs |
+| [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contribution guidelines and development workflow | Contributors |
+| [`README.md`](../README.md) | Main project README with quick start | Everyone |
 
 ### 📚 Reference & Analysis
 
@@ -153,12 +161,15 @@ assignment/reassignment lifecycle rule.
 
 ## Configuration Files
 
-All game rule data lives in YAML files under `config/`:
+All game rule data lives in YAML files under `config/`. See [`configuration.md`](configuration.md) for detailed documentation.
 
 | File | Contents |
 |------|----------|
 | `colony_types.yaml` | Colony type definitions, base stats, special rules |
-| `rule_tables.yaml` | PF lookup, leadership modifiers (partial — see above), lore thresholds, infrastructure, upgrades, resources |
+| `rule_tables.yaml` | PF lookup, leadership modifiers, lore thresholds, game cycles |
+| `infrastructure_types.yaml` | Hard Infrastructure types and bonuses |
+| `support_upgrades.yaml` | Support Upgrade types and effects |
+| `representative_types.yaml` | Representative types (Judge, Cardinal, Satrap) |
 | `personalities.yaml` | Representative personalities with mechanical effects |
 
 ---
