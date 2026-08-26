@@ -19,7 +19,7 @@ def _write_test_config(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     (config_dir / "rule_tables.yaml").write_text(
-        "size_to_profit_factor:\n  - size: 5\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: \"> size\"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: \"> size\"\n    default: stable\n  productivity:\n    productive_threshold: \"> size\"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: \"> size\"\n    zero_state: heretical\n    default: stable\n",
+        'size_to_profit_factor:\n  - size: 5\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: "> size"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: "> size"\n    default: stable\n  productivity:\n    productive_threshold: "> size"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: "> size"\n    zero_state: heretical\n    default: stable\n',
         encoding="utf-8",
     )
     (config_dir / "infrastructure_types.yaml").write_text(
@@ -42,7 +42,15 @@ def test_cli_create_and_show_colony(tmp_path):
 
     result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "research_mission"],
+        [
+            "--config-dir",
+            str(config_dir),
+            "colony",
+            "create",
+            "Example Colony",
+            "Owner",
+            "research_mission",
+        ],
     )
     assert result.exit_code == 0
 
@@ -58,7 +66,15 @@ def test_cli_list_colonies(tmp_path):
 
     result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Example Colony", "Owner", "research_mission"],
+        [
+            "--config-dir",
+            str(config_dir),
+            "colony",
+            "create",
+            "Example Colony",
+            "Owner",
+            "research_mission",
+        ],
     )
     assert result.exit_code == 0
 
@@ -73,13 +89,28 @@ def test_cli_representative_and_import_export_flow(tmp_path):
 
     create_result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "colony", "create", "Export Colony", "Owner", "research_mission"],
+        [
+            "--config-dir",
+            str(config_dir),
+            "colony",
+            "create",
+            "Export Colony",
+            "Owner",
+            "research_mission",
+        ],
     )
     assert create_result.exit_code == 0
 
     rep_result = runner.invoke(
         app,
-        ["--config-dir", str(config_dir), "representative", "create", "Test Representative", "judge"],
+        [
+            "--config-dir",
+            str(config_dir),
+            "representative",
+            "create",
+            "Test Representative",
+            "judge",
+        ],
     )
     assert rep_result.exit_code == 0
 
@@ -91,6 +122,8 @@ def test_cli_representative_and_import_export_flow(tmp_path):
     assert export_result.exit_code == 0
     assert export_path.exists()
 
-    import_result = runner.invoke(app, ["--config-dir", str(config_dir), "colony", "import", str(export_path)])
+    import_result = runner.invoke(
+        app, ["--config-dir", str(config_dir), "colony", "import", str(export_path)]
+    )
     assert import_result.exit_code == 0
     assert "Imported colony" in import_result.stdout

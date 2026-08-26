@@ -1,6 +1,6 @@
 # Section Summary
 
-## Section Number/Title: 
+## Section Number/Title:
 [Section identifier]
 
 ## Key Points:

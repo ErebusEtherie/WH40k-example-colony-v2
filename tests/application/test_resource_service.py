@@ -89,9 +89,15 @@ class TestResourceService:
         colony2.name = "Colony 2"
         colony2 = self.colony_repo.update(colony2)
 
-        self.service.add_resource(colony_id=colony1.id, resource_type="mineral", name="Iron", abundance=50)
-        self.service.add_resource(colony_id=colony1.id, resource_type="organic_compound", name="Fungi", abundance=30)
-        self.service.add_resource(colony_id=colony2.id, resource_type="archeotech_cache", name="STC", abundance=10)
+        self.service.add_resource(
+            colony_id=colony1.id, resource_type="mineral", name="Iron", abundance=50
+        )
+        self.service.add_resource(
+            colony_id=colony1.id, resource_type="organic_compound", name="Fungi", abundance=30
+        )
+        self.service.add_resource(
+            colony_id=colony2.id, resource_type="archeotech_cache", name="STC", abundance=10
+        )
 
         colony1_resources = self.service.list_resources(colony1.id)
         colony2_resources = self.service.list_resources(colony2.id)

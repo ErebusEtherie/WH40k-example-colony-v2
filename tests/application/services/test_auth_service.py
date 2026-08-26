@@ -1,7 +1,6 @@
 """Tests for AuthService - authentication and token management."""
 
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 
 import pytest
 from freezegun import freeze_time
@@ -13,9 +12,15 @@ from colony_manager.application.services.auth_service import (
 )
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
-from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import SqlAlchemyTokenBlacklistRepository
-from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import SqlAlchemyTokenIssuanceRepository
-from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import SqlAlchemyLoginAttemptRepository
+from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
+    SqlAlchemyTokenBlacklistRepository,
+)
+from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
+    SqlAlchemyTokenIssuanceRepository,
+)
+from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
+    SqlAlchemyLoginAttemptRepository,
+)
 from colony_manager.domain.models.login_attempt import LoginAttempt
 from colony_manager.domain.models.token_blacklist import TokenBlacklist
 from colony_manager.domain.models.token_issuance import TokenIssuance
@@ -55,12 +60,14 @@ class TestAuthTokenRevocation:
             token_blacklist_repository=blacklist_repo,
             user_repository=user_repo,
         )
-        
+
         user = _create_user(user_repo)
         token = create_access_token(user, secret_key="test-secret-key-for-testing-minimum-32-bytes")
-        
-        result = auth_service.revoke_token(token, secret_key="test-secret-key-for-testing-minimum-32-bytes", reason="logout")
-        
+
+        result = auth_service.revoke_token(
+            token, secret_key="test-secret-key-for-testing-minimum-32-bytes", reason="logout"
+        )
+
         assert result is not None
         assert result.token_id is not None
         assert result.user_id == user.id
@@ -75,9 +82,11 @@ class TestAuthTokenRevocation:
             token_blacklist_repository=blacklist_repo,
             user_repository=user_repo,
         )
-        
+
         with pytest.raises(ValueError, match="(?i)invalid"):
-            auth_service.revoke_token("invalid-token", secret_key="test-secret-key-for-testing-minimum-32-bytes")
+            auth_service.revoke_token(
+                "invalid-token", secret_key="test-secret-key-for-testing-minimum-32-bytes"
+            )
 
 
 class TestBulkTokenRevocation:
@@ -94,27 +103,29 @@ class TestBulkTokenRevocation:
             user_repository=user_repo,
             token_issuance_repository=issuance_repo,
         )
-        
+
         user = _create_user(user_repo, username="bulkuser")
-        
+
         assert user.id is not None
-        
+
         # Create some token issuances
         for i in range(3):
-            issuance_repo.create(TokenIssuance(
-                user_id=user.id,
-                token_id=f"token-{i}",
-                token_type="access",
-                issued_at=datetime.now(UTC),
-                expires_at=datetime.now(UTC) + timedelta(hours=1),
-                revoked_at=None,
-                ip_address="192.168.1.1",
-                user_agent="TestAgent/1.0",
-            ))
-        
+            issuance_repo.create(
+                TokenIssuance(
+                    user_id=user.id,
+                    token_id=f"token-{i}",
+                    token_type="access",
+                    issued_at=datetime.now(UTC),
+                    expires_at=datetime.now(UTC) + timedelta(hours=1),
+                    revoked_at=None,
+                    ip_address="192.168.1.1",
+                    user_agent="TestAgent/1.0",
+                )
+            )
+
         assert user.id is not None
         revoked_count = auth_service.revoke_all_user_tokens(user.id, reason="password_change")
-        
+
         assert revoked_count >= 3
 
     def test_revoke_all_tokens_nonexistent_user(self, tmp_path):
@@ -125,7 +136,7 @@ class TestBulkTokenRevocation:
             token_blacklist_repository=blacklist_repo,
             user_repository=SqlAlchemyUserRepository(db_url),
         )
-        
+
         count = auth_service.revoke_all_user_tokens(99999, reason="test")
         assert count == 0
 
@@ -144,10 +155,12 @@ class TestAccountLockout:
             user_repository=user_repo,
             login_attempt_repository=login_repo,
         )
-        
+
         for i in range(LOCKOUT_MAX_ATTEMPTS):
-            auth_service.track_login_attempt("lockuser", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
-        
+            auth_service.track_login_attempt(
+                "lockuser", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0"
+            )
+
         assert auth_service.is_account_locked("lockuser") is True
 
     def test_account_not_locked_below_max_attempts(self, tmp_path):
@@ -161,10 +174,12 @@ class TestAccountLockout:
             user_repository=user_repo,
             login_attempt_repository=login_repo,
         )
-        
+
         for i in range(LOCKOUT_MAX_ATTEMPTS - 1):
-            auth_service.track_login_attempt("notlocked", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
-        
+            auth_service.track_login_attempt(
+                "notlocked", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0"
+            )
+
         assert auth_service.is_account_locked("notlocked") is False
 
     def test_login_attempts_expire_after_window(self, tmp_path):
@@ -178,11 +193,16 @@ class TestAccountLockout:
             user_repository=user_repo,
             login_attempt_repository=login_repo,
         )
-        
+
         with freeze_time(datetime.now(UTC) - timedelta(minutes=LOCKOUT_WINDOW_MINUTES + 5)):
             for i in range(LOCKOUT_MAX_ATTEMPTS):
-                auth_service.track_login_attempt("expireuser", success=False, ip_address="192.168.1.1", user_agent="TestAgent/1.0")
-        
+                auth_service.track_login_attempt(
+                    "expireuser",
+                    success=False,
+                    ip_address="192.168.1.1",
+                    user_agent="TestAgent/1.0",
+                )
+
         assert auth_service.is_account_locked("expireuser") is False
 
 
@@ -197,7 +217,7 @@ class TestTokenCleanup:
             token_blacklist_repository=blacklist_repo,
             user_repository=SqlAlchemyUserRepository(db_url),
         )
-        
+
         expired_entry = TokenBlacklist(
             token_id="expired-token",
             user_id=1,
@@ -206,7 +226,7 @@ class TestTokenCleanup:
             reason="test_expired",
         )
         blacklist_repo.create(expired_entry)
-        
+
         valid_entry = TokenBlacklist(
             token_id="valid-token",
             user_id=1,
@@ -215,9 +235,9 @@ class TestTokenCleanup:
             reason="test_valid",
         )
         blacklist_repo.create(valid_entry)
-        
+
         removed = auth_service.cleanup_expired_tokens()
-        
+
         assert removed == 1
         # Verify valid entry still exists by checking it's blacklisted
         assert blacklist_repo.is_blacklisted("valid-token") is True
@@ -231,7 +251,7 @@ class TestTokenCleanup:
             user_repository=SqlAlchemyUserRepository(db_url),
             login_attempt_repository=login_repo,
         )
-        
+
         old_attempt = LoginAttempt(
             username="olduser",
             ip_address="192.168.1.1",
@@ -240,7 +260,7 @@ class TestTokenCleanup:
             user_agent="TestAgent/1.0",
         )
         login_repo.create(old_attempt)
-        
+
         recent_attempt = LoginAttempt(
             username="newuser",
             ip_address="192.168.1.2",
@@ -249,8 +269,7 @@ class TestTokenCleanup:
             user_agent="TestAgent/2.0",
         )
         login_repo.create(recent_attempt)
-        
-        removed = auth_service.cleanup_old_login_attempts(days_to_keep=30)
-        
-        assert removed == 1
 
+        removed = auth_service.cleanup_old_login_attempts(days_to_keep=30)
+
+        assert removed == 1

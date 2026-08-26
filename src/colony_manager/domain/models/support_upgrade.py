@@ -9,12 +9,13 @@ class SupportUpgrade(BaseModel):
     """
     Support Upgrades are non-essential but highly valuable additions that
     improve the health, productivity, and well-being of the colony.
-    
+
     Acquiring these requires the successful completion of a Lesser or
     Greater Endeavour.
     """
+
     model_config = ConfigDict(validate_assignment=True)
-    
+
     id: int | None = None
     colony_id: int
     upgrade_type: SupportUpgradeType
@@ -24,7 +25,7 @@ class SupportUpgrade(BaseModel):
     custom_product: str | None = None
     # For Contacts: which organization/group
     affiliated_group: str | None = None
-    
+
     @property
     def has_stat_effect(self) -> bool:
         """Check if this upgrade provides a stat bonus."""

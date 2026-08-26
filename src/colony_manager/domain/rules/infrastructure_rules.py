@@ -29,19 +29,21 @@ from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifier]:
     """
     Get modifiers from an infrastructure based on its state.
-    
+
     Args:
         infrastructure: The infrastructure to get modifiers from.
-    
+
     Returns:
         List of modifiers (empty if state is planned or in_progress).
     """
     if infrastructure.state in (InfrastructureState.PLANNED, InfrastructureState.IN_PROGRESS):
         return []
-    
+
     # Define modifiers by type and state
-    modifiers_data = _get_modifiers_for_type(infrastructure.infrastructure_type, infrastructure.state)
-    
+    modifiers_data = _get_modifiers_for_type(
+        infrastructure.infrastructure_type, infrastructure.state
+    )
+
     return [
         Modifier(
             colony_id=infrastructure.colony_id,
@@ -112,7 +114,7 @@ def _get_modifiers_for_type(
             ],
         },
     }
-    
+
     return modifiers_map.get(infra_type, {}).get(state, [])
 
 
@@ -121,10 +123,10 @@ def apply_infrastructure_modifiers(
 ) -> list[Modifier]:
     """
     Apply modifiers from all infrastructure in a colony.
-    
+
     Args:
         infrastructure_list: List of all infrastructure in the colony.
-    
+
     Returns:
         Combined list of all active modifiers.
     """
@@ -140,17 +142,17 @@ def get_missing_infrastructure_penalty(
 ) -> list[Modifier]:
     """
     Get penalty for missing required infrastructure types.
-    
+
     Per business_analysis.md §3.1:
     Until each required infrastructure type is built (moved to Working),
     the colony suffers Complacency -1 per missing type.
-    
+
     Required types: Transport, Power Network, Water Management, Food Production, Communications
-    
+
     Args:
         infrastructure_list: List of all infrastructure in the colony.
         colony_id: The colony ID for the modifier.
-    
+
     Returns:
         List containing a single penalty modifier if any types are missing,
         or empty list if all types are present and Working.
@@ -163,23 +165,23 @@ def get_missing_infrastructure_penalty(
         InfrastructureType.FOOD_PRODUCTION,
         InfrastructureType.COMMUNICATIONS,
     }
-    
+
     # Find which types have at least one Working instance
     working_types = {
         infra.infrastructure_type
         for infra in infrastructure_list
         if infra.state == InfrastructureState.WORKING
     }
-    
+
     # Count missing types (not Working)
     missing_count = len(required_types - working_types)
-    
+
     if missing_count == 0:
         return []
-    
+
     # Apply -1 Complacency per missing type
     total_penalty = -1 * missing_count
-    
+
     return [
         Modifier(
             colony_id=colony_id,

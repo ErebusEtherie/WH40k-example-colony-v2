@@ -25,7 +25,9 @@ ERR_EVENT_INCOMPLETE = "Event data is incomplete"
 ERR_USER_NO_ID = "Authenticated user has no ID"
 
 
-@router.post("/colonies/{colony_id}", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/colonies/{colony_id}", response_model=EventResponse, status_code=status.HTTP_201_CREATED
+)
 def create_event(
     colony_id: int,
     event_data: EventCreate,
@@ -33,7 +35,7 @@ def create_event(
     current_user: Annotated[User, Depends(require_role("colony_manager"))],
 ) -> EventResponse:
     """Create a new event for a colony.
-    
+
     Events are GM-created occurrences that affect colony stats.
     Requires colony_manager role or higher.
     """
@@ -42,7 +44,7 @@ def create_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     event = service.create_event(
         colony_id=colony_id,
         name=event_data.name,
@@ -53,13 +55,13 @@ def create_event(
             for m in event_data.modifiers
         ],
     )
-    
+
     if event.id is None or event.created_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_EVENT_INCOMPLETE,
         )
-    
+
     return EventResponse(
         id=event.id,
         colony_id=event.colony_id,
@@ -80,26 +82,32 @@ def get_event(
     event_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
     current_user: Annotated[User, Depends(get_current_user)],
-    colony_user_repo: Annotated[ColonyUserRepository, Depends(dependencies.get_colony_user_repository)],
+    colony_user_repo: Annotated[
+        ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
+    ],
 ) -> EventResponse:
     """Get an event by ID."""
     event = service.get_event(event_id)
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_EVENT_NOT_FOUND)
-    
+
     # Check permission on the colony the event belongs to
     if current_user.id is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID
+        )
     membership = colony_user_repo.get_by_colony_and_user(event.colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
-        raise HTTPException(status_code=403, detail=f"User is not a member of colony {event.colony_id}")
-    
+        raise HTTPException(
+            status_code=403, detail=f"User is not a member of colony {event.colony_id}"
+        )
+
     if event.id is None or event.created_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_EVENT_INCOMPLETE,
         )
-    
+
     return EventResponse(
         id=event.id,
         colony_id=event.colony_id,
@@ -120,13 +128,17 @@ def get_events_by_colony(
     colony_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
     current_user: Annotated[User, Depends(get_current_user)],
-    colony_user_repo: Annotated[ColonyUserRepository, Depends(dependencies.get_colony_user_repository)],
+    colony_user_repo: Annotated[
+        ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
+    ],
     active_only: bool = False,
 ) -> list[EventResponse]:
     """Get all events for a colony."""
     # Check permission on the colony
     if current_user.id is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ERR_USER_NO_ID
+        )
     membership = colony_user_repo.get_by_colony_and_user(colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")
@@ -167,11 +179,11 @@ def update_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     event = service.get_event(event_id)
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_EVENT_NOT_FOUND)
-    
+
     updated_event = service.update_event(
         event_id=event_id,
         name=event_data.name,
@@ -179,13 +191,13 @@ def update_event(
         is_active=event_data.is_active,
         changed_by=current_user.id,
     )
-    
+
     if updated_event.id is None or updated_event.created_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_EVENT_INCOMPLETE,
         )
-    
+
     return EventResponse(
         id=updated_event.id,
         colony_id=updated_event.colony_id,
@@ -213,9 +225,9 @@ def delete_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     event = service.get_event(event_id)
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERR_EVENT_NOT_FOUND)
-    
+
     service.delete_event(event_id, changed_by=current_user.id)

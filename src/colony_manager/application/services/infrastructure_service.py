@@ -41,7 +41,7 @@ class InfrastructureService:
         """Create an audit log entry if audit logging is enabled."""
         if self._audit_log_repository is None:
             return
-        
+
         try:
             audit_log = AuditLog(
                 entity_type=entity_type,
@@ -61,11 +61,11 @@ class InfrastructureService:
         self, infrastructure: Infrastructure, changed_by: int | None = None
     ) -> Infrastructure:
         """Create new infrastructure for a colony.
-        
+
         Args:
             infrastructure: The infrastructure domain object to create.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The created infrastructure with ID assigned.
         """
@@ -74,12 +74,16 @@ class InfrastructureService:
         if colony is None:
             raise NotFoundError(f"Colony {infrastructure.colony_id} not found")
         result = self._repository.create(infrastructure)
-        
+
         # Update missing infrastructure penalty
         self._update_missing_infrastructure_penalty(infrastructure.colony_id)
-        
+
         # Log audit entry
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=infrastructure.colony_id,
                 entity_type="infrastructure",
@@ -90,7 +94,7 @@ class InfrastructureService:
                 new_value=result.infrastructure_type.value,
                 changed_by=changed_by,
             )
-        
+
         return result
 
     def get_infrastructure(self, infrastructure_id: int) -> Infrastructure:
@@ -107,12 +111,12 @@ class InfrastructureService:
         changed_by: int | None = None,
     ) -> Infrastructure:
         """Update infrastructure state.
-        
+
         Args:
             infrastructure_id: ID of the infrastructure to update.
             state: New state for the infrastructure.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The updated infrastructure.
         """
@@ -120,12 +124,16 @@ class InfrastructureService:
         old_state = infra.state
         infra.state = state
         result = self._repository.update(infra)
-        
+
         # Update missing infrastructure penalty
         self._update_missing_infrastructure_penalty(infra.colony_id)
-        
+
         # Log audit entry
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=infra.colony_id,
                 entity_type="infrastructure",
@@ -136,14 +144,12 @@ class InfrastructureService:
                 new_value=state.value,
                 changed_by=changed_by,
             )
-        
+
         return result
 
-    def delete_infrastructure(
-        self, infrastructure_id: int, changed_by: int | None = None
-    ) -> None:
+    def delete_infrastructure(self, infrastructure_id: int, changed_by: int | None = None) -> None:
         """Delete infrastructure.
-        
+
         Args:
             infrastructure_id: ID of the infrastructure to delete.
             changed_by: Optional user ID who made the change (for audit logging).
@@ -153,10 +159,10 @@ class InfrastructureService:
             colony_id = infra.colony_id
             infra_type = infra.infrastructure_type.value
             self._repository.delete(infrastructure_id)
-            
+
             # Update missing infrastructure penalty
             self._update_missing_infrastructure_penalty(colony_id)
-            
+
             # Log audit entry
             if self._audit_log_repository is not None and changed_by is not None:
                 self._log_audit(
@@ -176,44 +182,45 @@ class InfrastructureService:
     def list_by_colony(self, colony_id: int) -> list[Infrastructure]:
         """List all infrastructure for a colony."""
         return self._repository.list_by_colony(colony_id)
-    
+
     def colony_exists(self, colony_id: int) -> bool:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
-    
+
     def _update_missing_infrastructure_penalty(self, colony_id: int) -> None:
         """
         Update the missing infrastructure penalty modifier for a colony.
-        
+
         Removes any existing penalty modifier and adds a new one if needed
         based on current infrastructure state.
-        
+
         Per business_analysis.md §3.1:
         Until each required infrastructure type is built (moved to Working),
         the colony suffers Complacency -1 per missing type.
-        
+
         Args:
             colony_id: The colony ID to update.
         """
         colony = self._colony_repository.get(colony_id)
         if colony is None:
             return
-        
+
         # Get all infrastructure for this colony
         infrastructure_list = self._repository.list_by_colony(colony_id)
-        
+
         # Get the missing infrastructure penalty
         penalty_modifiers = get_missing_infrastructure_penalty(infrastructure_list, colony_id)
-        
+
         # Remove any existing missing infrastructure penalty modifier
         colony.modifiers = [
-            mod for mod in colony.modifiers
+            mod
+            for mod in colony.modifiers
             if "Missing Infrastructure" not in mod.modifier_description
         ]
-        
+
         # Add the new penalty if applicable
         if penalty_modifiers:
             colony.modifiers.extend(penalty_modifiers)
-        
+
         # Save the updated colony
         self._colony_repository.update(colony)

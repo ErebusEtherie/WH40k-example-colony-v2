@@ -14,6 +14,7 @@ class ModifierSourceType(StrEnum):
 
 class ModifierCategory(StrEnum):
     """Category of modifier for tracking and filtering purposes."""
+
     PERMANENT = "permanent"  # Always active (infrastructure, support upgrades, resources)
     CONDITIONAL = "conditional"  # Condition-based (state effects, growth/decay)
     CUSTOM = "custom"  # GM-created custom modifiers
@@ -63,6 +64,7 @@ class SkillLevel(StrEnum):
 
 class InfrastructureType(StrEnum):
     """Hard Infrastructure types - physical systems required for colony survival."""
+
     TRANSPORT = "transport"
     POWER_NETWORK = "power_network"
     WATER_MANAGEMENT = "water_management"
@@ -72,13 +74,14 @@ class InfrastructureType(StrEnum):
 
 class InfrastructureState(StrEnum):
     """State of infrastructure installation/operation.
-    
+
     Per colony-manager-rules-reference.md:
     - planned: Not yet installed, no mechanical effect
     - in_progress: Currently being installed, no mechanical effect
     - working: Operational, bonuses apply
     - needed: Required but not yet built, counts toward missing infrastructure penalty
     """
+
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
     WORKING = "working"
@@ -88,6 +91,7 @@ class InfrastructureState(StrEnum):
 
 class SupportUpgradeType(StrEnum):
     """Support (Soft) Upgrades - non-essential but valuable additions."""
+
     ARBITES_PRECINCT = "arbites_precinct"
     ECCLESIOARCHY_MISSION = "ecclesiarchy_mission"
     MECHANICUM_STATION = "mechanicum_station"
@@ -102,10 +106,11 @@ class SupportUpgradeType(StrEnum):
 
 class ResourceType(StrEnum):
     """Planetary resource types that colonies can exploit.
-    
+
     Per Rogue Trader Colony Rules, different colony types gain bonuses
     when exploiting specific resource types.
     """
+
     MINERAL = "mineral"
     ORGANIC_COMPOUND = "organic_compound"
     ARCHEOTECH_CACHE = "archeotech_cache"
@@ -114,10 +119,11 @@ class ResourceType(StrEnum):
 
 class ColonyType(StrEnum):
     """Colony archetypes defining starting characteristics and specializations.
-    
+
     Per colony_types.yaml - note that MINING and INDUSTRY were merged into
     MINING_AND_INDUSTRY per GM ruling.
     """
+
     RESEARCH_MISSION = "research_mission"
     MINING_AND_INDUSTRY = "mining_and_industry"
     ECCLESIASTICAL = "ecclesiastical"
@@ -126,6 +132,7 @@ class ColonyType(StrEnum):
 
 class GrowthEffect(StrEnum):
     """Result of colony growth roll."""
+
     DECREASE = "decrease"
     NO_CHANGE = "no_change"
     INCREASE = "increase"
@@ -133,6 +140,7 @@ class GrowthEffect(StrEnum):
 
 class DynastyOutcome(StrEnum):
     """Consequences of Nepotism for Dynasty Member representatives."""
+
     THAT_ONE_HAS_POTENTIAL = "that_one_has_potential"
     ONE_TO_KEEP_AN_EYE_ON = "one_to_keep_an_eye_on"
     THRILLING_HEROICS = "thrilling_heroics"

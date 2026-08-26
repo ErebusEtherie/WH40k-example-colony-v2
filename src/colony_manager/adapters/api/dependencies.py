@@ -81,10 +81,10 @@ _rule_config_provider: RuleConfigProvider | None = None
 
 def get_rule_config_provider() -> RuleConfigProvider:
     """Get the global rule config provider singleton.
-    
+
     Returns:
         RuleConfigProvider instance loaded at startup.
-        
+
     Raises:
         RuntimeError: If config provider hasn't been initialized yet.
     """
@@ -97,10 +97,10 @@ def get_rule_config_provider() -> RuleConfigProvider:
 
 def init_rule_config_provider(config_dir: Path | None = None) -> RuleConfigProvider:
     """Initialize the global rule config provider singleton.
-    
+
     Args:
         config_dir: Optional config directory path. Defaults to DEFAULT_CONFIG_DIR.
-        
+
     Returns:
         Initialized RuleConfigProvider instance.
     """
@@ -116,7 +116,9 @@ def get_colony_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> Col
     return SqlAlchemyColonyRepository(build_database_url(db_path))
 
 
-def get_representative_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> RepresentativeRepository:
+def get_representative_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> RepresentativeRepository:
     """Get representative repository instance."""
     return SqlAlchemyRepresentativeRepository(build_database_url(db_path))
 
@@ -131,7 +133,9 @@ def get_event_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> Even
     return SqlAlchemyEventRepository(build_database_url(db_path))
 
 
-def get_development_plan_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> DevelopmentPlanRepository:
+def get_development_plan_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> DevelopmentPlanRepository:
     """Get development plan repository instance."""
     return SqlAlchemyDevelopmentPlanRepository(build_database_url(db_path))
 
@@ -141,25 +145,37 @@ def get_audit_log_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> 
     return SqlAlchemyAuditLogRepository(build_database_url(db_path))
 
 
-def get_colony_user_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> ColonyUserRepository:
+def get_colony_user_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> ColonyUserRepository:
     """Get colony user repository instance."""
     return SqlAlchemyColonyUserRepository(build_database_url(db_path))
 
 
 def get_colony_service(
     colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
-    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
+    representative_repository: Annotated[
+        RepresentativeRepository, Depends(get_representative_repository)
+    ],
     rule_config_provider: Annotated[RuleConfigProvider, Depends(get_rule_config_provider)],
     colony_user_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
 ) -> ColonyService:
     """Get colony service instance with dependencies."""
-    return ColonyService(colony_repository, representative_repository, rule_config_provider, colony_user_repository, audit_log_repository)
+    return ColonyService(
+        colony_repository,
+        representative_repository,
+        rule_config_provider,
+        colony_user_repository,
+        audit_log_repository,
+    )
 
 
 def get_representative_service(
     colony_repository: Annotated[ColonyRepository, Depends(get_colony_repository)],
-    representative_repository: Annotated[RepresentativeRepository, Depends(get_representative_repository)],
+    representative_repository: Annotated[
+        RepresentativeRepository, Depends(get_representative_repository)
+    ],
 ) -> RepresentativeService:
     """Get representative service instance with dependencies."""
     return RepresentativeService(colony_repository, representative_repository)
@@ -173,12 +189,16 @@ def get_event_service(
     return EventService(event_repository, audit_log_repository)
 
 
-def get_infrastructure_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> InfrastructureRepository:
+def get_infrastructure_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> InfrastructureRepository:
     """Get infrastructure repository instance."""
     return SqlAlchemyInfrastructureRepository(build_database_url(db_path))
 
 
-def get_support_upgrade_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> SupportUpgradeRepository:
+def get_support_upgrade_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> SupportUpgradeRepository:
     """Get support upgrade repository instance."""
     return SqlAlchemySupportUpgradeRepository(build_database_url(db_path))
 
@@ -186,11 +206,17 @@ def get_support_upgrade_repository(db_path: Annotated[Path, Depends(get_db_path)
 def get_development_plan_service(
     plan_repository: Annotated[DevelopmentPlanRepository, Depends(get_development_plan_repository)],
     audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
-    infrastructure_repository: Annotated[InfrastructureRepository, Depends(get_infrastructure_repository)],
-    support_upgrade_repository: Annotated[SupportUpgradeRepository, Depends(get_support_upgrade_repository)],
+    infrastructure_repository: Annotated[
+        InfrastructureRepository, Depends(get_infrastructure_repository)
+    ],
+    support_upgrade_repository: Annotated[
+        SupportUpgradeRepository, Depends(get_support_upgrade_repository)
+    ],
 ) -> DevelopmentPlanService:
     """Get development plan service instance with dependencies."""
-    return DevelopmentPlanService(plan_repository, audit_log_repository, infrastructure_repository, support_upgrade_repository)
+    return DevelopmentPlanService(
+        plan_repository, audit_log_repository, infrastructure_repository, support_upgrade_repository
+    )
 
 
 def get_colony_user_service(
@@ -201,29 +227,47 @@ def get_colony_user_service(
     return ColonyUserService(membership_repository, audit_log_repository)
 
 
-def get_token_blacklist_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> TokenBlacklistRepository:
+def get_token_blacklist_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> TokenBlacklistRepository:
     """Get token blacklist repository instance."""
     return SqlAlchemyTokenBlacklistRepository(build_database_url(db_path))
 
 
-def get_login_attempt_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> LoginAttemptRepository:
+def get_login_attempt_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> LoginAttemptRepository:
     """Get login attempt repository instance."""
     return SqlAlchemyLoginAttemptRepository(build_database_url(db_path))
 
 
-def get_token_issuance_repository(db_path: Annotated[Path, Depends(get_db_path)]) -> TokenIssuanceRepository:
+def get_token_issuance_repository(
+    db_path: Annotated[Path, Depends(get_db_path)],
+) -> TokenIssuanceRepository:
     """Get token issuance repository instance."""
     return SqlAlchemyTokenIssuanceRepository(build_database_url(db_path))
 
 
 def get_auth_service(
-    token_blacklist_repository: Annotated[TokenBlacklistRepository, Depends(get_token_blacklist_repository)],
+    token_blacklist_repository: Annotated[
+        TokenBlacklistRepository, Depends(get_token_blacklist_repository)
+    ],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
-    login_attempt_repository: Annotated[LoginAttemptRepository, Depends(get_login_attempt_repository)],
-    token_issuance_repository: Annotated[TokenIssuanceRepository, Depends(get_token_issuance_repository)],
+    login_attempt_repository: Annotated[
+        LoginAttemptRepository, Depends(get_login_attempt_repository)
+    ],
+    token_issuance_repository: Annotated[
+        TokenIssuanceRepository, Depends(get_token_issuance_repository)
+    ],
 ) -> AuthService:
     """Get auth service instance with dependencies."""
-    return AuthService(token_blacklist_repository, user_repository, login_attempt_repository, token_issuance_repository)
+    return AuthService(
+        token_blacklist_repository,
+        user_repository,
+        login_attempt_repository,
+        token_issuance_repository,
+    )
+
 
 def get_user_service(
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],

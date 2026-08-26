@@ -3,7 +3,12 @@
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
-from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import (
+    ColonyType,
+    ModifierCategory,
+    ModifierSourceType,
+    ModifierStat,
+)
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.rules.size_calculator import (
     GrowthRollResult,
@@ -52,10 +57,15 @@ class TestCalculateSizeProperties:
     @given(st.integers(min_value=0, max_value=10), st.integers(min_value=1, max_value=5))
     def test_single_positive_modifier_increases_size(self, base_size: int, mod_value: int):
         """A single positive modifier increases size."""
-        modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
-                          modifier_category=ModifierCategory.CUSTOM,
-                          modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
-                          description="Test", is_active=True)
+        modifier = Modifier(
+            colony_id=1,
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
+            modifier_stat=ModifierStat.SIZE,
+            modifier_value=mod_value,
+            description="Test",
+            is_active=True,
+        )
         result = calculate_size(base_size, [modifier])
         assert result == base_size + mod_value
 
@@ -63,10 +73,15 @@ class TestCalculateSizeProperties:
     @given(st.integers(min_value=0, max_value=10), st.integers(min_value=-5, max_value=-1))
     def test_single_negative_modifier_decreases_size(self, base_size: int, mod_value: int):
         """A single negative modifier decreases size (but not below 0)."""
-        modifier = Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM,
-                          modifier_category=ModifierCategory.CUSTOM,
-                          modifier_stat=ModifierStat.SIZE, modifier_value=mod_value,
-                          description="Test", is_active=True)
+        modifier = Modifier(
+            colony_id=1,
+            modifier_source_type=ModifierSourceType.GM_CUSTOM,
+            modifier_category=ModifierCategory.CUSTOM,
+            modifier_stat=ModifierStat.SIZE,
+            modifier_value=mod_value,
+            description="Test",
+            is_active=True,
+        )
         result = calculate_size(base_size, [modifier])
         expected = max(base_size + mod_value, 0)
         assert result == expected
@@ -104,14 +119,27 @@ class TestResolveGrowthRollProperties:
         result_without = resolve_growth_roll(roll, pf_investment=0, resource_bonus=0)
         assert result_with.size_change >= result_without.size_change
 
-    @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much])
-    @given(st.integers(min_value=1, max_value=2), st.integers(min_value=0, max_value=10), st.integers(min_value=1, max_value=10))
-    def test_agricultural_resilience_prevents_decrease(self, roll: int, pf_investment: int, resilience_roll: int):
+    @settings(
+        max_examples=100, suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much]
+    )
+    @given(
+        st.integers(min_value=1, max_value=2),
+        st.integers(min_value=0, max_value=10),
+        st.integers(min_value=1, max_value=10),
+    )
+    def test_agricultural_resilience_prevents_decrease(
+        self, roll: int, pf_investment: int, resilience_roll: int
+    ):
         """Agricultural colonies with resilience_roll >= 8 avoid size decrease."""
         modified_roll = roll + pf_investment
         assume(modified_roll <= 2)
-        result = resolve_growth_roll(roll, pf_investment=pf_investment, resource_bonus=0,
-                                    colony_type=ColonyType.AGRICULTURAL, resilience_roll=resilience_roll)
+        result = resolve_growth_roll(
+            roll,
+            pf_investment=pf_investment,
+            resource_bonus=0,
+            colony_type=ColonyType.AGRICULTURAL,
+            resilience_roll=resilience_roll,
+        )
         if resilience_roll >= 8:
             assert result.effect == GrowthRollResult.NO_CHANGE
             assert result.size_change == 0
@@ -124,10 +152,20 @@ class TestResolveGrowthRollProperties:
     @given(st.integers(min_value=1, max_value=10))
     def test_non_agricultural_ignores_resilience_roll(self, roll: int):
         """Non-Agricultural colonies don't benefit from resilience roll."""
-        result_industry = resolve_growth_roll(roll, pf_investment=0, resource_bonus=0,
-                                             colony_type=ColonyType.MINING_AND_INDUSTRY, resilience_roll=10)
-        result_mining = resolve_growth_roll(roll, pf_investment=0, resource_bonus=0,
-                                           colony_type=ColonyType.MINING_AND_INDUSTRY, resilience_roll=10)
+        result_industry = resolve_growth_roll(
+            roll,
+            pf_investment=0,
+            resource_bonus=0,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            resilience_roll=10,
+        )
+        result_mining = resolve_growth_roll(
+            roll,
+            pf_investment=0,
+            resource_bonus=0,
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            resilience_roll=10,
+        )
         assert result_industry.agricultural_resilience_rolled is False
         assert result_mining.agricultural_resilience_rolled is False
 

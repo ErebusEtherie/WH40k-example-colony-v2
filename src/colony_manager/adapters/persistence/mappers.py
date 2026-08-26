@@ -48,7 +48,7 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
     import json
 
     from colony_manager.domain.enums import DynastyOutcome, ResourceType
-    
+
     # Parse planetary_resources from JSON
     planetary_resources = []
     if orm.planetary_resources:
@@ -57,7 +57,7 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
             planetary_resources = [ResourceType(r) for r in resource_strings]
         except (json.JSONDecodeError, ValueError):
             planetary_resources = []
-    
+
     # Parse dynasty_outcome
     dynasty_outcome = None
     if orm.dynasty_outcome:
@@ -65,7 +65,7 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
             dynasty_outcome = DynastyOutcome(orm.dynasty_outcome)
         except ValueError:
             dynasty_outcome = None
-    
+
     return Colony(
         id=orm.id,
         name=orm.name,
@@ -93,12 +93,12 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
 
 def domain_to_orm_colony(domain: Colony) -> ColonyORM:
     import json
-    
+
     # Serialize planetary_resources to JSON
     planetary_resources_json = None
     if domain.planetary_resources:
         planetary_resources_json = json.dumps([r.value for r in domain.planetary_resources])
-    
+
     return ColonyORM(
         id=domain.id,
         name=domain.name,
@@ -126,10 +126,10 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
 
 def orm_to_domain_representative(orm: RepresentativeORM) -> Representative:
     """Convert a RepresentativeORM to a Representative domain model.
-    
+
     Args:
         orm: The SQLAlchemy ORM model instance.
-        
+
     Returns:
         The corresponding domain Representative object.
     """
@@ -139,7 +139,12 @@ def orm_to_domain_representative(orm: RepresentativeORM) -> Representative:
         type=RepresentativeType(orm.type),
         personalities=[Personality(**item) for item in json.loads(orm.personalities)],
         stats=RepresentativeStats(**json.loads(orm.stats)),
-        skills=[Skill(name=item["name"], level=SkillLevel(item["level"]), description=item["description"]) for item in json.loads(orm.skills)],
+        skills=[
+            Skill(
+                name=item["name"], level=SkillLevel(item["level"]), description=item["description"]
+            )
+            for item in json.loads(orm.skills)
+        ],
         talents=[Talent(**item) for item in json.loads(orm.talents)],
         assigned_to_colony_id=orm.assigned_to_colony_id,
     )
@@ -147,10 +152,10 @@ def orm_to_domain_representative(orm: RepresentativeORM) -> Representative:
 
 def domain_to_orm_representative(domain: Representative) -> RepresentativeORM:
     """Convert a Representative domain model to a RepresentativeORM.
-    
+
     Args:
         domain: The domain Representative object.
-        
+
     Returns:
         The corresponding SQLAlchemy ORM model instance.
     """
@@ -160,7 +165,12 @@ def domain_to_orm_representative(domain: Representative) -> RepresentativeORM:
         type=domain.type.value,
         personalities=json.dumps([item.model_dump() for item in domain.personalities]),
         stats=json.dumps(domain.stats.model_dump()),
-        skills=json.dumps([{"name": item.name, "level": item.level.value, "description": item.description} for item in domain.skills]),
+        skills=json.dumps(
+            [
+                {"name": item.name, "level": item.level.value, "description": item.description}
+                for item in domain.skills
+            ]
+        ),
         talents=json.dumps([item.model_dump() for item in domain.talents]),
         assigned_to_colony_id=domain.assigned_to_colony_id,
     )
@@ -196,6 +206,7 @@ def domain_to_orm_modifier(domain: Modifier) -> ModifierORM:
 
 def orm_to_domain_infrastructure(orm: InfrastructureORM) -> Infrastructure:
     from colony_manager.domain.enums import InfrastructureState, InfrastructureType
+
     return Infrastructure(
         id=orm.id,
         colony_id=orm.colony_id,
@@ -215,6 +226,7 @@ def domain_to_orm_infrastructure(domain: Infrastructure) -> InfrastructureORM:
 
 def orm_to_domain_support_upgrade(orm: SupportUpgradeORM) -> SupportUpgrade:
     from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
+
     return SupportUpgrade(
         id=orm.id,
         colony_id=orm.colony_id,
@@ -238,14 +250,14 @@ def domain_to_orm_support_upgrade(domain: SupportUpgrade) -> SupportUpgradeORM:
 
 def orm_to_domain_user(orm: UserORM) -> User:
     """Convert a UserORM to a User domain model.
-    
+
     Args:
         orm: The SQLAlchemy ORM model instance.
-        
+
     Returns:
         The corresponding domain User object.
     """
-    
+
     return User(
         id=orm.id,
         username=orm.username,
@@ -253,22 +265,26 @@ def orm_to_domain_user(orm: UserORM) -> User:
         password_hash=orm.password_hash,
         role=UserRole(orm.role),
         is_active=orm.is_active,
-        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
-        updated_at=datetime.combine(orm.updated_at, datetime.min.time()) if orm.updated_at else None,
+        created_at=datetime.combine(orm.created_at, datetime.min.time())
+        if orm.created_at
+        else None,
+        updated_at=datetime.combine(orm.updated_at, datetime.min.time())
+        if orm.updated_at
+        else None,
     )
 
 
 def domain_to_orm_user(domain: User) -> UserORM:
     """Convert a User domain model to a UserORM.
-    
+
     Args:
         domain: The domain User object.
-        
+
     Returns:
         The corresponding SQLAlchemy ORM model instance.
     """
     from datetime import date
-    
+
     return UserORM(
         id=domain.id,
         username=domain.username,
@@ -276,23 +292,30 @@ def domain_to_orm_user(domain: User) -> UserORM:
         password_hash=domain.password_hash,
         role=domain.role.value if hasattr(domain.role, "value") else domain.role,
         is_active=domain.is_active,
-        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
-        updated_at=date(domain.updated_at.year, domain.updated_at.month, domain.updated_at.day) if domain.updated_at else None,
+        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day)
+        if domain.created_at
+        else None,
+        updated_at=date(domain.updated_at.year, domain.updated_at.month, domain.updated_at.day)
+        if domain.updated_at
+        else None,
     )
 
 
 # Phase 4+ mappers - Event
 
+
 def orm_to_domain_event(orm: EventORM) -> Event:
     """Convert an EventORM to an Event domain model."""
-    
+
     return Event(
         id=orm.id,
         colony_id=orm.colony_id,
         name=orm.name,
         description=orm.description,
         created_by=orm.created_by,
-        created_at=datetime.combine(orm.created_at, datetime.min.time()) if orm.created_at else None,
+        created_at=datetime.combine(orm.created_at, datetime.min.time())
+        if orm.created_at
+        else None,
         is_active=orm.is_active,
         modifiers=[orm_to_domain_event_modifier(mod) for mod in orm.modifiers],
     )
@@ -301,14 +324,16 @@ def orm_to_domain_event(orm: EventORM) -> Event:
 def domain_to_orm_event(domain: Event) -> EventORM:
     """Convert an Event domain model to an EventORM."""
     from datetime import date
-    
+
     orm = EventORM(
         id=domain.id,
         colony_id=domain.colony_id,
         name=domain.name,
         description=domain.description,
         created_by=domain.created_by,
-        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day) if domain.created_at else None,
+        created_at=date(domain.created_at.year, domain.created_at.month, domain.created_at.day)
+        if domain.created_at
+        else None,
         is_active=domain.is_active,
     )
     # Add modifiers to the ORM event
@@ -337,6 +362,7 @@ def domain_to_orm_event_modifier(domain: EventModifier) -> EventModifierORM:
 
 # Phase 4+ mappers - Development Plan
 
+
 def orm_to_domain_development_plan(orm: DevelopmentPlanORM) -> DevelopmentPlan:
     """Convert a DevelopmentPlanORM to a DevelopmentPlan domain model."""
     return DevelopmentPlan(
@@ -353,8 +379,6 @@ def orm_to_domain_development_plan(orm: DevelopmentPlanORM) -> DevelopmentPlan:
         created_by=orm.created_by,
         created_at=orm.created_at,
     )
-
-
 
 
 def domain_to_orm_development_plan(domain: DevelopmentPlan) -> DevelopmentPlanORM:
@@ -377,9 +401,10 @@ def domain_to_orm_development_plan(domain: DevelopmentPlan) -> DevelopmentPlanOR
 
 # Phase 4+ mappers - Audit Log
 
+
 def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
     """Convert an AuditLogORM to an AuditLog domain model."""
-    
+
     return AuditLog(
         id=orm.id,
         entity_type=orm.entity_type,
@@ -389,7 +414,9 @@ def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
         old_value=orm.old_value,
         new_value=orm.new_value,
         changed_by=orm.changed_by,
-        changed_at=datetime.combine(orm.changed_at, datetime.min.time()).replace(tzinfo=UTC) if orm.changed_at else datetime.now(UTC),
+        changed_at=datetime.combine(orm.changed_at, datetime.min.time()).replace(tzinfo=UTC)
+        if orm.changed_at
+        else datetime.now(UTC),
         colony_id=orm.colony_id,
     )
 
@@ -397,7 +424,7 @@ def orm_to_domain_audit_log(orm: AuditLogORM) -> AuditLog:
 def domain_to_orm_audit_log(domain: AuditLog) -> AuditLogORM:
     """Convert an AuditLog domain model to an AuditLogORM."""
     from datetime import date
-    
+
     return AuditLogORM(
         id=domain.id,
         entity_type=domain.entity_type,
@@ -407,22 +434,29 @@ def domain_to_orm_audit_log(domain: AuditLog) -> AuditLogORM:
         old_value=domain.old_value,
         new_value=domain.new_value,
         changed_by=domain.changed_by,
-        changed_at=date(domain.changed_at.year, domain.changed_at.month, domain.changed_at.day) if domain.changed_at else None,
+        changed_at=date(domain.changed_at.year, domain.changed_at.month, domain.changed_at.day)
+        if domain.changed_at
+        else None,
         colony_id=domain.colony_id,
     )
 
 
 # Phase 4+ mappers - Colony User
 
+
 def orm_to_domain_colony_user(orm: ColonyUserORM) -> ColonyUser:
     """Convert a ColonyUserORM to a ColonyUser domain model."""
-    
+
     return ColonyUser(
         id=orm.id,
         colony_id=orm.colony_id,
         user_id=orm.user_id,
         role=ColonyUserRole(orm.role),
-        joined_at=datetime.combine(orm.joined_at, datetime.min.time()).replace(tzinfo=timezone(timedelta(hours=1))) if orm.joined_at else datetime.now(timezone(timedelta(hours=1))),
+        joined_at=datetime.combine(orm.joined_at, datetime.min.time()).replace(
+            tzinfo=timezone(timedelta(hours=1))
+        )
+        if orm.joined_at
+        else datetime.now(timezone(timedelta(hours=1))),
         invited_by=orm.invited_by,
     )
 
@@ -430,14 +464,14 @@ def orm_to_domain_colony_user(orm: ColonyUserORM) -> ColonyUser:
 def domain_to_orm_colony_user(domain: ColonyUser) -> ColonyUserORM:
     """Convert a ColonyUser domain model to a ColonyUserORM."""
     from datetime import date
-    
+
     return ColonyUserORM(
         id=domain.id,
         colony_id=domain.colony_id,
         user_id=domain.user_id,
         role=domain.role.value if hasattr(domain.role, "value") else domain.role,
-        joined_at=date(domain.joined_at.year, domain.joined_at.month, domain.joined_at.day) if domain.joined_at else None,
+        joined_at=date(domain.joined_at.year, domain.joined_at.month, domain.joined_at.day)
+        if domain.joined_at
+        else None,
         invited_by=domain.invited_by,
     )
-
-

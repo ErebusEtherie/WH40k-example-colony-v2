@@ -203,6 +203,7 @@ class TestDevelopmentPlanValidators:
             )
         assert "target_type" in str(exc_info.value)
 
+
 class TestDevelopmentPlanDefaults:
     """Tests for DevelopmentPlan default values."""
 

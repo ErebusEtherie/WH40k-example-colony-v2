@@ -14,7 +14,7 @@ def test_loader_reads_placeholder_config_files(tmp_path):
         encoding="utf-8",
     )
     (tmp_path / "rule_tables.yaml").write_text(
-        "size_to_profit_factor:\n  - size: 1\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: \"> size\"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: \"> size\"\n    default: stable\n  productivity:\n    productive_threshold: \"> size\"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: \"> size\"\n    zero_state: heretical\n    default: stable\n",
+        'size_to_profit_factor:\n  - size: 1\n    profit_factor: 2\nleadership_modifier:\n  - stat_bonus: 0\n    modifier: 1\nlore_thresholds:\n  complacency:\n    placated_threshold: "> size"\n    zero_state: riots_and_unrest\n    default: stable\n  order:\n    zero_state: anarchy\n    orderly_threshold: "> size"\n    default: stable\n  productivity:\n    productive_threshold: "> size"\n    zero_state: halted\n    default: stable\n  piety:\n    pious_threshold: "> size"\n    zero_state: heretical\n    default: stable\n',
         encoding="utf-8",
     )
     (tmp_path / "infrastructure_types.yaml").write_text(
@@ -48,11 +48,24 @@ def test_loader_raises_for_missing_config(tmp_path):
 
 def test_loader_raises_for_invalid_entry(tmp_path):
     (tmp_path / "colony_types.yaml").write_text("- name: missing_base_values\n", encoding="utf-8")
-    (tmp_path / "personalities.yaml").write_text("- name: test\n  description: desc\n  effect: effect\n", encoding="utf-8")
-    (tmp_path / "rule_tables.yaml").write_text("size_to_profit_factor: []\nleadership_modifier: []\nlore_thresholds: {}\n", encoding="utf-8")
-    (tmp_path / "infrastructure_types.yaml").write_text("- name: test\n  display_name: Test\n  description: Test\n  states: {}\n", encoding="utf-8")
-    (tmp_path / "representative_types.yaml").write_text("- name: test\n  display_name: Test\n  description: Test\n  special_effects: []\n  themes: []\n", encoding="utf-8")
-    (tmp_path / "support_upgrades.yaml").write_text("- name: test\n  display_name: Test\n  description: Test\n  stat_effects: []\n  mechanical_effects: []\n  lore_effects: []\n", encoding="utf-8")
+    (tmp_path / "personalities.yaml").write_text(
+        "- name: test\n  description: desc\n  effect: effect\n", encoding="utf-8"
+    )
+    (tmp_path / "rule_tables.yaml").write_text(
+        "size_to_profit_factor: []\nleadership_modifier: []\nlore_thresholds: {}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "infrastructure_types.yaml").write_text(
+        "- name: test\n  display_name: Test\n  description: Test\n  states: {}\n", encoding="utf-8"
+    )
+    (tmp_path / "representative_types.yaml").write_text(
+        "- name: test\n  display_name: Test\n  description: Test\n  special_effects: []\n  themes: []\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "support_upgrades.yaml").write_text(
+        "- name: test\n  display_name: Test\n  description: Test\n  stat_effects: []\n  mechanical_effects: []\n  lore_effects: []\n",
+        encoding="utf-8",
+    )
 
     with pytest.raises(ConfigurationError):
         FileRuleConfigProvider(config_dir=tmp_path)

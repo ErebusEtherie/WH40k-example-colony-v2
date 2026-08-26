@@ -1,7 +1,7 @@
 # Architecture — Phase 1 Foundation
 
-**Created:** 2026-08-23  
-**Based on:** `technical_analysis.md` + `.clinerules/00-overview.md`  
+**Created:** 2026-08-23
+**Based on:** `technical_analysis.md` + `.clinerules/00-overview.md`
 **Status:** Implemented
 
 ---
@@ -227,12 +227,12 @@ Google-style for all public modules/classes/functions.
 
 ## What NOT to Do
 
-❌ **Don't** let API models double as domain models  
-❌ **Don't** put business logic in route handlers or CLI commands  
-❌ **Don't** encode rule tables as if/elif chains in code  
-❌ **Don't** reach for plugin/strategy pattern before concrete second use case  
-❌ **Don't** mock domain layer in domain tests (it has no I/O)  
-❌ **Don't** test rule engine indirectly through API in unit tests  
+❌ **Don't** let API models double as domain models
+❌ **Don't** put business logic in route handlers or CLI commands
+❌ **Don't** encode rule tables as if/elif chains in code
+❌ **Don't** reach for plugin/strategy pattern before concrete second use case
+❌ **Don't** mock domain layer in domain tests (it has no I/O)
+❌ **Don't** test rule engine indirectly through API in unit tests
 
 ---
 

@@ -34,6 +34,6 @@ async def list_colony_modifiers(colony_id: int, service: ColonyService = Depends
     ) for mod in colony.modifiers]
 '''
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'a', encoding='utf-8') as f:
+with open("src/colony_manager/adapters/api/routers/colonies.py", "a", encoding="utf-8") as f:
     f.write(content)
-print('Part 5 done')
+print("Part 5 done")

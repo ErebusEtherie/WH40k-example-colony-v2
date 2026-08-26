@@ -39,7 +39,7 @@ class SupportUpgradeService:
         """Create an audit log entry if audit logging is enabled."""
         if self._audit_log_repository is None:
             return
-        
+
         try:
             audit_log = AuditLog(
                 entity_type=entity_type,
@@ -59,11 +59,11 @@ class SupportUpgradeService:
         self, upgrade: SupportUpgrade, changed_by: int | None = None
     ) -> SupportUpgrade:
         """Create new support upgrade for a colony.
-        
+
         Args:
             upgrade: The support upgrade domain object to create.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The created support upgrade with ID assigned.
         """
@@ -72,9 +72,13 @@ class SupportUpgradeService:
         if colony is None:
             raise NotFoundError(f"Colony {upgrade.colony_id} not found")
         result = self._repository.create(upgrade)
-        
+
         # Log audit entry
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=upgrade.colony_id,
                 entity_type="support_upgrade",
@@ -85,7 +89,7 @@ class SupportUpgradeService:
                 new_value=result.upgrade_type.value,
                 changed_by=changed_by,
             )
-        
+
         return result
 
     def get_upgrade(self, upgrade_id: int) -> SupportUpgrade:
@@ -99,11 +103,11 @@ class SupportUpgradeService:
         self, upgrade: SupportUpgrade, changed_by: int | None = None
     ) -> SupportUpgrade:
         """Update support upgrade.
-        
+
         Args:
             upgrade: The support upgrade with updated values.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The updated support upgrade.
         """
@@ -111,11 +115,15 @@ class SupportUpgradeService:
         if upgrade.id is None:
             raise NotFoundError("Upgrade ID is required for update")
         self.get_upgrade(upgrade.id)
-        
+
         result = self._repository.update(upgrade)
-        
+
         # Log audit entry for update
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=upgrade.colony_id,
                 entity_type="support_upgrade",
@@ -126,14 +134,12 @@ class SupportUpgradeService:
                 new_value=f"Updated {result.upgrade_type.value}",
                 changed_by=changed_by,
             )
-        
+
         return result
 
-    def delete_upgrade(
-        self, upgrade_id: int, changed_by: int | None = None
-    ) -> None:
+    def delete_upgrade(self, upgrade_id: int, changed_by: int | None = None) -> None:
         """Delete support upgrade.
-        
+
         Args:
             upgrade_id: ID of the support upgrade to delete.
             changed_by: Optional user ID who made the change (for audit logging).
@@ -143,7 +149,7 @@ class SupportUpgradeService:
             colony_id = upgrade.colony_id
             upgrade_type = upgrade.upgrade_type.value
             self._repository.delete(upgrade_id)
-            
+
             # Log audit entry
             if self._audit_log_repository is not None and changed_by is not None:
                 self._log_audit(
@@ -163,7 +169,7 @@ class SupportUpgradeService:
     def list_by_colony(self, colony_id: int) -> list[SupportUpgrade]:
         """List all support upgrades for a colony."""
         return self._repository.list_by_colony(colony_id)
-    
+
     def colony_exists(self, colony_id: int) -> bool:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None

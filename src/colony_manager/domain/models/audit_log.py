@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class AuditLogAction(str, Enum):
     """Action enumeration for audit log entries."""
-    
+
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -20,11 +20,11 @@ class AuditLogAction(str, Enum):
 
 class AuditLog(BaseModel):
     """Domain model for audit log entries.
-    
+
     Audit logs track all changes to colony state for version history and
     accountability. They are automatically created by the service layer
     whenever a colony or related entity is modified.
-    
+
     Attributes:
         id: Database ID (None if not yet persisted).
         entity_type: Type of entity being changed (e.g., "colony", "infrastructure").
@@ -37,7 +37,7 @@ class AuditLog(BaseModel):
         changed_at: Timestamp when the change was made (UTC).
         colony_id: ID of the colony this change relates to.
     """
-    
+
     id: int | None = None
     entity_type: str = Field(min_length=1, max_length=50)
     entity_id: int
@@ -48,7 +48,7 @@ class AuditLog(BaseModel):
     changed_by: int
     changed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     colony_id: int | None = None  # Optional for non-colony entities like users
-    
+
     @field_validator("changed_at")
     @classmethod
     def _validate_changed_at(cls, value: datetime | None) -> datetime:

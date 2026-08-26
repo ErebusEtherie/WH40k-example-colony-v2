@@ -53,6 +53,6 @@ async def get_colony(colony_id: int, service: ColonyService = Depends(get_colony
     )
 '''
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'a', encoding='utf-8') as f:
+with open("src/colony_manager/adapters/api/routers/colonies.py", "a", encoding="utf-8") as f:
     f.write(content)
-print('Part 3 done')
+print("Part 3 done")

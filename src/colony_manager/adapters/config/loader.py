@@ -47,7 +47,11 @@ class FileRuleConfigProvider(RuleConfigProvider):
         if not self._rule_tables.leadership_modifier:
             raise ConfigurationError("No leadership modifier entries configured")
 
-        exact_matches = [entry for entry in self._rule_tables.leadership_modifier if entry.stat_bonus == stat_bonus]
+        exact_matches = [
+            entry
+            for entry in self._rule_tables.leadership_modifier
+            if entry.stat_bonus == stat_bonus
+        ]
         if exact_matches:
             return exact_matches[0].modifier
 
@@ -60,7 +64,7 @@ class FileRuleConfigProvider(RuleConfigProvider):
     def get_lore_state_for_stat(self, stat: ModifierStat, value: int, size: int) -> LoreState:
         """Get lore state for a stat - delegates to domain rules for consistency."""
         from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
-        
+
         return resolve_lore_state(stat, value, size)
 
     def get_event_roll_interval_days(self) -> int:
@@ -74,7 +78,7 @@ class FileRuleConfigProvider(RuleConfigProvider):
         if self._rule_tables.game_cycles:
             return self._rule_tables.game_cycles.development_roll_interval_days
         return 90
-    
+
     def get_pf_state_bonuses(self) -> dict[str, int]:
         """Get Profit Factor bonuses for colony states."""
         if self._rule_tables.pf_state_bonuses:
@@ -136,7 +140,10 @@ class FileRuleConfigProvider(RuleConfigProvider):
 
     def get_profit_factor_table(self) -> dict[str, int]:
         """Get colony size to profit factor lookup table."""
-        return {str(entry.size): entry.profit_factor for entry in self._rule_tables.size_to_profit_factor}
+        return {
+            str(entry.size): entry.profit_factor
+            for entry in self._rule_tables.size_to_profit_factor
+        }
 
     def get_lore_thresholds(self) -> dict[str, object]:
         """Get threshold configuration for state transitions."""

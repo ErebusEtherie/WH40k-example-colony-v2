@@ -1,8 +1,8 @@
 # 11 — Shared Components
 
-**Version:** 1.0  
-**Date:** 2026-08-24  
-**Status:** Complete  
+**Version:** 1.0
+**Date:** 2026-08-24
+**Status:** Complete
 
 ---
 
@@ -248,14 +248,14 @@ Dashboard > Yukonia III > Infrastructure
 ```jsx
 <Panel title="Colony Stats">
   <div className="stat-grid">
-    <StatCard 
-      label="Size" 
-      value={colony.size.current} 
+    <StatCard
+      label="Size"
+      value={colony.size.current}
       loreState={colony.size.lore_state}
     />
-    <StatCard 
-      label="Order" 
-      value={colony.order.current} 
+    <StatCard
+      label="Order"
+      value={colony.order.current}
       loreState={colony.order.lore_state}
     />
   </div>

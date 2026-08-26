@@ -30,8 +30,8 @@ class Personality(BaseModel):
     calamitous_modifier: int = 0
     special_rule: str | None = None
 
-    @model_validator(mode='after')
-    def set_default_display_name(self) -> 'Personality':
+    @model_validator(mode="after")
+    def set_default_display_name(self) -> "Personality":
         """Default display_name to name if not provided."""
         if self.display_name is None:
             self.display_name = self.name

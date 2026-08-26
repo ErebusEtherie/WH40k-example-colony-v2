@@ -64,7 +64,7 @@ class DynastyMemberRollConfig(BaseModel):
 
 class PersonalityModifierConfig(BaseModel):
     """A single modifier from a personality.
-    
+
     Note: `value` can be an int for fixed modifiers, or a string placeholder
     like "gm_roll_negative_1d5" indicating the GM must roll and apply the result.
     Special stat values like "player_choice", "lowest_stat", or "gm_roll_negative_1d5"
@@ -153,10 +153,10 @@ class LeaderQualityModifiersConfig(BaseModel):
 
     def get_modifier(self, quality: int) -> int:
         """Get the PF modifier for a leader quality stat (2-6).
-        
+
         Args:
             quality: Leader quality stat value (2-6).
-            
+
         Returns:
             PF modifier value (e.g., -2 for quality 2, +2 for quality 6).
         """
@@ -168,7 +168,7 @@ class LeaderQualityModifiersConfig(BaseModel):
 
 class ThresholdEffectSingle(BaseModel):
     """Single effect from a threshold trigger.
-    
+
     Note: `value` can be an int for fixed modifiers, or a string placeholder
     like "gm_roll_negative_1d5" indicating the GM must roll and apply the result.
     """

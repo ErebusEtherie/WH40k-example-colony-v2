@@ -43,9 +43,16 @@ class SqlAlchemyRepresentativeRepository(RepresentativeRepository):
                 raise ValueError(f"Representative {representative.id} not found")
             orm.name = representative.name
             orm.type = representative.type.value
-            orm.personalities = json.dumps([item.model_dump() for item in representative.personalities])
+            orm.personalities = json.dumps(
+                [item.model_dump() for item in representative.personalities]
+            )
             orm.stats = json.dumps(representative.stats.model_dump())
-            orm.skills = json.dumps([{"name": item.name, "level": item.level.value, "description": item.description} for item in representative.skills])
+            orm.skills = json.dumps(
+                [
+                    {"name": item.name, "level": item.level.value, "description": item.description}
+                    for item in representative.skills
+                ]
+            )
             orm.talents = json.dumps([item.model_dump() for item in representative.talents])
             orm.assigned_to_colony_id = representative.assigned_to_colony_id
             session.commit()
@@ -60,4 +67,6 @@ class SqlAlchemyRepresentativeRepository(RepresentativeRepository):
 
     def list(self) -> list[Representative]:
         with Session(self._engine) as session:
-            return [orm_to_domain_representative(orm) for orm in session.query(RepresentativeORM).all()]
+            return [
+                orm_to_domain_representative(orm) for orm in session.query(RepresentativeORM).all()
+            ]

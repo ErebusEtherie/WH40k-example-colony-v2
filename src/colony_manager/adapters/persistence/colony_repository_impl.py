@@ -62,6 +62,7 @@ class SqlAlchemyColonyRepository(ColonyRepository):
             orm.productivity_locked = colony.productivity_locked
             # Serialize planetary_resources to JSON
             import json
+
             if colony.planetary_resources:
                 orm.planetary_resources = json.dumps([r.value for r in colony.planetary_resources])
             else:
@@ -83,4 +84,13 @@ class SqlAlchemyColonyRepository(ColonyRepository):
 
     def list(self) -> list[Colony]:
         with Session(self._engine) as session:
-            return [orm_to_domain_colony(orm) for orm in session.query(ColonyORM).options(joinedload(ColonyORM.modifiers), joinedload(ColonyORM.infrastructure), joinedload(ColonyORM.support_upgrades)).all()]
+            return [
+                orm_to_domain_colony(orm)
+                for orm in session.query(ColonyORM)
+                .options(
+                    joinedload(ColonyORM.modifiers),
+                    joinedload(ColonyORM.infrastructure),
+                    joinedload(ColonyORM.support_upgrades),
+                )
+                .all()
+            ]

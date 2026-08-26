@@ -1,8 +1,8 @@
 # 14 — API Integration
 
-**Version:** 1.0  
-**Date:** 2026-08-24  
-**Status:** Complete  
+**Version:** 1.0
+**Date:** 2026-08-24
+**Status:** Complete
 
 ---
 

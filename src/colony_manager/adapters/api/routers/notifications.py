@@ -39,13 +39,13 @@ async def notification_stream(
     notification_service: Annotated[NotificationService, Depends(get_notification_service)],
 ) -> StreamingResponse:
     """Stream real-time notifications via Server-Sent Events.
-    
+
     Connect to this endpoint to receive a stream of notifications about:
     - Colony changes
     - Event creation/updates/deletion
     - Development plan changes
     - Colony user changes
-    
+
     The connection will remain open and push notifications as they occur.
     Clients should implement automatic reconnection logic.
     """
@@ -55,7 +55,7 @@ async def notification_stream(
             iter([]),
             media_type="text/event-stream",
         )
-    
+
     return StreamingResponse(
         event_generator(current_user.id, notification_service),
         media_type="text/event-stream",

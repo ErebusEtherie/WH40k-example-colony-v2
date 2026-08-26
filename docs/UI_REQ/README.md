@@ -1,8 +1,8 @@
 # UI Requirements — WH40k Colony Manager
 
-**Version:** 1.0  
-**Date:** 2026-08-24  
-**Status:** Requirements Defined  
+**Version:** 1.0
+**Date:** 2026-08-24
+**Status:** Requirements Defined
 
 ---
 

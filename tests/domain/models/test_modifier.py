@@ -71,9 +71,8 @@ class TestModifierExpiry:
 
     def test_is_expired_with_custom_date(self):
         """is_expired accepts custom date for testing."""
-        reference_date = date(2025, 6, 15)
         expires_on = date(2025, 6, 20)
-        
+
         mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
@@ -83,7 +82,7 @@ class TestModifierExpiry:
             description="Test modifier",
             expires_at=expires_on,
         )
-        
+
         # Before expiry: not expired
         assert mod.is_expired(date(2025, 6, 10)) is False
         # On expiry date: not expired

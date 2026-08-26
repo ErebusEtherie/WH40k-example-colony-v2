@@ -22,32 +22,32 @@ from pathlib import Path
 
 def migrate(db_path: Path) -> None:
     """Run the migration on the given database.
-    
+
     Args:
         db_path: Path to the SQLite database file.
     """
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
-    
+
     # Check if development_plans table exists
     cursor.execute("""
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='table' AND name='development_plans'
     """)
     table_exists = cursor.fetchone() is not None
-    
+
     if not table_exists:
         print("development_plans table does not exist, skipping migration")
         conn.close()
         return
-    
+
     # Get existing data if any (not migrated due to schema changes)
     cursor.execute("SELECT * FROM development_plans")
     cursor.fetchall()
-    
+
     # Drop the old table
     cursor.execute("DROP TABLE development_plans")
-    
+
     # Create the new table with updated schema
     cursor.execute("""
         CREATE TABLE development_plans (
@@ -67,11 +67,11 @@ def migrate(db_path: Path) -> None:
             FOREIGN KEY (created_by) REFERENCES users(id)
         )
     """)
-    
+
     # Note: We're not migrating existing data since the schema changed significantly
     # The old fields (acquisition_plan, progress, completed_at) are removed
     # and new required fields (target_type) have no sensible defaults
-    
+
     conn.commit()
     conn.close()
     print(f"Migration completed on {db_path}")
@@ -81,12 +81,12 @@ def migrate(db_path: Path) -> None:
 if __name__ == "__main__":
     import os
     import sys
-    
+
     db_path_str = os.environ.get("COLONY_DB_PATH", "colony.db")
     db_path = Path(db_path_str)
-    
+
     if not db_path.exists():
         print(f"Database not found at {db_path}")
         sys.exit(1)
-    
+
     migrate(db_path)

@@ -5,7 +5,12 @@ from datetime import date, timedelta
 import pytest
 
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
-from colony_manager.domain.enums import ColonyType, ModifierCategory, ModifierSourceType, ModifierStat
+from colony_manager.domain.enums import (
+    ColonyType,
+    ModifierCategory,
+    ModifierSourceType,
+    ModifierStat,
+)
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
@@ -40,7 +45,7 @@ class TestColonyStateCalculatorWithExpiry:
             base_piety=10,
             base_size=3,
         )
-        
+
         permanent_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
@@ -50,7 +55,7 @@ class TestColonyStateCalculatorWithExpiry:
             description="Permanent bonus",
             expires_at=None,
         )
-        
+
         expired_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
@@ -60,7 +65,7 @@ class TestColonyStateCalculatorWithExpiry:
             description="Expired bonus",
             expires_at=date.today() - timedelta(days=10),
         )
-        
+
         colony.modifiers = [permanent_mod, expired_mod]
         state = state_calculator.calculate(colony)
         # Base 10 + permanent 5 + Orderly (Order 10 > Size 3) +2 = 17
@@ -80,7 +85,7 @@ class TestColonyStateCalculatorWithExpiry:
             base_piety=10,
             base_size=3,
         )
-        
+
         future_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
@@ -90,7 +95,7 @@ class TestColonyStateCalculatorWithExpiry:
             description="Future bonus",
             expires_at=date.today() + timedelta(days=30),
         )
-        
+
         colony.modifiers = [future_mod]
         state = state_calculator.calculate(colony)
         # Base 10 + modifier 10 + Orderly (Order 10 > Size 3) +2 = 22
@@ -110,7 +115,7 @@ class TestColonyStateCalculatorWithExpiry:
             base_piety=10,
             base_size=3,
         )
-        
+
         expiry_date = date(2025, 7, 1)
         mod = Modifier(
             colony_id=1,
@@ -121,12 +126,12 @@ class TestColonyStateCalculatorWithExpiry:
             description="Temporary bonus",
             expires_at=expiry_date,
         )
-        
+
         colony.modifiers = [mod]
         state_before = state_calculator.calculate(colony, as_of=date(2025, 6, 15))
         # Base 10 + modifier 10 + Orderly (Order 10 > Size 3) +2 = 22
         assert state_before["productivity"] == 22
-        
+
         state_after = state_calculator.calculate(colony, as_of=date(2025, 7, 15))
         # Base 10 + Orderly (Order 10 > Size 3) +2 = 12
         assert state_after["productivity"] == 12
@@ -145,7 +150,7 @@ class TestColonyStateCalculatorWithExpiry:
             base_piety=10,
             base_size=3,
         )
-        
+
         inactive_mod = Modifier(
             colony_id=1,
             modifier_source_type=ModifierSourceType.GM_CUSTOM,
@@ -156,7 +161,7 @@ class TestColonyStateCalculatorWithExpiry:
             is_active=False,
             expires_at=None,
         )
-        
+
         colony.modifiers = [inactive_mod]
         state = state_calculator.calculate(colony)
         # Base 10 + Orderly (Order 10 > Size 3) +2 = 12

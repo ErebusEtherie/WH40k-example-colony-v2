@@ -46,7 +46,7 @@ responsive breakpoints.
   --mech-steel: #2d2d2d;
   --mech-grid: #3a3a3a;
   --mech-input: #1f1f1f;
-  
+
   /* Accent Colors */
   --mech-copper: #b87333;
   --mech-bronze: #cd7f32;
@@ -55,7 +55,7 @@ responsive breakpoints.
   --mech-amber: #ff6b35;
   --mech-blood: #8b0000;
   --mech-parchment: #c9b896;
-  
+
   /* Text Colors */
   --text-primary: #e0e0e0;
   --text-muted: #888888;
@@ -187,15 +187,15 @@ responsive breakpoints.
   font-weight: 600;
 }
 
-.status-badge.placated { 
+.status-badge.placated {
   background: rgba(0, 212, 255, 0.1);
   color: var(--mech-plasma);
 }
-.status-badge.anarchy { 
+.status-badge.anarchy {
   background: rgba(139, 0, 0, 0.2);
   color: var(--mech-blood);
 }
-.status-badge.heretical { 
+.status-badge.heretical {
   background: rgba(255, 107, 53, 0.1);
   color: var(--mech-amber);
 }

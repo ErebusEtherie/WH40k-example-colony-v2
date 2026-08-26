@@ -8,7 +8,11 @@ class TestEventsAPI:
 
     def test_create_event(self, auth_client: TestClient):
         """Test creating a new event for a colony."""
-        colony_data = {"name": "Event Test Colony", "owner": "Test Owner", "colony_type": "mining_and_industry"}
+        colony_data = {
+            "name": "Event Test Colony",
+            "owner": "Test Owner",
+            "colony_type": "mining_and_industry",
+        }
         colony_response = auth_client.post("/api/v1/colonies", json=colony_data)
         colony_id = colony_response.json()["id"]
         event_data = {
@@ -30,7 +34,10 @@ class TestEventsAPI:
 
     def test_get_event(self, auth_client: TestClient):
         """Test retrieving a specific event by ID."""
-        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Test", "owner": "Owner", "colony_type": "mining_and_industry"})
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+        )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test description", "modifiers": []}
         event_response = auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
@@ -43,22 +50,40 @@ class TestEventsAPI:
 
     def test_get_events_by_colony(self, auth_client: TestClient):
         """Test retrieving all events for a colony."""
-        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Multi-Event Colony", "owner": "Owner", "colony_type": "mining_and_industry"})
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={
+                "name": "Multi-Event Colony",
+                "owner": "Owner",
+                "colony_type": "mining_and_industry",
+            },
+        )
         colony_id = colony_response.json()["id"]
         for i in range(3):
             event_data = {"name": f"Event {i}", "description": f"Description {i}", "modifiers": []}
             auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
         response = auth_client.get(f"/api/v1/events/colonies/{colony_id}")
         assert response.status_code == 200
-        
+
     def test_update_event(self, auth_client: TestClient):
         """Test updating an event."""
-        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"})
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+        )
         colony_id = colony_response.json()["id"]
-        event_data = {"name": "Original Event", "description": "Original description", "modifiers": []}
+        event_data = {
+            "name": "Original Event",
+            "description": "Original description",
+            "modifiers": [],
+        }
         event_response = auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
         event_id = event_response.json()["id"]
-        update_data = {"name": "Updated Event", "description": "Updated description", "is_active": False}
+        update_data = {
+            "name": "Updated Event",
+            "description": "Updated description",
+            "is_active": False,
+        }
         response = auth_client.patch(f"/api/v1/events/{event_id}", json=update_data)
         assert response.status_code == 200
         event = response.json()
@@ -68,7 +93,10 @@ class TestEventsAPI:
 
     def test_delete_event(self, auth_client: TestClient):
         """Test deleting (soft delete) an event."""
-        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"})
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+        )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "To Delete", "description": "Will be deleted", "modifiers": []}
         event_response = auth_client.post(f"/api/v1/events/colonies/{colony_id}", json=event_data)
@@ -94,7 +122,10 @@ class TestEventsAPI:
 
     def test_get_events_by_colony_active_only(self, auth_client: TestClient):
         """Test retrieving only active events for a colony."""
-        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Active Test", "owner": "Owner", "colony_type": "mining_and_industry"})
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Active Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+        )
         colony_id = colony_response.json()["id"]
         for i in range(3):
             event_data = {"name": f"Event {i}", "description": f"Description {i}", "modifiers": []}

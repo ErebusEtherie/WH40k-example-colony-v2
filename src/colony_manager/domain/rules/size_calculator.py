@@ -24,6 +24,7 @@ class GrowthRollResult(StrEnum):
 @dataclass
 class GrowthRollOutcome:
     """Result of a colony growth roll."""
+
     effect: GrowthRollResult
     size_change: int
     description: str
@@ -34,11 +35,11 @@ class GrowthRollOutcome:
 def calculate_size(base_size: int, modifiers: list[Modifier]) -> int:
     """
     Calculate current colony Size from base value and active modifiers.
-    
+
     Args:
         base_size: The colony's base Size (from colony type).
         modifiers: List of all active modifiers.
-    
+
     Returns:
         Current Size (minimum 0).
     """
@@ -58,12 +59,12 @@ def resolve_growth_roll(
 ) -> GrowthRollOutcome:
     """Resolve a colony growth roll with all modifiers."""
     modified_roll = roll + pf_investment + resource_bonus
-    
+
     if modified_roll <= 2:
         effect = GrowthRollResult.DECREASE
         size_change = -1
         description = "Colony Size decreases by one"
-        
+
         # Check agricultural resilience
         if colony_type == ColonyType.AGRICULTURAL and resilience_roll is not None:
             if resilience_roll >= 8:
@@ -85,7 +86,7 @@ def resolve_growth_roll(
         effect = GrowthRollResult.INCREASE
         size_change = 1
         description = "Colony Size increases by one"
-    
+
     return GrowthRollOutcome(
         effect=effect,
         size_change=size_change,

@@ -11,9 +11,11 @@ router = APIRouter(prefix="/config", tags=["config"])
 
 
 @router.get("/colony-types")
-def get_colony_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, str]]:
+def get_colony_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, str]]:
     """Get list of available colony types.
-    
+
     Returns data suitable for populating dropdown menus in the frontend.
     """
     return [
@@ -23,9 +25,11 @@ def get_colony_types(provider: RuleConfigProvider = Depends(get_rule_config_prov
 
 
 @router.get("/representative-types")
-def get_representative_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, str]]:
+def get_representative_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, str]]:
     """Get list of available representative types.
-    
+
     Returns data suitable for populating dropdown menus in the frontend.
     """
     return [
@@ -35,9 +39,11 @@ def get_representative_types(provider: RuleConfigProvider = Depends(get_rule_con
 
 
 @router.get("/infrastructure-types")
-def get_infrastructure_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, Any]]:
+def get_infrastructure_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, Any]]:
     """Get list of infrastructure types with bonuses and costs.
-    
+
     Returns data for dropdown menus and displaying bonus information.
     """
     result = []
@@ -51,23 +57,27 @@ def get_infrastructure_types(provider: RuleConfigProvider = Depends(get_rule_con
                 working_bonuses = bonuses
             elif state_name.lower() in ("faulty", "broken", "not_working"):
                 faulty_bonuses = bonuses
-        
-        result.append({
-            "id": infra.name,
-            "name": infra.display_name,
-            "description": infra.description,
-            "bonuses": {
-                "working": working_bonuses,
-                "faulty": faulty_bonuses,
+
+        result.append(
+            {
+                "id": infra.name,
+                "name": infra.display_name,
+                "description": infra.description,
+                "bonuses": {
+                    "working": working_bonuses,
+                    "faulty": faulty_bonuses,
+                },
             }
-        })
+        )
     return result
 
 
 @router.get("/support-upgrades")
-def get_support_upgrades(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, Any]]:
+def get_support_upgrades(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, Any]]:
     """Get list of support upgrades with bonuses and costs.
-    
+
     Returns data for dropdown menus and displaying bonus information.
     """
     result = []
@@ -78,39 +88,47 @@ def get_support_upgrades(provider: RuleConfigProvider = Depends(get_rule_config_
         if su.stat_effects:
             bonus_stat = su.stat_effects[0].stat
             bonus_value = su.stat_effects[0].value
-        
-        result.append({
-            "id": su.name,
-            "name": su.display_name,
-            "description": su.description,
-            "bonus_stat": bonus_stat,
-            "bonus_value": bonus_value,
-        })
+
+        result.append(
+            {
+                "id": su.name,
+                "name": su.display_name,
+                "description": su.description,
+                "bonus_stat": bonus_stat,
+                "bonus_value": bonus_value,
+            }
+        )
     return result
 
 
 @router.get("/profit-factor-table")
-def get_profit_factor_table(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, int]:
+def get_profit_factor_table(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, int]:
     """Get colony size to profit factor lookup table.
-    
+
     Returns a mapping of colony size to base profit factor value.
     """
     return provider.get_profit_factor_table()
 
 
 @router.get("/thresholds")
-def get_thresholds(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, object]:
+def get_thresholds(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, object]:
     """Get threshold values for state transitions.
-    
+
     Returns thresholds for Anarchy, Placated, Productive, Halted, Pious, Heretical states.
     """
     return provider.get_lore_thresholds()
 
 
 @router.get("/growth-decay")
-def get_growth_decay(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, int]:
+def get_growth_decay(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, int]:
     """Get growth and decay rule configuration.
-    
+
     Returns interval days for event and development rolls.
     """
     return {

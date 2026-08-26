@@ -37,6 +37,6 @@ async def remove_colony_modifier(colony_id: int, modifier_id: int, service: Colo
     service._colony_repository.update(colony)
 '''
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'a', encoding='utf-8') as f:
+with open("src/colony_manager/adapters/api/routers/colonies.py", "a", encoding="utf-8") as f:
     f.write(content)
-print('Part 6 done - colonies.py complete')
+print("Part 6 done - colonies.py complete")

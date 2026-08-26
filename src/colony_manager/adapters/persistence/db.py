@@ -29,16 +29,16 @@ def build_database_url(path: str | Path) -> str:
 
 def init_db(db_path: str | Path) -> None:
     """Initialize database tables.
-    
+
     For production use, prefer running Alembic migrations directly via CLI:
-    
+
         alembic upgrade head
-    
+
     For tests and development, this creates all tables directly.
-    
+
     Args:
         db_path: Path to the SQLite database file.
     """
-    
+
     engine = create_engine(build_database_url(db_path))
     Base.metadata.create_all(engine)

@@ -23,7 +23,7 @@ def get_audit_logs_by_colony(
     offset: int = Query(default=0, ge=0, description="Number of results to skip"),
 ) -> list[AuditLogResponse]:
     """Get audit logs for a colony.
-    
+
     Returns a chronological history of changes made to the colony.
     Requires colony owner role.
     """
@@ -33,7 +33,7 @@ def get_audit_logs_by_colony(
         offset=offset,
         entity_type=entity_type,
     )
-    
+
     result: list[AuditLogResponse] = []
     for log in logs:
         if log.id is None or log.changed_at is None:
@@ -65,20 +65,20 @@ def get_audit_log(
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> AuditLogResponse:
     """Get a specific audit log entry by ID.
-    
+
     Requires colony owner role.
     """
     log = repository.get_by_id(log_id)
     if log is None:
         raise HTTPException(status_code=404, detail="Audit log entry not found")
-    
+
     # Validate the log belongs to the specified colony to prevent cross-colony access
     if log.colony_id != colony_id:
         raise HTTPException(status_code=404, detail="Audit log entry not found")
-    
+
     if log.id is None or log.changed_at is None:
         raise HTTPException(status_code=500, detail="Audit log data is incomplete")
-    
+
     assert log.id is not None
     return AuditLogResponse(
         id=log.id,

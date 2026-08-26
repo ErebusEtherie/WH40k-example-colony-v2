@@ -1,8 +1,8 @@
 # 15 — Responsive & Accessibility
 
-**Version:** 1.0  
-**Date:** 2026-08-24  
-**Status:** Complete  
+**Version:** 1.0
+**Date:** 2026-08-24
+**Status:** Complete
 
 ---
 
@@ -158,9 +158,9 @@ Respect user's `prefers-reduced-motion` setting:
 ### Error Association
 
 ```html
-<input 
-  type="email" 
-  id="email" 
+<input
+  type="email"
+  id="email"
   aria-invalid="true"
   aria-describedby="email-error"
 />

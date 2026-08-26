@@ -30,13 +30,13 @@ if TYPE_CHECKING:
 
 def get_client_ip(request: Request) -> str:
     """Extract client IP address from request, respecting X-Forwarded-For header.
-    
+
     Args:
         request: FastAPI request object
-        
+
     Returns:
         Client IP address string
-        
+
     Note:
         When behind a reverse proxy (nginx, Cloudflare, etc.), the X-Forwarded-For
         header contains the original client IP. This function respects that header
@@ -47,33 +47,33 @@ def get_client_ip(request: Request) -> str:
         # X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2, ...
         # Take the first (original client) IP
         return forwarded.split(",")[0].strip()
-    return get_remote_address(request)
+    return get_remote_address(request)  # type: ignore[no-any-return]
 
 
 def get_limiter() -> Limiter:
     """Get or create the rate limiter instance.
-    
+
     Returns:
         Configured Limiter instance
-        
+
     Note:
         Rate limiting is automatically disabled in test environment.
         The limiter is created once and stored at module level.
     """
     import os
     import sys
-    
+
     # Disable rate limiting in test environment
     # Check for pytest in sys.modules (set during test collection/execution)
     is_test_env = "pytest" in sys.modules or os.getenv("PYTEST_CURRENT_TEST")
-    
+
     if is_test_env:
         return Limiter(
             key_func=get_client_ip,
             default_limits=[],
             enabled=False,
         )
-    
+
     settings = get_security_settings()
     return Limiter(
         key_func=get_client_ip,
@@ -84,25 +84,26 @@ def get_limiter() -> Limiter:
 
 def get_rate_limit_exceeded_handler() -> Callable[["Request", RateLimitExceeded], "Response"]:
     """Get the rate limit exceeded exception handler.
-    
+
     Returns:
         Exception handler function for RateLimitExceeded
-        
+
     Usage:
         app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
     """
-    return _rate_limit_exceeded_handler
+    return _rate_limit_exceeded_handler  # type: ignore[no-any-return]
 
 
 # Rate limit decorators for common scenarios
 # These are applied to route handlers using @limiter.limit()
 
+
 def login_rate_limit() -> str:
     """Rate limit for login endpoint.
-    
+
     Returns:
         Rate limit string: 5 requests per minute per IP
-        
+
     Security Rationale:
         - Prevents brute force password attacks
         - Allows legitimate users multiple attempts for typos
@@ -116,10 +117,10 @@ def login_rate_limit() -> str:
 
 def register_rate_limit() -> str:
     """Rate limit for registration endpoint.
-    
+
     Returns:
         Rate limit string: 3 requests per minute per IP
-        
+
     Security Rationale:
         - Prevents mass account creation attacks
         - Slows down spam/fake account creation
@@ -130,10 +131,10 @@ def register_rate_limit() -> str:
 
 def refresh_token_rate_limit() -> str:
     """Rate limit for token refresh endpoint.
-    
+
     Returns:
         Rate limit string: 10 requests per minute per IP
-        
+
     Security Rationale:
         - Higher limit than login since token refresh is automated
         - Prevents token enumeration attacks
@@ -144,10 +145,10 @@ def refresh_token_rate_limit() -> str:
 
 def password_change_rate_limit() -> str:
     """Rate limit for password change endpoint.
-    
+
     Returns:
         Rate limit string: 5 requests per minute per IP
-        
+
     Security Rationale:
         - Prevents rapid password changes (account takeover indicator)
         - Allows legitimate user to retry if they mistype current password

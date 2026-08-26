@@ -1,4 +1,3 @@
-
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -115,10 +114,10 @@ def test_calculate_stat_locked_prevents_increases_property(base_value, modifier_
     ]
     unlocked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=False)
     locked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=True)
-    
+
     # When locked, result should be <= unlocked (can't increase, but can decrease)
     assert locked_result <= unlocked_result
-# When locked, result should be <= unlocked (can't increase, but can decrease)
+    # When locked, result should be <= unlocked (can't increase, but can decrease)
     assert locked_result <= unlocked_result
     # Result should still never go negative
     assert locked_result >= 0
@@ -143,11 +142,11 @@ def test_multiple_modifiers_stack_correctly(base_value: int, modifier_values: li
         )
         for i, value in enumerate(modifier_values)
     ]
-    
+
     result = calculate_stat(base_value, modifiers, ModifierStat.ORDER)
     expected = base_value + sum(modifier_values)
     expected = max(expected, 0)  # Clamped at 0
-    
+
     assert result == expected
 
 
@@ -156,7 +155,9 @@ def test_multiple_modifiers_stack_correctly(base_value: int, modifier_values: li
     positive_values=st.lists(st.integers(min_value=1, max_value=10), min_size=1, max_size=10),
     negative_values=st.lists(st.integers(min_value=-10, max_value=-1), min_size=1, max_size=10),
 )
-def test_positive_and_negative_modifiers_combine(base_value: int, positive_values: list[int], negative_values: list[int]):
+def test_positive_and_negative_modifiers_combine(
+    base_value: int, positive_values: list[int], negative_values: list[int]
+):
     """Property: Positive and negative modifiers combine correctly."""
     all_values = positive_values + negative_values
     modifiers = [
@@ -172,11 +173,11 @@ def test_positive_and_negative_modifiers_combine(base_value: int, positive_value
         )
         for i, value in enumerate(all_values)
     ]
-    
+
     result = calculate_stat(base_value, modifiers, ModifierStat.COMPLACENCY)
     expected = base_value + sum(all_values)
     expected = max(expected, 0)  # Clamped at 0
-    
+
     assert result == expected
 
 
@@ -199,7 +200,7 @@ def test_many_modifiers_never_cause_negative(base_value: int, modifier_values: l
         )
         for i, value in enumerate(modifier_values)
     ]
-    
+
     result = calculate_stat(base_value, modifiers, ModifierStat.PRODUCTIVITY)
     assert result >= 0
 
@@ -209,7 +210,9 @@ def test_many_modifiers_never_cause_negative(base_value: int, modifier_values: l
     active_values=st.lists(st.integers(min_value=-5, max_value=5), min_size=1, max_size=10),
     inactive_values=st.lists(st.integers(min_value=-100, max_value=100), min_size=1, max_size=10),
 )
-def test_inactive_modifiers_dont_affect_calculation(base_value: int, active_values: list[int], inactive_values: list[int]):
+def test_inactive_modifiers_dont_affect_calculation(
+    base_value: int, active_values: list[int], inactive_values: list[int]
+):
     """Property: Inactive modifiers are ignored in calculation."""
     active_modifiers = [
         Modifier(
@@ -224,7 +227,7 @@ def test_inactive_modifiers_dont_affect_calculation(base_value: int, active_valu
         )
         for i, value in enumerate(active_values)
     ]
-    
+
     # Generate inactive modifiers (should be ignored)
     inactive_modifiers = [
         Modifier(
@@ -239,10 +242,10 @@ def test_inactive_modifiers_dont_affect_calculation(base_value: int, active_valu
         )
         for i, value in enumerate(inactive_values)
     ]
-    
+
     all_modifiers = active_modifiers + inactive_modifiers
     result = calculate_stat(base_value, all_modifiers, ModifierStat.PIETY)
     expected = base_value + sum(active_values)
     expected = max(expected, 0)
-    
+
     assert result == expected

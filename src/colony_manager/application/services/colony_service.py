@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class RollStatusDict(TypedDict):
     """Dictionary type for roll status."""
-    
+
     event_roll_due: bool
     development_roll_due: bool
     days_since_event_roll: int
@@ -63,7 +63,7 @@ class ColonyService:
         changed_by: int,
     ) -> None:
         """Create an audit log entry if audit logging is enabled.
-        
+
         Args:
             colony_id: ID of the colony being modified.
             entity_type: Type of entity (e.g., "colony", "modifier").
@@ -76,7 +76,7 @@ class ColonyService:
         """
         if self._audit_log_repository is None:
             return
-        
+
         try:
             audit_log = AuditLog(
                 entity_type=entity_type,
@@ -96,19 +96,20 @@ class ColonyService:
 
     def create_colony(self, colony: Colony, changed_by: int | None = None) -> Colony:
         """Create a new colony.
-        
+
         Args:
             colony: Colony domain object to create.
             changed_by: Optional user ID who created the colony (for audit logging).
-            
+
         Returns:
             Created colony with ID populated.
         """
         result = self._colony_repository.create(colony)
-        
+
         # Automatically add the creator as an owner member of the colony
         if changed_by is not None and result.id is not None:
             from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
+
             membership = ColonyUser(
                 colony_id=result.id,
                 user_id=changed_by,
@@ -116,9 +117,13 @@ class ColonyService:
                 invited_by=changed_by,
             )
             self._colony_user_repository.create(membership)
-        
+
         # Log audit entry if audit logging is enabled and user ID provided
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=result.id,
                 entity_type="colony",
@@ -129,34 +134,38 @@ class ColonyService:
                 new_value=f"Colony created: {result.name}",
                 changed_by=changed_by,
             )
-        
+
         return result
 
     def update_age(self, colony_id: int, age_days: int, changed_by: int | None = None) -> Colony:
         """Update colony age.
-        
+
         Args:
             colony_id: The ID of the colony to update.
             age_days: New age in days.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             Updated colony.
-            
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
         colony = self._colony_repository.get(colony_id)
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
-        
+
         old_age = colony.age_days
         colony.age_days = age_days
         colony.age_last_updated = datetime.now(UTC).date()
         result = self._colony_repository.update(colony)
-        
+
         # Log audit entry if audit logging is enabled and user ID provided
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=result.id,
                 entity_type="colony",
@@ -167,32 +176,38 @@ class ColonyService:
                 new_value=str(age_days),
                 changed_by=changed_by,
             )
-        
+
         return result
 
-    def add_modifier(self, colony_id: int, modifier: Modifier, changed_by: int | None = None) -> Colony:
+    def add_modifier(
+        self, colony_id: int, modifier: Modifier, changed_by: int | None = None
+    ) -> Colony:
         """Add a modifier to a colony.
-        
+
         Args:
             colony_id: The ID of the colony.
             modifier: Modifier to add.
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             Updated colony with modifier added.
-            
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
         colony = self._colony_repository.get(colony_id)
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
-        
+
         colony.modifiers.append(modifier)
         result = self._colony_repository.update(colony)
-        
+
         # Log audit entry if audit logging is enabled and user ID provided
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=result.id,
                 entity_type="modifier",
@@ -203,21 +218,21 @@ class ColonyService:
                 new_value=f"Modifier added: {modifier.modifier_stat.value if hasattr(modifier.modifier_stat, 'value') else modifier.modifier_stat} = {modifier.modifier_value}",
                 changed_by=changed_by,
             )
-        
+
         return result
 
     def get_state(self, colony_id: int, as_of: date | None = None) -> dict[str, object]:
         """
         Get the calculated state for a colony.
-        
+
         Args:
             colony_id: The ID of the colony.
             as_of: Optional date to calculate state for (for modifier expiry).
                    Defaults to today if not provided.
-        
+
         Returns:
             Dict with calculated stats.
-        
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
@@ -228,13 +243,13 @@ class ColonyService:
 
     def get_colony(self, colony_id: int) -> Colony:
         """Get a colony by ID.
-        
+
         Args:
             colony_id: The ID of the colony to retrieve.
-            
+
         Returns:
             The colony domain object.
-            
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
@@ -249,11 +264,11 @@ class ColonyService:
         fields: dict[str, object],
     ) -> list[tuple[str, object, object]]:
         """Prepare audit log entries for field changes.
-        
+
         Args:
             colony: The colony being updated.
             fields: Dictionary of field names and new values.
-            
+
         Returns:
             List of tuples (field_name, old_value, new_value) for changed fields.
         """
@@ -267,7 +282,7 @@ class ColonyService:
 
     def _apply_field_changes(self, colony: Colony, fields: dict[str, object]) -> None:
         """Apply field changes to a colony.
-        
+
         Args:
             colony: The colony to update.
             fields: Dictionary of field names and values to apply.
@@ -283,7 +298,7 @@ class ColonyService:
         changed_by: int,
     ) -> None:
         """Log audit entries for colony field updates.
-        
+
         Args:
             colony_id: ID of the colony being updated.
             changes: List of (field, old_value, new_value) tuples.
@@ -308,43 +323,47 @@ class ColonyService:
         **fields: object,
     ) -> Colony:
         """Update colony fields.
-        
+
         Args:
             colony_id: The ID of the colony to update.
             changed_by: Optional user ID who made the change (for audit logging).
             **fields: Field names and values to update (e.g., representative_id=5).
-            
+
         Returns:
             Updated colony.
-            
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
         colony = self._colony_repository.get(colony_id)
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
-        
+
         # Prepare and apply changes
         changes_to_log = []
         if self._audit_log_repository is not None and changed_by is not None:
             changes_to_log = self._prepare_audit_changes(colony, fields)
-        
+
         self._apply_field_changes(colony, fields)
         result = self._colony_repository.update(colony)
-        
+
         # Log audit entries for each changed field
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_colony_update_audit(result.id, changes_to_log, changed_by)
-        
+
         return result
 
     def get_roll_status(self, colony_id: int) -> RollStatusDict:
         """
         Get the roll status for a colony (event and development rolls).
-        
+
         Args:
             colony_id: The ID of the colony.
-        
+
         Returns:
             Dict with keys:
                 - event_roll_due: bool - whether an event roll is due now
@@ -355,25 +374,25 @@ class ColonyService:
                 - days_until_development_roll: int - days until next dev roll
                 - event_interval_days: int - configured event roll interval
                 - development_interval_days: int - configured development roll interval
-        
+
         Raises:
             NotFoundError: If the colony does not exist.
         """
         colony = self._colony_repository.get(colony_id)
         if colony is None:
             raise NotFoundError(f"Colony {colony_id} not found")
-        
+
         # Get intervals from config
         event_interval = self._rule_config_provider.get_event_roll_interval_days()
         development_interval = self._rule_config_provider.get_development_roll_interval_days()
-        
+
         # Calculate roll timing
         cycle_info = colony.get_cycle_info(event_interval, development_interval)
-        
+
         # A roll is "due" when days_since is 0 (i.e., we're exactly on the interval)
         event_roll_due = cycle_info["days_since_event_roll"] == 0
         development_roll_due = cycle_info["days_since_development_roll"] == 0
-        
+
         return {
             "event_roll_due": event_roll_due,
             "development_roll_due": development_roll_due,

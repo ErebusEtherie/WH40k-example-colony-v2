@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 class DevelopmentPlanStatus(str, Enum):
     """Status enumeration for development plans.
-    
+
     Workflow: PLANNED <-> IN_PROGRESS <-> ACQUIRED -> DELIVERED
     - Any status can return to PLANNED
     - PLANNED can only go to IN_PROGRESS
@@ -20,7 +20,7 @@ class DevelopmentPlanStatus(str, Enum):
     - ACQUIRED can go to IN_PROGRESS, PLANNED, or DELIVERED
     - DELIVERED can go to ACQUIRED or PLANNED
     """
-    
+
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
     ACQUIRED = "acquired"
@@ -29,13 +29,13 @@ class DevelopmentPlanStatus(str, Enum):
 
 class DevelopmentPlan(BaseModel):
     """Domain model for colony development plans.
-    
+
     Development plans track long-term colony development goals such as
     acquiring specific infrastructure or support upgrades. They are purely
     informational and do not automatically affect stats. When a plan reaches
     DELIVERED status, it can be installed to create actual Infrastructure
     or Support Upgrades.
-    
+
     Attributes:
         id: Database ID (None if not yet persisted).
         colony_id: ID of the colony this plan belongs to.
@@ -50,7 +50,7 @@ class DevelopmentPlan(BaseModel):
         created_by: User ID of the user who created this plan.
         created_at: Timestamp when the plan was created.
     """
-    
+
     id: int | None = None
     colony_id: int
     upgrade_type: str = Field(pattern=r"^(infrastructure|support_upgrade)$")
@@ -63,4 +63,3 @@ class DevelopmentPlan(BaseModel):
     status: DevelopmentPlanStatus = DevelopmentPlanStatus.PLANNED
     created_by: int
     created_at: datetime | None = None
-

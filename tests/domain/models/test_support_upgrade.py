@@ -1,7 +1,5 @@
 """Tests for SupportUpgrade domain model validators and properties."""
 
-import pytest
-
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
 

@@ -14,7 +14,7 @@ from colony_manager.domain.models.support_upgrade import SupportUpgrade
 
 class Colony(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
-    
+
     id: int | None = None
     name: str
     owner: str
@@ -43,32 +43,34 @@ class Colony(BaseModel):
     # Planetary resources the colony is exploiting
     planetary_resources: list[ResourceType] = Field(default_factory=list)
     modifiers: list[Modifier] = Field(default_factory=list)
-    
+
     @field_validator("age_days")
     @classmethod
     def _validate_age_days(cls, value: int) -> int:
         if value < 0:
             raise ValueError("age_days cannot be negative")
         return value
-    
-    @field_validator("base_complacency", "base_order", "base_productivity", "base_piety", "base_size")
+
+    @field_validator(
+        "base_complacency", "base_order", "base_productivity", "base_piety", "base_size"
+    )
     @classmethod
     def _validate_base_stats(cls, value: int) -> int:
         if value < 0:
             raise ValueError("Base stats cannot be negative")
         return value
-    
+
     def get_cycle_info(self, event_interval: int, development_interval: int) -> dict[str, int]:
         """Calculate days since/until next rolls.
-        
+
         Args:
             event_interval: Global event roll interval in days (typically 60)
             development_interval: Global development roll interval in days (typically 90)
-        
+
         Returns:
             Dict with keys: days_since_event_roll, days_until_event_roll,
                            days_since_development_roll, days_until_development_roll
-        
+
         Note:
             When a roll is exactly due (age_days is a multiple of the interval),
             days_since is 0 and days_until is also 0 (not the full interval).

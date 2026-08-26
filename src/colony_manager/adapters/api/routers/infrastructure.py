@@ -24,9 +24,12 @@ from colony_manager.domain.models.user import User
 router = APIRouter(prefix="/colonies/{colony_id}/infrastructure", tags=["infrastructure"])
 
 
-def get_infrastructure_service(colony_id: int, db_path: str = Depends(dependencies.get_db_path)) -> InfrastructureService:
+def get_infrastructure_service(
+    colony_id: int, db_path: str = Depends(dependencies.get_db_path)
+) -> InfrastructureService:
     """Get infrastructure service instance with proper repositories."""
     from colony_manager.adapters.persistence.db import build_database_url
+
     db_url = build_database_url(db_path)
     colony_repo = SqlAlchemyColonyRepository(db_url)
     infra_repo = SqlAlchemyInfrastructureRepository(db_url)
@@ -50,11 +53,11 @@ async def list_infrastructure(
     """List all infrastructure for a colony with pagination."""
     _check_colony_exists(service, colony_id)
     all_infrastructure = service.list_by_colony(colony_id)
-    
+
     # Calculate pagination
     total = len(all_infrastructure)
-    items = all_infrastructure[offset:offset + limit]
-    
+    items = all_infrastructure[offset : offset + limit]
+
     return PaginatedResponse(
         items=[
             InfrastructureListItem(
@@ -147,10 +150,12 @@ async def update_infrastructure(
     _check_colony_exists(service, colony_id)
     try:
         if infra_data.state is not None:
-            infrastructure = service.update_infrastructure_state(infrastructure_id, infra_data.state)
+            infrastructure = service.update_infrastructure_state(
+                infrastructure_id, infra_data.state
+            )
         else:
             infrastructure = service.get_infrastructure(infrastructure_id)
-        
+
         if infrastructure.colony_id != colony_id:
             raise HTTPException(
                 status_code=404,

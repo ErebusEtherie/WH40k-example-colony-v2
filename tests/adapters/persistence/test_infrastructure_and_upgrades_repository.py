@@ -66,9 +66,21 @@ class TestInfrastructureRepository:
 
     def test_list_by_colony(self):
         repo = SqlAlchemyInfrastructureRepository("sqlite:///:memory:")
-        infra1 = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING)
-        infra2 = Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.PLANNED)
-        infra3 = Infrastructure(colony_id=2, infrastructure_type=InfrastructureType.WATER_MANAGEMENT, state=InfrastructureState.WORKING)
+        infra1 = Infrastructure(
+            colony_id=1,
+            infrastructure_type=InfrastructureType.POWER_NETWORK,
+            state=InfrastructureState.WORKING,
+        )
+        infra2 = Infrastructure(
+            colony_id=1,
+            infrastructure_type=InfrastructureType.TRANSPORT,
+            state=InfrastructureState.PLANNED,
+        )
+        infra3 = Infrastructure(
+            colony_id=2,
+            infrastructure_type=InfrastructureType.WATER_MANAGEMENT,
+            state=InfrastructureState.WORKING,
+        )
 
         repo.create(infra1)
         repo.create(infra2)
@@ -80,8 +92,20 @@ class TestInfrastructureRepository:
 
     def test_list_all(self):
         repo = SqlAlchemyInfrastructureRepository("sqlite:///:memory:")
-        repo.create(Infrastructure(colony_id=1, infrastructure_type=InfrastructureType.POWER_NETWORK, state=InfrastructureState.WORKING))
-        repo.create(Infrastructure(colony_id=2, infrastructure_type=InfrastructureType.TRANSPORT, state=InfrastructureState.PLANNED))
+        repo.create(
+            Infrastructure(
+                colony_id=1,
+                infrastructure_type=InfrastructureType.POWER_NETWORK,
+                state=InfrastructureState.WORKING,
+            )
+        )
+        repo.create(
+            Infrastructure(
+                colony_id=2,
+                infrastructure_type=InfrastructureType.TRANSPORT,
+                state=InfrastructureState.PLANNED,
+            )
+        )
 
         all_items = repo.list()
         assert len(all_items) == 2

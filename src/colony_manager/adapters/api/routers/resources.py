@@ -47,8 +47,11 @@ async def list_resources(
     resources = service.list_resources(colony_id)
     return [
         ResourceListItem(
-            id=r.id, name=r.name, resource_type=r.resource_type,
-            abundance=r.abundance, abundance_level=r.abundance_level,
+            id=r.id,
+            name=r.name,
+            resource_type=r.resource_type,
+            abundance=r.abundance,
+            abundance_level=r.abundance_level,
         )
         for r in resources
     ]
@@ -74,9 +77,12 @@ async def create_resource(
         assert resource.id is not None
         assert resource.colony_id is not None
         return ResourceResponse(
-            id=resource.id, colony_id=resource.colony_id,
-            resource_type=resource.resource_type, name=resource.name,
-            abundance=resource.abundance, notes=resource.notes,
+            id=resource.id,
+            colony_id=resource.colony_id,
+            resource_type=resource.resource_type,
+            name=resource.name,
+            abundance=resource.abundance,
+            notes=resource.notes,
             discovered_date=resource.discovered_date,
             abundance_level=resource.abundance_level,
         )
@@ -103,9 +109,12 @@ async def get_resource(
         assert resource.id is not None
         assert resource.colony_id is not None
         return ResourceResponse(
-            id=resource.id, colony_id=resource.colony_id,
-            resource_type=resource.resource_type, name=resource.name,
-            abundance=resource.abundance, notes=resource.notes,
+            id=resource.id,
+            colony_id=resource.colony_id,
+            resource_type=resource.resource_type,
+            name=resource.name,
+            abundance=resource.abundance,
+            notes=resource.notes,
             discovered_date=resource.discovered_date,
             abundance_level=resource.abundance_level,
         )
@@ -137,9 +146,12 @@ async def update_resource(
         assert resource.id is not None
         assert resource.colony_id is not None
         return ResourceResponse(
-            id=resource.id, colony_id=resource.colony_id,
-            resource_type=resource.resource_type, name=resource.name,
-            abundance=resource.abundance, notes=resource.notes,
+            id=resource.id,
+            colony_id=resource.colony_id,
+            resource_type=resource.resource_type,
+            name=resource.name,
+            abundance=resource.abundance,
+            notes=resource.notes,
             discovered_date=resource.discovered_date,
             abundance_level=resource.abundance_level,
         )

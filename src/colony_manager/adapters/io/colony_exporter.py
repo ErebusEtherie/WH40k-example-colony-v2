@@ -14,7 +14,7 @@ from colony_manager.domain.models.representative import Representative
 
 class ColonyExporter:
     """Export colony data to a portable JSON format."""
-    
+
     def export(
         self,
         colony: Colony,
@@ -25,7 +25,7 @@ class ColonyExporter:
         path: str | Path | None = None,
     ) -> str:
         """Export colony to JSON string or file.
-        
+
         Args:
             colony: The colony domain model
             representative: Optional representative model
@@ -33,11 +33,13 @@ class ColonyExporter:
             development_plans: Optional list of development plans
             colony_users: Optional list of colony users
             path: Optional file path to write to
-            
+
         Returns:
             JSON string of the save file
         """
-        save_file = domain_to_save_file(colony, representative, events, development_plans, colony_users)
+        save_file = domain_to_save_file(
+            colony, representative, events, development_plans, colony_users
+        )
         payload = save_file.model_dump_json(indent=2)
         if path is not None:
             Path(path).write_text(payload, encoding="utf-8")

@@ -54,11 +54,11 @@ security = HTTPBearer(
 
 def get_allowed_origins() -> list[str]:
     """Get allowed CORS origins from settings.
-    
+
     Returns:
         List of allowed origins. Defaults to localhost for development.
         Set ALLOWED_ORIGINS env var to comma-separated list for production.
-        
+
     Note:
         This function uses the CORSSettings class which loads from environment.
         For production, ensure ALLOWED_ORIGINS is set to your frontend domain(s).
@@ -71,16 +71,16 @@ def get_allowed_origins() -> list[str]:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize database and load configuration on startup."""
     from colony_manager.adapters.api.dependencies import init_rule_config_provider
-    
+
     # Initialize rule config provider singleton
     init_rule_config_provider()
     logger.info("Rule config provider initialized")
-    
+
     # Initialize database tables
     db_path = dependencies.get_db_path()
     init_db(db_path)
     logger.info("Database initialized")
-    
+
     yield
     # Cleanup on shutdown (if needed)
 
@@ -92,37 +92,36 @@ def create_app() -> FastAPI:
         description="REST API for managing Warhammer 40k Rogue Trader colonies",
         version="0.1.0",
         lifespan=lifespan,
-        openapi_tags=[
-        ],
+        openapi_tags=[],
     )
-    
+
     # Store original openapi method
     original_openapi = app.openapi
-    
+
     def custom_openapi() -> dict[str, object]:
         """Customize OpenAPI schema with JWT security scheme."""
         if app.openapi_schema:
             return app.openapi_schema
-        
+
         openapi_schema = original_openapi()
-        
+
         # Add JWT Bearer security scheme
         openapi_schema["components"]["securitySchemes"] = {
             "BearerAuth": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
-                "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)"
+                "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)",
             }
         }
-        
+
         # Apply security requirement globally (can be overridden per-endpoint)
         # Note: Auth endpoints don't require auth, so they override this
         openapi_schema["security"] = [{"BearerAuth": []}]
-        
+
         app.openapi_schema = openapi_schema
         return openapi_schema
-    
+
     app.openapi = custom_openapi  # type: ignore[method-assign]
 
     # CORS middleware - configurable via ALLOWED_ORIGINS environment variable
@@ -138,7 +137,7 @@ def create_app() -> FastAPI:
     # Rate limiting middleware
     limiter = get_limiter()
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())  # type: ignore[arg-type]
+    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
 
     # Security headers middleware
     app.add_middleware(SecurityHeadersMiddleware)
@@ -169,7 +168,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(ColonyManagerError)
-    async def colony_manager_error_handler(request: Request, exc: ColonyManagerError) -> JSONResponse:
+    async def colony_manager_error_handler(
+        request: Request, exc: ColonyManagerError
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": str(exc), "path": request.url.path},
@@ -195,5 +196,3 @@ def create_app() -> FastAPI:
         }
 
     return app
-
-

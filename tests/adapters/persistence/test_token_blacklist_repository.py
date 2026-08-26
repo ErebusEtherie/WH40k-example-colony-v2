@@ -3,10 +3,11 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-import pytest
 
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import SqlAlchemyTokenBlacklistRepository
+from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
+    SqlAlchemyTokenBlacklistRepository,
+)
 from colony_manager.domain.models.token_blacklist import TokenBlacklist
 
 
@@ -24,7 +25,7 @@ class TestTokenBlacklistCreate:
         """Test adding a token to the blacklist."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
         entry = TokenBlacklist(
             token_id="test-token-jti-123",
@@ -33,9 +34,9 @@ class TestTokenBlacklistCreate:
             revoked_at=now,
             reason="logout",
         )
-        
+
         created = repo.create(entry)
-        
+
         assert created.id is not None
         assert created.token_id == "test-token-jti-123"
         assert created.user_id == 1
@@ -45,7 +46,7 @@ class TestTokenBlacklistCreate:
         """Test adding blacklist entry without reason."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
         entry = TokenBlacklist(
             token_id="test-token-456",
@@ -53,9 +54,9 @@ class TestTokenBlacklistCreate:
             expires_at=now + timedelta(hours=1),
             revoked_at=now,
         )
-        
+
         created = repo.create(entry)
-        
+
         assert created.id is not None
         assert created.reason is None
 
@@ -67,7 +68,7 @@ class TestTokenBlacklistIsBlacklisted:
         """Test blacklisted token returns True."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
         entry = TokenBlacklist(
             token_id="blacklisted-token",
@@ -76,21 +77,21 @@ class TestTokenBlacklistIsBlacklisted:
             revoked_at=now,
         )
         repo.create(entry)
-        
+
         assert repo.is_blacklisted("blacklisted-token") is True
 
     def test_token_not_blacklisted(self, tmp_path):
         """Test non-blacklisted token returns False."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         assert repo.is_blacklisted("non-existent-token") is False
 
     def test_expired_token_not_blacklisted(self, tmp_path):
         """Test expired blacklist entry returns False."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
         entry = TokenBlacklist(
             token_id="expired-token",
@@ -99,7 +100,7 @@ class TestTokenBlacklistIsBlacklisted:
             revoked_at=now - timedelta(days=2),
         )
         repo.create(entry)
-        
+
         # Token is expired, so not considered blacklisted
         assert repo.is_blacklisted("expired-token") is False
 
@@ -111,15 +112,15 @@ class TestTokenBlacklistRevokeAll:
         """Test revoking all tokens for a user."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         # Create token issuance table and add some tokens
         from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
-        
+
         engine = create_engine(db_url)
         Session = sessionmaker(bind=engine)
-        
+
         now = datetime.now(UTC)
         with Session() as session:
             # Add 3 active tokens for user 1
@@ -132,7 +133,7 @@ class TestTokenBlacklistRevokeAll:
                     expires_at=now + timedelta(hours=1),
                 )
                 session.add(token)
-            
+
             # Add 1 expired token
             expired = TokenIssuanceORM(
                 user_id=1,
@@ -142,7 +143,7 @@ class TestTokenBlacklistRevokeAll:
                 expires_at=now - timedelta(days=1),
             )
             session.add(expired)
-            
+
             # Add 1 already revoked token
             revoked = TokenIssuanceORM(
                 user_id=1,
@@ -153,7 +154,7 @@ class TestTokenBlacklistRevokeAll:
                 revoked_at=now - timedelta(minutes=30),
             )
             session.add(revoked)
-            
+
             # Add tokens for different user
             other_user = TokenIssuanceORM(
                 user_id=2,
@@ -163,15 +164,15 @@ class TestTokenBlacklistRevokeAll:
                 expires_at=now + timedelta(hours=1),
             )
             session.add(other_user)
-            
+
             session.commit()
-        
+
         # Revoke all tokens for user 1
         count = repo.revoke_all_user_tokens(user_id=1, reason="password_change")
-        
+
         # Should only revoke the 3 active tokens
         assert count == 3
-        
+
         # Verify tokens are blacklisted
         assert repo.is_blacklisted("token-0") is True
         assert repo.is_blacklisted("token-1") is True
@@ -184,9 +185,9 @@ class TestTokenBlacklistRevokeAll:
         """Test revoking when user has no active tokens."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         count = repo.revoke_all_user_tokens(user_id=999, reason="test")
-        
+
         assert count == 0
 
 
@@ -197,9 +198,9 @@ class TestTokenBlacklistCleanup:
         """Test removing expired blacklist entries."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
-        
+
         # Add expired entry
         expired = TokenBlacklist(
             token_id="expired-1",
@@ -208,7 +209,7 @@ class TestTokenBlacklistCleanup:
             revoked_at=now - timedelta(days=3),
         )
         repo.create(expired)
-        
+
         # Add another expired entry
         expired2 = TokenBlacklist(
             token_id="expired-2",
@@ -217,7 +218,7 @@ class TestTokenBlacklistCleanup:
             revoked_at=now - timedelta(days=2),
         )
         repo.create(expired2)
-        
+
         # Add valid (non-expired) entry
         valid = TokenBlacklist(
             token_id="valid-1",
@@ -226,16 +227,16 @@ class TestTokenBlacklistCleanup:
             revoked_at=now,
         )
         repo.create(valid)
-        
+
         # Cleanup entries expired before now
         removed = repo.cleanup_expired(before=now)
-        
+
         assert removed == 2
-        
+
         # Verify expired entries are removed
         assert repo.is_blacklisted("expired-1") is False
         assert repo.is_blacklisted("expired-2") is False
-        
+
         # Verify valid entry still exists
         assert repo.is_blacklisted("valid-1") is True
 
@@ -243,9 +244,9 @@ class TestTokenBlacklistCleanup:
         """Test cleanup when no expired entries exist."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
-        
+
         # Add only valid entries
         valid = TokenBlacklist(
             token_id="valid-1",
@@ -254,9 +255,9 @@ class TestTokenBlacklistCleanup:
             revoked_at=now,
         )
         repo.create(valid)
-        
+
         removed = repo.cleanup_expired(before=now)
-        
+
         assert removed == 0
         assert repo.is_blacklisted("valid-1") is True
 
@@ -264,9 +265,9 @@ class TestTokenBlacklistCleanup:
         """Test cleanup uses current time by default."""
         db_url = _create_db_url(tmp_path)
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
-        
+
         now = datetime.now(UTC)
-        
+
         # Add entry that expired 2 days ago
         expired = TokenBlacklist(
             token_id="old-expired",
@@ -275,8 +276,8 @@ class TestTokenBlacklistCleanup:
             revoked_at=now - timedelta(days=3),
         )
         repo.create(expired)
-        
+
         # Cleanup without specifying before time (should use now)
         removed = repo.cleanup_expired()
-        
+
         assert removed == 1

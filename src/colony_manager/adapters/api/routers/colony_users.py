@@ -23,6 +23,8 @@ ERR_MEMBER_ALREADY_EXISTS = "User is already a member of this colony"
 ERR_USER_NO_ID = "Authenticated user has no ID"
 
 router = APIRouter(prefix="/colonies/{colony_id}/members", tags=["colony_users"])
+
+
 @router.get("", response_model=list[ColonyUserResponse])
 def get_colony_members(
     colony_id: int,
@@ -56,7 +58,7 @@ def add_colony_member(
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> ColonyUserResponse:
     """Add a user to a colony.
-    
+
     Requires appropriate permissions (typically owner or editor role).
     """
     if current_user.id is None:
@@ -64,7 +66,7 @@ def add_colony_member(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     try:
         membership = service.add_member(
             colony_id=colony_id,
@@ -77,13 +79,13 @@ def add_colony_member(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
-    
+
     if membership.id is None or membership.joined_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Created membership data is incomplete",
         )
-    
+
     return ColonyUserResponse(
         id=membership.id,
         colony_id=membership.colony_id,
@@ -108,13 +110,13 @@ def get_colony_member(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERR_MEMBER_NOT_FOUND,
         )
-    
+
     if membership.id is None or membership.joined_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Membership data is incomplete",
         )
-    
+
     return ColonyUserResponse(
         id=membership.id,
         colony_id=membership.colony_id,
@@ -134,7 +136,7 @@ def update_colony_member_role(
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> ColonyUserResponse:
     """Update a member's role in the colony.
-    
+
     Requires appropriate permissions (typically owner role).
     """
     if current_user.id is None:
@@ -142,26 +144,26 @@ def update_colony_member_role(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     membership = service.get_membership_by_colony_and_user(colony_id, user_id)
     if membership is None or membership.id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERR_MEMBER_NOT_FOUND,
         )
-    
+
     updated_membership = service.update_member_role(
         membership_id=membership.id,
         new_role=ColonyUserRole(member_data.role),
         changed_by=current_user.id,
     )
-    
+
     if updated_membership.id is None or updated_membership.joined_at is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Updated membership data is incomplete",
         )
-    
+
     return ColonyUserResponse(
         id=updated_membership.id,
         colony_id=updated_membership.colony_id,
@@ -180,7 +182,7 @@ def remove_colony_member(
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> None:
     """Remove a user from a colony.
-    
+
     Requires appropriate permissions (typically owner role).
     """
     if current_user.id is None:
@@ -188,14 +190,14 @@ def remove_colony_member(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     membership = service.get_membership_by_colony_and_user(colony_id, user_id)
     if membership is None or membership.id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERR_MEMBER_NOT_FOUND,
         )
-    
+
     service.remove_member(membership.id, changed_by=current_user.id)
 
 
@@ -207,10 +209,10 @@ def transfer_colony_ownership(
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
 ) -> dict[str, Any]:
     """Transfer colony ownership to another user.
-    
+
     Requires owner-level permissions. The current owner is demoted to editor
     by default (can be disabled with demote_current=False).
-    
+
     Returns:
         Dictionary with new_owner and previous_owner user IDs.
     """
@@ -219,7 +221,7 @@ def transfer_colony_ownership(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ERR_USER_NO_ID,
         )
-    
+
     # Verify current user is the owner
     current_membership = service.get_membership_by_colony_and_user(colony_id, current_user.id)
     if current_membership is None or current_membership.role != ColonyUserRole.OWNER:
@@ -227,7 +229,7 @@ def transfer_colony_ownership(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only the colony owner can transfer ownership",
         )
-    
+
     try:
         new_owner_membership, _previous_owner_membership = service.transfer_ownership(
             colony_id=colony_id,
@@ -236,7 +238,7 @@ def transfer_colony_ownership(
             demote_current=transfer_data.demote_current,
             changed_by=current_user.id,
         )
-        
+
         return {
             "message": "Ownership transferred successfully",
             "colony_id": colony_id,

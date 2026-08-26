@@ -40,7 +40,9 @@ class SqlAlchemySupportUpgradeRepository(SupportUpgradeRepository):
             if orm is None:
                 raise ValueError(f"SupportUpgrade {upgrade.id} not found")
             orm.upgrade_type = upgrade.upgrade_type.value
-            orm.custom_stat_choice = upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
+            orm.custom_stat_choice = (
+                upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
+            )
             orm.custom_product = upgrade.custom_product
             orm.affiliated_group = upgrade.affiliated_group
             session.commit()
@@ -62,4 +64,6 @@ class SqlAlchemySupportUpgradeRepository(SupportUpgradeRepository):
 
     def list(self) -> list[SupportUpgrade]:
         with Session(self._engine) as session:
-            return [orm_to_domain_support_upgrade(orm) for orm in session.query(SupportUpgradeORM).all()]
+            return [
+                orm_to_domain_support_upgrade(orm) for orm in session.query(SupportUpgradeORM).all()
+            ]

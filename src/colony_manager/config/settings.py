@@ -34,9 +34,7 @@ class SecuritySettings(BaseSettings):
     )
 
     # Password Policy
-    min_password_length: int = Field(
-        default=8, description="Minimum password length", ge=6
-    )
+    min_password_length: int = Field(default=8, description="Minimum password length", ge=6)
     require_password_complexity: bool = Field(
         default=True, description="Require password complexity"
     )
@@ -62,7 +60,7 @@ class SecuritySettings(BaseSettings):
         if environment != "development" and v == "dev-secret-key-change-in-production":
             raise ValueError(
                 "JWT_SECRET_KEY must be set to a secure value in production. "
-                "Generate with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                'Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
             )
         return v
 
@@ -79,7 +77,7 @@ class CORSSettings(BaseSettings):
 
     def get_origins_list(self) -> list[str]:
         """Parse allowed origins into a list.
-        
+
         Returns default localhost origins if allowed_origins is empty or whitespace-only.
         """
         origins = [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]

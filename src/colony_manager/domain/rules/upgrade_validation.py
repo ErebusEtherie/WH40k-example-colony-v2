@@ -36,22 +36,22 @@ def validate_upgrade_limits(
 ) -> list[str]:
     """
     Validate that adding a new upgrade doesn't exceed limits.
-    
+
     Per Rogue Trader Colony Rules:
     "A Colony cannot have more Support Upgrades than its Size."
-    
+
     Additionally checks per-type limits from config.
-    
+
     Args:
         colony: The colony to validate against.
         new_upgrade: The upgrade being added.
-    
+
     Returns:
         List of validation error messages (empty if valid).
     """
     errors = []
     limits = _load_upgrade_limits()
-    
+
     # Check global limit: total upgrades <= Size
     current_count = len(colony.support_upgrades)
     # Note: We're checking before adding, so +1 for the new upgrade
@@ -61,16 +61,15 @@ def validate_upgrade_limits(
             f"total upgrades to {colony.base_size}, but colony would have "
             f"{current_count + 1} upgrades."
         )
-    
+
     # Check per-type limits
     per_type_limits = limits.get("per_type_limits", {})
     upgrade_key = new_upgrade.upgrade_type.value
     max_count = per_type_limits.get(upgrade_key)
-    
+
     if max_count is not None:  # None means unlimited
         current_type_count = sum(
-            1 for u in colony.support_upgrades
-            if u.upgrade_type == new_upgrade.upgrade_type
+            1 for u in colony.support_upgrades if u.upgrade_type == new_upgrade.upgrade_type
         )
         if current_type_count + 1 > max_count:
             errors.append(
@@ -78,17 +77,17 @@ def validate_upgrade_limits(
                 f"Limit is {max_count}, but colony would have "
                 f"{current_type_count + 1}."
             )
-    
+
     return errors
 
 
 def check_upgrade_limits(colony: Colony) -> dict[str, Any]:
     """
     Check current upgrade limit status for a colony.
-    
+
     Args:
         colony: The colony to check.
-    
+
     Returns:
         Dict with limit status:
         - "global_ok": True if total upgrades <= Size
@@ -97,7 +96,7 @@ def check_upgrade_limits(colony: Colony) -> dict[str, Any]:
     """
     limits = _load_upgrade_limits()
     warnings = []
-    
+
     # Check global limit
     global_ok = len(colony.support_upgrades) <= colony.base_size
     if not global_ok:
@@ -106,29 +105,26 @@ def check_upgrade_limits(colony: Colony) -> dict[str, Any]:
             f"is {colony.base_size} (over limit by "
             f"{len(colony.support_upgrades) - colony.base_size})."
         )
-    
+
     # Check per-type limits
     per_type_limits = limits.get("per_type_limits", {})
     per_type_ok: dict[str, bool] = {}
-    
+
     for upgrade_type_str, max_count in per_type_limits.items():
         if max_count is None:
             per_type_ok[upgrade_type_str] = True
             continue
-        
+
         upgrade_type = SupportUpgradeType(upgrade_type_str)
-        count = sum(
-            1 for u in colony.support_upgrades
-            if u.upgrade_type == upgrade_type
-        )
+        count = sum(1 for u in colony.support_upgrades if u.upgrade_type == upgrade_type)
         per_type_ok[upgrade_type_str] = count <= max_count
-        
+
         if count > max_count:
             warnings.append(
                 f"Colony has {count} {upgrade_type_str} but limit is "
                 f"{max_count} (over limit by {count - max_count})."
             )
-    
+
     return {
         "global_ok": global_ok,
         "per_type_ok": per_type_ok,

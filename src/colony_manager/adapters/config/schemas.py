@@ -99,11 +99,12 @@ class SupportUpgradeConfig(BaseModel):
 # =============================================================================
 class PersonalityStatEffect(BaseModel):
     """A single stat effect from a personality.
-    
+
     For fixed values, use int (e.g., value: 1 for +1 bonus).
     For variable dice rolls, use str dice expression (e.g., "-1d5" for Mad personality).
     Dice expressions are NOT rolled by the engine - GM/player must provide the rolled result.
     """
+
     stat: str
     value: int | str
     condition: str | None = None
@@ -188,12 +189,14 @@ class StatLossMitigationEntry(BaseModel):
 
 class GameCyclesConfig(BaseModel):
     """Global configuration for game cycle intervals."""
+
     event_roll_interval_days: int = 60
     development_roll_interval_days: int = 90
 
 
 class PFStateBonusesConfig(BaseModel):
     """Profit Factor bonuses for colony states."""
+
     placated: int = 1
     productive: int = 2
     orderly: int = 2

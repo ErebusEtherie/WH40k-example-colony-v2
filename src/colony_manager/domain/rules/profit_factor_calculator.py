@@ -31,7 +31,7 @@ def calculate_profit_factor(
 ) -> int:
     """
     Calculate a colony's profit factor based on the current state.
-    
+
     Args:
         base_profit_factor: Base PF from Size table.
         current_complacency: Current Complacency value.
@@ -45,15 +45,15 @@ def calculate_profit_factor(
             This is determined by checking if Order > Size.
         state_bonuses: Dict with 'placated', 'productive', 'orderly' bonus values.
             Defaults to standard values if not provided.
-    
+
     Returns:
         Final Profit Factor value (minimum 0).
     """
     # Use config-driven bonuses or defaults per Rogue Trader Colony Rules
     bonuses = state_bonuses or {"placated": 1, "productive": 2, "orderly": 2}
-    
+
     pf_raw = base_profit_factor
-    
+
     # State bonuses
     if current_complacency > actual_size:
         pf_raw += bonuses.get("placated", 1)  # Placated
@@ -61,19 +61,19 @@ def calculate_profit_factor(
         pf_raw += bonuses.get("productive", 2)  # Productive
     if is_orderly:
         pf_raw += bonuses.get("orderly", 2)  # Orderly (per rulebook)
-    
+
     # Leadership modifier
     pf_raw += leadership_modifier
-    
+
     # Custom modifiers
     for modifier in modifiers:
         if modifier.is_active and modifier.modifier_stat == ModifierStat.PROFIT_FACTOR:
             pf_raw += modifier.modifier_value
-    
+
     # Apply penalties
     if current_order == 0:
         return 0  # Anarchy
     if current_productivity == 0:
         return max(floor(pf_raw / 2), 0)  # Halted (round down)
-    
+
     return max(pf_raw, 0)

@@ -150,7 +150,7 @@ class TestStateEffectsOnProfitFactor:
         self, base_colony: Colony, colony_state_calculator
     ) -> None:
         """Orderly state should trigger when modifiers push Order > Size."""
-        
+
         # Base Order = 5, Size = 5 (not Orderly)
         colony = base_colony.model_copy(
             update={
@@ -158,12 +158,12 @@ class TestStateEffectsOnProfitFactor:
                 "base_size": 5,
             }
         )
-        
+
         # Without modifier: not Orderly
         state = colony_state_calculator.calculate(colony)
         assert state["lore_state"]["order"] == "stable"
         assert state["productivity"] == 5  # No +2 bonus
-        
+
         # Add +1 Order modifier
         order_modifier = Modifier(
             colony_id=1,
@@ -176,7 +176,7 @@ class TestStateEffectsOnProfitFactor:
         colony_with_modifier = colony.model_copy(
             update={"modifiers": colony.modifiers + [order_modifier]}
         )
-        
+
         # With modifier: Order = 6 > Size = 5, so Orderly triggers
         state = colony_state_calculator.calculate(colony_with_modifier)
         assert state["lore_state"]["order"] == "orderly"
@@ -186,7 +186,7 @@ class TestStateEffectsOnProfitFactor:
         self, base_colony: Colony, colony_state_calculator
     ) -> None:
         """Pious state should trigger when modifiers push Piety > Size."""
-        
+
         # Base Piety = 5, Size = 5 (not Pious)
         colony = base_colony.model_copy(
             update={
@@ -194,13 +194,13 @@ class TestStateEffectsOnProfitFactor:
                 "base_size": 5,
             }
         )
-        
+
         # Without modifier: not Pious
         state = colony_state_calculator.calculate(colony)
         assert state["lore_state"]["piety"] == "stable"
         assert state["order"] == 5  # No +1 bonus
         assert state["complacency"] == 5  # No +1 bonus
-        
+
         # Add +1 Piety modifier
         piety_modifier = Modifier(
             colony_id=1,
@@ -213,13 +213,12 @@ class TestStateEffectsOnProfitFactor:
         colony_with_modifier = colony.model_copy(
             update={"modifiers": colony.modifiers + [piety_modifier]}
         )
-        
+
         # With modifier: Piety = 6 > Size = 5, so Pious triggers
         state = colony_state_calculator.calculate(colony_with_modifier)
         assert state["lore_state"]["piety"] == "pious"
         assert state["order"] == 6  # Base 5 + Pious +1
         assert state["complacency"] == 6  # Base 5 + Pious +1
-
 
     def test_orderly_adds_bonus_to_profit_factor(
         self, base_colony: Colony, colony_state_calculator

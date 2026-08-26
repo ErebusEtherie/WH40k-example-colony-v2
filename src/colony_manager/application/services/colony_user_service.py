@@ -12,10 +12,10 @@ from colony_manager.domain.ports.colony_user_repository import ColonyUserReposit
 
 class ColonyUserService:
     """Service for managing colony-user memberships.
-    
+
     This service handles membership CRUD operations and ensures proper audit logging.
     """
-    
+
     def __init__(
         self,
         membership_repository: ColonyUserRepository,
@@ -23,7 +23,7 @@ class ColonyUserService:
     ) -> None:
         self._membership_repository = membership_repository
         self._audit_log_repository = audit_log_repository
-    
+
     def add_member(
         self,
         colony_id: int,
@@ -32,16 +32,16 @@ class ColonyUserService:
         invited_by: int | None = None,
     ) -> ColonyUser:
         """Add a user to a colony.
-        
+
         Args:
             colony_id: ID of the colony.
             user_id: ID of the user to add.
             role: Role to assign to the user.
             invited_by: User ID who invited this user (optional).
-            
+
         Returns:
             Created membership.
-            
+
         Raises:
             ValueError: If user is already a member.
         """
@@ -51,16 +51,16 @@ class ColonyUserService:
             role=role,
             invited_by=invited_by,
         )
-        
+
         created_membership = self._membership_repository.create(membership)
-        
+
         # Log the creation
         if self._audit_log_repository:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
-            
+
             if created_membership.id is None:
                 raise RuntimeError("Created membership has no ID")
-            
+
             audit_log = AuditLog(
                 entity_type="colony_membership",
                 entity_id=created_membership.id,
@@ -71,27 +71,25 @@ class ColonyUserService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        
+
         return created_membership
-    
+
     def get_membership(self, membership_id: int) -> ColonyUser | None:
         """Get a membership by ID."""
         return self._membership_repository.get_by_id(membership_id)
-    
-    def get_membership_by_colony_and_user(
-        self, colony_id: int, user_id: int
-    ) -> ColonyUser | None:
+
+    def get_membership_by_colony_and_user(self, colony_id: int, user_id: int) -> ColonyUser | None:
         """Get a user's membership in a specific colony."""
         return self._membership_repository.get_by_colony_and_user(colony_id, user_id)
-    
+
     def get_members_by_colony(self, colony_id: int) -> list[ColonyUser]:
         """Get all members of a colony."""
         return self._membership_repository.get_by_colony(colony_id)
-    
+
     def get_colonies_by_user(self, user_id: int) -> list[ColonyUser]:
         """Get all colonies a user is a member of."""
         return self._membership_repository.get_by_user(user_id)
-    
+
     def update_member_role(
         self,
         membership_id: int,
@@ -99,31 +97,31 @@ class ColonyUserService:
         changed_by: int,
     ) -> ColonyUser:
         """Update a member's role.
-        
+
         Args:
             membership_id: ID of the membership.
             new_role: New role to assign.
             changed_by: User ID making the change.
-            
+
         Returns:
             Updated membership.
-            
+
         Raises:
             NotFoundError: If membership not found.
         """
         membership = self._membership_repository.get_by_id(membership_id)
         if membership is None:
             raise NotFoundError(f"Membership with ID {membership_id} not found")
-        
+
         old_role = membership.role
         membership.role = new_role
-        
+
         updated_membership = self._membership_repository.update(membership)
-        
+
         # Log the update
         if self._audit_log_repository:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
-            
+
             audit_log = AuditLog(
                 entity_type="colony_membership",
                 entity_id=membership_id,
@@ -135,30 +133,30 @@ class ColonyUserService:
                 colony_id=membership.colony_id,
             )
             self._audit_log_repository.create(audit_log)
-        
+
         return updated_membership
-    
+
     def remove_member(self, membership_id: int, changed_by: int | None = None) -> None:
         """Remove a user from a colony.
-        
+
         Args:
             membership_id: ID of the membership to remove.
             changed_by: User ID making the change (optional).
-            
+
         Raises:
             NotFoundError: If membership not found.
         """
         membership = self._membership_repository.get_by_id(membership_id)
         if membership is None:
             raise NotFoundError(f"Membership with ID {membership_id} not found")
-        
+
         colony_id = membership.colony_id
         self._membership_repository.delete(membership_id)
-        
+
         # Log the deletion
         if self._audit_log_repository and changed_by:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
-            
+
             audit_log = AuditLog(
                 entity_type="colony_membership",
                 entity_id=membership_id,
@@ -167,7 +165,7 @@ class ColonyUserService:
                 colony_id=colony_id,
             )
             self._audit_log_repository.create(audit_log)
-    
+
     def transfer_ownership(
         self,
         colony_id: int,
@@ -177,42 +175,44 @@ class ColonyUserService:
         changed_by: int | None = None,
     ) -> tuple[ColonyUser, ColonyUser | None]:
         """Transfer colony ownership from one user to another.
-        
+
         Args:
             colony_id: ID of the colony.
             current_owner_id: ID of the current owner.
             new_owner_id: ID of the new owner.
             demote_current: Whether to demote current owner to editor (default True).
             changed_by: User ID making the change (optional, for audit log).
-            
+
         Returns:
             Tuple of (new_owner_membership, current_owner_membership_or_none).
-            
+
         Raises:
             NotFoundError: If either user is not a member of the colony.
             ValueError: If new_owner_id is the same as current_owner_id.
         """
         if current_owner_id == new_owner_id:
             raise ValueError("Cannot transfer ownership to the same user")
-        
+
         # Get current owner's membership
         current_owner_membership = self._membership_repository.get_by_colony_and_user(
             colony_id, current_owner_id
         )
         if current_owner_membership is None:
-            raise NotFoundError(f"Current owner (user {current_owner_id}) is not a member of colony {colony_id}")
-        
+            raise NotFoundError(
+                f"Current owner (user {current_owner_id}) is not a member of colony {colony_id}"
+            )
+
         # Get or create new owner's membership
         new_owner_membership = self._membership_repository.get_by_colony_and_user(
             colony_id, new_owner_id
         )
-        
+
         # Update current owner's role to editor if demoting
         old_owner_role = current_owner_membership.role
         if demote_current:
             current_owner_membership.role = ColonyUserRole.EDITOR
             self._membership_repository.update(current_owner_membership)
-        
+
         # Update or create new owner's membership
         if new_owner_membership is None:
             # Create new membership for new owner
@@ -227,11 +227,11 @@ class ColonyUserService:
             old_new_owner_role = new_owner_membership.role
             new_owner_membership.role = ColonyUserRole.OWNER
             new_owner_membership = self._membership_repository.update(new_owner_membership)
-        
+
         # Log the ownership transfer
         if self._audit_log_repository and changed_by:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
-            
+
             # Log current owner role change
             if current_owner_membership.id is not None:
                 audit_log = AuditLog(
@@ -245,7 +245,7 @@ class ColonyUserService:
                     colony_id=colony_id,
                 )
                 self._audit_log_repository.create(audit_log)
-            
+
             # Log new owner role change
             if new_owner_membership.id is not None:
                 audit_log = AuditLog(
@@ -259,5 +259,5 @@ class ColonyUserService:
                     colony_id=colony_id,
                 )
                 self._audit_log_repository.create(audit_log)
-        
+
         return new_owner_membership, current_owner_membership if demote_current else None

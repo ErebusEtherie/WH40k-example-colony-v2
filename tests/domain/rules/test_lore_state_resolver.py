@@ -1,4 +1,3 @@
-
 from colony_manager.domain.enums import LoreState, ModifierStat
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 
@@ -24,4 +23,6 @@ def test_resolve_lore_state_orderly():
 
 
 def test_resolve_lore_state_riots_and_unrest():
-    assert resolve_lore_state(ModifierStat.COMPLACENCY, value=0, size=5) == LoreState.RIOTS_AND_UNREST
+    assert (
+        resolve_lore_state(ModifierStat.COMPLACENCY, value=0, size=5) == LoreState.RIOTS_AND_UNREST
+    )

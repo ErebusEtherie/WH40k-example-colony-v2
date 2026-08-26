@@ -25,7 +25,9 @@ class TestEventModifierValidators:
 
     def test_valid_event_modifier(self):
         """Valid EventModifier with all fields."""
-        mod = EventModifier(stat=ModifierStat.ORDER, value=-5, description="Warp storm causes unrest")
+        mod = EventModifier(
+            stat=ModifierStat.ORDER, value=-5, description="Warp storm causes unrest"
+        )
         assert mod.stat == ModifierStat.ORDER
         assert mod.value == -5
         assert mod.description == "Warp storm causes unrest"
@@ -118,8 +120,12 @@ class TestEventDefaults:
             description="A warp storm disrupts communications",
             created_by=1,
             modifiers=[
-                EventModifier(stat=ModifierStat.ORDER, value=-2, description="Communication blackout"),
-                EventModifier(stat=ModifierStat.PRODUCTIVITY, value=-1, description="Supply delays"),
+                EventModifier(
+                    stat=ModifierStat.ORDER, value=-2, description="Communication blackout"
+                ),
+                EventModifier(
+                    stat=ModifierStat.PRODUCTIVITY, value=-1, description="Supply delays"
+                ),
             ],
         )
         assert len(event.modifiers) == 2

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class AuditLogActionEnum(str):
     """Enum for audit log actions."""
-    
+
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -15,7 +15,7 @@ class AuditLogActionEnum(str):
 
 class AuditLogFilter(BaseModel):
     """Schema for filtering audit log queries."""
-    
+
     entity_type: str | None = Field(default=None, max_length=50)
     start_date: datetime | None = None
     end_date: datetime | None = None
@@ -25,7 +25,7 @@ class AuditLogFilter(BaseModel):
 
 class AuditLogResponse(BaseModel):
     """Schema for audit log response."""
-    
+
     id: int
     entity_type: str
     entity_id: int
@@ -36,5 +36,5 @@ class AuditLogResponse(BaseModel):
     changed_by: int
     changed_at: datetime
     colony_id: int
-    
+
     model_config = {"from_attributes": True}

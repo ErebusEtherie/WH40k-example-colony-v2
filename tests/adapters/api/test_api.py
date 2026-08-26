@@ -1,13 +1,5 @@
 """API integration tests."""
 
-from pathlib import Path
-
-import pytest
-from fastapi.testclient import TestClient
-
-from colony_manager.adapters.api.app import create_app
-from colony_manager.adapters.persistence.db import init_db
-
 
 def test_root_endpoint(test_client):
     """Test root endpoint returns API info."""
@@ -39,13 +31,15 @@ def test_create_and_get_colony(auth_client):
     colony = response.json()
     assert colony["name"] == "Test Colony"
     assert "id" in colony
+
+
 def test_colony_state_nested(auth_client):
     """Test that state is returned in nested format."""
     create_data = {"name": "State Test", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony = response.json()
     colony_id = colony["id"]
-    
+
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/state")
     assert response.status_code == 200
     state = response.json()
@@ -60,7 +54,7 @@ def test_update_colony(auth_client):
     create_data = {"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony_id = response.json()["id"]
-    
+
     update_data = {"name": "Updated Colony"}
     response = auth_client.put(f"/api/v1/colonies/{colony_id}", json=update_data)
     assert response.status_code == 200
@@ -72,10 +66,10 @@ def test_delete_colony(auth_client):
     create_data = {"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony_id = response.json()["id"]
-    
+
     response = auth_client.delete(f"/api/v1/colonies/{colony_id}")
     assert response.status_code == 204
-    
+
     response = auth_client.get(f"/api/v1/colonies/{colony_id}")
     assert response.status_code == 404
 
@@ -85,40 +79,42 @@ def test_advance_colony_age(auth_client):
     create_data = {"name": "Age Test", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony_id = response.json()["id"]
-    
+
     response = auth_client.post(f"/api/v1/colonies/{colony_id}/age", params={"age_days": 30})
     assert response.status_code == 200
     assert response.json()["age_days"] == 30
+
+
 def test_colony_modifiers(auth_client):
     """Test adding and listing modifiers."""
     create_data = {"name": "Modifier Test", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony_id = response.json()["id"]
-    
+
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
     assert response.status_code == 200
     assert response.json() == []
-    
+
     modifier_data = {
         "modifier_source_type": "infrastructure",
         "modifier_category": "permanent",
         "modifier_stat": "complacency",
         "modifier_value": 5,
-        "modifier_description": "Test infrastructure"
+        "modifier_description": "Test infrastructure",
     }
     response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=modifier_data)
     assert response.status_code == 201
     modifier = response.json()
     assert modifier["modifier_value"] == 5
-    
+
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
     assert response.status_code == 200
     assert len(response.json()) == 1
-    
+
     modifier_id = modifier["id"]
     response = auth_client.delete(f"/api/v1/colonies/{colony_id}/modifiers/{modifier_id}")
     assert response.status_code == 204
-    
+
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
     assert response.json() == []
 
@@ -149,7 +145,7 @@ def test_create_representative(auth_client):
     assert rep["name"] == "Test Rep"
     assert rep["type"] == "satrap"
     assert "leadership_modifier" in rep
-    
+
     rep_id = rep["id"]
     response = auth_client.get(f"/api/v1/representatives/{rep_id}")
     assert response.status_code == 200
@@ -161,7 +157,7 @@ def test_assign_representative(auth_client):
     colony_data = {"name": "Colony for Rep", "owner": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=colony_data)
     colony_id = response.json()["id"]
-    
+
     rep_data = {
         "name": "Assigned Rep",
         "type": "satrap",
@@ -188,6 +184,8 @@ def test_assign_representative(auth_client):
     )
     assert response.status_code == 200
     assert response.json()["assigned_to_colony_id"] == colony_id
+
+
 def test_list_all_modifiers(auth_client):
     """Test listing all modifiers across colonies."""
     for i in range(2):
@@ -204,10 +202,10 @@ def test_list_all_modifiers(auth_client):
             "modifier_category": "permanent",
             "modifier_stat": "order",
             "modifier_value": 3,
-            "modifier_description": f"Test {i}"
+            "modifier_description": f"Test {i}",
         }
         auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=modifier_data)
-    
+
     response = auth_client.get("/api/v1/modifiers")
     assert response.status_code == 200
     modifiers = response.json()
@@ -226,5 +224,3 @@ def test_docs_available(test_client):
     response = test_client.get("/docs")
     assert response.status_code == 200
     assert "swagger" in response.text.lower() or "openapi" in response.text.lower()
-
-

@@ -1,12 +1,6 @@
 """Infrastructure API integration tests."""
 
-from pathlib import Path
-
 import pytest
-from fastapi.testclient import TestClient
-
-from colony_manager.adapters.api.app import create_app
-from colony_manager.adapters.persistence.db import init_db
 
 
 @pytest.fixture
@@ -26,7 +20,9 @@ class TestInfrastructureAPI:
 
     def test_create_infrastructure(self, auth_client, colony):
         create_data = {"infrastructure_type": "power_network", "state": "working"}
-        response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data
+        )
         assert response.status_code == 201
         data = response.json()
         assert data["infrastructure_type"] == "power_network"
@@ -42,7 +38,9 @@ class TestInfrastructureAPI:
 
     def test_get_infrastructure(self, auth_client, colony):
         create_data = {"infrastructure_type": "power_network", "state": "working"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data
+        )
         infra_id = create_response.json()["id"]
         response = auth_client.get(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}")
         assert response.status_code == 200
@@ -55,22 +53,30 @@ class TestInfrastructureAPI:
 
     def test_update_infrastructure_state(self, auth_client, colony):
         create_data = {"infrastructure_type": "power_network", "state": "planned"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data
+        )
         infra_id = create_response.json()["id"]
         update_data = {"state": "not_working"}
-        response = auth_client.patch(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}", json=update_data)
+        response = auth_client.patch(
+            f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}", json=update_data
+        )
         assert response.status_code == 200
         assert response.json()["state"] == "not_working"
         assert response.json()["is_not_working"] is True
 
     def test_update_infrastructure_missing_raises(self, auth_client, colony):
         update_data = {"state": "working"}
-        response = auth_client.patch(f"/api/v1/colonies/{colony['id']}/infrastructure/9999", json=update_data)
+        response = auth_client.patch(
+            f"/api/v1/colonies/{colony['id']}/infrastructure/9999", json=update_data
+        )
         assert response.status_code == 404
 
     def test_delete_infrastructure(self, auth_client, colony):
         create_data = {"infrastructure_type": "power_network", "state": "working"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data
+        )
         infra_id = create_response.json()["id"]
         response = auth_client.delete(f"/api/v1/colonies/{colony['id']}/infrastructure/{infra_id}")
         assert response.status_code == 204
@@ -83,7 +89,9 @@ class TestInfrastructureAPI:
 
     def test_infrastructure_state_defaults_to_planned(self, auth_client, colony):
         create_data = {"infrastructure_type": "transport"}
-        response = auth_client.post(f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data)
+        response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/infrastructure", json=create_data
+        )
         assert response.status_code == 201
         assert response.json()["state"] == "planned"
         assert response.json()["has_effect"] is False

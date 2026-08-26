@@ -45,20 +45,22 @@ async def list_users(
     offset: Annotated[int, Query(ge=0, description="Number of users to skip")] = 0,
 ) -> UserListResponse:
     """List all users with pagination.
-    
+
     Requires admin privileges. Returns paginated list of users.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     users, total = user_service.list_users(limit=limit, offset=offset)
     has_more = (offset + limit) < total
 
@@ -78,22 +80,24 @@ async def create_user(
     user_data: UserCreate,
 ) -> UserResponse:
     """Create a new user.
-    
+
     Requires admin privileges. Creates a new user account with the provided details.
     Username and email are immutable after creation.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin.
         HTTPException: 400 if username or email already exists.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     try:
         created_user = user_service.create_user(
             username=user_data.username,
@@ -118,28 +122,30 @@ async def get_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserResponse:
     """Get a specific user by ID.
-    
+
     Requires admin privileges.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin.
         HTTPException: 404 if user not found.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     user = user_service.get_user(user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with ID {user_id} not found",
         )
-    
+
     return _user_to_response(user)
 
 
@@ -151,23 +157,25 @@ async def update_user(
     user_data: UserUpdate,
 ) -> UserResponse:
     """Update a user.
-    
+
     Requires admin privileges. Username and email are immutable.
     Admins cannot modify other admins, and users cannot escalate their own privileges.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin or lacks permission.
         HTTPException: 404 if user not found.
         HTTPException: 400 if validation fails.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     try:
         updated_user = user_service.update_user(
             user_id=user_id,
@@ -200,22 +208,24 @@ async def delete_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> None:
     """Delete a user (soft delete).
-    
+
     Requires admin privileges. Sets is_active to False instead of hard deleting.
     Admins cannot delete other admins.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin or lacks permission.
         HTTPException: 404 if user not found.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     try:
         user_service.delete_user(
             user_id=user_id,
@@ -241,22 +251,24 @@ async def reset_password(
     password_data: UserPasswordReset,
 ) -> UserResponse:
     """Reset a user's password.
-    
+
     Requires admin privileges. Sets a temporary password that the user
     must change on next login.
-    
+
     Raises:
         HTTPException: 403 if user is not an admin or lacks permission.
         HTTPException: 404 if user not found.
     """
     # Check admin role
-    user_role = current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    user_role = (
+        current_user.role.value if isinstance(current_user.role, UserRole) else current_user.role
+    )
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
+
     try:
         updated_user = user_service.reset_password(
             user_id=user_id,
@@ -279,4 +291,3 @@ async def reset_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
-

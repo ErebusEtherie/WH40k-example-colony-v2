@@ -25,6 +25,7 @@ class SaveModifier(BaseModel):
 
 class SaveEventModifier(BaseModel):
     """Schema for event modifiers in save files."""
+
     stat: ModifierStat
     value: int
     description: str
@@ -32,6 +33,7 @@ class SaveEventModifier(BaseModel):
 
 class SaveEvent(BaseModel):
     """Schema for events in save files."""
+
     name: str
     description: str
     is_active: bool = True
@@ -41,6 +43,7 @@ class SaveEvent(BaseModel):
 
 class SaveDevelopmentPlan(BaseModel):
     """Schema for development plans in save files."""
+
     upgrade_type: str
     target_type: str
     target_name: str
@@ -55,6 +58,7 @@ class SaveDevelopmentPlan(BaseModel):
 
 class SaveColonyUser(BaseModel):
     """Schema for colony users in save files."""
+
     user_id: int
     username: str | None = None
     role: ColonyUserRole
@@ -105,6 +109,7 @@ class SaveRepresentative(BaseModel):
 
 class ColonySaveFile(BaseModel):
     """Complete colony save file schema including all related data."""
+
     name: str
     owner: str
     colony_type: str

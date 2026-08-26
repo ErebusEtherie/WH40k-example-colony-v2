@@ -30,24 +30,24 @@ class RepresentativeStats(BaseModel):
     per: int = Field(gt=0)
     wp: int = Field(gt=0)
     fel: int = Field(gt=0)
-    
+
     model_config = {"populate_by_name": True}
-    
+
     @property
     def int_bonus(self) -> int:
         """Calculate Intelligence bonus (stat / 10, floor)."""
         return self.int_ // 10
-    
+
     @property
     def per_bonus(self) -> int:
         """Calculate Perception bonus (stat / 10, floor)."""
         return self.per // 10
-    
+
     @property
     def fel_bonus(self) -> int:
         """Calculate Fellowship bonus (stat / 10, floor)."""
         return self.fel // 10
-    
+
     @property
     def highest_leadership_bonus(self) -> int:
         """Get highest of Int, Per, Fel bonus for Leadership modifier."""
@@ -81,15 +81,15 @@ class Representative(BaseModel):
     assigned_to_colony_id: int | None = None
     # Special trait description (GM reference note, no mechanical effect)
     special_trait_description: str | None = None
-    
-    @model_validator(mode='after')
-    def validate_no_duplicate_personalities(self) -> 'Representative':
+
+    @model_validator(mode="after")
+    def validate_no_duplicate_personalities(self) -> "Representative":
         """Ensure no duplicate personalities are assigned.
-        
+
         Per Rogue Trader Colony Rules (Core Principles #5, Table 3-6):
         "Personalities cannot be duplicated on the same Representative."
         "Select any combination. No duplicates allowed."
-        
+
         Raises:
             ValueError: If duplicate personality names are found.
         """
@@ -100,14 +100,14 @@ class Representative(BaseModel):
                 if personality.name in seen_names:
                     duplicates.append(personality.name)
                 seen_names.add(personality.name)
-            
+
             if duplicates:
                 raise ValueError(
                     f"Duplicate personalities not allowed: {', '.join(duplicates)}. "
                     "Per Rogue Trader rules, each personality type can be selected only once."
                 )
         return self
-    
+
     @property
     def loss_mitigation_stat(self) -> ModifierStat | None:
         """Get the stat this representative type protects from losses."""
@@ -118,13 +118,13 @@ class Representative(BaseModel):
             RepresentativeType.MILITARY_COMMANDER: ModifierStat.PRODUCTIVITY,
         }
         return mitigation_map.get(self.type)
-    
+
     def get_total_personality_calamity_modifier(self) -> int:
         """Sum calamitous modifiers from all personalities.
-        
+
         Returns:
             Total calamitous modifier from personalities (excluding 'roll twice' personalities).
-        
+
         Note:
             Per Rogue Trader rules, personalities with 'roll twice' special rule
             are excluded from the calamitous modifier calculation as they represent
@@ -137,11 +137,11 @@ class Representative(BaseModel):
                 continue
             total += personality.calamitous_modifier
         return total
-    
+
     def update_calamitous_modifier(self) -> None:
         """Recalculate total calamitous modifier from personalities and dynasty outcome."""
         total = self.get_total_personality_calamity_modifier()
-        
+
         # Add dynasty outcome modifier if applicable
         if self.dynasty_outcome:
             dynasty_modifiers = {
@@ -152,5 +152,5 @@ class Representative(BaseModel):
                 DynastyOutcome.YOU_BUILT_THE_PALACE_ON_A_VOLCANO: 5,
             }
             total += dynasty_modifiers.get(self.dynasty_outcome, 0)
-        
+
         self.calamitous_modifier = total

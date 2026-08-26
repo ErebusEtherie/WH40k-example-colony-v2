@@ -18,7 +18,7 @@ def calculate_stat(
 ) -> int:
     """
     Calculate a current stat from base and active modifiers.
-    
+
     Args:
         base_value: The base stat value.
         modifiers: List of all active modifiers.
@@ -27,24 +27,24 @@ def calculate_stat(
             increase). Per Rogue Trader rules, this happens when:
             - Order/Productivity locked: Complacency = 0
             - Order/Complacency locked: Piety = 0
-    
+
     Returns:
         Calculated stat value (minimum 0).
     """
     total = base_value
-    
+
     for modifier in modifiers:
         if not modifier.is_active:
             continue
         if modifier.modifier_stat != stat:
             continue
-        
+
         # If locked, skip positive modifiers (can still decrease)
         if is_locked and modifier.modifier_value > 0:
             continue
-        
+
         total += modifier.modifier_value
-    
+
     return max(total, 0)
 
 
@@ -58,9 +58,9 @@ def calculate_stat_with_locks(
 ) -> int:
     """
     Calculate a stat with lock flag awareness.
-    
+
     Convenience wrapper that determines is_locked based on stat type.
-    
+
     Args:
         base_value: The base stat value.
         modifiers: List of all active modifiers.
@@ -68,12 +68,12 @@ def calculate_stat_with_locks(
         complacency_locked: If True, Complacency cannot increase.
         order_locked: If True, Order cannot increase.
         productivity_locked: If True, Productivity cannot increase.
-    
+
     Returns:
         Calculated stat value (minimum 0).
     """
     is_locked = False
-    
+
     if stat == ModifierStat.COMPLACENCY:
         is_locked = complacency_locked
     elif stat == ModifierStat.ORDER:
@@ -81,5 +81,5 @@ def calculate_stat_with_locks(
     elif stat == ModifierStat.PRODUCTIVITY:
         is_locked = productivity_locked
     # Piety and Size are never locked by these effects
-    
+
     return calculate_stat(base_value, modifiers, stat, is_locked)

@@ -15,7 +15,7 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
+from colony_manager.domain.models.colony_user import ColonyUser
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.models.representative import (
     Personality,
@@ -140,7 +140,7 @@ class FakeRuleConfigProvider:
 
     def get_development_roll_interval_days(self) -> int:
         return 90
-    
+
     def get_pf_state_bonuses(self) -> dict[str, int]:
         """Get Profit Factor bonuses for colony states."""
         return {"placated": 1, "productive": 2, "orderly": 2}
@@ -149,7 +149,9 @@ class FakeRuleConfigProvider:
 def test_colony_service_update_age_sets_last_updated():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
+    service = ColonyService(
+        colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository()
+    )
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -174,7 +176,9 @@ def test_colony_service_update_age_sets_last_updated():
 def test_colony_service_add_modifier_updates_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
+    service = ColonyService(
+        colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository()
+    )
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -209,7 +213,9 @@ def test_colony_service_add_modifier_updates_colony():
 def test_colony_service_get_state_returns_state():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
+    service = ColonyService(
+        colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository()
+    )
     colony = Colony(
         name="Test Colony",
         owner="Owner",
@@ -234,7 +240,9 @@ def test_colony_service_get_state_returns_state():
 def test_colony_service_raises_for_missing_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
+    service = ColonyService(
+        colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository()
+    )
 
     with pytest.raises(NotFoundError):
         service.get_state(999)
@@ -243,7 +251,9 @@ def test_colony_service_raises_for_missing_colony():
 def test_representative_service_assigns_colony():
     colony_repo = InMemoryColonyRepository()
     representative_repo = InMemoryRepresentativeRepository()
-    colony_service = ColonyService(colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository())
+    colony_service = ColonyService(
+        colony_repo, representative_repo, FakeRuleConfigProvider(), InMemoryColonyUserRepository()
+    )
     representative_service = RepresentativeService(colony_repo, representative_repo)
 
     colony = Colony(

@@ -23,20 +23,20 @@ def get_support_upgrade_modifiers(
 ) -> list[Modifier]:
     """
     Get modifiers from a support upgrade.
-    
+
     Args:
         upgrade: The support upgrade to get modifiers from.
         colony_type: Colony type for conditional bonuses (e.g., Mechanicum).
-    
+
     Returns:
         List of modifiers from this upgrade.
     """
     modifiers = []
-    
+
     # Handle standard stat effects
     base_modifiers = _get_base_modifiers(upgrade.upgrade_type, colony_type)
     modifiers.extend(base_modifiers)
-    
+
     # Handle Cultural Improvement custom choice
     if upgrade.upgrade_type == SupportUpgradeType.CULTURAL_IMPROVEMENT:
         if upgrade.custom_stat_choice and upgrade.custom_stat_choice != ModifierStat.SIZE:
@@ -51,7 +51,7 @@ def get_support_upgrade_modifiers(
                     is_active=True,
                 )
             )
-    
+
     return modifiers
 
 
@@ -62,14 +62,14 @@ def _get_base_modifiers(
 ) -> list[Modifier]:
     """Get base modifiers for an upgrade type."""
     modifiers = []
-    
+
     if upgrade_type == SupportUpgradeType.ARBITES_PRECINCT:
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Arbites Precinct", colony_id))
-    
+
     elif upgrade_type == SupportUpgradeType.ECCLESIOARCHY_MISSION:
         # Per Rogue Trader Colony Rules: Ecclesiarchy Mission provides +1 Piety only
         modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission", colony_id))
-    
+
     elif upgrade_type == SupportUpgradeType.MECHANICUM_STATION:
         # Base +1, +2 for Mining_and_Industry, +3 for Research Mission
         productivity_bonus = 1
@@ -78,30 +78,38 @@ def _get_base_modifiers(
                 productivity_bonus = 2
             elif colony_type == ColonyType.RESEARCH_MISSION:
                 productivity_bonus = 3
-        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, productivity_bonus, "Mechanicum Station", colony_id))
-    
+        modifiers.append(
+            _make_modifier(
+                ModifierStat.PRODUCTIVITY, productivity_bonus, "Mechanicum Station", colony_id
+            )
+        )
+
     elif upgrade_type == SupportUpgradeType.INFANTRY_GARRISON:
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Infantry Garrison", colony_id))
-    
+
     elif upgrade_type == SupportUpgradeType.IMPERIAL_NAVY_STATION:
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Imperial Navy Station", colony_id))
-    
+
     elif upgrade_type == SupportUpgradeType.INDUSTRIAL_FACILITY:
         # Per Rogue Trader Colony Rules: Industrial Facility provides Productivity +1
-        modifiers.append(_make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility", colony_id))
-    
+        modifiers.append(
+            _make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility", colony_id)
+        )
+
     elif upgrade_type == SupportUpgradeType.PERSONAL_LODGINGS:
         modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Personal Lodgings", colony_id))
-    
+
     elif upgrade_type == SupportUpgradeType.TRAPPINGS:
         modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Trappings", colony_id))
-    
+
     # Contacts and Cultural Improvement have no base modifiers (handled separately)
-    
+
     return modifiers
 
 
-def _make_modifier(stat: ModifierStat, value: int, source_name: str, colony_id: int = 1) -> Modifier:
+def _make_modifier(
+    stat: ModifierStat, value: int, source_name: str, colony_id: int = 1
+) -> Modifier:
     """Helper to create a modifier."""
     return Modifier(
         colony_id=colony_id,
@@ -120,11 +128,11 @@ def apply_support_upgrade_modifiers(
 ) -> list[Modifier]:
     """
     Apply modifiers from all support upgrades in a colony.
-    
+
     Args:
         upgrades: List of all support upgrades in the colony.
         colony_type: Colony type for conditional bonuses.
-    
+
     Returns:
         Combined list of all active modifiers.
     """

@@ -1,5 +1,6 @@
 """Domain-specific exceptions for the colony manager."""
 
+
 class ColonyManagerError(Exception):
     """Base exception for the colony manager domain."""
 

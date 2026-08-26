@@ -6,9 +6,13 @@ import pytest
 
 from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import SqlAlchemyDevelopmentPlanRepository
-from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import SqlAlchemyAuditLogRepository
-from colony_manager.domain.models.development_plan import DevelopmentPlan, DevelopmentPlanStatus
+from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import (
+    SqlAlchemyDevelopmentPlanRepository,
+)
+from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
+    SqlAlchemyAuditLogRepository,
+)
+from colony_manager.domain.models.development_plan import DevelopmentPlanStatus
 from colony_manager.domain.errors import NotFoundError
 
 
@@ -31,7 +35,7 @@ class TestDevelopmentPlanServiceCreation:
             plan_repository=plan_repo,
             audit_log_repository=audit_repo,
         )
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -41,7 +45,7 @@ class TestDevelopmentPlanServiceCreation:
             target_type="Gather resources and hire engineers.",
             created_by=50,
         )
-        
+
         assert plan.id is not None
         assert plan.colony_id == 1
         assert plan.upgrade_type == "infrastructure"
@@ -58,7 +62,7 @@ class TestDevelopmentPlanServiceCreation:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="support_upgrade",
@@ -68,7 +72,7 @@ class TestDevelopmentPlanServiceCreation:
             target_type="Recruit from local population.",
             created_by=50,
         )
-        
+
         assert plan.id is not None
         assert plan.upgrade_type == "support_upgrade"
         assert plan.target_name == "Security Detail"
@@ -78,18 +82,28 @@ class TestDevelopmentPlanServiceCreation:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         # Priority 1 (lowest)
         plan1 = service.create_plan(
-            colony_id=1, upgrade_type="infrastructure", target_name="Low Priority",
-            priority=1, description="Test", target_type="Test", created_by=50,
+            colony_id=1,
+            upgrade_type="infrastructure",
+            target_name="Low Priority",
+            priority=1,
+            description="Test",
+            target_type="Test",
+            created_by=50,
         )
         assert plan1.priority == 1
-        
+
         # Priority 5 (highest)
         plan5 = service.create_plan(
-            colony_id=1, upgrade_type="infrastructure", target_name="High Priority",
-            priority=5, description="Test", target_type="Test", created_by=50,
+            colony_id=1,
+            upgrade_type="infrastructure",
+            target_name="High Priority",
+            priority=5,
+            description="Test",
+            target_type="Test",
+            created_by=50,
         )
         assert plan5.priority == 5
 
@@ -102,7 +116,7 @@ class TestDevelopmentPlanServiceQueries:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         created = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -112,9 +126,9 @@ class TestDevelopmentPlanServiceQueries:
             target_type="Test plan.",
             created_by=50,
         )
-        
+
         retrieved = service.get_plan(created.id)
-        
+
         assert retrieved is not None
         assert retrieved.id == created.id
         assert retrieved.target_name == "Test Plan"
@@ -124,9 +138,9 @@ class TestDevelopmentPlanServiceQueries:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         result = service.get_plan(99999)
-        
+
         assert result is None
 
     def test_get_plans_by_colony(self, tmp_path):
@@ -134,22 +148,37 @@ class TestDevelopmentPlanServiceQueries:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         service.create_plan(
-            colony_id=1, upgrade_type="infrastructure", target_name="Plan 1",
-            priority=1, description="Desc 1", target_type="Plan 1", created_by=50,
+            colony_id=1,
+            upgrade_type="infrastructure",
+            target_name="Plan 1",
+            priority=1,
+            description="Desc 1",
+            target_type="Plan 1",
+            created_by=50,
         )
         service.create_plan(
-            colony_id=1, upgrade_type="support_upgrade", target_name="Plan 2",
-            priority=2, description="Desc 2", target_type="Plan 2", created_by=50,
+            colony_id=1,
+            upgrade_type="support_upgrade",
+            target_name="Plan 2",
+            priority=2,
+            description="Desc 2",
+            target_type="Plan 2",
+            created_by=50,
         )
         service.create_plan(
-            colony_id=2, upgrade_type="infrastructure", target_name="Plan 3",
-            priority=3, description="Desc 3", target_type="Plan 3", created_by=50,
+            colony_id=2,
+            upgrade_type="infrastructure",
+            target_name="Plan 3",
+            priority=3,
+            description="Desc 3",
+            target_type="Plan 3",
+            created_by=50,
         )
-        
+
         plans = service.get_plans_by_colony(colony_id=1)
-        
+
         assert len(plans) == 2
         assert all(p.colony_id == 1 for p in plans)
 
@@ -162,7 +191,7 @@ class TestDevelopmentPlanServiceUpdates:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -172,9 +201,9 @@ class TestDevelopmentPlanServiceUpdates:
             target_type="Test.",
             created_by=50,
         )
-        
+
         updated = service.update_plan(plan.id, priority=5, changed_by=50)
-        
+
         assert updated.priority == 5
         assert updated.target_name == "Test Plan"
 
@@ -183,7 +212,7 @@ class TestDevelopmentPlanServiceUpdates:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -193,7 +222,7 @@ class TestDevelopmentPlanServiceUpdates:
             target_type="Test.",
             created_by=50,
         )
-        
+
         # Transition: PLANNED -> IN_PROGRESS -> ACQUIRED -> DELIVERED
         updated = service.update_plan(
             plan.id,
@@ -201,14 +230,14 @@ class TestDevelopmentPlanServiceUpdates:
             changed_by=50,
         )
         assert updated.status == DevelopmentPlanStatus.IN_PROGRESS
-        
+
         updated = service.update_plan(
             plan.id,
             status=DevelopmentPlanStatus.ACQUIRED,
             changed_by=50,
         )
         assert updated.status == DevelopmentPlanStatus.ACQUIRED
-        
+
         updated = service.update_plan(
             plan.id,
             status=DevelopmentPlanStatus.DELIVERED,
@@ -221,7 +250,7 @@ class TestDevelopmentPlanServiceUpdates:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -231,7 +260,7 @@ class TestDevelopmentPlanServiceUpdates:
             target_type="Old plan.",
             created_by=50,
         )
-        
+
         updated = service.update_plan(
             plan.id,
             target_name="New Name",
@@ -239,7 +268,7 @@ class TestDevelopmentPlanServiceUpdates:
             description="New description.",
             changed_by=50,
         )
-        
+
         assert updated.target_name == "New Name"
         assert updated.priority == 5
         assert updated.description == "New description."
@@ -249,7 +278,7 @@ class TestDevelopmentPlanServiceUpdates:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         with pytest.raises(NotFoundError, match="Development plan with ID 99999 not found"):
             service.update_plan(99999, priority=5, changed_by=50)
 
@@ -266,7 +295,7 @@ class TestDevelopmentPlanServiceDeletion:
             plan_repository=plan_repo,
             audit_log_repository=audit_repo,
         )
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -276,9 +305,9 @@ class TestDevelopmentPlanServiceDeletion:
             target_type="Delete me.",
             created_by=50,
         )
-        
+
         service.delete_plan(plan.id, changed_by=50)
-        
+
         # Plan should be deleted
         assert service.get_plan(plan.id) is None
 
@@ -287,7 +316,7 @@ class TestDevelopmentPlanServiceDeletion:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         with pytest.raises(NotFoundError, match="Development plan with ID 99999 not found"):
             service.delete_plan(99999, changed_by=50)
 
@@ -304,7 +333,7 @@ class TestDevelopmentPlanServiceAuditLogging:
             plan_repository=plan_repo,
             audit_log_repository=audit_repo,
         )
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -314,7 +343,7 @@ class TestDevelopmentPlanServiceAuditLogging:
             target_type="Test.",
             created_by=50,
         )
-        
+
         logs = audit_repo.get_by_entity("development_plan", plan.id)
         assert len(logs) == 1
         assert logs[0].action.value == "create"
@@ -329,7 +358,7 @@ class TestDevelopmentPlanServiceAuditLogging:
             plan_repository=plan_repo,
             audit_log_repository=audit_repo,
         )
-        
+
         plan = service.create_plan(
             colony_id=1,
             upgrade_type="infrastructure",
@@ -340,10 +369,10 @@ class TestDevelopmentPlanServiceAuditLogging:
             created_by=50,
         )
         service.update_plan(plan.id, priority=5, changed_by=60)
-        
+
         logs = audit_repo.get_by_entity("development_plan", plan.id)
         assert len(logs) == 2  # CREATE + UPDATE
-        update_log = [l for l in logs if l.action.value == "update"][0]
+        update_log = [log for log in logs if log.action.value == "update"][0]
         assert update_log.changed_by == 60
 
     def test_service_without_audit_repo(self, tmp_path):
@@ -351,7 +380,7 @@ class TestDevelopmentPlanServiceAuditLogging:
         db_url = _create_db_url(tmp_path)
         plan_repo = SqlAlchemyDevelopmentPlanRepository(db_url)
         service = DevelopmentPlanService(plan_repository=plan_repo)
-        
+
         # Should not raise even without audit repo
         plan = service.create_plan(
             colony_id=1,
@@ -364,8 +393,5 @@ class TestDevelopmentPlanServiceAuditLogging:
         )
         service.update_plan(plan.id, priority=5, changed_by=50)
         service.delete_plan(plan.id, changed_by=50)
-        
+
         assert plan.id is not None
-
-
-

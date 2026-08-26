@@ -35,7 +35,7 @@ class TestUserValidators:
         """Username with valid length (3-50) is accepted."""
         user = User(username="abc", email="test@example.com", password_hash="hash123")
         assert user.username == "abc"
-        
+
         user = User(username="a" * 50, email="test@example.com", password_hash="hash123")
         assert user.username == "a" * 50
 
@@ -98,7 +98,6 @@ class TestUserDefaults:
         """updated_at defaults to None."""
         user = User(username="testuser", email="test@example.com", password_hash="hash123")
         assert user.updated_at is None
-
 
     def test_can_set_explicit_role(self):
         """User role can be explicitly set."""

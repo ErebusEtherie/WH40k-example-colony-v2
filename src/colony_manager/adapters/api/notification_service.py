@@ -12,6 +12,7 @@ from typing import Any
 
 class NotificationType(str, Enum):
     """Types of notifications that can be sent."""
+
     COLONY_CHANGED = "colony_changed"
     EVENT_CREATED = "event_created"
     EVENT_UPDATED = "event_updated"
@@ -27,6 +28,7 @@ class NotificationType(str, Enum):
 @dataclass
 class Notification:
     """A notification message to be sent to clients."""
+
     type: NotificationType
     colony_id: int
     message: str
@@ -35,7 +37,7 @@ class Notification:
     entity_id: int | None = None
     entity_type: str | None = None
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert notification to dictionary for JSON serialization."""
         return {
@@ -52,25 +54,25 @@ class Notification:
 
 class NotificationService:
     """Service for managing real-time notifications via pub/sub.
-    
+
     Uses in-memory queues for simplicity. For production with multiple
     server instances, this would need to be backed by Redis or similar.
     """
-    
+
     def __init__(self) -> None:
         # Map of user_id -> list of asyncio.Queue for that user
         self._subscribers: dict[int, list[asyncio.Queue[Notification]]] = defaultdict(list)
         self._lock = asyncio.Lock()
-    
+
     def subscribe(self, user_id: int) -> asyncio.Queue[Notification]:
         """Subscribe to notifications for a user.
-        
+
         Returns a queue that will receive notifications.
         """
         queue: asyncio.Queue[Notification] = asyncio.Queue()
         self._subscribers[user_id].append(queue)
         return queue
-    
+
     def unsubscribe(self, user_id: int, queue: asyncio.Queue[Notification]) -> None:
         """Unsubscribe a specific queue for a user."""
         if user_id in self._subscribers:
@@ -78,10 +80,10 @@ class NotificationService:
                 self._subscribers[user_id].remove(queue)
             except ValueError:
                 pass  # Queue not in list
-    
+
     async def publish(self, notification: Notification) -> None:
         """Publish a notification to all subscribers.
-        
+
         For now, publishes to all users. In a more sophisticated implementation,
         this would filter by colony membership.
         """
@@ -94,7 +96,7 @@ class NotificationService:
                         queue.put_nowait(notification)
                     except asyncio.QueueFull:
                         pass  # Skip if queue is full
-    
+
     async def publish_to_colony(
         self,
         colony_id: int,

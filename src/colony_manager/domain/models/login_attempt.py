@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 class LoginAttempt(BaseModel):
     """Domain model for a login attempt record.
-    
+
     Attributes:
         id: Database ID (None for new entries).
         username: The username that was attempted (for tracking per-account).
@@ -20,7 +20,7 @@ class LoginAttempt(BaseModel):
         success: Whether the login was successful.
         user_agent: Optional user agent string for auditing.
     """
-    
+
     id: int | None = None
     username: str = Field(..., min_length=1, max_length=50)
     ip_address: str | None = Field(None, max_length=45)  # IPv6 max length

@@ -1,8 +1,8 @@
 # UI Panel Requirements — Colony Dashboard
 
-**Version:** 1.1 (Cleanup Complete)  
-**Date:** 2026-08-24  
-**Status:** Requirements Defined  
+**Version:** 1.1 (Cleanup Complete)
+**Date:** 2026-08-24
+**Status:** Requirements Defined
 
 This document defines the three main panels of the Colony Dashboard view, including
 what data is displayed, what fields are editable, and how values are calculated.

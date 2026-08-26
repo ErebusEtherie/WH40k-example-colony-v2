@@ -24,16 +24,16 @@ def test_client_with_auth(tmp_path: Path):
     """Create test client with initialized database and JWT."""
     db_path = tmp_path / "test.db"
     os.environ["JWT_SECRET_KEY"] = TEST_JWT_SECRET
-    
+
     import colony_manager.adapters.api.dependencies as deps
-    
+
     init_db(db_path)
     app = create_app()
     app.dependency_overrides[deps.get_db_path] = lambda: db_path
-    
+
     client = TestClient(app)
     yield client
-    
+
     app.dependency_overrides.clear()
     if "JWT_SECRET_KEY" in os.environ:
         del os.environ["JWT_SECRET_KEY"]
@@ -72,6 +72,8 @@ def regular_user(test_client_with_auth):
     login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
     assert login_response.status_code == 200
     return login_response.json()["access_token"]
+
+
 class TestAuthenticationRequired:
     """Tests that endpoints require authentication."""
 
@@ -99,7 +101,7 @@ class TestColonyMembershipEnforcement:
 
     def test_user_cannot_access_stranger_colony(self, test_client_with_auth, regular_user, colony):
         """Regular users cannot access colonies they don't belong to.
-        
+
         Note: This test documents expected behavior. Current implementation
         may allow access - this test will pass when permission enforcement
         is fully implemented.
@@ -144,7 +146,11 @@ class TestColonyRolePermissions:
     def test_owner_can_delete_colony(self, test_client_with_auth, colony_owner):
         """Colony Owner can delete their colony."""
         test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
-        create_data = {"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+        create_data = {
+            "name": "Delete Test",
+            "owner": "Owner",
+            "colony_type": "mining_and_industry",
+        }
         create_response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
         assert create_response.status_code == 201
         colony_id = create_response.json()["id"]
@@ -164,7 +170,7 @@ class TestCrossColonyIsolation:
         response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
         assert response.status_code == 201
         second_colony_id = response.json()["id"]
-        
+
         infra_data = {"infrastructure_type": "habitation_block", "state": "planned"}
         infra_response = test_client_with_auth.post(
             f"/api/v1/colonies/{second_colony_id}/infrastructure",
@@ -173,7 +179,7 @@ class TestCrossColonyIsolation:
         # May succeed or fail depending on implementation
         if infra_response.status_code == 201:
             infra_id = infra_response.json()["id"]
-            
+
             register_data = {
                 "username": "other_user",
                 "email": "other@example.com",
@@ -184,7 +190,7 @@ class TestCrossColonyIsolation:
             login_data = {"username": "other_user", "password": "OtherPass123!"}
             login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
             other_token = login_response.json()["access_token"]
-            
+
             test_client_with_auth.headers["Authorization"] = f"Bearer {other_token}"
             response = test_client_with_auth.get(
                 f"/api/v1/colonies/{second_colony_id}/infrastructure/{infra_id}"

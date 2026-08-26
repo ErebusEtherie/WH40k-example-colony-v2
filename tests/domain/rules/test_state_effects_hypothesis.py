@@ -81,7 +81,11 @@ class TestPiousEffectProperties:
 
 class TestComplacencyZeroProperties:
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
     def test_complacency_zero_locks_applied(self, colony: Colony, roll_order: int, roll_prod: int):
         """Complacency = 0 always applies order and productivity locks."""
         c = colony.model_copy(update={"base_complacency": 0})
@@ -90,8 +94,14 @@ class TestComplacencyZeroProperties:
         assert result.productivity_locked is True
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_complacency_zero_stats_never_negative(self, colony: Colony, roll_order: int, roll_prod: int):
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_complacency_zero_stats_never_negative(
+        self, colony: Colony, roll_order: int, roll_prod: int
+    ):
         """Stats after Complacency = 0 penalty are never negative."""
         c = colony.model_copy(update={"base_complacency": 0})
         result = apply_complacency_zero(c, roll_order, roll_prod)
@@ -101,7 +111,11 @@ class TestComplacencyZeroProperties:
 
 class TestPietyZeroProperties:
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
     def test_piety_zero_locks_applied(self, colony: Colony, roll_order: int, roll_complacency: int):
         """Piety = 0 always applies order and complacency locks."""
         c = colony.model_copy(update={"base_piety": 0})
@@ -110,8 +124,14 @@ class TestPietyZeroProperties:
         assert result.complacency_locked is True
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_piety_zero_stats_never_negative(self, colony: Colony, roll_order: int, roll_complacency: int):
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_piety_zero_stats_never_negative(
+        self, colony: Colony, roll_order: int, roll_complacency: int
+    ):
         """Stats after Piety = 0 penalty are never negative."""
         c = colony.model_copy(update={"base_piety": 0})
         result = apply_piety_zero(c, roll_order, roll_complacency)
@@ -121,8 +141,15 @@ class TestPietyZeroProperties:
 
 class TestAnarchyDecayProperties:
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_anarchy_decay_stats_never_negative(self, colony: Colony, roll_comp: int, roll_prod: int, roll_piety: int):
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_anarchy_decay_stats_never_negative(
+        self, colony: Colony, roll_comp: int, roll_prod: int, roll_piety: int
+    ):
         """Stats after Anarchy decay are never negative."""
         c = colony.model_copy(update={"base_order": 0})
         result = apply_anarchy_decay(c, roll_comp, roll_prod, roll_piety)
@@ -132,8 +159,15 @@ class TestAnarchyDecayProperties:
         assert result.base_size >= 0
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(colony_states(), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_anarchy_decay_decreases_or_maintains_stats(self, colony: Colony, roll_comp: int, roll_prod: int, roll_piety: int):
+    @given(
+        colony_states(),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_anarchy_decay_decreases_or_maintains_stats(
+        self, colony: Colony, roll_comp: int, roll_prod: int, roll_piety: int
+    ):
         """Anarchy decay never increases stats."""
         c = colony.model_copy(update={"base_order": 0})
         result = apply_anarchy_decay(c, roll_comp, roll_prod, roll_piety)
@@ -148,8 +182,6 @@ class TestStateTransitionBoundaries:
     @given(st.integers(min_value=1, max_value=10), st.integers(min_value=0, max_value=20))
     def test_orderly_boundary_at_size_plus_one(self, size: int, order_value: int):
         """Orderly state activates exactly when Order > Size."""
-        colony = Colony(name="Test", owner="Test", colony_type=ColonyType.MINING_AND_INDUSTRY, base_size=size, base_order=order_value,
-                       base_complacency=5, base_productivity=5, base_piety=5, age_days=0, age_last_updated=date.today())
         bonus = apply_orderly_effect(order_value, size)
         if order_value > size:
             assert bonus == 2
@@ -160,53 +192,77 @@ class TestStateTransitionBoundaries:
     @given(st.integers(min_value=1, max_value=10), st.integers(min_value=0, max_value=20))
     def test_pious_boundary_at_size_plus_one(self, size: int, piety_value: int):
         """Pious state activates exactly when Piety > Size."""
-        colony = Colony(name="Test", owner="Test", colony_type=ColonyType.MINING_AND_INDUSTRY, base_size=size, base_order=5,
-                       base_complacency=5, base_productivity=5, base_piety=piety_value, age_days=0, age_last_updated=date.today())
         order_bonus, complacency_bonus = apply_pious_effect(piety_value, size)
         if piety_value > size:
             assert (order_bonus, complacency_bonus) == (1, 1)
         else:
             assert (order_bonus, complacency_bonus) == (0, 0)
+
+
 class TestCascadingEffects:
     """Tests for multiple state effects occurring simultaneously."""
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5),
-           st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_anarchy_and_piety_zero_stack_locks(self, roll_order_c: int, roll_complacency_p: int,
-                                                  roll_comp_a: int, roll_prod_a: int):
+    @given(
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_anarchy_and_piety_zero_stack_locks(
+        self, roll_order_c: int, roll_complacency_p: int, roll_comp_a: int, roll_prod_a: int
+    ):
         """When Order = 0 AND Piety = 0, both lock sets apply (Order locked twice, Complacency locked)."""
         colony = Colony(
-            name="Test", owner="Test", colony_type=ColonyType.MINING_AND_INDUSTRY,
-            base_size=5, base_order=0, base_complacency=10, base_productivity=10, base_piety=0,
-            age_days=0, age_last_updated=date.today(),
+            name="Test",
+            owner="Test",
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            base_size=5,
+            base_order=0,
+            base_complacency=10,
+            base_productivity=10,
+            base_piety=0,
+            age_days=0,
+            age_last_updated=date.today(),
         )
         # Apply Piety = 0 first (locks Order and Complacency)
         after_piety = apply_piety_zero(colony, roll_order_c, roll_complacency_p)
         # Then apply Anarchy decay (Order is still 0)
         after_anarchy = apply_anarchy_decay(after_piety, roll_comp_a, roll_prod_a, 3)
-        
+
         # Order should remain locked (was locked by Piety = 0)
         assert after_anarchy.order_locked is True
         # Complacency should be locked (from Piety = 0)
         assert after_anarchy.complacency_locked is True
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5),
-           st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5))
-    def test_complacency_zero_and_piety_zero_stack_locks(self, roll_order_c: int, roll_prod_c: int,
-                                                          roll_order_p: int, roll_complacency_p: int):
+    @given(
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_complacency_zero_and_piety_zero_stack_locks(
+        self, roll_order_c: int, roll_prod_c: int, roll_order_p: int, roll_complacency_p: int
+    ):
         """When Complacency = 0 AND Piety = 0, all three stats (Order, Complacency, Productivity) get locked."""
         colony = Colony(
-            name="Test", owner="Test", colony_type=ColonyType.MINING_AND_INDUSTRY,
-            base_size=5, base_order=10, base_complacency=0, base_productivity=10, base_piety=0,
-            age_days=0, age_last_updated=date.today(),
+            name="Test",
+            owner="Test",
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            base_size=5,
+            base_order=10,
+            base_complacency=0,
+            base_productivity=10,
+            base_piety=0,
+            age_days=0,
+            age_last_updated=date.today(),
         )
         # Apply Complacency = 0 (locks Order and Productivity)
         after_complacency = apply_complacency_zero(colony, roll_order_c, roll_prod_c)
         # Then apply Piety = 0 (locks Order and Complacency)
         after_piety = apply_piety_zero(after_complacency, roll_order_p, roll_complacency_p)
-        
+
         # All three should be locked
         assert after_piety.order_locked is True
         assert after_piety.complacency_locked is True
@@ -218,39 +274,54 @@ class TestCascadingEffects:
         """Orderly and Pious states can both be active simultaneously."""
         # Set up colony where both Order > Size AND Piety > Size
         high_value = max(colony.base_size, 5) + 5
-        colony = colony.model_copy(update={
-            "base_order": high_value,
-            "base_piety": high_value,
-        })
-        
+        colony = colony.model_copy(
+            update={
+                "base_order": high_value,
+                "base_piety": high_value,
+            }
+        )
+
         orderly_bonus = apply_orderly_effect(colony.base_order, colony.base_size)
-        pious_order_bonus, pious_complacency_bonus = apply_pious_effect(colony.base_piety, colony.base_size)
-        
+        pious_order_bonus, pious_complacency_bonus = apply_pious_effect(
+            colony.base_piety, colony.base_size
+        )
+
         # Both bonuses should be active
         assert orderly_bonus == 2
         assert (pious_order_bonus, pious_complacency_bonus) == (1, 1)
 
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
-    @given(st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5),
-           st.integers(min_value=1, max_value=5), st.integers(min_value=1, max_value=5),
-           st.integers(min_value=1, max_value=5))
-    def test_anarchy_decay_preserves_other_locks(self, roll_comp: int, roll_prod: int, roll_piety: int,
-                                                   roll_order_c: int, roll_prod_c: int):
+    @given(
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+        st.integers(min_value=1, max_value=5),
+    )
+    def test_anarchy_decay_preserves_other_locks(
+        self, roll_comp: int, roll_prod: int, roll_piety: int, roll_order_c: int, roll_prod_c: int
+    ):
         """Anarchy decay doesn't clear existing locks from Complacency = 0."""
         colony = Colony(
-            name="Test", owner="Test", colony_type=ColonyType.MINING_AND_INDUSTRY,
-            base_size=5, base_order=0, base_complacency=0, base_productivity=10, base_piety=10,
-            age_days=0, age_last_updated=date.today(),
+            name="Test",
+            owner="Test",
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            base_size=5,
+            base_order=0,
+            base_complacency=0,
+            base_productivity=10,
+            base_piety=10,
+            age_days=0,
+            age_last_updated=date.today(),
         )
         # First apply Complacency = 0 (locks Order and Productivity)
         after_complacency = apply_complacency_zero(colony, roll_order_c, roll_prod_c)
         assert after_complacency.order_locked is True
         assert after_complacency.productivity_locked is True
-        
+
         # Then apply Anarchy decay
         after_anarchy = apply_anarchy_decay(after_complacency, roll_comp, roll_prod, roll_piety)
-        
+
         # Locks should persist (Anarchy doesn't clear them)
         assert after_anarchy.order_locked is True
         assert after_anarchy.productivity_locked is True
-

@@ -49,14 +49,20 @@ def cli() -> None:
     app()
 
 
-@app.callback()
-def main(config_dir: str | None = typer.Option(None, "--config-dir", help="Directory containing YAML config files")) -> None:
+@app.callback()  # type: ignore[misc]
+def main(
+    config_dir: str | None = typer.Option(
+        None, "--config-dir", help="Directory containing YAML config files"
+    ),
+) -> None:
     """Colony manager CLI."""
     global _config_dir
     _config_dir = Path(config_dir or Path(__file__).resolve().parents[3] / "config")
     global _db_path
     _db_path = _config_dir.parent / "colony_manager.sqlite"
-@app.command("serve")
+
+
+@app.command("serve")  # type: ignore[misc]
 def serve(
     host: str = typer.Option("127.0.0.1", "--host", help="Host to bind the API server"),
     port: int = typer.Option(8000, "--port", help="Port to bind the API server"),
@@ -71,7 +77,7 @@ def serve(
     uvicorn.run(create_app(), host=host, port=port, log_level="info")
 
 
-@colony_app.command("create")
+@colony_app.command("create")  # type: ignore[misc]
 def create_colony(name: str, owner: str, colony_type: str) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
@@ -96,7 +102,7 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     typer.echo(f"Created colony {created.id}: {created.name}")
 
 
-@colony_app.command("show")
+@colony_app.command("show")  # type: ignore[misc]
 def show_colony(colony_id: int) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
@@ -128,7 +134,7 @@ def show_colony(colony_id: int) -> None:
     typer.echo(f"  Lore state: {state['lore_state']}")
 
 
-@colony_app.command("list")
+@colony_app.command("list")  # type: ignore[misc]
 def list_colonies() -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     colonies = colony_repo.list()
@@ -141,7 +147,7 @@ def list_colonies() -> None:
         typer.echo(f"- #{colony.id}: {colony.name} ({colony.colony_type}) — owner: {colony.owner}")
 
 
-@colony_app.command("set-age")
+@colony_app.command("set-age")  # type: ignore[misc]
 def set_colony_age(colony_id: int, days: int) -> None:
     """Set the age of a colony in days."""
     provider = FileRuleConfigProvider(config_dir=_config_dir)
@@ -154,16 +160,20 @@ def set_colony_age(colony_id: int, days: int) -> None:
     except ColonyManagerError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
-    typer.echo(f"Set colony {colony_id} age to {updated.age_days} days (last updated: {updated.age_last_updated})")
+    typer.echo(
+        f"Set colony {colony_id} age to {updated.age_days} days (last updated: {updated.age_last_updated})"
+    )
 
 
-@colony_app.command("add-modifier")
+@colony_app.command("add-modifier")  # type: ignore[misc]
 def add_colony_modifier(
     colony_id: int,
     modifier_source_type: str,
     modifier_stat: str,
     modifier_value: int,
-    modifier_description: str = typer.Option("", "--description", "-d", help="Description of the modifier"),
+    modifier_description: str = typer.Option(
+        "", "--description", "-d", help="Description of the modifier"
+    ),
 ) -> None:
     """Add a modifier to a colony."""
     from colony_manager.domain.enums import ModifierSourceType, ModifierStat
@@ -187,10 +197,12 @@ def add_colony_modifier(
     except ColonyManagerError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
-    typer.echo(f"Added modifier to colony {colony_id}: {modifier_description} ({modifier_stat} {modifier_value:+d})")
+    typer.echo(
+        f"Added modifier to colony {colony_id}: {modifier_description} ({modifier_stat} {modifier_value:+d})"
+    )
 
 
-@representative_app.command("create")
+@representative_app.command("create")  # type: ignore[misc]
 def create_representative(name: str, representative_type: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
@@ -207,7 +219,7 @@ def create_representative(name: str, representative_type: str) -> None:
     typer.echo(f"Created representative {created.id}: {created.name}")
 
 
-@representative_app.command("assign")
+@representative_app.command("assign")  # type: ignore[misc]
 def assign_representative(colony_id: int, representative_id: int) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
@@ -217,10 +229,12 @@ def assign_representative(colony_id: int, representative_id: int) -> None:
     except ColonyManagerError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
-    typer.echo(f"Assigned representative {representative_id} to colony {colony_id}: colony_id={updated.assigned_to_colony_id}")
+    typer.echo(
+        f"Assigned representative {representative_id} to colony {colony_id}: colony_id={updated.assigned_to_colony_id}"
+    )
 
 
-@colony_app.command("export")
+@colony_app.command("export")  # type: ignore[misc]
 def export_colony(colony_id: int, path: str) -> None:
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     colony = colony_repo.get(colony_id)
@@ -232,20 +246,23 @@ def export_colony(colony_id: int, path: str) -> None:
     typer.echo(f"Exported colony {colony_id} to {path}")
 
 
-@colony_app.command("import")
+@colony_app.command("import")  # type: ignore[misc]
 def import_colony(path: str) -> None:
     importer = ColonyImporter()
     import_data = importer.import_from_path(path)
     colony = import_data["colony"]
     representative = import_data["representative"]
-    typer.echo(f"Imported colony {colony.name} with representative {representative.name if representative else 'None'}")
+    typer.echo(
+        f"Imported colony {colony.name} with representative {representative.name if representative else 'None'}"
+    )
 
 
 # =============================================================================
 # Resource Commands
 # =============================================================================
 
-@colony_app.command("add-resource")
+
+@colony_app.command("add-resource")  # type: ignore[misc]
 def add_resource(
     colony_id: int,
     resource_type: str,
@@ -275,13 +292,15 @@ def add_resource(
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
 
-    typer.echo(f"Added resource to colony {colony_id}: {resource.name} ({resource.resource_type.value})")
+    typer.echo(
+        f"Added resource to colony {colony_id}: {resource.name} ({resource.resource_type.value})"
+    )
     typer.echo(f"  Abundance: {resource.abundance} ({resource.abundance_level})")
     if resource.notes:
         typer.echo(f"  Notes: {resource.notes}")
 
 
-@colony_app.command("list-resources")
+@colony_app.command("list-resources")  # type: ignore[misc]
 def list_resources(colony_id: int) -> None:
     """List all planetary resources for a colony."""
     from colony_manager.adapters.persistence.resource_repository_impl import (
@@ -315,7 +334,7 @@ def list_resources(colony_id: int) -> None:
         typer.echo()
 
 
-@colony_app.command("update-resource")
+@colony_app.command("update-resource")  # type: ignore[misc]
 def update_resource(
     colony_id: int,
     resource_name: str,
@@ -365,7 +384,7 @@ def update_resource(
         typer.echo(f"  Notes: {updated.notes}")
 
 
-@colony_app.command("remove-resource")
+@colony_app.command("remove-resource")  # type: ignore[misc]
 def remove_resource(colony_id: int, resource_name: str) -> None:
     """Remove a planetary resource from a colony."""
     from colony_manager.adapters.persistence.resource_repository_impl import (

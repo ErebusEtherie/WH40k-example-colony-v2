@@ -39,13 +39,13 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
     """Build nested state structure from service state dict."""
     from colony_manager.domain.enums import ModifierStat
     from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
-    
+
     size = int(state.get("size", 0))  # type: ignore[call-overload]
     complacency = int(state.get("complacency", 0))  # type: ignore[call-overload]
     order = int(state.get("order", 0))  # type: ignore[call-overload]
     productivity = int(state.get("productivity", 0))  # type: ignore[call-overload]
     piety = int(state.get("piety", 0))  # type: ignore[call-overload]
-    
+
     # Build lore_state dict for each stat (size doesn't have lore state)
     lore_state_dict = {
         "size": "stable",
@@ -54,12 +54,16 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
         "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, productivity, size).value,
         "piety": resolve_lore_state(ModifierStat.PIETY, piety, size).value,
     }
-    
+
     return ColonyStateNested(
         size=ColonyStateStat(base=size, current=size, lore_state=lore_state_dict["size"]),
-        complacency=ColonyStateStat(base=complacency, current=complacency, lore_state=lore_state_dict["complacency"]),
+        complacency=ColonyStateStat(
+            base=complacency, current=complacency, lore_state=lore_state_dict["complacency"]
+        ),
         order=ColonyStateStat(base=order, current=order, lore_state=lore_state_dict["order"]),
-        productivity=ColonyStateStat(base=productivity, current=productivity, lore_state=lore_state_dict["productivity"]),
+        productivity=ColonyStateStat(
+            base=productivity, current=productivity, lore_state=lore_state_dict["productivity"]
+        ),
         piety=ColonyStateStat(base=piety, current=piety, lore_state=lore_state_dict["piety"]),
         leadership_modifier=int(state.get("leadership_modifier", 0)),  # type: ignore[call-overload]
         profit_factor=int(state.get("profit_factor", 0)),  # type: ignore[call-overload]
@@ -75,29 +79,35 @@ async def list_colonies(
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[ColonyListItem]:
     """List all colonies with pagination.
-    
+
     Returns a paginated list of colonies. Use offset/limit for pagination.
     """
     all_colonies = service._colony_repository.list()
-    
+
     # Calculate pagination
     total = len(all_colonies)
-    items = all_colonies[offset:offset + limit]
-    
+    items = all_colonies[offset : offset + limit]
+
     result_items = []
     for colony in items:
         assert colony.id is not None
         state = service.get_state(colony.id)
-        result_items.append(ColonyListItem(
-            id=colony.id, name=colony.name, owner=colony.owner, colony_type=colony.colony_type,
-            age_days=colony.age_days, current_size=int(state["size"]),  # type: ignore[call-overload]
-            current_complacency=int(state["complacency"]),  # type: ignore[call-overload]
-            current_order=int(state["order"]),  # type: ignore[call-overload]
-            current_productivity=int(state["productivity"]),  # type: ignore[call-overload]
-            current_piety=int(state["piety"]),  # type: ignore[call-overload]
-            profit_factor=int(state["profit_factor"]),  # type: ignore[call-overload]
-        ))
-    
+        result_items.append(
+            ColonyListItem(
+                id=colony.id,
+                name=colony.name,
+                owner=colony.owner,
+                colony_type=colony.colony_type,
+                age_days=colony.age_days,
+                current_size=int(state["size"]),  # type: ignore[call-overload]
+                current_complacency=int(state["complacency"]),  # type: ignore[call-overload]
+                current_order=int(state["order"]),  # type: ignore[call-overload]
+                current_productivity=int(state["productivity"]),  # type: ignore[call-overload]
+                current_piety=int(state["piety"]),  # type: ignore[call-overload]
+                profit_factor=int(state["profit_factor"]),  # type: ignore[call-overload]
+            )
+        )
+
     return PaginatedResponse(
         items=result_items,
         meta=PaginationMeta(
@@ -119,11 +129,15 @@ async def create_colony(
     from datetime import date
 
     from colony_manager.domain.models.colony import Colony
+
     config = service._rule_config_provider
     colony_type_config = config.get_colony_type_config(colony_data.colony_type)
     base_stats = colony_type_config["base_stats"]
     colony = Colony(
-        name=colony_data.name, owner=colony_data.owner, colony_type=colony_data.colony_type, age_days=0,
+        name=colony_data.name,
+        owner=colony_data.owner,
+        colony_type=colony_data.colony_type,
+        age_days=0,
         age_last_updated=date.today(),
         base_complacency=base_stats["complacency"],  # type: ignore[index]
         base_order=base_stats["order"],  # type: ignore[index]
@@ -135,14 +149,24 @@ async def create_colony(
     assert created.id is not None
     state = service.get_state(created.id)
     return ColonyResponse(
-        id=created.id, name=created.name, owner=created.owner, colony_type=created.colony_type,
-        age_days=created.age_days, age_last_updated=created.age_last_updated,
+        id=created.id,
+        name=created.name,
+        owner=created.owner,
+        colony_type=created.colony_type,
+        age_days=created.age_days,
+        age_last_updated=created.age_last_updated,
         current_event=created.current_event,
-        base_complacency=created.base_complacency, base_order=created.base_order,
-        base_productivity=created.base_productivity, base_piety=created.base_piety, base_size=created.base_size,
-        representative_id=created.representative_id, dynasty_outcome=created.dynasty_outcome,
-        complacency_locked=created.complacency_locked, order_locked=created.order_locked,
-        productivity_locked=created.productivity_locked, planetary_resources=created.planetary_resources,
+        base_complacency=created.base_complacency,
+        base_order=created.base_order,
+        base_productivity=created.base_productivity,
+        base_piety=created.base_piety,
+        base_size=created.base_size,
+        representative_id=created.representative_id,
+        dynasty_outcome=created.dynasty_outcome,
+        complacency_locked=created.complacency_locked,
+        order_locked=created.order_locked,
+        productivity_locked=created.productivity_locked,
+        planetary_resources=created.planetary_resources,
         state=_build_state_nested(state),
     )
 
@@ -157,14 +181,24 @@ async def get_colony(
     colony = _check_colony_exists(service, colony_id)
     state = service.get_state(colony_id)
     return ColonyResponse(
-        id=colony.id, name=colony.name, owner=colony.owner, colony_type=colony.colony_type,
-        age_days=colony.age_days, age_last_updated=colony.age_last_updated,
+        id=colony.id,
+        name=colony.name,
+        owner=colony.owner,
+        colony_type=colony.colony_type,
+        age_days=colony.age_days,
+        age_last_updated=colony.age_last_updated,
         current_event=colony.current_event,
-        base_complacency=colony.base_complacency, base_order=colony.base_order,
-        base_productivity=colony.base_productivity, base_piety=colony.base_piety, base_size=colony.base_size,
-        representative_id=colony.representative_id, dynasty_outcome=colony.dynasty_outcome,
-        complacency_locked=colony.complacency_locked, order_locked=colony.order_locked,
-        productivity_locked=colony.productivity_locked, planetary_resources=colony.planetary_resources,
+        base_complacency=colony.base_complacency,
+        base_order=colony.base_order,
+        base_productivity=colony.base_productivity,
+        base_piety=colony.base_piety,
+        base_size=colony.base_size,
+        representative_id=colony.representative_id,
+        dynasty_outcome=colony.dynasty_outcome,
+        complacency_locked=colony.complacency_locked,
+        order_locked=colony.order_locked,
+        productivity_locked=colony.productivity_locked,
+        planetary_resources=colony.planetary_resources,
         state=_build_state_nested(state),
     )
 
@@ -182,14 +216,24 @@ async def update_colony(
     updated = service.update_colony(colony_id, changed_by=current_user.id, **update_data)
     state = service.get_state(colony_id)
     return ColonyResponse(
-        id=updated.id, name=updated.name, owner=updated.owner, colony_type=updated.colony_type,
-        age_days=updated.age_days, age_last_updated=updated.age_last_updated,
+        id=updated.id,
+        name=updated.name,
+        owner=updated.owner,
+        colony_type=updated.colony_type,
+        age_days=updated.age_days,
+        age_last_updated=updated.age_last_updated,
         current_event=updated.current_event,
-        base_complacency=updated.base_complacency, base_order=updated.base_order,
-        base_productivity=updated.base_productivity, base_piety=updated.base_piety, base_size=updated.base_size,
-        representative_id=updated.representative_id, dynasty_outcome=updated.dynasty_outcome,
-        complacency_locked=updated.complacency_locked, order_locked=updated.order_locked,
-        productivity_locked=updated.productivity_locked, planetary_resources=updated.planetary_resources,
+        base_complacency=updated.base_complacency,
+        base_order=updated.base_order,
+        base_productivity=updated.base_productivity,
+        base_piety=updated.base_piety,
+        base_size=updated.base_size,
+        representative_id=updated.representative_id,
+        dynasty_outcome=updated.dynasty_outcome,
+        complacency_locked=updated.complacency_locked,
+        order_locked=updated.order_locked,
+        productivity_locked=updated.productivity_locked,
+        planetary_resources=updated.planetary_resources,
         state=_build_state_nested(state),
     )
 
@@ -232,14 +276,24 @@ async def advance_colony_age(
         raise HTTPException(status_code=404, detail=str(e)) from e
     state = service.get_state(colony_id)
     return ColonyResponse(
-        id=updated.id, name=updated.name, owner=updated.owner, colony_type=updated.colony_type,
-        age_days=updated.age_days, age_last_updated=updated.age_last_updated,
+        id=updated.id,
+        name=updated.name,
+        owner=updated.owner,
+        colony_type=updated.colony_type,
+        age_days=updated.age_days,
+        age_last_updated=updated.age_last_updated,
         current_event=updated.current_event,
-        base_complacency=updated.base_complacency, base_order=updated.base_order,
-        base_productivity=updated.base_productivity, base_piety=updated.base_piety, base_size=updated.base_size,
-        representative_id=updated.representative_id, dynasty_outcome=updated.dynasty_outcome,
-        complacency_locked=updated.complacency_locked, order_locked=updated.order_locked,
-        productivity_locked=updated.productivity_locked, planetary_resources=updated.planetary_resources,
+        base_complacency=updated.base_complacency,
+        base_order=updated.base_order,
+        base_productivity=updated.base_productivity,
+        base_piety=updated.base_piety,
+        base_size=updated.base_size,
+        representative_id=updated.representative_id,
+        dynasty_outcome=updated.dynasty_outcome,
+        complacency_locked=updated.complacency_locked,
+        order_locked=updated.order_locked,
+        productivity_locked=updated.productivity_locked,
+        planetary_resources=updated.planetary_resources,
         state=_build_state_nested(state),
     )
 
@@ -252,16 +306,25 @@ async def list_colony_modifiers(
 ) -> list[ModifierResponse]:
     """List all modifiers for a colony."""
     colony = _check_colony_exists(service, colony_id)
-    return [ModifierResponse(
-        id=mod.id, colony_id=colony_id, modifier_source_type=mod.modifier_source_type,
-        modifier_category=mod.modifier_category,
-        modifier_stat=mod.modifier_stat, modifier_value=mod.modifier_value,
-        modifier_description=mod.modifier_description, is_active=mod.is_active,
-        expires_at=mod.expires_at,
-    ) for mod in colony.modifiers]
+    return [
+        ModifierResponse(
+            id=mod.id,
+            colony_id=colony_id,
+            modifier_source_type=mod.modifier_source_type,
+            modifier_category=mod.modifier_category,
+            modifier_stat=mod.modifier_stat,
+            modifier_value=mod.modifier_value,
+            modifier_description=mod.modifier_description,
+            is_active=mod.is_active,
+            expires_at=mod.expires_at,
+        )
+        for mod in colony.modifiers
+    ]
 
 
-@router.post("/{colony_id}/modifiers", response_model=ModifierResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{colony_id}/modifiers", response_model=ModifierResponse, status_code=status.HTTP_201_CREATED
+)
 async def add_colony_modifier(
     colony_id: int,
     modifier_data: ModifierCreate,
@@ -283,10 +346,14 @@ async def add_colony_modifier(
     updated = service.add_modifier(colony_id, modifier, changed_by=current_user.id)
     new_modifier = updated.modifiers[-1]
     return ModifierResponse(
-        id=new_modifier.id, colony_id=colony_id, modifier_source_type=new_modifier.modifier_source_type,
+        id=new_modifier.id,
+        colony_id=colony_id,
+        modifier_source_type=new_modifier.modifier_source_type,
         modifier_category=new_modifier.modifier_category,
-        modifier_stat=new_modifier.modifier_stat, modifier_value=new_modifier.modifier_value,
-        modifier_description=new_modifier.modifier_description, is_active=new_modifier.is_active,
+        modifier_stat=new_modifier.modifier_stat,
+        modifier_value=new_modifier.modifier_value,
+        modifier_description=new_modifier.modifier_description,
+        is_active=new_modifier.is_active,
         expires_at=new_modifier.expires_at,
     )
 
@@ -315,7 +382,7 @@ async def get_colony_roll_status(
 ) -> ColonyRollStatus:
     """
     Get the roll status for a colony.
-    
+
     Returns information about when the next event and development rolls are due.
     Event rolls occur every 60 days, development rolls every 90 days.
     """

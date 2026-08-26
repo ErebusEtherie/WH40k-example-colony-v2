@@ -69,37 +69,43 @@ class TestAuditLogValidators:
     def test_entity_id_required(self):
         """entity_id is required."""
         with pytest.raises(ValidationError) as exc_info:
-            AuditLog.model_validate({
-                "entity_type": "colony",
-                "action": "update",
-                "changed_by": 2,
-                "colony_id": 1,
-                "changed_at": datetime.now(timezone.utc),
-            })
+            AuditLog.model_validate(
+                {
+                    "entity_type": "colony",
+                    "action": "update",
+                    "changed_by": 2,
+                    "colony_id": 1,
+                    "changed_at": datetime.now(timezone.utc),
+                }
+            )
         assert "entity_id" in str(exc_info.value)
 
     def test_changed_by_required(self):
         """changed_by is required."""
         with pytest.raises(ValidationError) as exc_info:
-            AuditLog.model_validate({
-                "entity_type": "colony",
-                "entity_id": 1,
-                "action": "update",
-                "colony_id": 1,
-                "changed_at": datetime.now(timezone.utc),
-            })
+            AuditLog.model_validate(
+                {
+                    "entity_type": "colony",
+                    "entity_id": 1,
+                    "action": "update",
+                    "colony_id": 1,
+                    "changed_at": datetime.now(timezone.utc),
+                }
+            )
         assert "changed_by" in str(exc_info.value)
 
     def test_colony_id_optional(self):
         """colony_id is optional for non-colony entities like users."""
         # Should succeed without colony_id
-        audit_log = AuditLog.model_validate({
-            "entity_type": "user",
-            "entity_id": 1,
-            "action": "create",
-            "changed_by": 2,
-            "changed_at": datetime.now(timezone.utc),
-        })
+        audit_log = AuditLog.model_validate(
+            {
+                "entity_type": "user",
+                "entity_id": 1,
+                "action": "create",
+                "changed_by": 2,
+                "changed_at": datetime.now(timezone.utc),
+            }
+        )
         assert audit_log.colony_id is None
         assert audit_log.entity_type == "user"
 

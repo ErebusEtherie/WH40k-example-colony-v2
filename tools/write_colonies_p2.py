@@ -4,13 +4,13 @@ def _build_state_nested(state: dict) -> ColonyStateNested:
     """Build nested state structure from service state dict."""
     from colony_manager.domain.enums import ModifierStat
     from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
-    
+
     size = state.get("size", 0)
     complacency = state.get("complacency", 0)
     order = state.get("order", 0)
     productivity = state.get("productivity", 0)
     piety = state.get("piety", 0)
-    
+
     # Build lore_state dict for each stat (size doesn't have lore state)
     lore_state_dict = {
         "size": "stable",
@@ -19,7 +19,7 @@ def _build_state_nested(state: dict) -> ColonyStateNested:
         "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, productivity, size).value,
         "piety": resolve_lore_state(ModifierStat.PIETY, piety, size).value,
     }
-    
+
     return ColonyStateNested(
         size=ColonyStateStat(base=size, current=size, lore_state=lore_state_dict["size"]),
         complacency=ColonyStateStat(base=complacency, current=complacency, lore_state=lore_state_dict["complacency"]),
@@ -48,6 +48,6 @@ async def list_colonies(service: ColonyService = Depends(get_colony_service)) ->
     return items
 '''
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'a', encoding='utf-8') as f:
+with open("src/colony_manager/adapters/api/routers/colonies.py", "a", encoding="utf-8") as f:
     f.write(content)
-print('Part 2 done')
+print("Part 2 done")

@@ -12,10 +12,10 @@ from pydantic import BaseModel, Field, field_validator
 
 class ColonyUserRole(str, Enum):
     """Role enumeration for colony membership.
-    
+
     Roles determine what actions a user can perform within a colony context.
     """
-    
+
     OWNER = "owner"  # Full control, can manage members
     EDITOR = "editor"  # Can edit colony data
     VIEWER = "viewer"  # Read-only access
@@ -23,10 +23,10 @@ class ColonyUserRole(str, Enum):
 
 class ColonyUser(BaseModel):
     """Domain model for colony-user membership.
-    
+
     This model represents the relationship between a user and a colony,
     including their role and permissions within that colony context.
-    
+
     Attributes:
         id: Database ID (None if not yet persisted).
         colony_id: ID of the colony.
@@ -35,14 +35,14 @@ class ColonyUser(BaseModel):
         joined_at: Timestamp when the user joined the colony (Warsaw timezone).
         invited_by: User ID who invited this user (None if self-joined or system-created).
     """
-    
+
     id: int | None = None
     colony_id: int
     user_id: int
     role: ColonyUserRole = ColonyUserRole.VIEWER
     joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone(timedelta(hours=1))))
     invited_by: int | None = None
-    
+
     @field_validator("joined_at")
     @classmethod
     def _validate_joined_at(cls, value: datetime) -> datetime:

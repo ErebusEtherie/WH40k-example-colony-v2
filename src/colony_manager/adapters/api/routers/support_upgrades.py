@@ -29,6 +29,7 @@ def get_support_upgrade_service(
 ) -> SupportUpgradeService:
     """Get support upgrade service instance with proper repositories."""
     from colony_manager.adapters.persistence.db import build_database_url
+
     db_url = build_database_url(db_path)
     colony_repo = SqlAlchemyColonyRepository(db_url)
     upgrade_repo = SqlAlchemySupportUpgradeRepository(db_url)
@@ -52,11 +53,11 @@ async def list_upgrades(
     """List all support upgrades for a colony with pagination."""
     _check_colony_exists(service, colony_id)
     all_upgrades = service.list_by_colony(colony_id)
-    
+
     # Calculate pagination
     total = len(all_upgrades)
-    items = all_upgrades[offset:offset + limit]
-    
+    items = all_upgrades[offset : offset + limit]
+
     return PaginatedResponse(
         items=[
             SupportUpgradeListItem(
@@ -156,7 +157,7 @@ async def update_upgrade(
             if value is not None:
                 setattr(upgrade, field, value)
         updated = service.update_upgrade(upgrade)
-        
+
         if updated.colony_id != colony_id:
             raise HTTPException(
                 status_code=404,

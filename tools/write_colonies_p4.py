@@ -44,6 +44,6 @@ async def get_colony_state(colony_id: int, service: ColonyService = Depends(get_
     return _build_state_nested(state)
 '''
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'a', encoding='utf-8') as f:
+with open("src/colony_manager/adapters/api/routers/colonies.py", "a", encoding="utf-8") as f:
     f.write(content)
-print('Part 4 done')
+print("Part 4 done")

@@ -14,13 +14,13 @@ from colony_manager.domain.enums import ModifierStat
 
 class EventModifier(BaseModel):
     """A modifier applied by an event to a colony stat.
-    
+
     Attributes:
         stat: Which stat this modifier affects (complacency, order, productivity, piety, size).
         value: Numeric value of the modifier (positive or negative).
         description: Human-readable description of what this modifier represents.
     """
-    
+
     stat: ModifierStat
     value: int
     description: str = Field(min_length=1, max_length=500)
@@ -28,10 +28,10 @@ class EventModifier(BaseModel):
 
 class Event(BaseModel):
     """Domain model for colony events.
-    
+
     Events are GM-created occurrences that affect colony stats. They can be
     activated/deactivated and create modifiers when active.
-    
+
     Attributes:
         id: Database ID (None if not yet persisted).
         colony_id: ID of the colony this event belongs to.
@@ -42,7 +42,7 @@ class Event(BaseModel):
         is_active: Whether the event is currently active (soft delete when False).
         modifiers: List of stat modifiers this event applies when active.
     """
-    
+
     id: int | None = None
     colony_id: int
     name: str = Field(min_length=1, max_length=100)

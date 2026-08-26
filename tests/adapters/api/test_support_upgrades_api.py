@@ -1,12 +1,6 @@
 """Support Upgrades API integration tests."""
 
-from pathlib import Path
-
 import pytest
-from fastapi.testclient import TestClient
-
-from colony_manager.adapters.api.app import create_app
-from colony_manager.adapters.persistence.db import init_db
 
 
 @pytest.fixture
@@ -58,7 +52,9 @@ class TestSupportUpgradesAPI:
 
     def test_get_upgrade(self, auth_client, colony):
         create_data = {"upgrade_type": "arbites_precinct"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data
+        )
         upgrade_id = create_response.json()["id"]
         response = auth_client.get(f"/api/v1/colonies/{colony['id']}/upgrades/{upgrade_id}")
         assert response.status_code == 200
@@ -71,21 +67,29 @@ class TestSupportUpgradesAPI:
 
     def test_update_upgrade(self, auth_client, colony):
         create_data = {"upgrade_type": "cultural_improvement", "custom_stat_choice": "order"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data
+        )
         upgrade_id = create_response.json()["id"]
         update_data = {"custom_stat_choice": "piety"}
-        response = auth_client.patch(f"/api/v1/colonies/{colony['id']}/upgrades/{upgrade_id}", json=update_data)
+        response = auth_client.patch(
+            f"/api/v1/colonies/{colony['id']}/upgrades/{upgrade_id}", json=update_data
+        )
         assert response.status_code == 200
         assert response.json()["custom_stat_choice"] == "piety"
 
     def test_update_upgrade_missing_raises(self, auth_client, colony):
         update_data = {"custom_stat_choice": "order"}
-        response = auth_client.patch(f"/api/v1/colonies/{colony['id']}/upgrades/9999", json=update_data)
+        response = auth_client.patch(
+            f"/api/v1/colonies/{colony['id']}/upgrades/9999", json=update_data
+        )
         assert response.status_code == 404
 
     def test_delete_upgrade(self, auth_client, colony):
         create_data = {"upgrade_type": "arbites_precinct"}
-        create_response = auth_client.post(f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data)
+        create_response = auth_client.post(
+            f"/api/v1/colonies/{colony['id']}/upgrades", json=create_data
+        )
         upgrade_id = create_response.json()["id"]
         response = auth_client.delete(f"/api/v1/colonies/{colony['id']}/upgrades/{upgrade_id}")
         assert response.status_code == 204

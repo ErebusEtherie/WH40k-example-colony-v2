@@ -10,10 +10,10 @@ from colony_manager.domain.enums import ModifierCategory, ModifierSourceType, Mo
 class Modifier(BaseModel):
     """
     A modifier applied to a colony stat.
-    
+
     Modifiers can be temporary (with expiry) or permanent. When a modifier
     expires, it should be filtered out during state calculation.
-    
+
     Attributes:
         id: Database ID (None if not yet persisted).
         colony_id: ID of the colony this modifier belongs to.
@@ -25,6 +25,7 @@ class Modifier(BaseModel):
         is_active: Whether the modifier is currently active (can be manually disabled).
         expires_at: Optional date when this modifier expires (None = permanent).
     """
+
     id: int | None = None
     colony_id: int
     modifier_source_type: ModifierSourceType
@@ -34,16 +35,16 @@ class Modifier(BaseModel):
     modifier_description: str = Field(alias="description", default="")
     is_active: bool = True
     expires_at: date | None = None
-    
+
     model_config = {"populate_by_name": True}
-    
+
     def is_expired(self, as_of: date | None = None) -> bool:
         """
         Check if this modifier has expired.
-        
+
         Args:
             as_of: Date to check against. Defaults to today if not provided.
-        
+
         Returns:
             True if the modifier has an expiry date and that date is in the past.
         """

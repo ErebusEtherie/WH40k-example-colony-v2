@@ -50,21 +50,26 @@ def _get_leadership_modifier(stats: RepresentativeStats) -> int:
 
 def _convert_personalities(personalities_create: list[PersonalityCreate]) -> list[Personality]:
     """Convert PersonalityCreate schemas to domain Personality objects.
-    
+
     Args:
         personalities_create: List of personality creation schemas with effect strings.
-        
+
     Returns:
         List of domain Personality objects with parsed stat_effects.
     """
     result = []
     for pc in personalities_create:
         effects = parse_personality_effect(pc.effect)
-        result.append(Personality(
-            name=pc.name, display_name=pc.display_name, description=pc.description,
-            stat_effects=effects, calamitous_modifier=pc.calamitous_modifier,
-            special_rule=pc.special_rule,
-        ))
+        result.append(
+            Personality(
+                name=pc.name,
+                display_name=pc.display_name,
+                description=pc.description,
+                stat_effects=effects,
+                calamitous_modifier=pc.calamitous_modifier,
+                special_rule=pc.special_rule,
+            )
+        )
     return result
 
 
@@ -74,25 +79,25 @@ async def list_representatives(
     service: RepresentativeService = Depends(dependencies.get_representative_service),
     available_only: bool = Query(default=False, description="Only show unassigned representatives"),
     type_filter: RepresentativeType | None = Query(
-        default=None, 
-        alias="type", 
+        default=None,
+        alias="type",
         description="Filter by representative type",
-        examples=["judge", "cardinal", "satrap"]
+        examples=["judge", "cardinal", "satrap"],
     ),
     name_search: str | None = Query(
-        default=None, 
+        default=None,
         description="Search by name (case-insensitive substring match)",
-        examples=["cardinal", "valmar"]
+        examples=["cardinal", "valmar"],
     ),
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[RepresentativeListItem]:
     """List all representatives with pagination and filtering.
-    
+
     Returns a paginated list of representatives. Use offset/limit for pagination.
     """
     all_reps = service.list_representatives()
-    
+
     # Apply filters
     filtered = all_reps
     if available_only:
@@ -102,15 +107,17 @@ async def list_representatives(
     if name_search:
         search_lower = name_search.lower()
         filtered = [r for r in filtered if search_lower in r.name.lower()]
-    
+
     # Calculate pagination
     total = len(filtered)
-    items = filtered[offset:offset + limit]
-    
+    items = filtered[offset : offset + limit]
+
     return PaginatedResponse(
         items=[
             RepresentativeListItem(
-                id=r.id, name=r.name, type=r.type,
+                id=r.id,
+                name=r.name,
+                type=r.type,
                 leadership_modifier=_get_leadership_modifier(r.stats),
                 assigned_to_colony_id=r.assigned_to_colony_id,
             )
@@ -124,27 +131,30 @@ async def list_representatives(
         ),
     )
     representatives = service._representative_repository.list()
-    
+
     # Filter by availability (unassigned only)
     if available_only:
         representatives = [r for r in representatives if r.assigned_to_colony_id is None]
-    
+
     # Filter by type
     if type_filter:
         representatives = [r for r in representatives if r.type == type_filter]
-    
+
     # Filter by name search (case-insensitive substring match)
     if name_search:
         name_search_lower = name_search.lower()
         representatives = [r for r in representatives if name_search_lower in r.name.lower()]
-    
-    return [RepresentativeListItem(
-        id=rep.id,
-        name=rep.name,
-        type=rep.type,
-        leadership_modifier=_get_leadership_modifier(rep.stats),
-        assigned_to_colony_id=rep.assigned_to_colony_id,
-    ) for rep in representatives]
+
+    return [
+        RepresentativeListItem(
+            id=rep.id,
+            name=rep.name,
+            type=rep.type,
+            leadership_modifier=_get_leadership_modifier(rep.stats),
+            assigned_to_colony_id=rep.assigned_to_colony_id,
+        )
+        for rep in representatives
+    ]
 
 
 @router.post("", response_model=RepresentativeResponse, status_code=status.HTTP_201_CREATED)
@@ -156,14 +166,22 @@ async def create_representative(
     """Create a new representative."""
     personalities = _convert_personalities(rep_data.personalities)
     representative = Representative(
-        name=rep_data.name, type=rep_data.type, personalities=personalities,
+        name=rep_data.name,
+        type=rep_data.type,
+        personalities=personalities,
         stats=RepresentativeStats(**rep_data.stats.model_dump(by_alias=True)),
-        skills=rep_data.skills, talents=rep_data.talents,
+        skills=rep_data.skills,
+        talents=rep_data.talents,
     )
     created = service.create_representative(representative)
     return RepresentativeResponse(
-        id=created.id, name=created.name, type=created.type, personalities=created.personalities,
-        stats=rep_data.stats, skills=created.skills, talents=created.talents,
+        id=created.id,
+        name=created.name,
+        type=created.type,
+        personalities=created.personalities,
+        stats=rep_data.stats,
+        skills=created.skills,
+        talents=created.talents,
         leadership_modifier=_get_leadership_modifier(created.stats),
         assigned_to_colony_id=created.assigned_to_colony_id,
     )
@@ -178,10 +196,13 @@ async def get_representative(
     """Get a representative by ID."""
     representative = _check_representative_exists(service, rep_id)
     return RepresentativeResponse(
-        id=representative.id, name=representative.name, type=representative.type,
+        id=representative.id,
+        name=representative.name,
+        type=representative.type,
         personalities=representative.personalities,
         stats=RepresentativeStatsCreate(**representative.stats.model_dump(by_alias=True)),
-        skills=representative.skills, talents=representative.talents,
+        skills=representative.skills,
+        talents=representative.talents,
         leadership_modifier=_get_leadership_modifier(representative.stats),
         assigned_to_colony_id=representative.assigned_to_colony_id,
     )
@@ -202,9 +223,13 @@ async def update_representative(
             setattr(representative, field, value)
     updated = service._representative_repository.update(representative)
     return RepresentativeResponse(
-        id=updated.id, name=updated.name, type=updated.type, personalities=updated.personalities,
+        id=updated.id,
+        name=updated.name,
+        type=updated.type,
+        personalities=updated.personalities,
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
-        skills=updated.skills, talents=updated.talents,
+        skills=updated.skills,
+        talents=updated.talents,
         leadership_modifier=_get_leadership_modifier(updated.stats),
         assigned_to_colony_id=updated.assigned_to_colony_id,
     )
@@ -236,9 +261,13 @@ async def assign_to_colony(
     except ColonyManagerError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     return RepresentativeResponse(
-        id=updated.id, name=updated.name, type=updated.type, personalities=updated.personalities,
+        id=updated.id,
+        name=updated.name,
+        type=updated.type,
+        personalities=updated.personalities,
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
-        skills=updated.skills, talents=updated.talents,
+        skills=updated.skills,
+        talents=updated.talents,
         leadership_modifier=_get_leadership_modifier(updated.stats),
         assigned_to_colony_id=updated.assigned_to_colony_id,
     )
@@ -254,17 +283,24 @@ async def unassign_from_colony(
     # Get the representative to find which colony they're assigned to
     rep = service._representative_repository.get(rep_id)
     if rep is None or rep.assigned_to_colony_id is None:
-        raise HTTPException(status_code=404, detail=f"Representative {rep_id} not found or not assigned")
-    
+        raise HTTPException(
+            status_code=404, detail=f"Representative {rep_id} not found or not assigned"
+        )
+
     # Check permission on the colony
     if current_user.role.value != "admin":
         colony_user_repo = get_colony_user_repository(get_db_path())
         if current_user.id is None:
             raise HTTPException(status_code=500, detail="Authenticated user has no ID")
-        membership = colony_user_repo.get_by_colony_and_user(rep.assigned_to_colony_id, current_user.id)
+        membership = colony_user_repo.get_by_colony_and_user(
+            rep.assigned_to_colony_id, current_user.id
+        )
         if membership is None:
-            raise HTTPException(status_code=403, detail=f"User is not a member of colony {rep.assigned_to_colony_id}")
-    
+            raise HTTPException(
+                status_code=403,
+                detail=f"User is not a member of colony {rep.assigned_to_colony_id}",
+            )
+
     try:
         updated = service.unassign_from_colony(rep_id)
     except NotFoundError as e:
@@ -272,9 +308,13 @@ async def unassign_from_colony(
     except ColonyManagerError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     return RepresentativeResponse(
-        id=updated.id, name=updated.name, type=updated.type, personalities=updated.personalities,
+        id=updated.id,
+        name=updated.name,
+        type=updated.type,
+        personalities=updated.personalities,
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
-        skills=updated.skills, talents=updated.talents,
+        skills=updated.skills,
+        talents=updated.talents,
         leadership_modifier=_get_leadership_modifier(updated.stats),
         assigned_to_colony_id=updated.assigned_to_colony_id,
     )

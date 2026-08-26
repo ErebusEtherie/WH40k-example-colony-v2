@@ -14,17 +14,17 @@ from pydantic import BaseModel, Field
 
 class TokenBlacklist(BaseModel):
     """Domain model for a blacklisted JWT token.
-    
+
     Attributes:
         id: Database ID (None for new entries).
         token_id: The JWT 'jti' claim value - unique identifier for the token.
         user_id: ID of the user who owned this token (for bulk revocation).
         expires_at: When the token would have naturally expired.
         revoked_at: When the token was revoked/blacklisted.
-        reason: Why the token was revoked (e.g., "logout", "password_change", 
+        reason: Why the token was revoked (e.g., "logout", "password_change",
             "admin_revoke", "compromised").
     """
-    
+
     id: int | None = None
     token_id: str = Field(..., min_length=1, description="JWT jti claim value")
     user_id: int = Field(..., gt=0, description="User ID who owned this token")

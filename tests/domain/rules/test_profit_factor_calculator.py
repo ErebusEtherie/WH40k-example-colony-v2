@@ -266,7 +266,7 @@ def test_multiple_pf_modifiers_stack_additively(
         )
         for i, value in enumerate(modifier_values)
     ]
-    
+
     result = calculate_profit_factor(
         base_profit_factor=base_pf,
         current_complacency=complacency,
@@ -277,7 +277,7 @@ def test_multiple_pf_modifiers_stack_additively(
         modifiers=modifiers,
         leadership_modifier=0,
     )
-    
+
     # Verify modifiers stack additively (clamped at 0)
     # Stats are kept <= size to prevent state bonuses from applying
     expected_raw = base_pf + sum(modifier_values)
@@ -305,7 +305,7 @@ def test_state_bonuses_and_modifiers_combine(base_pf, size, leadership_mod, modi
         )
         for i, value in enumerate(modifier_values)
     ]
-    
+
     # Set up colony with all state bonuses active
     result = calculate_profit_factor(
         base_profit_factor=base_pf,
@@ -318,10 +318,10 @@ def test_state_bonuses_and_modifiers_combine(base_pf, size, leadership_mod, modi
         leadership_modifier=leadership_mod,
         is_orderly=True,
     )
-    
+
     # Should have all bonuses: Placated (+1), Productive (+2), Orderly (+2), leadership, and modifiers
     expected_bonus = 1 + 2 + 2 + leadership_mod + sum(modifier_values)
     expected_raw = base_pf + expected_bonus
-    
+
     # Result should match expected (clamped at 0)
     assert result == max(expected_raw, 0)

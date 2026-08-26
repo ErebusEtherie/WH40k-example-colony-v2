@@ -5,8 +5,6 @@ Note: Actual rate limiting enforcement is tested in integration/E2E tests,
 as unit tests disable rate limiting to prevent test interference.
 """
 
-import pytest
-
 from colony_manager.adapters.api.middleware.rate_limiter import (
     login_rate_limit,
     password_change_rate_limit,

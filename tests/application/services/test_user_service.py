@@ -7,8 +7,10 @@ import pytest
 from colony_manager.application.services.user_service import UserService
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
-from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import SqlAlchemyAuditLogRepository
-from colony_manager.domain.models.user import User, UserRole
+from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
+    SqlAlchemyAuditLogRepository,
+)
+from colony_manager.domain.models.user import UserRole
 from colony_manager.domain.errors import NotFoundError, ValidationError
 from colony_manager.domain.util.auth import verify_password
 
@@ -32,7 +34,7 @@ class TestUserServiceCRUD:
             user_repository=user_repo,
             audit_log_repository=audit_repo,
         )
-        
+
         user = service.create_user(
             username="testuser",
             email="test@example.com",
@@ -40,7 +42,7 @@ class TestUserServiceCRUD:
             role="viewer",
             created_by=1,
         )
-        
+
         assert user.id is not None
         assert user.username == "testuser"
         assert user.email == "test@example.com"
@@ -53,14 +55,14 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         user = service.create_user(
             username="adminuser",
             email="admin@example.com",
             password="securepassword123",
             role="admin",
         )
-        
+
         assert user.role == UserRole.ADMIN
 
     def test_create_user_duplicate_username_raises(self, tmp_path):
@@ -68,14 +70,14 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create first user
         service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
         )
-        
+
         # Attempt to create duplicate username
         with pytest.raises(ValidationError, match="Username"):
             service.create_user(
@@ -89,14 +91,14 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create first user
         service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
         )
-        
+
         # Attempt to create duplicate email
         with pytest.raises(ValidationError, match="Email"):
             service.create_user(
@@ -110,15 +112,15 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         created = service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
         )
-        
+
         retrieved = service.get_user(created.id)
-        
+
         assert retrieved is not None
         assert retrieved.id == created.id
         assert retrieved.username == "testuser"
@@ -128,9 +130,9 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         result = service.get_user(9999)
-        
+
         assert result is None
 
     def test_list_users_with_pagination(self, tmp_path):
@@ -138,7 +140,7 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create multiple users
         for i in range(5):
             service.create_user(
@@ -146,12 +148,12 @@ class TestUserServiceCRUD:
                 email=f"user{i}@example.com",
                 password="securepassword123",
             )
-        
+
         users, total = service.list_users(limit=3, offset=0)
-        
+
         assert len(users) == 3
         assert total == 5
-        
+
         users_page2, total2 = service.list_users(limit=3, offset=3)
         assert len(users_page2) == 2
         assert total2 == 5
@@ -161,20 +163,20 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         created = service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
             role="viewer",
         )
-        
+
         updated = service.update_user(
             user_id=created.id,
             role="colony_manager",
             changed_by=999,  # Admin user ID
         )
-        
+
         assert updated.role == UserRole.COLONY_MANAGER
 
     def test_update_user_is_active(self, tmp_path):
@@ -182,19 +184,19 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         created = service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
         )
-        
+
         updated = service.update_user(
             user_id=created.id,
             is_active=False,
             changed_by=999,
         )
-        
+
         assert updated.is_active is False
 
     def test_update_nonexistent_user_raises(self, tmp_path):
@@ -202,7 +204,7 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         with pytest.raises(NotFoundError):
             service.update_user(
                 user_id=9999,
@@ -215,15 +217,15 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         created = service.create_user(
             username="testuser",
             email="test@example.com",
             password="securepassword123",
         )
-        
+
         service.delete_user(user_id=created.id, changed_by=999)
-        
+
         # User should still exist but be inactive
         retrieved = service.get_user(created.id)
         assert retrieved is not None
@@ -234,7 +236,7 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         with pytest.raises(NotFoundError):
             service.delete_user(user_id=9999, changed_by=1)
 
@@ -243,19 +245,19 @@ class TestUserServiceCRUD:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         created = service.create_user(
             username="testuser",
             email="test@example.com",
             password="oldpassword123",
         )
-        
+
         updated = service.reset_password(
             user_id=created.id,
             temporary_password="NewPass456!",
             changed_by=999,
         )
-        
+
         assert verify_password("NewPass456!", updated.password_hash)
         assert not verify_password("oldpassword123", updated.password_hash)
 
@@ -268,7 +270,7 @@ class TestUserServicePermissions:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create admin user (modifier)
         admin = service.create_user(
             username="admin1",
@@ -276,7 +278,7 @@ class TestUserServicePermissions:
             password="securepassword123",
             role="admin",
         )
-        
+
         # Create another admin user (target)
         target_admin = service.create_user(
             username="admin2",
@@ -284,7 +286,7 @@ class TestUserServicePermissions:
             password="securepassword123",
             role="admin",
         )
-        
+
         # Admin1 tries to modify admin2
         with pytest.raises(PermissionError, match="Admin accounts cannot be modified"):
             service.update_user(
@@ -298,7 +300,7 @@ class TestUserServicePermissions:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create admin user (target)
         admin = service.create_user(
             username="admin",
@@ -306,7 +308,7 @@ class TestUserServicePermissions:
             password="securepassword123",
             role="admin",
         )
-        
+
         # Create viewer user (modifier)
         viewer = service.create_user(
             username="viewer",
@@ -314,7 +316,7 @@ class TestUserServicePermissions:
             password="securepassword123",
             role="viewer",
         )
-        
+
         # Viewer tries to modify admin
         with pytest.raises(PermissionError, match="Admin accounts cannot be modified"):
             service.update_user(
@@ -328,7 +330,7 @@ class TestUserServicePermissions:
         db_url = _create_db_url(tmp_path)
         user_repo = SqlAlchemyUserRepository(db_url)
         service = UserService(user_repository=user_repo)
-        
+
         # Create viewer user
         viewer = service.create_user(
             username="viewer",
@@ -336,7 +338,7 @@ class TestUserServicePermissions:
             password="securepassword123",
             role="viewer",
         )
-        
+
         # Viewer tries to escalate own role
         with pytest.raises(PermissionError, match="Users cannot modify their own role"):
             service.update_user(

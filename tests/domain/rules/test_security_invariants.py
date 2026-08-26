@@ -23,7 +23,9 @@ class TestStatSecurityInvariants:
         base_value=st.integers(min_value=0, max_value=100),
         modifier_values=st.lists(st.integers(min_value=-50, max_value=10), min_size=0, max_size=20),
     )
-    def test_stat_never_negative_property(self, base_value: int, modifier_values: list[int]) -> None:
+    def test_stat_never_negative_property(
+        self, base_value: int, modifier_values: list[int]
+    ) -> None:
         """Property: Stats never go below 0 regardless of penalty combinations."""
         modifiers = [
             Modifier(
@@ -43,12 +45,26 @@ class TestStatSecurityInvariants:
         """Test: Locked stats ignore all positive modifiers."""
         base_value = 50
         modifiers = [
-            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=20, is_active=True),
-            Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.ORDER, modifier_value=-10, is_active=True),
+            Modifier(
+                colony_id=1,
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
+                modifier_stat=ModifierStat.ORDER,
+                modifier_value=20,
+                is_active=True,
+            ),
+            Modifier(
+                colony_id=1,
+                modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                modifier_category=ModifierCategory.CUSTOM,
+                modifier_stat=ModifierStat.ORDER,
+                modifier_value=-10,
+                is_active=True,
+            ),
         ]
         locked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=True)
         unlocked_result = calculate_stat(base_value, modifiers, ModifierStat.ORDER, is_locked=False)
-        
+
         # Locked stat should ignore +20, only apply -10: 50 - 10 = 40
         assert locked_result == 40, f"Locked stat should ignore +20, got {locked_result}"
         # Unlocked should apply all modifiers: 50 + 20 - 10 = 60
@@ -68,8 +84,14 @@ class TestProfitFactorSecurityInvariants:
         custom_pf_mod=st.integers(min_value=-50, max_value=50),
     )
     def test_profit_factor_never_negative_property(
-        self, base_pf: int, complacency: int, productivity: int, piety: int,
-        size: int, leadership_mod: int, custom_pf_mod: int,
+        self,
+        base_pf: int,
+        complacency: int,
+        productivity: int,
+        piety: int,
+        size: int,
+        leadership_mod: int,
+        custom_pf_mod: int,
     ) -> None:
         """Property: Profit Factor never goes below 0."""
         modifiers = [
@@ -105,8 +127,14 @@ class TestProfitFactorSecurityInvariants:
         custom_pf_mod=st.integers(min_value=-50, max_value=50),
     )
     def test_profit_factor_zero_when_order_is_zero_property(
-        self, base_pf: int, complacency: int, productivity: int, piety: int,
-        size: int, leadership_mod: int, custom_pf_mod: int,
+        self,
+        base_pf: int,
+        complacency: int,
+        productivity: int,
+        piety: int,
+        size: int,
+        leadership_mod: int,
+        custom_pf_mod: int,
     ) -> None:
         """Property: Order == 0 always forces Profit Factor to 0 (Anarchy)."""
         modifiers = [
@@ -134,15 +162,15 @@ class TestProfitFactorSecurityInvariants:
 
     def test_profit_factor_halved_when_productivity_zero(self) -> None:
         """Test: Productivity == 0 halves Profit Factor (Halted).
-        
+
         Note: Test uses complacency=10, size=5, so Placated bonus (+1) applies.
         """
         # Test with various base values - floor() rounds down
         test_cases = [
-            (10, 5),   # (10 + 1) / 2 = 5.5 → floor = 5
-            (5, 3),    # (5 + 1) / 2 = 3
-            (1, 1),    # (1 + 1) / 2 = 1
-            (0, 0),    # (0 + 1) / 2 = 0.5 → floor = 0
+            (10, 5),  # (10 + 1) / 2 = 5.5 → floor = 5
+            (5, 3),  # (5 + 1) / 2 = 3
+            (1, 1),  # (1 + 1) / 2 = 1
+            (0, 0),  # (0 + 1) / 2 = 0.5 → floor = 0
         ]
         for base_pf, expected in test_cases:
             result = calculate_profit_factor(
@@ -156,7 +184,9 @@ class TestProfitFactorSecurityInvariants:
                 leadership_modifier=0,
                 is_orderly=False,
             )
-            assert result == expected, f"PF halved: base={base_pf}, expected={expected}, got={result}"
+            assert result == expected, (
+                f"PF halved: base={base_pf}, expected={expected}, got={result}"
+            )
 
     def test_profit_factor_order_zero_overrides_all_bonuses(self) -> None:
         """Test: Order=0 overrides all positive bonuses."""
@@ -168,11 +198,16 @@ class TestProfitFactorSecurityInvariants:
             current_piety=100,
             actual_size=5,
             modifiers=[
-                Modifier(colony_id=1, modifier_source_type=ModifierSourceType.GM_CUSTOM, modifier_category=ModifierCategory.CUSTOM, modifier_stat=ModifierStat.PROFIT_FACTOR, modifier_value=1000, is_active=True),
+                Modifier(
+                    colony_id=1,
+                    modifier_source_type=ModifierSourceType.GM_CUSTOM,
+                    modifier_category=ModifierCategory.CUSTOM,
+                    modifier_stat=ModifierStat.PROFIT_FACTOR,
+                    modifier_value=1000,
+                    is_active=True,
+                ),
             ],
             leadership_modifier=50,
             is_orderly=False,
         )
         assert result == 0, f"Order=0 should override all bonuses, got {result}"
-
-

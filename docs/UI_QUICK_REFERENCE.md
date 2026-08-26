@@ -1,8 +1,8 @@
 # Mechanicum UI Quick Reference
 
-**For:** Frontend Developers  
-**Version:** 1.1 (Cleanup Complete)  
-**Date:** 2026-08-24  
+**For:** Frontend Developers
+**Version:** 1.1 (Cleanup Complete)
+**Date:** 2026-08-24
 **CSS File:** `src/assets/css/mechanicum-design-system.css`
 
 ---

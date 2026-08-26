@@ -22,6 +22,6 @@ content = textwrap.dedent('''
     router = APIRouter(prefix="/colonies", tags=["colonies"])
 ''').strip()
 
-with open('src/colony_manager/adapters/api/routers/colonies.py', 'w', encoding='utf-8') as f:
-    f.write(content + '\n')
-print('Part 1 done')
+with open("src/colony_manager/adapters/api/routers/colonies.py", "w", encoding="utf-8") as f:
+    f.write(content + "\n")
+print("Part 1 done")

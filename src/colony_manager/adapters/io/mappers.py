@@ -65,7 +65,9 @@ def domain_to_save_file(
             )
             for modifier in colony.modifiers
         ],
-        representative=None if representative is None else domain_to_save_representative(representative),
+        representative=None
+        if representative is None
+        else domain_to_save_representative(representative),
         events=[domain_to_save_event(e) for e in (events or [])],
         development_plans=[domain_to_save_plan(p) for p in (development_plans or [])],
         colony_users=[domain_to_save_colony_user(u) for u in (colony_users or [])],
@@ -74,7 +76,7 @@ def domain_to_save_file(
 
 def save_file_to_domain(save_file: ColonySaveFile) -> dict[str, Any]:
     """Convert save file to domain models.
-    
+
     Returns:
         Dictionary with 'colony', 'representative', 'events', 'development_plans', 'colony_users'
     """
@@ -104,11 +106,15 @@ def save_file_to_domain(save_file: ColonySaveFile) -> dict[str, Any]:
             for modifier in save_file.modifiers
         ],
     )
-    representative = None if save_file.representative is None else save_file_to_domain_representative(save_file.representative)
+    representative = (
+        None
+        if save_file.representative is None
+        else save_file_to_domain_representative(save_file.representative)
+    )
     events = [save_file_to_domain_event(e) for e in save_file.events]
     development_plans = [save_file_to_domain_plan(p) for p in save_file.development_plans]
     colony_users = [save_file_to_domain_colony_user(u) for u in save_file.colony_users]
-    
+
     return {
         "colony": colony,
         "representative": representative,
@@ -116,6 +122,8 @@ def save_file_to_domain(save_file: ColonySaveFile) -> dict[str, Any]:
         "development_plans": development_plans,
         "colony_users": colony_users,
     }
+
+
 def domain_to_save_event(event: Event) -> SaveEvent:
     """Convert domain Event to save file schema."""
     return SaveEvent(
@@ -205,7 +213,9 @@ def save_file_to_domain_colony_user(save_user: SaveColonyUser) -> ColonyUser:
         colony_id=0,  # Will be set by importer
         user_id=save_user.user_id,
         role=save_user.role,
-        joined_at=datetime.fromisoformat(save_user.joined_at) if save_user.joined_at else datetime.now(timezone(timedelta(hours=1))),
+        joined_at=datetime.fromisoformat(save_user.joined_at)
+        if save_user.joined_at
+        else datetime.now(timezone(timedelta(hours=1))),
         invited_by=None,  # Not stored in save file
     )
 
@@ -216,7 +226,7 @@ def domain_to_save_representative(representative: Representative) -> SaveReprese
         stats_payload["int"] = stats_payload.pop("int_value")
     elif "int" not in stats_payload:
         stats_payload["int"] = None
-    
+
     def personality_to_save(p: Personality) -> SavePersonality:
         # Convert list[PersonalityEffect] to dict[str, int]
         stat_effects_dict = {effect.stat: effect.value for effect in p.stat_effects}
@@ -227,13 +237,16 @@ def domain_to_save_representative(representative: Representative) -> SaveReprese
             calamitous_modifier=p.calamitous_modifier,
             special_rule=p.special_rule,
         )
-    
+
     return SaveRepresentative(
         name=representative.name,
         type=representative.type,
         personalities=[personality_to_save(p) for p in representative.personalities],
         stats=SaveRepresentativeStats(**stats_payload),
-        skills=[SaveSkill(name=skill.name, level=skill.level, description=skill.description) for skill in representative.skills],
+        skills=[
+            SaveSkill(name=skill.name, level=skill.level, description=skill.description)
+            for skill in representative.skills
+        ],
         talents=[SaveTalent(**talent.model_dump()) for talent in representative.talents],
     )
 
@@ -244,12 +257,11 @@ def save_file_to_domain_representative(representative: SaveRepresentative) -> Re
         stats_payload["int"] = stats_payload.pop("int")
     if "int_value" in stats_payload:
         stats_payload["int"] = stats_payload.pop("int_value")
-    
+
     def save_to_personality(p: SavePersonality) -> Personality:
         # Convert dict[str, int] to list[PersonalityEffect]
         stat_effects_list = [
-            PersonalityEffect(stat=stat, value=value)
-            for stat, value in p.stat_effects.items()
+            PersonalityEffect(stat=stat, value=value) for stat, value in p.stat_effects.items()
         ]
         return Personality(
             name=p.name,
@@ -258,12 +270,15 @@ def save_file_to_domain_representative(representative: SaveRepresentative) -> Re
             calamitous_modifier=p.calamitous_modifier,
             special_rule=p.special_rule,
         )
-    
+
     return Representative(
         name=representative.name,
         type=representative.type,
         personalities=[save_to_personality(p) for p in representative.personalities],
         stats=RepresentativeStats(**stats_payload),
-        skills=[Skill(name=skill.name, level=skill.level, description=skill.description) for skill in representative.skills],
+        skills=[
+            Skill(name=skill.name, level=skill.level, description=skill.description)
+            for skill in representative.skills
+        ],
         talents=[Talent(**talent.model_dump()) for talent in representative.talents],
     )

@@ -18,7 +18,7 @@ from colony_manager.domain.rules.state_effects import apply_orderly_effect, appl
 class ColonyStateCalculator:
     """
     Assemble a colony's derived state from domain rules.
-    
+
     Filters out expired modifiers before calculating stats to ensure
     time-based modifier expiry is respected.
     """
@@ -29,36 +29,35 @@ class ColonyStateCalculator:
     def _get_active_modifiers(self, colony: Colony, as_of: date | None = None) -> list[Modifier]:
         """
         Get all non-expired, active modifiers for a colony.
-        
+
         Args:
             colony: The colony to get modifiers for.
             as_of: Date to check expiry against. Defaults to today.
-        
+
         Returns:
             List of modifiers that are active and not expired.
         """
-        return [
-            mod for mod in colony.modifiers
-            if mod.is_active and not mod.is_expired(as_of)
-        ]
+        return [mod for mod in colony.modifiers if mod.is_active and not mod.is_expired(as_of)]
 
     def calculate(self, colony: Colony, as_of: date | None = None) -> dict[str, object]:
         """
         Calculate the current derived state for a colony.
-        
+
         Args:
             colony: The colony to calculate state for.
             as_of: Date to check modifier expiry against. Defaults to today.
-        
+
         Returns:
             Dict with calculated stats: size, complacency, order, productivity,
             piety, leadership_modifier, profit_factor, lore_state.
         """
         active_modifiers = self._get_active_modifiers(colony, as_of)
-        
+
         # Phase 2: Calculate stats with permanent modifiers
         current_size = calculate_size(colony.base_size, active_modifiers)
-        current_complacency = calculate_stat(colony.base_complacency, active_modifiers, ModifierStat.COMPLACENCY)
+        current_complacency = calculate_stat(
+            colony.base_complacency, active_modifiers, ModifierStat.COMPLACENCY
+        )
         current_order = calculate_stat(colony.base_order, active_modifiers, ModifierStat.ORDER)
         current_productivity = calculate_stat(
             colony.base_productivity,
@@ -71,9 +70,13 @@ class ColonyStateCalculator:
         # to avoid circular dependencies and state oscillation
         lore_state = {
             "size": "stable",
-            "complacency": resolve_lore_state(ModifierStat.COMPLACENCY, current_complacency, current_size).value,
+            "complacency": resolve_lore_state(
+                ModifierStat.COMPLACENCY, current_complacency, current_size
+            ).value,
             "order": resolve_lore_state(ModifierStat.ORDER, current_order, current_size).value,
-            "productivity": resolve_lore_state(ModifierStat.PRODUCTIVITY, current_productivity, current_size).value,
+            "productivity": resolve_lore_state(
+                ModifierStat.PRODUCTIVITY, current_productivity, current_size
+            ).value,
             "piety": resolve_lore_state(ModifierStat.PIETY, current_piety, current_size).value,
         }
 

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class DevelopmentPlanStatusEnum(str, Enum):
     """Enum for development plan status."""
-    
+
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
     ACQUIRED = "acquired"
@@ -18,7 +18,7 @@ class DevelopmentPlanStatusEnum(str, Enum):
 
 class DevelopmentPlanCreate(BaseModel):
     """Schema for creating a development plan."""
-    
+
     upgrade_type: str = Field(pattern=r"^(infrastructure|support_upgrade)$")
     target_type: str = Field(min_length=1, max_length=100)
     target_name: str = Field(min_length=1, max_length=200)
@@ -30,7 +30,7 @@ class DevelopmentPlanCreate(BaseModel):
 
 class DevelopmentPlanUpdate(BaseModel):
     """Schema for updating a development plan."""
-    
+
     upgrade_type: str | None = Field(default=None, pattern=r"^(infrastructure|support_upgrade)$")
     target_type: str | None = Field(default=None, min_length=1, max_length=100)
     target_name: str | None = Field(default=None, min_length=1, max_length=200)
@@ -43,7 +43,7 @@ class DevelopmentPlanUpdate(BaseModel):
 
 class DevelopmentPlanResponse(BaseModel):
     """Schema for development plan response."""
-    
+
     id: int
     colony_id: int
     upgrade_type: str
@@ -56,13 +56,13 @@ class DevelopmentPlanResponse(BaseModel):
     status: str
     created_by: int
     created_at: datetime
-    
+
     model_config = {"from_attributes": True}
 
 
 class InstallationResult(BaseModel):
     """Response for installing a development plan."""
-    
+
     plan_id: int
     plan_name: str
     plan_target_type: str

@@ -60,4 +60,6 @@ class SqlAlchemyInfrastructureRepository(InfrastructureRepository):
 
     def list(self) -> list[Infrastructure]:
         with Session(self._engine) as session:
-            return [orm_to_domain_infrastructure(orm) for orm in session.query(InfrastructureORM).all()]
+            return [
+                orm_to_domain_infrastructure(orm) for orm in session.query(InfrastructureORM).all()
+            ]

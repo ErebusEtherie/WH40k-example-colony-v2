@@ -43,7 +43,7 @@ class ResourceService:
         """Create an audit log entry if audit logging is enabled."""
         if self._audit_log_repository is None:
             return
-        
+
         try:
             audit_log = AuditLog(
                 entity_type=entity_type,
@@ -70,7 +70,7 @@ class ResourceService:
         changed_by: int | None = None,
     ) -> ColonyResource:
         """Add a new planetary resource to a colony.
-        
+
         Args:
             colony_id: ID of the colony.
             resource_type: Type of resource (e.g., "mineral", "agricultural").
@@ -79,7 +79,7 @@ class ResourceService:
             notes: Optional notes about the resource.
             discovered_date: Date of discovery (defaults to today).
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The created resource.
         """
@@ -97,9 +97,13 @@ class ResourceService:
             discovered_date=discovered_date or date.today(),
         )
         result = self._resource_repository.create(resource)
-        
+
         # Log audit entry
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             self._log_audit(
                 colony_id=colony_id,
                 entity_type="resource",
@@ -110,7 +114,7 @@ class ResourceService:
                 new_value=result.name,
                 changed_by=changed_by,
             )
-        
+
         return result
 
     def get_resource(self, resource_id: int) -> ColonyResource:
@@ -129,18 +133,18 @@ class ResourceService:
         changed_by: int | None = None,
     ) -> ColonyResource:
         """Update a resource's abundance or notes.
-        
+
         Args:
             resource_id: ID of the resource to update.
             abundance: New abundance value (optional).
             notes: New notes value (optional).
             changed_by: Optional user ID who made the change (for audit logging).
-            
+
         Returns:
             The updated resource.
         """
         resource = self._resource_repository.get(resource_id)
-        
+
         changes = []
         if abundance is not None:
             changes.append(("abundance", str(resource.abundance), str(abundance)))
@@ -148,11 +152,15 @@ class ResourceService:
         if notes is not None:
             changes.append(("notes", resource.notes, notes))
             resource.notes = notes
-        
+
         result = self._resource_repository.update(resource)
-        
+
         # Log audit entries for each change
-        if self._audit_log_repository is not None and changed_by is not None and result.id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
             for field, old_val, new_val in changes:
                 self._log_audit(
                     colony_id=resource.colony_id,
@@ -164,14 +172,12 @@ class ResourceService:
                     new_value=new_val,
                     changed_by=changed_by,
                 )
-        
+
         return result
 
-    def remove_resource(
-        self, resource_id: int, changed_by: int | None = None
-    ) -> None:
+    def remove_resource(self, resource_id: int, changed_by: int | None = None) -> None:
         """Remove a resource from a colony.
-        
+
         Args:
             resource_id: ID of the resource to remove.
             changed_by: Optional user ID who made the change (for audit logging).
@@ -180,9 +186,13 @@ class ResourceService:
         colony_id = resource.colony_id if resource else None
         resource_name = resource.name if resource else None
         self._resource_repository.delete(resource_id)
-        
+
         # Log audit entry
-        if self._audit_log_repository is not None and changed_by is not None and colony_id is not None:
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and colony_id is not None
+        ):
             self._log_audit(
                 colony_id=colony_id,
                 entity_type="resource",
@@ -193,7 +203,7 @@ class ResourceService:
                 new_value=None,
                 changed_by=changed_by,
             )
-    
+
     def colony_exists(self, colony_id: int) -> bool:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
