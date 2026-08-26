@@ -309,3 +309,167 @@ def test_update_colony_modifier_partial_update(auth_client):
     assert updated["modifier_description"] == "Original description"
     assert updated["modifier_stat"] == "productivity"
     assert updated["modifier_value"] == -2
+
+
+def test_get_colony_modifier_breakdown(auth_client):
+    """Test getting modifier breakdown for a colony."""
+    # Create colony
+    create_data = {"name": "Breakdown Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony_id = response.json()["id"]
+
+    # Add some modifiers
+    size_modifier = {
+        "modifier_source_type": "infrastructure",
+        "modifier_category": "permanent",
+        "modifier_stat": "size",
+        "modifier_value": 1,
+        "modifier_description": "Advanced Manufactorum",
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=size_modifier)
+    assert response.status_code == 201
+
+    productivity_modifier = {
+        "modifier_source_type": "gm_custom",
+        "modifier_category": "conditional",
+        "modifier_stat": "productivity",
+        "modifier_value": 2,
+        "modifier_description": "Trade Windfall",
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=productivity_modifier)
+    assert response.status_code == 201
+
+    # Get breakdown
+    response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifier-breakdown")
+    assert response.status_code == 200
+    breakdown = response.json()
+
+    # Verify structure
+    assert "size" in breakdown
+    assert "complacency" in breakdown
+    assert "order" in breakdown
+    assert "productivity" in breakdown
+    assert "piety" in breakdown
+    assert "leadership_modifier" in breakdown
+    assert "profit_factor" in breakdown
+
+    # Verify size breakdown
+    assert breakdown["size"]["base"] == 1  # mining_and_industry base size
+    assert len(breakdown["size"]["modifiers"]) == 1
+    assert breakdown["size"]["modifiers"][0]["source_type"] == "infrastructure"
+    assert breakdown["size"]["modifiers"][0]["source_name"] == "Advanced Manufactorum"
+    assert breakdown["size"]["modifiers"][0]["value"] == 1
+    assert breakdown["size"]["total_modifier"] == 1
+    assert breakdown["size"]["current"] == 2  # base 1 + 1
+
+    # Verify productivity breakdown
+    assert breakdown["productivity"]["base"] == 2  # mining_and_industry base productivity
+    assert len(breakdown["productivity"]["modifiers"]) == 1
+    assert breakdown["productivity"]["modifiers"][0]["source_type"] == "gm_custom"
+    assert breakdown["productivity"]["modifiers"][0]["value"] == 2
+    assert breakdown["productivity"]["total_modifier"] == 2
+
+
+def test_get_colony_modifier_breakdown_empty(auth_client):
+    """Test modifier breakdown with no modifiers."""
+    # Create colony
+    create_data = {"name": "Empty Breakdown Test", "owner": "Owner", "colony_type": "agricultural"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony_id = response.json()["id"]
+
+    # Get breakdown
+    response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifier-breakdown")
+    assert response.status_code == 200
+    breakdown = response.json()
+
+    # Verify all stats have empty modifiers
+    for stat in ["size", "complacency", "order", "productivity", "piety"]:
+        assert breakdown[stat]["base"] >= 0
+        assert len(breakdown[stat]["modifiers"]) == 0
+        assert breakdown[stat]["total_modifier"] == 0
+    # Note: current may differ from base due to conditional bonuses (Orderly, Pious traits)
+
+
+def test_get_colony_modifier_breakdown_multiple_modifiers(auth_client):
+    """Test breakdown with multiple modifiers per stat."""
+    # Create colony
+    create_data = {"name": "Multi Modifier Test", "owner": "Owner", "colony_type": "ecclesiastical"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony_id = response.json()["id"]
+
+    # Add multiple order modifiers
+    for i, value in enumerate([2, -1, 3]):
+        modifier = {
+            "modifier_source_type": "gm_custom",
+            "modifier_category": "permanent",
+            "modifier_stat": "order",
+            "modifier_value": value,
+            "modifier_description": f"Order modifier {i+1}",
+        }
+        response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=modifier)
+        assert response.status_code == 201
+
+    # Get breakdown
+    response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifier-breakdown")
+    assert response.status_code == 200
+    breakdown = response.json()
+
+    # Verify order breakdown
+    assert breakdown["order"]["base"] == 2  # ecclesiastical base order
+    assert len(breakdown["order"]["modifiers"]) == 3
+    assert breakdown["order"]["total_modifier"] == 4  # 2 + (-1) + 3
+    # Note: current (7) = base (2) + total_modifier (4) + conditional bonus (1 from Orderly trait)
+    assert breakdown["order"]["current"] == 7
+
+
+def test_get_colony_modifier_breakdown_inactive_modifiers(auth_client):
+    """Test that inactive modifiers are excluded from breakdown."""
+    # Create colony
+    create_data = {"name": "Inactive Modifier Test", "owner": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony_id = response.json()["id"]
+
+    # Add active modifier
+    active_mod = {
+        "modifier_source_type": "gm_custom",
+        "modifier_category": "permanent",
+        "modifier_stat": "piety",
+        "modifier_value": 2,
+        "modifier_description": "Active blessing",
+        "is_active": True,
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=active_mod)
+    assert response.status_code == 201
+
+    # Add inactive modifier
+    inactive_mod = {
+        "modifier_source_type": "gm_custom",
+        "modifier_category": "permanent",
+        "modifier_stat": "piety",
+        "modifier_value": 5,
+        "modifier_description": "Inactive blessing",
+        "is_active": False,
+    }
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/modifiers", json=inactive_mod)
+    assert response.status_code == 201
+
+    # Get breakdown
+    response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifier-breakdown")
+    assert response.status_code == 200
+    breakdown = response.json()
+
+    # Only active modifier should be in breakdown
+    assert len(breakdown["piety"]["modifiers"]) == 1
+    assert breakdown["piety"]["modifiers"][0]["source_name"] == "Active blessing"
+    assert breakdown["piety"]["total_modifier"] == 2
+
+
+def test_get_colony_modifier_breakdown_404(auth_client):
+    """Test getting breakdown for non-existent colony returns 404."""
+    response = auth_client.get("/api/v1/colonies/9999/modifier-breakdown")
+    assert response.status_code == 404
+    assert "detail" in response.json()

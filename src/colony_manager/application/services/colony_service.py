@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
@@ -31,6 +32,78 @@ class RollStatusDict(TypedDict):
     days_until_development_roll: int
     event_interval_days: int
     development_interval_days: int
+
+
+class ModifierBreakdownItemDict(TypedDict):
+    """Dictionary type for individual modifier in breakdown."""
+
+    source_type: str
+    source_id: int | None
+    source_name: str
+    value: int
+    description: str
+
+
+class StatBreakdownDict(TypedDict):
+    """Dictionary type for stat modifier breakdown."""
+
+    base: int
+    modifiers: list[ModifierBreakdownItemDict]
+    total_modifier: int
+    current: int
+
+
+class ModifierBreakdownDict(TypedDict):
+    """Dictionary type for full modifier breakdown."""
+
+    size: StatBreakdownDict
+    complacency: StatBreakdownDict
+    order: StatBreakdownDict
+    productivity: StatBreakdownDict
+    piety: StatBreakdownDict
+    leadership_modifier: int
+    profit_factor: int
+
+def _build_stat_breakdown(
+    stat: ModifierStat,
+    base_value: int,
+    current_value: int,
+    modifiers: list[Modifier],
+) -> StatBreakdownDict:
+    """Build breakdown for a single stat.
+
+    Args:
+        stat: The stat type being broken down.
+        base_value: Base stat value before modifiers.
+        current_value: Final calculated stat value (includes conditional bonuses).
+        modifiers: List of active modifiers affecting this stat.
+
+    Returns:
+        StatBreakdownDict with base, modifiers, total_modifier, and current.
+    """
+    breakdown_mods: list[ModifierBreakdownItemDict] = []
+    total_modifier = 0
+
+    for mod in modifiers:
+        # Get source name from modifier description or source
+        source_name = mod.modifier_description or f"{mod.modifier_source_type.value}"
+        breakdown_mods.append(
+            ModifierBreakdownItemDict(
+                source_type=mod.modifier_source_type.value,
+                source_id=None,  # Could be extended to track source entity ID
+                source_name=source_name,
+                value=mod.modifier_value,
+                description=mod.modifier_description,
+            )
+        )
+        total_modifier += mod.modifier_value
+
+    return StatBreakdownDict(
+        base=base_value,
+        modifiers=breakdown_mods,
+        total_modifier=total_modifier,
+        current=current_value,
+    )
 
 
 class ColonyService:
@@ -403,3 +476,74 @@ class ColonyService:
             "event_interval_days": event_interval,
             "development_interval_days": development_interval,
         }
+
+    def get_modifier_breakdown(self, colony_id: int, as_of: date | None = None) -> ModifierBreakdownDict:
+        """
+        Get detailed modifier breakdown grouped by stat for a colony.
+
+        Args:
+            colony_id: The ID of the colony.
+            as_of: Date to check modifier expiry against. Defaults to today.
+
+        Returns:
+            Dict with modifier breakdown for each stat including:
+            - base: Base stat value
+            - modifiers: List of modifiers affecting this stat
+            - total_modifier: Sum of all modifier values
+            - current: Final calculated value (base + total_modifier)
+            Also includes leadership_modifier and profit_factor.
+
+        Raises:
+            NotFoundError: If the colony does not exist.
+        """
+        colony = self._colony_repository.get(colony_id)
+        if colony is None:
+            raise NotFoundError(f"Colony {colony_id} not found")
+
+        # Calculate full state first
+        state = self._state_calculator.calculate(colony, as_of)
+        active_modifiers = self._state_calculator._get_active_modifiers(colony, as_of)
+
+        # Group modifiers by stat
+        from colony_manager.domain.enums import ModifierStat
+
+        stat_modifiers: dict[ModifierStat, list[Modifier]] = {
+            ModifierStat.SIZE: [],
+            ModifierStat.COMPLACENCY: [],
+            ModifierStat.ORDER: [],
+            ModifierStat.PRODUCTIVITY: [],
+            ModifierStat.PIETY: [],
+        }
+
+        for mod in active_modifiers:
+            if mod.modifier_stat in stat_modifiers:
+                stat_modifiers[mod.modifier_stat].append(mod)
+
+        # Build base stat values (raw base stats from colony)
+        # Note: current values may include conditional bonuses (Orderly, Pious)
+        # which are not tied to specific modifiers
+        base_size = colony.base_size
+        base_complacency = colony.base_complacency
+        base_order = colony.base_order
+        base_productivity = colony.base_productivity
+        base_piety = colony.base_piety
+
+        current_size = int(state["size"])  # type: ignore[call-overload]
+        current_complacency = int(state["complacency"])  # type: ignore[call-overload]
+        current_order = int(state["order"])  # type: ignore[call-overload]
+        current_productivity = int(state["productivity"])  # type: ignore[call-overload]
+        current_piety = int(state["piety"])  # type: ignore[call-overload]
+
+        return ModifierBreakdownDict(
+            size=_build_stat_breakdown(ModifierStat.SIZE, base_size, current_size, stat_modifiers[ModifierStat.SIZE]),
+            complacency=_build_stat_breakdown(
+                ModifierStat.COMPLACENCY, base_complacency, current_complacency, stat_modifiers[ModifierStat.COMPLACENCY]
+            ),
+            order=_build_stat_breakdown(ModifierStat.ORDER, base_order, current_order, stat_modifiers[ModifierStat.ORDER]),
+            productivity=_build_stat_breakdown(
+                ModifierStat.PRODUCTIVITY, base_productivity, current_productivity, stat_modifiers[ModifierStat.PRODUCTIVITY]
+            ),
+            piety=_build_stat_breakdown(ModifierStat.PIETY, base_piety, current_piety, stat_modifiers[ModifierStat.PIETY]),
+            leadership_modifier=int(state["leadership_modifier"]),  # type: ignore[call-overload]
+            profit_factor=int(state["profit_factor"]),  # type: ignore[call-overload]
+        )

@@ -38,3 +38,36 @@ class ModifierUpdate(BaseModel):
 
     is_active: bool | None = None
     modifier_description: str | None = None
+
+
+class ModifierBreakdownItem(BaseModel):
+    """Individual modifier in a breakdown."""
+
+    source_type: ModifierSourceType
+    source_id: int | None = None
+    source_name: str
+    value: int
+    description: str = ""
+
+
+class StatModifierBreakdown(BaseModel):
+    """Modifier breakdown for a single stat."""
+
+    base: int = Field(description="Base stat value before modifiers")
+    modifiers: list[ModifierBreakdownItem] = Field(
+        default_factory=list, description="List of active modifier contributions"
+    )
+    total_modifier: int = Field(description="Sum of all modifier values")
+    current: int = Field(description="Final calculated value (includes conditional bonuses)")
+
+
+class ModifierBreakdownResponse(BaseModel):
+    """Detailed modifier breakdown grouped by stat."""
+
+    size: StatModifierBreakdown
+    complacency: StatModifierBreakdown
+    order: StatModifierBreakdown
+    productivity: StatModifierBreakdown
+    piety: StatModifierBreakdown
+    leadership_modifier: int
+    profit_factor: int

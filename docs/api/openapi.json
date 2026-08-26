@@ -937,6 +937,54 @@
         }
       }
     },
+    "/api/v1/colonies/{colony_id}/modifier-breakdown": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Get Colony Modifier Breakdown",
+        "description": "Get detailed modifier breakdown grouped by stat for a colony.\n\nReturns a comprehensive breakdown showing:\n- Each stat's base value (before modifiers)\n- All active modifiers affecting that stat (source, value, description)\n- Total modifier sum per stat\n- Current calculated value per stat (includes conditional bonuses)\n- Leadership modifier and Profit Factor\n\nNote: Only active modifiers are included. Inactive or expired modifiers are excluded.\n\nThis is useful for UI panels that need to display exactly how each stat\nis calculated and what modifiers are contributing to it.",
+        "operationId": "get_colony_modifier_breakdown_api_v1_colonies__colony_id__modifier_breakdown_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifierBreakdownResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/events/colonies/{colony_id}": {
       "post": {
         "tags": [
@@ -5286,6 +5334,84 @@
         "title": "LoginRequest",
         "description": "Request schema for user login."
       },
+      "ModifierBreakdownItem": {
+        "properties": {
+          "source_type": {
+            "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "value": {
+            "type": "integer",
+            "title": "Value"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_type",
+          "source_name",
+          "value"
+        ],
+        "title": "ModifierBreakdownItem",
+        "description": "Individual modifier in a breakdown."
+      },
+      "ModifierBreakdownResponse": {
+        "properties": {
+          "size": {
+            "$ref": "#/components/schemas/StatModifierBreakdown"
+          },
+          "complacency": {
+            "$ref": "#/components/schemas/StatModifierBreakdown"
+          },
+          "order": {
+            "$ref": "#/components/schemas/StatModifierBreakdown"
+          },
+          "productivity": {
+            "$ref": "#/components/schemas/StatModifierBreakdown"
+          },
+          "piety": {
+            "$ref": "#/components/schemas/StatModifierBreakdown"
+          },
+          "leadership_modifier": {
+            "type": "integer",
+            "title": "Leadership Modifier"
+          },
+          "profit_factor": {
+            "type": "integer",
+            "title": "Profit Factor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "size",
+          "complacency",
+          "order",
+          "productivity",
+          "piety",
+          "leadership_modifier",
+          "profit_factor"
+        ],
+        "title": "ModifierBreakdownResponse",
+        "description": "Detailed modifier breakdown grouped by stat."
+      },
       "ModifierCategory": {
         "type": "string",
         "enum": [
@@ -6301,6 +6427,41 @@
           "+30"
         ],
         "title": "SkillLevel"
+      },
+      "StatModifierBreakdown": {
+        "properties": {
+          "base": {
+            "type": "integer",
+            "title": "Base",
+            "description": "Base stat value before modifiers"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/ModifierBreakdownItem"
+            },
+            "type": "array",
+            "title": "Modifiers",
+            "description": "List of active modifier contributions"
+          },
+          "total_modifier": {
+            "type": "integer",
+            "title": "Total Modifier",
+            "description": "Sum of all modifier values"
+          },
+          "current": {
+            "type": "integer",
+            "title": "Current",
+            "description": "Final calculated value (includes conditional bonuses)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "base",
+          "total_modifier",
+          "current"
+        ],
+        "title": "StatModifierBreakdown",
+        "description": "Modifier breakdown for a single stat."
       },
       "SupportUpgradeCreate": {
         "properties": {

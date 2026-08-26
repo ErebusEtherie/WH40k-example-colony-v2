@@ -18,7 +18,12 @@ from colony_manager.adapters.api.schemas.colony import (
     ColonyUpdate,
 )
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
-from colony_manager.adapters.api.schemas.modifier import ModifierCreate, ModifierResponse, ModifierUpdate
+from colony_manager.adapters.api.schemas.modifier import (
+    ModifierBreakdownResponse,
+    ModifierCreate,
+    ModifierResponse,
+    ModifierUpdate,
+)
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.audit_log import AuditLogAction
@@ -473,3 +478,29 @@ async def get_colony_roll_status(
     _check_colony_exists(service, colony_id)
     roll_status = service.get_roll_status(colony_id)
     return ColonyRollStatus(**roll_status)
+
+
+@router.get("/{colony_id}/modifier-breakdown", response_model=ModifierBreakdownResponse)
+async def get_colony_modifier_breakdown(
+    colony_id: int,
+    current_user: Annotated[User, Depends(require_colony_permission("view"))],
+    service: ColonyService = Depends(get_colony_service),
+) -> ModifierBreakdownResponse:
+    """
+    Get detailed modifier breakdown grouped by stat for a colony.
+
+    Returns a comprehensive breakdown showing:
+    - Each stat's base value (before modifiers)
+    - All active modifiers affecting that stat (source, value, description)
+    - Total modifier sum per stat
+    - Current calculated value per stat (includes conditional bonuses)
+    - Leadership modifier and Profit Factor
+
+    Note: Only active modifiers are included. Inactive or expired modifiers are excluded.
+
+    This is useful for UI panels that need to display exactly how each stat
+    is calculated and what modifiers are contributing to it.
+    """
+    _check_colony_exists(service, colony_id)
+    breakdown = service.get_modifier_breakdown(colony_id)
+    return ModifierBreakdownResponse(**breakdown)
