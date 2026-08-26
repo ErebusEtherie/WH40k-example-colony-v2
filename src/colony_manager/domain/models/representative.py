@@ -82,6 +82,20 @@ class Representative(BaseModel):
     # Special trait description (GM reference note, no mechanical effect)
     special_trait_description: str | None = None
 
+    @staticmethod
+    def _is_quite_a_character(personality: Personality) -> bool:
+        """Check if a personality is 'Quite a Character' based on special rule.
+
+        Args:
+            personality: The personality to check.
+
+        Returns:
+            True if the personality has the 'roll twice' special rule.
+        """
+        if personality.special_rule:
+            return "roll twice" in personality.special_rule.lower()
+        return False
+
     @model_validator(mode="after")
     def validate_no_duplicate_personalities(self) -> "Representative":
         """Ensure no duplicate personalities are assigned.
@@ -106,6 +120,62 @@ class Representative(BaseModel):
                     f"Duplicate personalities not allowed: {', '.join(duplicates)}. "
                     "Per Rogue Trader rules, each personality type can be selected only once."
                 )
+        return self
+
+    @model_validator(mode="after")
+    def validate_personality_count(self) -> "Representative":
+        """Validate personality count based on 'Quite a Character' position.
+
+        Per Rogue Trader Colony Rules (Table 3-6):
+        - Base limit: 2 personalities maximum
+        - If 'Quite a Character' is first (index 0): limit increases to 4
+        - If 'Quite a Character' is second (index 1): limit increases to 3
+        - Minimum: 1 personality required
+
+        Raises:
+            ValueError: If personality count violates the rules.
+        """
+        # Early exit: at least one personality required
+        if not self.personalities:
+            raise ValueError(
+                "A representative must have at least one personality. "
+                "Select at least one personality from the available options."
+            )
+
+        count = len(self.personalities)
+        
+        # Check for Quite a Character position
+        quite_a_character_index = None
+        for i, personality in enumerate(self.personalities):
+            if self._is_quite_a_character(personality):
+                quite_a_character_index = i
+                break
+
+        # Determine maximum allowed based on Quite a Character position
+        if quite_a_character_index == 0:
+            max_allowed = 4
+        elif quite_a_character_index == 1:
+            max_allowed = 3
+        else:
+            max_allowed = 2
+
+        if count > max_allowed:
+            if quite_a_character_index == 0:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"When 'Quite a Character' is first, maximum is 4 personalities."
+                )
+            elif quite_a_character_index == 1:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"When 'Quite a Character' is second, maximum is 3 personalities."
+                )
+            else:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"Maximum is 2 personalities without 'Quite a Character' in first or second position."
+                )
+
         return self
 
     @property

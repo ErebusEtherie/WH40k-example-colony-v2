@@ -346,3 +346,45 @@ UI updates all calculated fields
 - Edit Size (number input with +/- buttons)
 - View all other stats (read-only, auto-calculated)
 - View stat descriptions (read-only, auto-calculated)
+
+---
+
+## API Integration Notes (Updated 2026-08-26)
+
+### API Coverage Analysis
+
+**Status:** 95% of UI panel requirements have corresponding API endpoints.
+
+All 6 UI panels (Colony At a Glance, Colony Details, Infrastructure, Upgrades, Representatives, Development Plans) have corresponding API endpoints implemented in Phase 3.
+
+### Minor Gaps Identified
+
+1. **Modifier Breakdown Structure** — Current `/modifiers` endpoint returns flat list; UI needs nested structure grouped by stat for the Colony Details panel modifier breakdown modal.
+
+2. **Terminology Alignment** — API uses `owner` field but UI/documentation uses "Founder" in WH40k lore context. Recommendation: Add Pydantic alias `founder` that maps to `owner`.
+
+See `API_TODO.md` for detailed enhancement proposals and prioritization.
+
+### Enhanced Documentation
+
+For complete UI implementation guidance including:
+- ASCII wireframes for all 5 panels
+- Detailed API endpoint mapping per UI element
+- Lore state descriptions with icons
+- Status workflows
+- Permission matrix
+- 6-phase implementation checklist
+
+**See:** `UI_VISUALIZATION_PROMPT.md`
+
+---
+
+## Related Documents
+
+- `api_guide_phase_3.md` — API integration guide for frontend developers
+- `UI_DESIGN_SYSTEM.md` — Mechanicum data-slate visual design specifications
+- `business_analysis.md` §3 — Colony stat calculation rules
+- `architecture_phase_1.md` §4 — Domain model definitions
+- `TESTING_TODO.md` — Phase 5 scope and implementation checklist
+- `UI_VISUALIZATION_PROMPT.md` — Enhanced UI specification with wireframes and API mappings
+- `API_TODO.md` — API enhancement roadmap

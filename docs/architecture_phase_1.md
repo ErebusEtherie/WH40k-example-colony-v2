@@ -179,6 +179,300 @@ Excel importer in `tools/` or `scripts/` (throwaway, not core feature):
 ### Risk-Based Prioritization
 
 **High Risk (heavy testing + hypothesis):**
+---
+
+## Architecture Diagrams
+
+Visual representations of the system architecture, data flow, and entity relationships.
+
+### 1. Layered Architecture
+
+Dependencies flow inward from external interfaces through adapters and application services to the pure domain layer.
+
+```mermaid
+flowchart TD
+    subgraph External["External World"]
+        API[FastAPI Routes]
+        CLI[Typer CLI]
+        UI[Web/Desktop UI]
+    end
+
+    subgraph Adapters["adapters/"]
+        API_Adapter[API Adapters]
+        CLI_Adapter[CLI Adapters]
+        Persistence[Persistence Layer]
+        IO[Import/Export]
+    end
+
+    subgraph Application["application/"]
+        Services[Application Services]
+        UseCases[Use Cases]
+    end
+
+    subgraph Domain["domain/"]
+        Models[Domain Models]
+        Rules[Rule Engine]
+        Ports[Repository Interfaces]
+    end
+
+    External --> Adapters
+    Adapters --> Application
+    Application --> Domain
+    Persistence -.->|"implements"| Ports
+```
+
+---
+
+### 2. Entity Relationships
+
+Domain model relationships and key attributes.
+
+```mermaid
+erDiagram
+    USER ||--o{ COLONY_USER : "owns/manages"
+    COLONY ||--o{ COLONY_USER : "has members"
+    COLONY ||--|| REPRESENTATIVE : "has one"
+    COLONY ||--o{ INFRASTRUCTURE : "contains"
+    COLONY ||--o{ SUPPORT_UPGRADE : "contains"
+    COLONY ||--o{ RESOURCE : "exploits"
+    COLONY ||--o{ DEVELOPMENT_PLAN : "has active"
+    COLONY ||--o{ EVENT_LOG : "generates"
+    COLONY ||--o{ MODIFIER : "has active"
+    
+    USER {
+        int id PK
+        string username
+        string email
+    }
+    
+    COLONY {
+        int id PK
+        string name
+        ColonyType type
+        int size
+        int complacency
+        int productivity
+        int order
+        int piety
+    }
+    
+    REPRESENTATIVE {
+        int id PK
+        string name
+        RepType type
+        Personality personality
+    }
+    
+    INFRASTRUCTURE {
+        int id PK
+        InfrastructureType type
+        bool is_working
+    }
+    
+---
+
+### 3. Rule Engine Calculation Pipeline
+
+How modifiers stack and flow through the calculation pipeline to produce final stats and Profit Factor.
+
+```mermaid
+flowchart TB
+    subgraph Input["Input State"]
+        BaseStats[Base Colony Stats]
+        Infra[Infrastructure Modifiers]
+        Upgrades[Support Upgrades]
+        Rep[Representative Bonuses]
+        Resources[Planetary Resources]
+        GM[GM Custom Modifiers]
+    end
+
+    subgraph Process["Calculation Pipeline"]
+        Sum[Sum All Modifiers]
+        Clamp[Clamp Stats at 0]
+        PF[Calculate Base PF]
+        ZeroForce{Order == 0?}
+        HalfForce{Productivity == 0?}
+        States[Derive Lore States]
+    end
+
+    subgraph Output["Final State"]
+        FinalStats[Final Stats]
+        FinalPF[Final Profit Factor]
+        LoreStates[Lore States]
+    end
+
+    BaseStats --> Sum
+    Infra --> Sum
+    Upgrades --> Sum
+    Rep --> Sum
+    Resources --> Sum
+    GM --> Sum
+
+    Sum --> Clamp
+    Clamp --> PF
+    PF --> ZeroForce
+    ZeroForce -->|Yes| ZeroPF[PF = 0]
+    ZeroForce -->|No| HalfForce
+    HalfForce -->|Yes| HalfPF[PF = PF / 2]
+    HalfForce -->|No| States
+    States --> FinalStats
+    States --> FinalPF
+    States --> LoreStates
+    ZeroPF --> FinalPF
+    HalfPF --> FinalPF
+```
+
+---
+
+### 4. Configuration Loading
+
+How YAML configuration files are loaded, validated, and consumed throughout the application.
+
+```mermaid
+flowchart LR
+    subgraph ConfigFiles["config/ YAML Files"]
+        ColonyTypes[colony_types.yaml]
+        RuleTables[rule_tables.yaml]
+        Infrastructure[infrastructure_types.yaml]
+        Upgrades[support_upgrades.yaml]
+        Personalities[personalities.yaml]
+    end
+
+    subgraph Loader["RuleConfigProvider"]
+        LoadYAML[Load YAML Files]
+        Validate[Pydantic Validation]
+        Cache[In-Memory Cache]
+    end
+
+    subgraph Consumers["Consumers"]
+        Domain[Domain Rules]
+        Services[Application Services]
+        API[API Endpoints]
+        CLI[CLI Commands]
+    end
+
+    ColonyTypes --> LoadYAML
+    RuleTables --> LoadYAML
+    Infrastructure --> LoadYAML
+    Upgrades --> LoadYAML
+    Personalities --> LoadYAML
+
+    LoadYAML --> Validate
+    Validate --> Cache
+    Cache --> Domain
+    Cache --> Services
+    Cache --> API
+    Cache --> CLI
+```
+
+---
+
+### 5. Lore State Transitions
+
+State machine showing how colony stats transition between different lore states based on thresholds.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Stable: Initial State
+    
+    state "Complacency" as C {
+        Stable --> Placated: C > Size
+        Placated --> Stable: C <= Size
+        Stable --> Riots: C == 0
+        Riots --> Stable: C > 0
+    }
+    
+    state "Order" as O {
+        Stable --> Orderly: O > Size
+        Orderly --> Stable: O <= Size
+        Stable --> Anarchy: O == 0
+        Anarchy --> Stable: O > 0
+    }
+    
+    state "Productivity" as P {
+        Stable --> Productive: P > Size
+        Productive --> Stable: P <= Size
+        Stable --> Halted: P == 0
+        Halted --> Stable: P > 0
+    }
+    
+    state "Piety" as PI {
+        Stable --> Pious: PI > Size
+        Pious --> Stable: PI <= Size
+        Stable --> Heretical: PI == 0
+        Heretical --> Stable: PI > 0
+    }
+
+    note right of Anarchy
+        Critical: PF = 0
+        Colony cannot generate
+        Profit Factor
+    end note
+
+    note right of Halted
+        Penalty: PF halved
+        (round-half-up)
+    end note
+
+    note right of Pious
+        Bonus: +1 Order
+        +1 Complacency
+    end note
+
+    note right of Orderly
+        Bonus: +2 Productivity
+    end note
+```
+
+---
+
+### Diagram Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| `→` | Direct dependency or flow |
+| `-.->` | Interface implementation |
+| `||--o{` | One-to-many relationship (ERD) |
+| `||--||` | One-to-one relationship (ERD) |
+| `-->` | State transition or message flow |
+| `{}` | Decision point in flowchart |
+| `[]` | Process or action box |
+    SUPPORT_UPGRADE {
+        int id PK
+        UpgradeType type
+        int quantity
+    }
+```
+
+---
+
+### 6. Request Lifecycle
+
+Sequence diagram showing a typical API request flow from client to database and back.
+
+```mermaid
+sequenceDiagram
+    participant Client as Web Client
+    participant API as FastAPI Router
+    participant Auth as Auth Middleware
+    participant Service as Application Service
+    participant Domain as Domain Layer
+    participant Repo as Repository
+    participant DB as SQLite
+
+    Client->>API: POST /api/v1/colonies
+    API->>Auth: Validate JWT Token
+    Auth-->>API: User ID: 42
+    API->>Service: CreateColonyUseCase
+    Service->>Domain: Validate Colony Data
+    Domain-->>Service: Colony Entity
+    Service->>Repo: save(colony)
+    Repo->>DB: INSERT INTO colonies
+    DB-->>Repo: colony_id: 123
+    Repo-->>Service: Colony with ID
+    Service-->>API: ColonyResponse DTO
+    API-->>Client: 201 Created + JSON
+```
 
 - Stat derivation and stacking
 - Threshold-based state transitions

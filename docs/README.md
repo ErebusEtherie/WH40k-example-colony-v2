@@ -39,13 +39,17 @@ requirements are in `business_analysis.md`.
 | [`UI_DESIGN_SYSTEM.md`](UI_DESIGN_SYSTEM.md) | Cult Mechanicus design system, components, patterns | UI developers |
 | [`UI_QUICK_REFERENCE.md`](UI_QUICK_REFERENCE.md) | Quick CSS/HTML reference for Mechanicum theme | UI developers |
 | [`UI_PANEL_REQUIREMENTS.md`](UI_PANEL_REQUIREMENTS.md) | Colony Dashboard panel specifications | UI developers |
+| [`UI_VISUALIZATION_PROMPT.md`](UI_VISUALIZATION_PROMPT.md) | **Enhanced UI specification** with API mappings, wireframes, implementation checklist | UI developers, frontend architects |
+| [`API_TODO.md`](API_TODO.md) | API enhancement roadmap and minor gaps | Backend developers, architects |
 
 ### 📖 Guides & Documentation
 
 | Document | Purpose | Who Should Read |
 |----------|---------|-----------------|
 | [`configuration.md`](configuration.md) | Configuration files reference and modification guide | Developers, GMs |
+| [`troubleshooting.md`](troubleshooting.md) | Common issues, error messages, and solutions | Everyone |
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contribution guidelines and development workflow | Contributors |
+| [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) | Community standards and enforcement | Everyone |
 | [`README.md`](../README.md) | Main project README with quick start | Everyone |
 
 ### 📚 Reference & Analysis

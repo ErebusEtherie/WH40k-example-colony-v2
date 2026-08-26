@@ -67,6 +67,18 @@ Representatives are characters that govern colonies. They provide leadership mod
 - Level (number)
 - Characteristics (WS, BS, Str, Agi, Int, Per)
 - Skills/Talents (textarea, optional)
+- Personalities (multi-select, 1-4 selections based on rules below)
+
+**Personality Count Rules:**
+
+| Condition | Min | Max |
+|-----------|-----|-----|
+| No "Quite a Character" | 1 | 2 |
+| "Quite a Character" is **first** selection | 1 | 4 |
+| "Quite a Character" is **second** selection | 1 | 3 |
+| "Quite a Character" is third or later | 1 | 2 |
+
+**Validation:** Display error if personality count exceeds the allowed maximum based on "Quite a Character" position. "Quite a Character" is identified by its `special_rule` containing "roll twice".
 
 ---
 

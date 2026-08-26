@@ -1,10 +1,10 @@
 """Representative API schemas."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from colony_manager.domain.enums import RepresentativeType
 from colony_manager.domain.models.personality import Personality, PersonalityEffect
-from colony_manager.domain.models.representative import Skill, Talent
+from colony_manager.domain.models.representative import Skill, Talent, Representative
 
 
 class RepresentativeStatsCreate(BaseModel):
@@ -53,14 +53,69 @@ def parse_personality_effect(effect_str: str) -> list[PersonalityEffect]:
 
 
 class RepresentativeCreate(BaseModel):
-    """Schema for creating a new representative."""
+    """Schema for creating a new representative.
+
+    Personality count rules (per Rogue Trader Table 3-6):
+    - Base limit: 2 personalities maximum
+    - If 'Quite a Character' is first (index 0): limit increases to 4
+    - If 'Quite a Character' is second (index 1): limit increases to 3
+    - Minimum: 1 personality required
+    """
 
     name: str = Field(..., min_length=1, max_length=100)
     type: RepresentativeType
-    personalities: list[PersonalityCreate] = Field(default_factory=list)
+    personalities: list[PersonalityCreate] = Field(
+        default_factory=list,
+        description="List of 1-4 personalities. Count limit depends on 'Quite a Character' position."
+    )
     stats: RepresentativeStatsCreate
     skills: list[Skill] = Field(default_factory=list)
     talents: list[Talent] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_personality_count(self) -> "RepresentativeCreate":
+        """Validate personality count based on 'Quite a Character' position."""
+        if not self.personalities:
+            raise ValueError(
+                "A representative must have at least one personality. "
+                "Select at least one personality from the available options."
+            )
+
+        count = len(self.personalities)
+        
+        # Check for Quite a Character position using domain model's helper
+        quite_a_character_index = None
+        for i, personality in enumerate(self.personalities):
+            if Representative._is_quite_a_character(personality):
+                quite_a_character_index = i
+                break
+
+        # Determine maximum allowed based on Quite a Character position
+        if quite_a_character_index == 0:
+            max_allowed = 4
+        elif quite_a_character_index == 1:
+            max_allowed = 3
+        else:
+            max_allowed = 2
+
+        if count > max_allowed:
+            if quite_a_character_index == 0:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"When 'Quite a Character' is first, maximum is 4 personalities."
+                )
+            elif quite_a_character_index == 1:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"When 'Quite a Character' is second, maximum is 3 personalities."
+                )
+            else:
+                raise ValueError(
+                    f"Cannot have {count} personalities. "
+                    f"Maximum is 2 personalities without 'Quite a Character' in first or second position."
+                )
+
+        return self
 
 
 class RepresentativeUpdate(BaseModel):

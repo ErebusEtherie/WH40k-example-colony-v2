@@ -12,7 +12,13 @@ def representatives_with_data(auth_client: TestClient) -> list[dict]:
     rep1 = {
         "name": "Cardinal Saint Mercurius",
         "type": "cardinal",
-        "personalities": [],
+        "personalities": [
+            {
+                "name": "devout",
+                "display_name": "Devout",
+                "description": "Deeply religious and faithful.",
+            }
+        ],
         "stats": {
             "ws": 30,
             "bs": 30,
@@ -30,7 +36,13 @@ def representatives_with_data(auth_client: TestClient) -> list[dict]:
     rep2 = {
         "name": "Judge Dredd",
         "type": "judge",
-        "personalities": [],
+        "personalities": [
+            {
+                "name": "lawful",
+                "display_name": "Lawful",
+                "description": "Strict adherence to law and order.",
+            }
+        ],
         "stats": {
             "ws": 40,
             "bs": 40,
@@ -48,7 +60,13 @@ def representatives_with_data(auth_client: TestClient) -> list[dict]:
     rep3 = {
         "name": "Commander Kane",
         "type": "military_commander",
-        "personalities": [],
+        "personalities": [
+            {
+                "name": "military_minded",
+                "display_name": "Military-Minded",
+                "description": "Focused on military strategy and tactics.",
+            }
+        ],
         "stats": {
             "ws": 50,
             "bs": 50,
@@ -197,7 +215,13 @@ class TestRepresentativeAssignment:
             json={
                 "name": "Test Rep",
                 "type": "judge",
-                "personalities": [],
+                "personalities": [
+                    {
+                        "name": "lawful",
+                        "display_name": "Lawful",
+                        "description": "Strict adherence to law and order.",
+                    }
+                ],
                 "stats": {
                     "ws": 30,
                     "bs": 30,

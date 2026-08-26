@@ -178,17 +178,17 @@ class TestRepresentativeStatsProperties:
 class TestRepresentativeValidators:
     """Tests for Representative model validators."""
 
-    def test_personalities_can_be_empty(self):
-        """Representative can have zero personalities (empty list is valid)."""
-        rep = Representative(
-            name="Test Rep",
-            type=RepresentativeType.JUDGE,
-            personalities=[],
-            stats=RepresentativeStats(
-                ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
-            ),
-        )
-        assert rep.personalities == []
+    def test_personalities_minimum_one_required(self):
+        """Representative must have at least one personality."""
+        with pytest.raises(ValueError, match="at least one personality"):
+            Representative(
+                name="Test Rep",
+                type=RepresentativeType.JUDGE,
+                personalities=[],
+                stats=RepresentativeStats(
+                    ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+                ),
+            )
 
     def test_valid_representative_with_minimal_data(self):
         """Valid Representative with minimal required data."""
@@ -246,11 +246,75 @@ class TestRepresentativeValidators:
             )
 
     def test_unique_personalities_accepted(self):
-        """Multiple unique personalities are accepted."""
+        """Multiple unique personalities are accepted (up to 2 without Quite a Character)."""
         rep = Representative(
             name="Test",
             type=RepresentativeType.JUDGE,
             personalities=[
+                Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                Personality(
+                    name="military_minded", display_name="Military-Minded", description="Test 2"
+                ),
+            ],
+            stats=RepresentativeStats(
+                ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+            ),
+        )
+        assert len(rep.personalities) == 2
+        assert rep.personalities[0].name == "beloved"
+        assert rep.personalities[1].name == "military_minded"
+        assert rep.talents == []
+
+    def test_maximum_two_personalities_without_quite_a_character(self):
+        """Without 'Quite a Character', maximum is 2 personalities."""
+        # 2 personalities is valid
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                Personality(
+                    name="military_minded", display_name="Military-Minded", description="Test 2"
+                ),
+            ],
+            stats=RepresentativeStats(
+                ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+            ),
+        )
+        assert len(rep.personalities) == 2
+
+        # 3 personalities without Quite a Character is invalid
+        with pytest.raises(ValueError, match="Maximum is 2 personalities"):
+            Representative(
+                name="Test",
+                type=RepresentativeType.JUDGE,
+                personalities=[
+                    Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                    Personality(
+                        name="military_minded", display_name="Military-Minded", description="Test 2"
+                    ),
+                    Personality(name="zealous", display_name="Zealous", description="Test 3"),
+                ],
+                stats=RepresentativeStats(
+                    ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+                ),
+            )
+
+    def test_quite_a_character_first_allows_four_personalities(self):
+        """When 'Quite a Character' is first, up to 4 personalities are allowed."""
+        quite_a_character = Personality(
+            name="quite_a_character",
+            display_name="Quite a character",
+            description="This representative is uniquely complex.",
+            special_rule="Roll twice more on this table and apply both results.",
+        )
+
+        # 4 personalities with Quite a Character first is valid
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                quite_a_character,
                 Personality(name="beloved", display_name="Beloved", description="Test 1"),
                 Personality(
                     name="military_minded", display_name="Military-Minded", description="Test 2"
@@ -261,11 +325,135 @@ class TestRepresentativeValidators:
                 ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
             ),
         )
+        assert len(rep.personalities) == 4
+        assert rep.personalities[0].name == "quite_a_character"
+
+        # 5 personalities is still invalid even with Quite a Character first
+        with pytest.raises(ValueError, match="When 'Quite a Character' is first, maximum is 4"):
+            Representative(
+                name="Test",
+                type=RepresentativeType.JUDGE,
+                personalities=[
+                    quite_a_character,
+                    Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                    Personality(
+                        name="military_minded", display_name="Military-Minded", description="Test 2"
+                    ),
+                    Personality(name="zealous", display_name="Zealous", description="Test 3"),
+                    Personality(name="corrupt", display_name="Corrupt", description="Test 4"),
+                ],
+                stats=RepresentativeStats(
+                    ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+                ),
+            )
+
+    def test_quite_a_character_second_allows_three_personalities(self):
+        """When 'Quite a Character' is second, up to 3 personalities are allowed."""
+        quite_a_character = Personality(
+            name="quite_a_character",
+            display_name="Quite a character",
+            description="This representative is uniquely complex.",
+            special_rule="Roll twice more on this table and apply both results.",
+        )
+
+        # 3 personalities with Quite a Character second is valid
+        rep = Representative(
+            name="Test",
+            type=RepresentativeType.JUDGE,
+            personalities=[
+                Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                quite_a_character,
+                Personality(
+                    name="military_minded", display_name="Military-Minded", description="Test 2"
+                ),
+            ],
+            stats=RepresentativeStats(
+                ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+            ),
+        )
         assert len(rep.personalities) == 3
-        assert rep.personalities[0].name == "beloved"
-        assert rep.personalities[1].name == "military_minded"
-        assert rep.personalities[2].name == "zealous"
-        assert rep.talents == []
+        assert rep.personalities[1].name == "quite_a_character"
+
+        # 4 personalities with Quite a Character second is invalid
+        with pytest.raises(ValueError, match="When 'Quite a Character' is second, maximum is 3"):
+            Representative(
+                name="Test",
+                type=RepresentativeType.JUDGE,
+                personalities=[
+                    Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                    quite_a_character,
+                    Personality(
+                        name="military_minded", display_name="Military-Minded", description="Test 2"
+                    ),
+                    Personality(name="zealous", display_name="Zealous", description="Test 3"),
+                ],
+                stats=RepresentativeStats(
+                    ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+                ),
+            )
+
+    def test_quite_a_character_third_position_no_bonus(self):
+        """When 'Quite a Character' is third or later, base limit of 2 applies."""
+        quite_a_character = Personality(
+            name="quite_a_character",
+            display_name="Quite a character",
+            description="This representative is uniquely complex.",
+            special_rule="Roll twice more on this table and apply both results.",
+        )
+
+        # 3 personalities with Quite a Character third is invalid (exceeds base limit)
+        with pytest.raises(ValueError, match="Maximum is 2 personalities"):
+            Representative(
+                name="Test",
+                type=RepresentativeType.JUDGE,
+                personalities=[
+                    Personality(name="beloved", display_name="Beloved", description="Test 1"),
+                    Personality(
+                        name="military_minded", display_name="Military-Minded", description="Test 2"
+                    ),
+                    quite_a_character,
+                ],
+                stats=RepresentativeStats(
+                    ws=10, bs=10, s=10, t=10, ag=10, int=10, per=10, wp=10, fel=10
+                ),
+            )
+
+    def test_is_quite_a_character_helper_method(self):
+        """Test the _is_quite_a_character static helper method."""
+        # With special_rule containing "roll twice"
+        quite_a_character = Personality(
+            name="quite_a_character",
+            display_name="Quite a character",
+            description="Test",
+            special_rule="Roll twice more on this table and apply both results.",
+        )
+        assert Representative._is_quite_a_character(quite_a_character) is True
+
+        # Without special_rule
+        normal_personality = Personality(
+            name="beloved",
+            display_name="Beloved",
+            description="Test",
+        )
+        assert Representative._is_quite_a_character(normal_personality) is False
+
+        # With different special_rule
+        other_personality = Personality(
+            name="test",
+            display_name="Test",
+            description="Test",
+            special_rule="Some other rule",
+        )
+        assert Representative._is_quite_a_character(other_personality) is False
+
+        # Case insensitive check
+        quite_a_character_upper = Personality(
+            name="quite_a_character",
+            display_name="Quite a character",
+            description="Test",
+            special_rule="ROLL TWICE MORE",
+        )
+        assert Representative._is_quite_a_character(quite_a_character_upper) is True
 
 
 class TestRepresentativeProperties:
@@ -332,9 +520,6 @@ class TestRepresentativeProperties:
                 ),
                 Personality(
                     name="rash", display_name="Rash", description="Rash", calamitous_modifier=2
-                ),
-                Personality(
-                    name="bold", display_name="Bold", description="Bold", calamitous_modifier=0
                 ),
             ],
             stats=RepresentativeStats(
