@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import delete, select, update
+from sqlalchemy.orm import Session
 
 from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
 from colony_manager.domain.models.token_issuance import TokenIssuance
@@ -19,7 +20,7 @@ class SqlAlchemyTokenIssuanceRepository(TokenIssuanceRepository):
         engine = create_engine(database_url)
         self._session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
     
-    def _get_session(self):
+    def _get_session(self) -> Session:
         """Get a database session."""
         
         return self._session_factory()
@@ -93,7 +94,7 @@ class SqlAlchemyTokenIssuanceRepository(TokenIssuanceRepository):
             result = session.execute(query)
             session.commit()
             
-            return result.rowcount > 0  # type: ignore[attr-defined]
+            return bool(result.rowcount > 0)  # type: ignore[attr-defined]  # SQLAlchemy Result has rowcount at runtime
     
     def revoke_all_user_tokens(self, user_id: int, revoked_at: datetime) -> int:
         """Revoke all tokens for a user."""

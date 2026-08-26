@@ -7,6 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 
 class NotificationType(str, Enum):
@@ -35,7 +36,7 @@ class Notification:
     entity_type: str | None = None
     timestamp: datetime = field(default_factory=datetime.now)
     
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert notification to dictionary for JSON serialization."""
         return {
             "type": self.type.value,

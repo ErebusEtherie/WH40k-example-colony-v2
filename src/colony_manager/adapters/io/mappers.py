@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+from typing import Any
 
 from colony_manager.adapters.io.save_file_schema import (
     ColonySaveFile,
@@ -71,7 +72,7 @@ def domain_to_save_file(
     )
 
 
-def save_file_to_domain(save_file: ColonySaveFile) -> dict:
+def save_file_to_domain(save_file: ColonySaveFile) -> dict[str, Any]:
     """Convert save file to domain models.
     
     Returns:
@@ -158,14 +159,15 @@ def domain_to_save_plan(plan: DevelopmentPlan) -> SaveDevelopmentPlan:
     """Convert domain DevelopmentPlan to save file schema."""
     return SaveDevelopmentPlan(
         upgrade_type=plan.upgrade_type,
+        target_type=plan.target_type,
         target_name=plan.target_name,
         priority=plan.priority,
         description=plan.description,
-        acquisition_plan=plan.acquisition_plan,
-        progress=plan.progress,
+        notes=plan.notes,
+        order=plan.order,
         status=plan.status.value,
+        created_by=plan.created_by,
         created_at=plan.created_at.isoformat() if plan.created_at else None,
-        completed_at=plan.completed_at.isoformat() if plan.completed_at else None,
     )
 
 
@@ -175,15 +177,15 @@ def save_file_to_domain_plan(save_plan: SaveDevelopmentPlan) -> DevelopmentPlan:
         id=None,  # Will be assigned on import
         colony_id=0,  # Will be set by importer
         upgrade_type=save_plan.upgrade_type,
+        target_type=save_plan.target_type,
         target_name=save_plan.target_name,
         priority=save_plan.priority,
         description=save_plan.description,
-        acquisition_plan=save_plan.acquisition_plan,
-        progress=save_plan.progress,
+        notes=save_plan.notes,
+        order=save_plan.order,
         status=DevelopmentPlanStatus(save_plan.status),
-        created_by=0,  # Will be set by importer
+        created_by=save_plan.created_by,
         created_at=datetime.fromisoformat(save_plan.created_at) if save_plan.created_at else None,
-        completed_at=datetime.fromisoformat(save_plan.completed_at) if save_plan.completed_at else None,
     )
 
 

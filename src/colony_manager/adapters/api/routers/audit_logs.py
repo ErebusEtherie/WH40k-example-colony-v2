@@ -39,6 +39,7 @@ def get_audit_logs_by_colony(
         if log.id is None or log.changed_at is None:
             continue  # Skip logs with incomplete data
         assert log.id is not None
+        assert log.colony_id is not None
         result.append(
             AuditLogResponse(
                 id=log.id,

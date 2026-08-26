@@ -14,6 +14,7 @@ and testing tools that use HTTP.
 
 import os
 from collections.abc import Callable
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -28,14 +29,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             Disabled in development mode to allow HTTP local testing.
     """
     
-    def __init__(self, app: Callable) -> None:
+    def __init__(self, app: Callable[..., Any]) -> None:
         super().__init__(app)
         environment = os.getenv("ENVIRONMENT", "development")
         self.hsts_enabled = environment != "development"
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
         """Process request and add security headers to response."""
-        response = await call_next(request)
+        response: Response = await call_next(request)
         
         # Always add these headers
         response.headers["X-Content-Type-Options"] = "nosniff"

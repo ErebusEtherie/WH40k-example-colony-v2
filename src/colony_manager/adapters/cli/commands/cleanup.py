@@ -20,7 +20,7 @@ cleanup_app = typer.Typer(help="Cleanup and maintenance commands")
 def cleanup_token_blacklist(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
-):
+) -> None:
     """Remove expired entries from the token blacklist."""
     from datetime import UTC, datetime
 
@@ -48,7 +48,7 @@ def cleanup_login_attempts(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     days: int = typer.Option(30, "--days", help="Days to keep login attempt records"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
-):
+) -> None:
     """Remove old login attempt records."""
     from datetime import UTC, datetime, timedelta
 
@@ -77,7 +77,7 @@ def cleanup_token_issuance(
     db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
     days: int = typer.Option(90, "--days", help="Days to keep token issuance records"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
-):
+) -> None:
     """Remove old token issuance records."""
     from datetime import UTC, datetime, timedelta
 
@@ -107,7 +107,7 @@ def cleanup_all(
     login_attempt_days: int = typer.Option(30, "--login-attempt-days", help="Days to keep login attempts"),
     token_issuance_days: int = typer.Option(90, "--token-issuance-days", help="Days to keep token issuances"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
-):
+) -> None:
     """Run all cleanup tasks."""
     from datetime import UTC, datetime, timedelta
     

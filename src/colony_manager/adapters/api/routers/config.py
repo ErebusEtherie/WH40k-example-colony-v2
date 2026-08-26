@@ -1,5 +1,7 @@
 """Configuration API router - exposes rule tables and type definitions."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 
 from colony_manager.adapters.api.dependencies import get_rule_config_provider
@@ -9,7 +11,7 @@ router = APIRouter(prefix="/config", tags=["config"])
 
 
 @router.get("/colony-types")
-def get_colony_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_colony_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, str]]:
     """Get list of available colony types.
     
     Returns data suitable for populating dropdown menus in the frontend.
@@ -21,7 +23,7 @@ def get_colony_types(provider: RuleConfigProvider = Depends(get_rule_config_prov
 
 
 @router.get("/representative-types")
-def get_representative_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_representative_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, str]]:
     """Get list of available representative types.
     
     Returns data suitable for populating dropdown menus in the frontend.
@@ -33,7 +35,7 @@ def get_representative_types(provider: RuleConfigProvider = Depends(get_rule_con
 
 
 @router.get("/infrastructure-types")
-def get_infrastructure_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_infrastructure_types(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, Any]]:
     """Get list of infrastructure types with bonuses and costs.
     
     Returns data for dropdown menus and displaying bonus information.
@@ -63,7 +65,7 @@ def get_infrastructure_types(provider: RuleConfigProvider = Depends(get_rule_con
 
 
 @router.get("/support-upgrades")
-def get_support_upgrades(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_support_upgrades(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> list[dict[str, Any]]:
     """Get list of support upgrades with bonuses and costs.
     
     Returns data for dropdown menus and displaying bonus information.
@@ -88,7 +90,7 @@ def get_support_upgrades(provider: RuleConfigProvider = Depends(get_rule_config_
 
 
 @router.get("/profit-factor-table")
-def get_profit_factor_table(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_profit_factor_table(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, int]:
     """Get colony size to profit factor lookup table.
     
     Returns a mapping of colony size to base profit factor value.
@@ -97,7 +99,7 @@ def get_profit_factor_table(provider: RuleConfigProvider = Depends(get_rule_conf
 
 
 @router.get("/thresholds")
-def get_thresholds(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_thresholds(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, object]:
     """Get threshold values for state transitions.
     
     Returns thresholds for Anarchy, Placated, Productive, Halted, Pious, Heretical states.
@@ -106,7 +108,7 @@ def get_thresholds(provider: RuleConfigProvider = Depends(get_rule_config_provid
 
 
 @router.get("/growth-decay")
-def get_growth_decay(provider: RuleConfigProvider = Depends(get_rule_config_provider)):
+def get_growth_decay(provider: RuleConfigProvider = Depends(get_rule_config_provider)) -> dict[str, int]:
     """Get growth and decay rule configuration.
     
     Returns interval days for event and development rolls.

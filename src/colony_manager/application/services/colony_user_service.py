@@ -233,29 +233,31 @@ class ColonyUserService:
             from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
             
             # Log current owner role change
-            audit_log = AuditLog(
-                entity_type="colony_membership",
-                entity_id=current_owner_membership.id,
-                action=AuditLogAction.UPDATE,
-                field="role",
-                old_value=old_owner_role.value,
-                new_value=current_owner_membership.role.value,
-                changed_by=changed_by,
-                colony_id=colony_id,
-            )
-            self._audit_log_repository.create(audit_log)
+            if current_owner_membership.id is not None:
+                audit_log = AuditLog(
+                    entity_type="colony_membership",
+                    entity_id=current_owner_membership.id,
+                    action=AuditLogAction.UPDATE,
+                    field="role",
+                    old_value=old_owner_role.value,
+                    new_value=current_owner_membership.role.value,
+                    changed_by=changed_by,
+                    colony_id=colony_id,
+                )
+                self._audit_log_repository.create(audit_log)
             
             # Log new owner role change
-            audit_log = AuditLog(
-                entity_type="colony_membership",
-                entity_id=new_owner_membership.id,
-                action=AuditLogAction.UPDATE,
-                field="role",
-                old_value=old_new_owner_role.value if new_owner_membership else "none",
-                new_value=ColonyUserRole.OWNER.value,
-                changed_by=changed_by,
-                colony_id=colony_id,
-            )
-            self._audit_log_repository.create(audit_log)
+            if new_owner_membership.id is not None:
+                audit_log = AuditLog(
+                    entity_type="colony_membership",
+                    entity_id=new_owner_membership.id,
+                    action=AuditLogAction.UPDATE,
+                    field="role",
+                    old_value=old_new_owner_role.value if new_owner_membership else "none",
+                    new_value=ColonyUserRole.OWNER.value,
+                    changed_by=changed_by,
+                    colony_id=colony_id,
+                )
+                self._audit_log_repository.create(audit_log)
         
         return new_owner_membership, current_owner_membership if demote_current else None

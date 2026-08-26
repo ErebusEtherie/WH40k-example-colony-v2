@@ -42,14 +42,15 @@ class SaveEvent(BaseModel):
 class SaveDevelopmentPlan(BaseModel):
     """Schema for development plans in save files."""
     upgrade_type: str
+    target_type: str
     target_name: str
     priority: int
     description: str
-    acquisition_plan: str
-    progress: int
+    notes: str = ""
+    order: int = 0
     status: str
+    created_by: int
     created_at: str | None = None
-    completed_at: str | None = None
 
 
 class SaveColonyUser(BaseModel):

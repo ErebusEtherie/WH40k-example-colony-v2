@@ -26,8 +26,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 def _user_to_response(user: User) -> UserResponse:
     """Convert domain User model to API response schema."""
+    if user.id is None:
+        raise ValueError("User must have an ID to be converted to response")
     return UserResponse(
-        id=user.id,  # Will be set by repository after creation
+        id=user.id,
         username=user.username,
         email=user.email,
         role=user.role.value if isinstance(user.role, UserRole) else user.role,

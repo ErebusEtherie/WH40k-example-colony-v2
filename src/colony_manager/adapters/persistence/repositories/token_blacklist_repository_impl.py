@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 
 from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 from colony_manager.adapters.persistence.orm_models import TokenBlacklistORM
 from colony_manager.domain.models.token_blacklist import TokenBlacklist
@@ -23,7 +24,7 @@ class SqlAlchemyTokenBlacklistRepository(TokenBlacklistRepository):
         engine = create_engine(database_url)
         self._session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
     
-    def _get_session(self):
+    def _get_session(self) -> Session:
         """Get a database session."""
         return self._session_factory()
     

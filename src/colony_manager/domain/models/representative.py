@@ -10,6 +10,15 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.models.personality import Personality
 
+# Re-export Personality for convenience
+__all__ = [
+    "Personality",
+    "Representative",
+    "RepresentativeStats",
+    "Skill",
+    "Talent",
+]
+
 
 class RepresentativeStats(BaseModel):
     ws: int = Field(gt=0)
@@ -74,7 +83,7 @@ class Representative(BaseModel):
     special_trait_description: str | None = None
     
     @model_validator(mode='after')
-    def validate_no_duplicate_personalities(self):
+    def validate_no_duplicate_personalities(self) -> 'Representative':
         """Ensure no duplicate personalities are assigned.
         
         Per Rogue Trader Colony Rules (Core Principles #5, Table 3-6):

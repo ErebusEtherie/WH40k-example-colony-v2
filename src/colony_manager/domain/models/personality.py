@@ -31,7 +31,7 @@ class Personality(BaseModel):
     special_rule: str | None = None
 
     @model_validator(mode='after')
-    def set_default_display_name(self):
+    def set_default_display_name(self) -> 'Personality':
         """Default display_name to name if not provided."""
         if self.display_name is None:
             self.display_name = self.name

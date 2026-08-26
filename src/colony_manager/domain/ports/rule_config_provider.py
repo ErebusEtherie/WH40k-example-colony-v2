@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from colony_manager.adapters.config.schemas import (
+    ColonyTypeConfig,
+    InfrastructureTypeConfig,
+    RepresentativeTypeConfig,
+    SupportUpgradeConfig,
+)
 from colony_manager.domain.enums import LoreState, ModifierStat
 
 
@@ -46,22 +52,22 @@ class RuleConfigProvider(Protocol):
 
     # List accessors for API endpoints
     @property
-    def colony_types(self) -> list:
+    def colony_types(self) -> list[ColonyTypeConfig]:
         """Get list of all colony type configurations."""
         ...
 
     @property
-    def representative_types(self) -> list:
+    def representative_types(self) -> list[RepresentativeTypeConfig]:
         """Get list of all representative type configurations."""
         ...
 
     @property
-    def infrastructure_types(self) -> list:
+    def infrastructure_types(self) -> list[InfrastructureTypeConfig]:
         """Get list of all infrastructure type configurations."""
         ...
 
     @property
-    def support_upgrades(self) -> list:
+    def support_upgrades(self) -> list[SupportUpgradeConfig]:
         """Get list of all support upgrade configurations."""
         ...
 
