@@ -22,6 +22,7 @@ The prior draft contained several details not supported by — or contradicting 
 | 8 | "Phase 5: Resources & Events", incl. an Events API and event CRUD UI | `business_analysis.md` §6 explicitly puts an **event system out of scope** for V1 (GM handles events externally; app never rolls dice or tracks pending events) | Removed all event-management UI. Planetary Resources moved into core Colony Details scope (it's not a "future phase" — it's an original requirement) |
 | 9 | Permission levels table (`Viewer/Editor/Colony Manager/Admin`) | Not present anywhere in the requirements or rules docs | Removed — resolved via GM answer, see §12 |
 | 10 | Specific REST paths (e.g. `/roll-status`, `/events/colonies/{id}`) presented as confirmed | Project memory notes the FastAPI layer's implementation status is itself an **open, unresolved documentation contradiction** in this project | This prompt avoids committing to endpoint paths; it describes data fields only, since it's for visual mockup, not integration |
+| 11 | "Quite a Character" described as auto-granting 2 extra personalities (3 total) | Rulebook: QaC triggers 2 additional rolls/selections; total depends on when it's selected (first=3, second of two=4, not selected=1-2) | Corrected, §5.1 |
 
 **Per explicit instruction (2026-08-26): no event-system UI or references at all.** Earlier drafts of this prompt (including v3.0's own first pass) floated a "next roll in X days" countdown as an in-scope display field, reasoning it was cycle-timing math rather than event management. That's been dropped entirely — this UI will not surface roll cadence, cycle countdowns, or anything else adjacent to the event system.
 
@@ -76,7 +77,7 @@ The prior draft contained several details not supported by — or contradicting 
 8. Custom Modifiers management — see §7.
 
 **Entry screen (minimal, partial scope — see §12):**
-9. Login — username field, password field, login button. No self-registration, no password-reset flow, no visible role/permission UI yet. User and role management is administered out-of-band by a Colony Manager/Admin and its UI is **not yet specified** — do not design beyond the login form itself.
+9. Login — username field, password field, login button. Backend permission system exists, but for initial frontend implementation all authenticated users are treated as Admin. User/role administration UI is out of scope — do not design beyond the login form itself.
 
 ---
 
@@ -142,6 +143,8 @@ The prior draft contained several details not supported by — or contradicting 
 
 - Size is capped at 10 in the display, never shown above that regardless of raw modifier sum.
 
+- For colonies with many modifiers, use collapsible sections per category (Permanent / Conditional / Custom) to reduce visual clutter.
+
 ### Representative summary
 
 - Representative name (link/button to open Representative panel)
@@ -176,7 +179,7 @@ All three of these apply as **Permanent** modifiers with a GM-supplied value —
 
 **Administrative Expert** is conditional: +2 Productivity only while Order > Size — display this as a conditional badge on the personality, similar to how Conditional colony states are shown.
 
-**Quite a Character** is a meta-trait: selecting it prompts choosing 2 additional unique personalities (3 total). No direct stat effect of its own.
+**Quite a Character** is a meta-trait: when selected (by choice or roll), the player/GM selects or rolls for 2 additional unique personalities. This means: (A) if chosen first = 3 personalities total; (B) if rolled as one of two = 4 personalities total; (C/D) if not selected = 1 or 2 personalities as normal. No direct stat effects of its own.
 
 ### 5.2 Representative Types (6 confirmed)
 
@@ -244,7 +247,7 @@ Editable list. Per entry:
 
 - Name — text, editable
 - Type — enum, non-editable (one of 5, §5.3)
-- Status — enum with status-change action(s), §5.3 (Working / Not Working / In Progress / Needed)
+- Status — visual stepper showing progression: Needed → In Progress → Working, with Not Working as a disruption state branching from Working. Direct jumps between non-sequential states are allowed but trigger a confirmation dialog (e.g. "Skip 'In Progress' state?").
 - Current modifiers — read-only list, system-derived from the current status
 - Notes — text, editable
 - Edit / Delete actions
@@ -254,7 +257,7 @@ Editable list. Per entry:
 Same structure as Hard Infrastructure, with these differences:
 
 - Type — one of the 10 Support Upgrade types (§5.5); per-type limits should disable "Add" once a limit is reached rather than allowing the add and rejecting it after
-- Status — Working / Not Working / In Progress (§5.5)
+- Status — visual stepper showing progression: In Progress → Working, with Not Working as a disruption state branching from Working. Direct jumps between non-sequential states are allowed but trigger a confirmation dialog.
 - Contacts-type entries need two extra fields: contact count (1–5) and contact details (free text), §5.5
 
 ### 6.3 Development Plan
@@ -269,7 +272,7 @@ Editable list. Per entry:
 - Description — longer text, editable
 - Progress — longer text, editable
 - Edit / Delete actions
-- "Promote" action — creates the real Infrastructure/Upgrade entry; the plan item is then archived or deleted (GM choice), §5.6. There's no separate "Delivered" state to render.
+- "Promote" action — creates the real Infrastructure/Upgrade entry; the plan item is then archived or deleted (GM choice), §5.6. There's no separate "Delivered" state to render. If promoting would violate a per-type limit (e.g., second Mechanicum Station, exceeding Size cap for total upgrades), show a validation error and prevent promotion until the limit is resolved.
 
 **⚑ Flagged:** the rules docs define the *effect* of each Hard Infrastructure status (4 states) and Upgrade status (3 states), but not the **allowed transitions** between them — e.g. whether "Needed" must pass through "In Progress" before reaching "Working," or can jump directly. Until confirmed, treat status-change as a general picker between all valid states for that entity rather than a constrained workflow with specific next/previous buttons. See open item in §12.
 
@@ -291,7 +294,7 @@ Editable list. Per entry:
 
 **Defaults on creation (not user-set):** `isActive = False`, `dateApplied = <creation timestamp>`. A newly added modifier is created inactive; the user activates it separately once ready for it to apply.
 
-**Display:** Modifiers created here surface in the Colony Details modifier breakdown (§4) for their stat, labeled Custom alongside system-derived Permanent and Conditional modifiers. Give each user-created modifier an active/inactive toggle (not delete-only) matching the `isActive` field, and show its `dateApplied` for audit purposes.
+**Display:** Modifiers created here surface in the Colony Details modifier breakdown (§4) for their stat, labeled Custom alongside system-derived Permanent and Conditional modifiers. Give each user-created modifier an active/inactive toggle (not delete-only) matching the `isActive` field, and show its `dateApplied` for audit purposes. Newly created modifiers show with a visual "inactive" state (e.g., grayed-out text, [INACTIVE] badge, or reduced opacity). The activate/deactivate toggle should be prominent with appropriate colour coding (green for activate, amber for deactivate).
 
 ---
 
@@ -350,7 +353,7 @@ A Representative can exist unassigned to any colony — the panel should work st
 
 1. ~~Colony status badge set~~ → Stable is an explicit default badge, not an absence of badges. (§3)
 2. ~~Custom Modifier UI~~ → Confirmed as a dialog (§7), entered from Colony Details.
-3. ~~Multi-user roles/permissions~~ → Confirmed as in-scope but minimal for now: a basic login screen only (username, password, login button). User/role management is GM/Administrator-controlled and still being gathered as requirements — do not design that admin UI yet.
+3. ~~Multi-user roles/permissions~~ → Backend permission system exists. For initial frontend implementation, all authenticated users are treated as Admin. User/role administration UI is out of scope.
 4. ~~API integration details~~ → Backend API is under active development, with substantial design work already done. This prompt still intentionally avoids committing to specific endpoint paths since that design isn't finalized/shared yet; treat this as a visual/structural prompt, and layer in real integration details separately once the API design is provided.
 5. ~~Modifier-category field in the Add Custom Modifier dialog~~ → Resolved: no divergence from the rules docs. The field is fixed to `Custom`, not a free Permanent/Conditional/Custom choice — see §7.
 

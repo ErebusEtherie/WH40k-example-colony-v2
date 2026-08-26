@@ -30,7 +30,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__auth__UserResponse"
                 }
               }
             }
@@ -55,7 +55,7 @@
           "authentication"
         ],
         "summary": "Login",
-        "description": "Authenticate user and return JWT tokens.\n\nThis endpoint is public and does not require authentication.",
+        "description": "Authenticate user and return JWT tokens.\n\nThis endpoint is public and does not require authentication.\n\nSecurity:\n- Account lockout after 5 failed attempts within 15 minutes\n- Lockout duration: 15 minutes\n- All attempts are logged for audit purposes",
         "operationId": "login_api_v1_auth_login_post",
         "requestBody": {
           "content": {
@@ -149,7 +149,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__auth__UserResponse"
                 }
               }
             }
@@ -213,25 +213,41 @@
         ]
       }
     },
-    "/api/v1/colonies": {
-      "get": {
+    "/api/v1/auth/revoke": {
+      "post": {
         "tags": [
-          "colonies"
+          "authentication"
         ],
-        "summary": "List Colonies",
-        "description": "List all colonies with summary information.",
-        "operationId": "list_colonies_api_v1_colonies_get",
+        "summary": "Revoke Token",
+        "description": "Revoke current access token (logout).\n\nThis endpoint adds the current token to the blacklist, preventing\nfurther use even if the token hasn't expired yet.\n\nNote: The client should discard the token after calling this endpoint.\nThe token used to make this request will still be valid for this request\nbut will be blacklisted for future requests.",
+        "operationId": "revoke_token_api_v1_auth_revoke_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRevokeRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ColonyListItem"
-                  },
-                  "type": "array",
-                  "title": "Response List Colonies Api V1 Colonies Get"
+                  "$ref": "#/components/schemas/TokenRevokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -242,6 +258,119 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/auth/revoke-all": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Revoke All Tokens",
+        "description": "Revoke all tokens for a user.\n\nFor regular users: Revokes all tokens for the current user.\nFor admins: Can revoke tokens for any user by specifying user_id.\n\nThis is useful for:\n- Password changes (revoke all sessions)\n- Suspected account compromise\n- User deactivation",
+        "operationId": "revoke_all_tokens_api_v1_auth_revoke_all_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRevokeAllRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenRevokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/colonies": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "List Colonies",
+        "description": "List all colonies with pagination.\n\nReturns a paginated list of colonies. Use offset/limit for pagination.",
+        "operationId": "list_colonies_api_v1_colonies_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_ColonyListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       },
       "post": {
         "tags": [
@@ -250,15 +379,20 @@
         "summary": "Create Colony",
         "description": "Create a new colony.",
         "operationId": "create_colony_api_v1_colonies_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ColonyCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -281,12 +415,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/colonies/{colony_id}": {
@@ -1255,14 +1384,62 @@
         }
       }
     },
-    "/api/v1/audit-logs/colonies/{colony_id}": {
+    "/api/v1/development-plans/{plan_id}/install": {
+      "post": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Install Development Plan",
+        "description": "Install a development plan as an Infrastructure or Support Upgrade.\n\nOnly plans in DELIVERED status can be installed. This creates the actual\nInfrastructure or SupportUpgrade entity and deletes the development plan.\nRequires colony_manager role or higher.",
+        "operationId": "install_development_plan_api_v1_development_plans__plan_id__install_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/audit-logs": {
       "get": {
         "tags": [
           "audit_logs"
         ],
         "summary": "Get Audit Logs By Colony",
-        "description": "Get audit logs for a colony.\n\nReturns a chronological history of changes made to the colony.\nRequires colony_manager role or higher.",
-        "operationId": "get_audit_logs_by_colony_api_v1_audit_logs_colonies__colony_id__get",
+        "description": "Get audit logs for a colony.\n\nReturns a chronological history of changes made to the colony.\nRequires colony owner role.",
+        "operationId": "get_audit_logs_by_colony_api_v1_colonies__colony_id__audit_logs_get",
         "security": [
           {
             "HTTPBearer": []
@@ -1334,7 +1511,7 @@
                   "items": {
                     "$ref": "#/components/schemas/AuditLogResponse"
                   },
-                  "title": "Response Get Audit Logs By Colony Api V1 Audit Logs Colonies  Colony Id  Get"
+                  "title": "Response Get Audit Logs By Colony Api V1 Colonies  Colony Id  Audit Logs Get"
                 }
               }
             }
@@ -1352,14 +1529,14 @@
         }
       }
     },
-    "/api/v1/audit-logs/{log_id}": {
+    "/api/v1/colonies/{colony_id}/audit-logs/{log_id}": {
       "get": {
         "tags": [
           "audit_logs"
         ],
         "summary": "Get Audit Log",
-        "description": "Get a specific audit log entry by ID.\n\nRequires colony_manager role or higher.",
-        "operationId": "get_audit_log_api_v1_audit_logs__log_id__get",
+        "description": "Get a specific audit log entry by ID.\n\nRequires colony owner role.",
+        "operationId": "get_audit_log_api_v1_colonies__colony_id__audit_logs__log_id__get",
         "security": [
           {
             "HTTPBearer": []
@@ -1373,6 +1550,15 @@
             "schema": {
               "type": "integer",
               "title": "Log Id"
+            }
+          },
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
             }
           }
         ],
@@ -1678,6 +1864,66 @@
         }
       }
     },
+    "/api/v1/colonies/{colony_id}/members/transfer-ownership": {
+      "post": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Transfer Colony Ownership",
+        "description": "Transfer colony ownership to another user.\n\nRequires owner-level permissions. The current owner is demoted to editor\nby default (can be disabled with demote_current=False).\n\nReturns:\n    Dictionary with new_owner and previous_owner user IDs.",
+        "operationId": "transfer_colony_ownership_api_v1_colonies__colony_id__members_transfer_ownership_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyOwnershipTransfer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Transfer Colony Ownership Api V1 Colonies  Colony Id  Members Transfer Ownership Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/colonies/{colony_id}/export": {
       "get": {
         "tags": [
@@ -1801,7 +2047,7 @@
           "infrastructure"
         ],
         "summary": "List Infrastructure",
-        "description": "List all infrastructure for a colony.",
+        "description": "List all infrastructure for a colony with pagination.",
         "operationId": "list_infrastructure_api_v1_colonies__colony_id__infrastructure_get",
         "security": [
           {
@@ -1817,6 +2063,33 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -1825,11 +2098,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InfrastructureListItem"
-                  },
-                  "title": "Response List Infrastructure Api V1 Colonies  Colony Id  Infrastructure Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_InfrastructureListItem_"
                 }
               }
             }
@@ -2079,29 +2348,121 @@
           "representatives"
         ],
         "summary": "List Representatives",
-        "description": "List all representatives.",
+        "description": "List all representatives with pagination and filtering.\n\nReturns a paginated list of representatives. Use offset/limit for pagination.",
         "operationId": "list_representatives_api_v1_representatives_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "available_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only show unassigned representatives",
+              "default": false,
+              "title": "Available Only"
+            },
+            "description": "Only show unassigned representatives"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RepresentativeType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by representative type",
+              "examples": [
+                "judge",
+                "cardinal",
+                "satrap"
+              ],
+              "title": "Type"
+            },
+            "description": "Filter by representative type"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name (case-insensitive substring match)",
+              "examples": [
+                "cardinal",
+                "valmar"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by name (case-insensitive substring match)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/RepresentativeListItem"
-                  },
-                  "type": "array",
-                  "title": "Response List Representatives Api V1 Representatives Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_RepresentativeListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       },
       "post": {
         "tags": [
@@ -2110,15 +2471,20 @@
         "summary": "Create Representative",
         "description": "Create a new representative.",
         "operationId": "create_representative_api_v1_representatives_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RepresentativeCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -2141,12 +2507,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/representatives/{rep_id}": {
@@ -2760,7 +3121,7 @@
           "support_upgrades"
         ],
         "summary": "List Upgrades",
-        "description": "List all support upgrades for a colony.",
+        "description": "List all support upgrades for a colony with pagination.",
         "operationId": "list_upgrades_api_v1_colonies__colony_id__upgrades_get",
         "security": [
           {
@@ -2776,6 +3137,33 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -2784,11 +3172,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SupportUpgradeListItem"
-                  },
-                  "title": "Response List Upgrades Api V1 Colonies  Colony Id  Upgrades Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_SupportUpgradeListItem_"
                 }
               }
             }
@@ -3032,6 +3416,506 @@
         }
       }
     },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List Users",
+        "description": "List all users with pagination.\n\nRequires admin privileges. Returns paginated list of users.\n\nRaises:\n    HTTPException: 403 if user is not an admin.",
+        "operationId": "list_users_api_v1_users_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Number of users to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Number of users to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of users to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of users to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Create User",
+        "description": "Create a new user.\n\nRequires admin privileges. Creates a new user account with the provided details.\nUsername and email are immutable after creation.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 400 if username or email already exists.",
+        "operationId": "create_user_api_v1_users_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User",
+        "description": "Get a specific user by ID.\n\nRequires admin privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 404 if user not found.",
+        "operationId": "get_user_api_v1_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update User",
+        "description": "Update a user.\n\nRequires admin privileges. Username and email are immutable.\nAdmins cannot modify other admins, and users cannot escalate their own privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.\n    HTTPException: 400 if validation fails.",
+        "operationId": "update_user_api_v1_users__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete User",
+        "description": "Delete a user (soft delete).\n\nRequires admin privileges. Sets is_active to False instead of hard deleting.\nAdmins cannot delete other admins.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
+        "operationId": "delete_user_api_v1_users__user_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/reset-password": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Reset Password",
+        "description": "Reset a user's password.\n\nRequires admin privileges. Sets a temporary password that the user\nmust change on next login.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
+        "operationId": "reset_password_api_v1_users__user_id__reset_password_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordReset"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/colony-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Colony Types",
+        "description": "Get list of available colony types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "operationId": "get_colony_types_api_v1_config_colony_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Colony Types Api V1 Config Colony Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/representative-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Representative Types",
+        "description": "Get list of available representative types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "operationId": "get_representative_types_api_v1_config_representative_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Representative Types Api V1 Config Representative Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/infrastructure-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Infrastructure Types",
+        "description": "Get list of infrastructure types with bonuses and costs.\n\nReturns data for dropdown menus and displaying bonus information.",
+        "operationId": "get_infrastructure_types_api_v1_config_infrastructure_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Infrastructure Types Api V1 Config Infrastructure Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/support-upgrades": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Support Upgrades",
+        "description": "Get list of support upgrades with bonuses and costs.\n\nReturns data for dropdown menus and displaying bonus information.",
+        "operationId": "get_support_upgrades_api_v1_config_support_upgrades_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Support Upgrades Api V1 Config Support Upgrades Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/profit-factor-table": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Profit Factor Table",
+        "description": "Get colony size to profit factor lookup table.\n\nReturns a mapping of colony size to base profit factor value.",
+        "operationId": "get_profit_factor_table_api_v1_config_profit_factor_table_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Get Profit Factor Table Api V1 Config Profit Factor Table Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/thresholds": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Thresholds",
+        "description": "Get threshold values for state transitions.\n\nReturns thresholds for Anarchy, Placated, Productive, Halted, Pious, Heretical states.",
+        "operationId": "get_thresholds_api_v1_config_thresholds_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Thresholds Api V1 Config Thresholds Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/growth-decay": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Growth Decay",
+        "description": "Get growth and decay rule configuration.\n\nReturns interval days for event and development rolls.",
+        "operationId": "get_growth_decay_api_v1_config_growth_decay_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Get Growth Decay Api V1 Config Growth Decay Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -3260,6 +4144,28 @@
         ],
         "title": "ColonyListItem",
         "description": "Summary information for colony list."
+      },
+      "ColonyOwnershipTransfer": {
+        "properties": {
+          "new_owner_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "New Owner Id",
+            "description": "User ID of the new owner"
+          },
+          "demote_current": {
+            "type": "boolean",
+            "title": "Demote Current",
+            "description": "Whether to demote current owner to editor",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_owner_id"
+        ],
+        "title": "ColonyOwnershipTransfer",
+        "description": "Request schema for transferring colony ownership."
       },
       "ColonyResponse": {
         "properties": {
@@ -3518,14 +4424,12 @@
         "type": "string",
         "enum": [
           "research_mission",
-          "mining",
-          "industry",
           "mining_and_industry",
           "ecclesiastical",
           "agricultural"
         ],
         "title": "ColonyType",
-        "description": "Colony archetypes defining starting characteristics and specializations."
+        "description": "Colony archetypes defining starting characteristics and specializations.\n\nPer colony_types.yaml - note that MINING and INDUSTRY were merged into\nMINING_AND_INDUSTRY per GM ruling."
       },
       "ColonyUpdate": {
         "properties": {
@@ -3678,6 +4582,12 @@
             "pattern": "^(infrastructure|support_upgrade)$",
             "title": "Upgrade Type"
           },
+          "target_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Type"
+          },
           "target_name": {
             "type": "string",
             "maxLength": 200,
@@ -3688,7 +4598,8 @@
             "type": "integer",
             "maximum": 5.0,
             "minimum": 1.0,
-            "title": "Priority"
+            "title": "Priority",
+            "default": 1
           },
           "description": {
             "type": "string",
@@ -3696,20 +4607,24 @@
             "minLength": 1,
             "title": "Description"
           },
-          "acquisition_plan": {
+          "notes": {
             "type": "string",
             "maxLength": 2000,
-            "minLength": 1,
-            "title": "Acquisition Plan"
+            "title": "Notes",
+            "default": ""
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "default": 0
           }
         },
         "type": "object",
         "required": [
           "upgrade_type",
+          "target_type",
           "target_name",
-          "priority",
-          "description",
-          "acquisition_plan"
+          "description"
         ],
         "title": "DevelopmentPlanCreate",
         "description": "Schema for creating a development plan."
@@ -3728,6 +4643,10 @@
             "type": "string",
             "title": "Upgrade Type"
           },
+          "target_type": {
+            "type": "string",
+            "title": "Target Type"
+          },
           "target_name": {
             "type": "string",
             "title": "Target Name"
@@ -3740,13 +4659,13 @@
             "type": "string",
             "title": "Description"
           },
-          "acquisition_plan": {
+          "notes": {
             "type": "string",
-            "title": "Acquisition Plan"
+            "title": "Notes"
           },
-          "progress": {
+          "order": {
             "type": "integer",
-            "title": "Progress"
+            "title": "Order"
           },
           "status": {
             "type": "string",
@@ -3760,18 +4679,6 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
-          },
-          "completed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completed At"
           }
         },
         "type": "object",
@@ -3779,15 +4686,15 @@
           "id",
           "colony_id",
           "upgrade_type",
+          "target_type",
           "target_name",
           "priority",
           "description",
-          "acquisition_plan",
-          "progress",
+          "notes",
+          "order",
           "status",
           "created_by",
-          "created_at",
-          "completed_at"
+          "created_at"
         ],
         "title": "DevelopmentPlanResponse",
         "description": "Schema for development plan response."
@@ -3816,6 +4723,19 @@
               }
             ],
             "title": "Upgrade Type"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
           },
           "target_name": {
             "anyOf": [
@@ -3856,31 +4776,28 @@
             ],
             "title": "Description"
           },
-          "acquisition_plan": {
+          "notes": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 2000,
-                "minLength": 1
+                "maxLength": 2000
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Acquisition Plan"
+            "title": "Notes"
           },
-          "progress": {
+          "order": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 100.0,
-                "minimum": 0.0
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Progress"
+            "title": "Order"
           },
           "status": {
             "anyOf": [
@@ -4141,9 +5058,9 @@
             "type": "boolean",
             "title": "Is Working"
           },
-          "is_disrupted": {
+          "is_not_working": {
             "type": "boolean",
-            "title": "Is Disrupted"
+            "title": "Is Not Working"
           }
         },
         "type": "object",
@@ -4153,7 +5070,7 @@
           "state",
           "has_effect",
           "is_working",
-          "is_disrupted"
+          "is_not_working"
         ],
         "title": "InfrastructureListItem",
         "description": "Summary information for infrastructure list."
@@ -4182,9 +5099,9 @@
             "type": "boolean",
             "title": "Is Working"
           },
-          "is_disrupted": {
+          "is_not_working": {
             "type": "boolean",
-            "title": "Is Disrupted"
+            "title": "Is Not Working"
           }
         },
         "type": "object",
@@ -4195,7 +5112,7 @@
           "state",
           "has_effect",
           "is_working",
-          "is_disrupted"
+          "is_not_working"
         ],
         "title": "InfrastructureResponse",
         "description": "Full infrastructure response."
@@ -4204,11 +5121,13 @@
         "type": "string",
         "enum": [
           "planned",
+          "in_progress",
           "working",
-          "disrupted"
+          "needed",
+          "not_working"
         ],
         "title": "InfrastructureState",
-        "description": "State of infrastructure installation/operation."
+        "description": "State of infrastructure installation/operation.\n\nPer colony-manager-rules-reference.md:\n- planned: Not yet installed, no mechanical effect\n- in_progress: Currently being installed, no mechanical effect\n- working: Operational, bonuses apply\n- needed: Required but not yet built, counts toward missing infrastructure penalty"
       },
       "InfrastructureType": {
         "type": "string",
@@ -4239,6 +5158,46 @@
         "title": "InfrastructureUpdate",
         "description": "Schema for updating infrastructure (partial update)."
       },
+      "InstallationResult": {
+        "properties": {
+          "plan_id": {
+            "type": "integer",
+            "title": "Plan Id"
+          },
+          "plan_name": {
+            "type": "string",
+            "title": "Plan Name"
+          },
+          "plan_target_type": {
+            "type": "string",
+            "title": "Plan Target Type"
+          },
+          "installed_type": {
+            "type": "string",
+            "title": "Installed Type"
+          },
+          "installed_id": {
+            "type": "integer",
+            "title": "Installed Id"
+          },
+          "installed_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Installed Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "plan_name",
+          "plan_target_type",
+          "installed_type",
+          "installed_id",
+          "installed_data"
+        ],
+        "title": "InstallationResult",
+        "description": "Response for installing a development plan."
+      },
       "LoginRequest": {
         "properties": {
           "username": {
@@ -4262,10 +5221,23 @@
         "title": "LoginRequest",
         "description": "Request schema for user login."
       },
+      "ModifierCategory": {
+        "type": "string",
+        "enum": [
+          "permanent",
+          "conditional",
+          "custom"
+        ],
+        "title": "ModifierCategory",
+        "description": "Category of modifier for tracking and filtering purposes."
+      },
       "ModifierCreate": {
         "properties": {
           "modifier_source_type": {
             "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "modifier_category": {
+            "$ref": "#/components/schemas/ModifierCategory"
           },
           "modifier_stat": {
             "$ref": "#/components/schemas/ModifierStat"
@@ -4277,8 +5249,8 @@
           "modifier_description": {
             "type": "string",
             "maxLength": 200,
-            "minLength": 1,
-            "title": "Modifier Description"
+            "title": "Modifier Description",
+            "default": ""
           },
           "is_active": {
             "type": "boolean",
@@ -4301,9 +5273,9 @@
         "type": "object",
         "required": [
           "modifier_source_type",
+          "modifier_category",
           "modifier_stat",
-          "modifier_value",
-          "modifier_description"
+          "modifier_value"
         ],
         "title": "ModifierCreate",
         "description": "Schema for creating a new modifier."
@@ -4327,6 +5299,9 @@
           },
           "modifier_source_type": {
             "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "modifier_category": {
+            "$ref": "#/components/schemas/ModifierCategory"
           },
           "modifier_stat": {
             "$ref": "#/components/schemas/ModifierStat"
@@ -4361,6 +5336,7 @@
           "id",
           "colony_id",
           "modifier_source_type",
+          "modifier_category",
           "modifier_stat",
           "modifier_value",
           "modifier_description",
@@ -4393,11 +5369,131 @@
         ],
         "title": "ModifierStat"
       },
+      "PaginatedResponse_ColonyListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ColonyListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ColonyListItem]"
+      },
+      "PaginatedResponse_InfrastructureListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[InfrastructureListItem]"
+      },
+      "PaginatedResponse_RepresentativeListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RepresentativeListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[RepresentativeListItem]"
+      },
+      "PaginatedResponse_SupportUpgradeListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SupportUpgradeListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[SupportUpgradeListItem]"
+      },
+      "PaginationMeta": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "offset",
+          "limit",
+          "has_more"
+        ],
+        "title": "PaginationMeta",
+        "description": "Pagination metadata."
+      },
       "Personality": {
         "properties": {
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
           },
           "description": {
             "type": "string",
@@ -4433,13 +5529,24 @@
           "description"
         ],
         "title": "Personality",
-        "description": "Representative personality with mechanical effects."
+        "description": "Representative personality template with mechanical effects.\n\nThis is the template definition loaded from config/personalities.yaml.\nPersonalities are assigned directly to Representatives as Personality\nobjects. Variable effects (Mad's Order penalty, Scholarly/Ties With...\nstat choices) are handled via Custom Modifiers applied by the GM rather\nthan tracked in the domain model."
       },
       "PersonalityCreate": {
         "properties": {
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
           },
           "description": {
             "type": "string",
@@ -4495,6 +5602,31 @@
               }
             ],
             "title": "Condition"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choices"
+          },
+          "dice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dice"
           }
         },
         "type": "object",
@@ -4575,7 +5707,8 @@
               "$ref": "#/components/schemas/PersonalityCreate"
             },
             "type": "array",
-            "title": "Personalities"
+            "title": "Personalities",
+            "description": "List of 1-4 personalities. Count limit depends on 'Quite a Character' position."
           },
           "stats": {
             "$ref": "#/components/schemas/RepresentativeStatsCreate"
@@ -4602,7 +5735,7 @@
           "stats"
         ],
         "title": "RepresentativeCreate",
-        "description": "Schema for creating a new representative."
+        "description": "Schema for creating a new representative.\n\nPersonality count rules (per Rogue Trader Table 3-6):\n- Base limit: 2 personalities maximum\n- If 'Quite a Character' is first (index 0): limit increases to 4\n- If 'Quite a Character' is second (index 1): limit increases to 3\n- Minimum: 1 personality required"
       },
       "RepresentativeListItem": {
         "properties": {
@@ -5351,50 +6484,206 @@
         "title": "TokenResponse",
         "description": "Response schema for token endpoints."
       },
-      "UserResponse": {
+      "TokenRevokeAllRequest": {
         "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "username": {
-            "type": "string",
-            "title": "Username"
-          },
-          "email": {
-            "type": "string",
-            "title": "Email"
-          },
-          "role": {
-            "type": "string",
-            "title": "Role"
-          },
-          "is_active": {
-            "type": "boolean",
-            "title": "Is Active"
-          },
-          "managed_colony_id": {
+          "user_id": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Managed Colony Id"
+            "title": "User Id",
+            "description": "Target user ID (admin only). If omitted, revokes own tokens."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Optional reason for revocation"
+          }
+        },
+        "type": "object",
+        "title": "TokenRevokeAllRequest",
+        "description": "Request schema for revoking all user tokens."
+      },
+      "TokenRevokeRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Optional reason for revocation"
+          }
+        },
+        "type": "object",
+        "title": "TokenRevokeRequest",
+        "description": "Request schema for token revocation (logout)."
+      },
+      "TokenRevokeResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "tokens_revoked": {
+            "type": "integer",
+            "title": "Tokens Revoked",
+            "default": 0
           }
         },
         "type": "object",
         "required": [
-          "id",
+          "message"
+        ],
+        "title": "TokenRevokeResponse",
+        "description": "Response schema for token revocation."
+      },
+      "UserCreate": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username",
+            "description": "Username (immutable after creation)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email address (immutable after creation)"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "description": "Initial password"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role: viewer, colony_manager, or admin",
+            "default": "viewer"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Whether the user account is active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
           "username",
           "email",
-          "role",
-          "is_active"
+          "password"
         ],
-        "title": "UserResponse",
-        "description": "Response schema for user information (excludes sensitive data)."
+        "title": "UserCreate",
+        "description": "Request schema for creating a new user (admin only)."
+      },
+      "UserListResponse": {
+        "properties": {
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+            },
+            "type": "array",
+            "title": "Users"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "users",
+          "total",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "title": "UserListResponse",
+        "description": "Response schema for listing users with pagination."
+      },
+      "UserPasswordReset": {
+        "properties": {
+          "temporary_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Temporary Password",
+            "description": "Temporary password to set"
+          }
+        },
+        "type": "object",
+        "required": [
+          "temporary_password"
+        ],
+        "title": "UserPasswordReset",
+        "description": "Request schema for admin password reset."
+      },
+      "UserUpdate": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "User role: viewer, colony_manager, or admin"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "Whether the user account is active"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate",
+        "description": "Request schema for updating a user (admin only).\n\nNote: username and email are immutable. Only role and is_active can be updated.\nColony membership is managed separately via the /colonies/{colony_id}/members endpoints."
       },
       "ValidationError": {
         "properties": {
@@ -5435,6 +6724,98 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "colony_manager__adapters__api__schemas__auth__UserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "is_active"
+        ],
+        "title": "UserResponse",
+        "description": "Response schema for user information (excludes sensitive data)."
+      },
+      "colony_manager__adapters__api__schemas__user__UserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "is_active"
+        ],
+        "title": "UserResponse",
+        "description": "Response schema for user information (excludes sensitive data)."
       }
     },
     "securitySchemes": {
@@ -5446,64 +6827,6 @@
       }
     }
   },
-  "tags": [
-    {
-      "name": "root",
-      "description": "Root endpoint and API info"
-    },
-    {
-      "name": "auth",
-      "description": "User authentication and authorization"
-    },
-    {
-      "name": "colonies",
-      "description": "Colony management operations"
-    },
-    {
-      "name": "events",
-      "description": "Event management operations"
-    },
-    {
-      "name": "development_plans",
-      "description": "Development plan tracking"
-    },
-    {
-      "name": "audit_logs",
-      "description": "Audit log and history queries"
-    },
-    {
-      "name": "colony_users",
-      "description": "Colony membership management"
-    },
-    {
-      "name": "export_import",
-      "description": "Colony data export and import"
-    },
-    {
-      "name": "notifications",
-      "description": "Real-time notifications via SSE"
-    },
-    {
-      "name": "representatives",
-      "description": "Representative management"
-    },
-    {
-      "name": "infrastructure",
-      "description": "Hard infrastructure management"
-    },
-    {
-      "name": "support_upgrades",
-      "description": "Support upgrades management"
-    },
-    {
-      "name": "modifiers",
-      "description": "Custom modifier management"
-    },
-    {
-      "name": "resources",
-      "description": "Infrastructure/upgrade reference data"
-    }
-  ],
   "security": [
     {
       "BearerAuth": []
