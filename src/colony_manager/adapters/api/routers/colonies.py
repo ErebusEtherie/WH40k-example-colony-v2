@@ -385,7 +385,7 @@ async def remove_colony_modifier(
             entity_id=modifier_id,
             action=AuditLogAction.DELETE,
             field=None,
-            old_value=f"Modifier: {modifier_to_remove.modifier_stat.value} = {modifier_to_remove.modifier_value}",
+            old_value=f"modifier_stat={modifier_to_remove.modifier_stat.value}, modifier_value={modifier_to_remove.modifier_value}, is_active={modifier_to_remove.is_active}",
             new_value=None,
             changed_by=current_user.id,
         )
@@ -429,19 +429,19 @@ async def update_colony_modifier(
     if service._audit_log_repository is not None:
         changes = []
         if modifier_data.is_active is not None and modifier_data.is_active != old_is_active:
-            changes.append(f"is_active: {old_is_active} -> {modifier_data.is_active}")
+            changes.append(f"is_active={old_is_active}->{modifier_data.is_active}")
         if modifier_data.modifier_description is not None and modifier_data.modifier_description != old_description:
-            changes.append(f"description: {old_description} -> {modifier_data.modifier_description}")
+            changes.append(f"description={old_description}->{modifier_data.modifier_description}")
         
         if changes:
             service._log_audit(
                 colony_id=colony_id,
                 entity_type="modifier",
                 entity_id=modifier_id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field=None,
                 old_value=None,
-                new_value="; ".join(changes),
+                new_value=", ".join(changes),
                 changed_by=current_user.id,
             )
     
