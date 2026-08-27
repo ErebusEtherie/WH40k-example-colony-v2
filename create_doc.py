@@ -1,1 +1,0 @@
-content = """# UI Visualization Prompt

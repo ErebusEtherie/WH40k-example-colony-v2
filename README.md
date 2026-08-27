@@ -176,8 +176,8 @@ curl -X POST http://localhost:8000/api/v1/colonies \
 
 Interactive API documentation is available at:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
 
 Complete API reference: [API Guide](docs/api_guide_phase_3.md)
 

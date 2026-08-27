@@ -27,17 +27,20 @@ Thank you for your interest in contributing to the WH40k Colony Manager! This do
 1. **Fork the repository** on GitHub
 
 2. **Clone your fork**:
+
    ```bash
    git clone https://github.com/yourusername/WH40k_Colony_Manager.git
    cd WH40k_Colony_Manager
    ```
 
 3. **Install dependencies**:
+
    ```bash
    uv sync --extra dev
    ```
 
 4. **Set up pre-commit hooks** (optional but recommended):
+
    ```bash
    uv run pre-commit install
    ```
@@ -52,7 +55,7 @@ Thank you for your interest in contributing to the WH40k Colony Manager! This do
 uv run uvicorn colony_manager.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Access the interactive API documentation at http://localhost:8000/docs
+Access the interactive API documentation at <http://localhost:8000/docs>
 
 ---
 
@@ -63,12 +66,14 @@ Access the interactive API documentation at http://localhost:8000/docs
 This project follows modern Python best practices:
 
 1. **Type Hints**: All public functions must have full type hints
+
    ```python
    def calculate_profit_factor(colony: Colony, config: RuleConfig) -> int:
        ...
    ```
 
 2. **Docstrings**: Use Google-style docstrings for all public modules, classes, and functions
+
    ```python
    def create_colony(name: str, colony_type: str) -> Colony:
        """Create a new colony with the given name and type.
@@ -122,12 +127,14 @@ This project follows modern Python best practices:
    - `src/colony_manager/domain/models/colony.py` → `tests/domain/models/test_colony.py`
 
 2. **Test naming**: Use descriptive names that explain the scenario
+
    ```python
    def test_colony_profit_factor_zero_when_order_is_zero():
        ...
    ```
 
 3. **Fixtures**: Use pytest fixtures for common test data
+
    ```python
    @pytest.fixture
    def sample_colony() -> Colony:
@@ -135,6 +142,7 @@ This project follows modern Python best practices:
    ```
 
 4. **Assertions**: Be specific in assertions
+
 ---
 
 ## Pull Request Process
@@ -247,6 +255,7 @@ Please note that this project adheres to a Code of Conduct. By participating, yo
 ---
 
 **The Emperor Protects** 🦅
+
    ```python
    # Good
    assert colony.order == 0
@@ -261,6 +270,7 @@ Please note that this project adheres to a Code of Conduct. By participating, yo
 - **Domain layer**: 95%+ coverage (critical business logic)
 - **Application layer**: 85%+ coverage
 - **Adapters**: 70%+ coverage (focus on happy paths and error handling)
+
 ### Running Tests
 
 ```bash
