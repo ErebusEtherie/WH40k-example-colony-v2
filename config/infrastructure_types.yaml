@@ -32,8 +32,8 @@
 # Power
 # Peat-burning generators, solar panels, or block-sized fusion reactors
 # =============================================================================
-- name: "power"
-  display_name: "Power"
+- name: "power_network"
+  display_name: "Power Network"
   description: "Peat-burning generators, solar panels, or block-sized fusion reactors. The 'lifeblood' of industry."
   states:
     in_progress:
@@ -56,8 +56,8 @@
 # Water
 # Purification plants, reservoirs, and sewage systems
 # =============================================================================
-- name: "water"
-  display_name: "Water"
+- name: "water_management"
+  display_name: "Water Management"
   description: "Purification plants, reservoirs, and sewage systems. Necessary to prevent dehydration and disease."
   states:
     in_progress:

@@ -5,8 +5,18 @@ Per Rogue Trader Colony Rules:
 - Mechanical effects are lore-only (no time tracking in engine)
 - Some upgrades have conditional bonuses (e.g., Mechanicum varies by colony type)
 - Cultural Improvement allows choosing any stat except Size
+
+Modifiers are loaded from config/support_upgrades.yaml to keep rule tables
+as data, not code (per .clinerules/02-domain-modeling.md).
 """
 
+from functools import lru_cache
+
+from colony_manager.config.config_loaders import (
+    ConfigurationError,
+    SupportUpgradeConfig,
+    SupportUpgradeConfigLoader,
+)
 from colony_manager.domain.enums import (
     ColonyType,
     ModifierCategory,
@@ -15,6 +25,23 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
+
+
+# Global config loader instance
+_config_loader = SupportUpgradeConfigLoader()
+
+
+@lru_cache(maxsize=1)
+def _get_config() -> dict[str, SupportUpgradeConfig]:
+    """Get cached configuration.
+
+    Returns:
+        Dictionary mapping support upgrade name to config.
+
+    Raises:
+        ConfigurationError: If config cannot be loaded.
+    """
+    return _config_loader.load()
 
 
 def get_support_upgrade_modifiers(
@@ -30,12 +57,18 @@ def get_support_upgrade_modifiers(
 
     Returns:
         List of modifiers from this upgrade.
-    """
-    modifiers = []
 
-    # Handle standard stat effects
-    base_modifiers = _get_base_modifiers(upgrade.upgrade_type, colony_type)
-    modifiers.extend(base_modifiers)
+    Raises:
+        ConfigurationError: If no config is found for the upgrade type.
+    """
+    # Get config for this upgrade type
+    config = _get_config().get(upgrade.upgrade_type.value)
+    if config is None:
+        raise ConfigurationError(
+            f"No config found for support upgrade type: {upgrade.upgrade_type}"
+        )
+
+    modifiers = []
 
     # Handle Cultural Improvement custom choice
     if upgrade.upgrade_type == SupportUpgradeType.CULTURAL_IMPROVEMENT:
@@ -47,79 +80,68 @@ def get_support_upgrade_modifiers(
                     modifier_category=ModifierCategory.PERMANENT,
                     modifier_stat=upgrade.custom_stat_choice,
                     modifier_value=1,
-                    description="Cultural Improvement (chosen)",
+                    description=f"{upgrade.name} (chosen: {upgrade.custom_stat_choice.value})",
                     is_active=True,
+                    source_entity_id=upgrade.id,
                 )
             )
+        return modifiers
 
-    return modifiers
+    # Handle standard stat effects from config
+    for stat_effect in config.stat_effects:
+        # Check for conditional bonuses
+        final_value = stat_effect.value
+        
+        if stat_effect.conditional_bonuses and colony_type:
+            for conditional in stat_effect.conditional_bonuses:
+                if colony_type.value in conditional.colony_types:
+                    final_value = conditional.value
+                    break
 
+        # Skip if this is a custom_choice stat (handled separately)
+        if stat_effect.stat == "custom_choice":
+            continue
 
-def _get_base_modifiers(
-    upgrade_type: SupportUpgradeType,
-    colony_type: ColonyType | None = None,
-    colony_id: int = 1,
-) -> list[Modifier]:
-    """Get base modifiers for an upgrade type."""
-    modifiers = []
-
-    if upgrade_type == SupportUpgradeType.ARBITES_PRECINCT:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Arbites Precinct", colony_id))
-
-    elif upgrade_type == SupportUpgradeType.ECCLESIOARCHY_MISSION:
-        # Per Rogue Trader Colony Rules: Ecclesiarchy Mission provides +1 Piety only
-        modifiers.append(_make_modifier(ModifierStat.PIETY, 1, "Ecclesiarchy Mission", colony_id))
-
-    elif upgrade_type == SupportUpgradeType.MECHANICUM_STATION:
-        # Base +1, +2 for Mining_and_Industry, +3 for Research Mission
-        productivity_bonus = 1
-        if colony_type:
-            if colony_type == ColonyType.MINING_AND_INDUSTRY:
-                productivity_bonus = 2
-            elif colony_type == ColonyType.RESEARCH_MISSION:
-                productivity_bonus = 3
         modifiers.append(
-            _make_modifier(
-                ModifierStat.PRODUCTIVITY, productivity_bonus, "Mechanicum Station", colony_id
+            Modifier(
+                colony_id=upgrade.colony_id,
+                modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
+                modifier_category=ModifierCategory.PERMANENT,
+                modifier_stat=ModifierStat(stat_effect.stat),
+                modifier_value=final_value,
+                description=f"{upgrade.name} ({_get_conditional_description(stat_effect, colony_type)})",
+                is_active=True,
+                source_entity_id=upgrade.id,
             )
         )
 
-    elif upgrade_type == SupportUpgradeType.INFANTRY_GARRISON:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Infantry Garrison", colony_id))
-
-    elif upgrade_type == SupportUpgradeType.IMPERIAL_NAVY_STATION:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Imperial Navy Station", colony_id))
-
-    elif upgrade_type == SupportUpgradeType.INDUSTRIAL_FACILITY:
-        # Per Rogue Trader Colony Rules: Industrial Facility provides Productivity +1
-        modifiers.append(
-            _make_modifier(ModifierStat.PRODUCTIVITY, 1, "Industrial Facility", colony_id)
-        )
-
-    elif upgrade_type == SupportUpgradeType.PERSONAL_LODGINGS:
-        modifiers.append(_make_modifier(ModifierStat.ORDER, 1, "Personal Lodgings", colony_id))
-
-    elif upgrade_type == SupportUpgradeType.TRAPPINGS:
-        modifiers.append(_make_modifier(ModifierStat.COMPLACENCY, 1, "Trappings", colony_id))
-
-    # Contacts and Cultural Improvement have no base modifiers (handled separately)
-
     return modifiers
 
 
-def _make_modifier(
-    stat: ModifierStat, value: int, source_name: str, colony_id: int = 1
-) -> Modifier:
-    """Helper to create a modifier."""
-    return Modifier(
-        colony_id=colony_id,
-        modifier_source_type=ModifierSourceType.SUPPORT_UPGRADE,
-        modifier_category=ModifierCategory.PERMANENT,
-        modifier_stat=stat,
-        modifier_value=value,
-        description=source_name,
-        is_active=True,
-    )
+def _get_conditional_description(
+    stat_effect,
+    colony_type: ColonyType | None,
+) -> str:
+    """Get description showing conditional bonus context.
+
+    Args:
+        stat_effect: The stat effect config.
+        colony_type: The colony type.
+
+    Returns:
+        Description string showing final value and context.
+    """
+    if not stat_effect.conditional_bonuses:
+        return f"+{stat_effect.value}"
+
+    # Find if any conditional applies
+    if colony_type:
+        for conditional in stat_effect.conditional_bonuses:
+            if colony_type.value in conditional.colony_types:
+                return f"+{conditional.value} for {colony_type.value.replace('_', ' ').title()}"
+
+    # No conditional matched, show base value
+    return f"+{stat_effect.value}"
 
 
 def apply_support_upgrade_modifiers(

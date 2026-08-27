@@ -13,6 +13,11 @@ from colony_manager.domain.rules.profit_factor_calculator import calculate_profi
 from colony_manager.domain.rules.size_calculator import calculate_size
 from colony_manager.domain.rules.stat_calculator import calculate_stat
 from colony_manager.domain.rules.state_effects import apply_orderly_effect, apply_pious_effect
+from colony_manager.domain.rules.support_upgrade_rules import get_support_upgrade_modifiers
+from colony_manager.domain.rules.infrastructure_rules import (
+    apply_infrastructure_modifiers,
+    get_missing_infrastructure_penalty,
+)
 
 
 class ColonyStateCalculator:
@@ -120,3 +125,32 @@ class ColonyStateCalculator:
             "profit_factor": profit_factor,
             "lore_state": lore_state,
         }
+
+    def get_infrastructure_modifiers(self, colony: Colony) -> list[Modifier]:
+        """
+        Get all modifiers from colony infrastructure.
+
+        Args:
+            colony: The colony to get infrastructure modifiers for.
+
+        Returns:
+            List of all infrastructure modifiers (including missing infrastructure penalty).
+        """
+        modifiers = apply_infrastructure_modifiers(colony.infrastructure)
+        modifiers.extend(get_missing_infrastructure_penalty(colony.infrastructure, colony.id or 1))
+        return modifiers
+
+    def get_support_upgrade_modifiers(self, colony: Colony) -> list[Modifier]:
+        """
+        Get all modifiers from colony support upgrades.
+
+        Args:
+            colony: The colony to get support upgrade modifiers for.
+
+        Returns:
+            List of all support upgrade modifiers.
+        """
+        modifiers = []
+        for upgrade in colony.support_upgrades:
+            modifiers.extend(get_support_upgrade_modifiers(upgrade, colony.colony_type))
+        return modifiers

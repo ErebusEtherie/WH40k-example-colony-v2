@@ -1,6 +1,6 @@
 """Domain model for support upgrades."""
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
 
@@ -12,12 +12,23 @@ class SupportUpgrade(BaseModel):
 
     Acquiring these requires the successful completion of a Lesser or
     Greater Endeavour.
+
+    Attributes:
+        id: Database ID (None if not yet persisted).
+        colony_id: ID of the colony this upgrade belongs to.
+        name: User-defined name for this upgrade instance.
+        upgrade_type: Type of support upgrade.
+        custom_stat_choice: For Cultural Improvement: which stat was chosen.
+        custom_product: For Industrial Facility: what product is defined.
+        affiliated_group: For Contacts: which organization/group.
+        notes: Player notes about this upgrade.
     """
 
     model_config = ConfigDict(validate_assignment=True)
 
     id: int | None = None
     colony_id: int
+    name: str = Field(default="Unnamed Upgrade", min_length=1, max_length=255)
     upgrade_type: SupportUpgradeType
     # For Cultural Improvement: which stat was chosen
     custom_stat_choice: ModifierStat | None = None
@@ -25,6 +36,7 @@ class SupportUpgrade(BaseModel):
     custom_product: str | None = None
     # For Contacts: which organization/group
     affiliated_group: str | None = None
+    notes: str = Field(default="", max_length=1000)
 
     @property
     def has_stat_effect(self) -> bool:

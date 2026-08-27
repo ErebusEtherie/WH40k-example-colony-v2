@@ -187,6 +187,7 @@ def orm_to_domain_modifier(orm: ModifierORM) -> Modifier:
         description=orm.modifier_description,
         is_active=orm.is_active,
         expires_at=orm.expires_at,
+        source_entity_id=orm.source_entity_id,
     )
 
 
@@ -201,6 +202,7 @@ def domain_to_orm_modifier(domain: Modifier) -> ModifierORM:
         modifier_description=domain.modifier_description,
         is_active=domain.is_active,
         expires_at=domain.expires_at,
+        source_entity_id=domain.source_entity_id,
     )
 
 
@@ -210,8 +212,10 @@ def orm_to_domain_infrastructure(orm: InfrastructureORM) -> Infrastructure:
     return Infrastructure(
         id=orm.id,
         colony_id=orm.colony_id,
+        name=orm.name,
         infrastructure_type=InfrastructureType(orm.infrastructure_type),
         state=InfrastructureState(orm.state),
+        notes=orm.notes or "",
     )
 
 
@@ -219,8 +223,10 @@ def domain_to_orm_infrastructure(domain: Infrastructure) -> InfrastructureORM:
     return InfrastructureORM(
         id=domain.id,
         colony_id=domain.colony_id,
+        name=domain.name,
         infrastructure_type=domain.infrastructure_type.value,
         state=domain.state.value,
+        notes=domain.notes,
     )
 
 
@@ -230,10 +236,12 @@ def orm_to_domain_support_upgrade(orm: SupportUpgradeORM) -> SupportUpgrade:
     return SupportUpgrade(
         id=orm.id,
         colony_id=orm.colony_id,
+        name=orm.name,
         upgrade_type=SupportUpgradeType(orm.upgrade_type),
         custom_stat_choice=ModifierStat(orm.custom_stat_choice) if orm.custom_stat_choice else None,
         custom_product=orm.custom_product,
         affiliated_group=orm.affiliated_group,
+        notes=orm.notes or "",
     )
 
 
@@ -241,10 +249,12 @@ def domain_to_orm_support_upgrade(domain: SupportUpgrade) -> SupportUpgradeORM:
     return SupportUpgradeORM(
         id=domain.id,
         colony_id=domain.colony_id,
+        name=domain.name,
         upgrade_type=domain.upgrade_type.value,
         custom_stat_choice=domain.custom_stat_choice.value if domain.custom_stat_choice else None,
         custom_product=domain.custom_product,
         affiliated_group=domain.affiliated_group,
+        notes=domain.notes,
     )
 
 

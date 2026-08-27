@@ -105,6 +105,7 @@ class ModifierORM(Base):
     modifier_description: Mapped[str] = mapped_column(Text, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     expires_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    source_entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="modifiers")
 
@@ -116,8 +117,10 @@ class InfrastructureORM(Base):
     colony_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False
     )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     infrastructure_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    state: Mapped[str] = mapped_column(String(255), nullable=False, default="planned")
+    state: Mapped[str] = mapped_column(String(50), nullable=False, default="planned")
+    notes: Mapped[str] = mapped_column(Text, nullable=True, default="")
 
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="infrastructure")
 
@@ -129,10 +132,12 @@ class SupportUpgradeORM(Base):
     colony_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(COLONIES_ID_FK, ondelete="CASCADE"), nullable=False
     )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     upgrade_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    custom_stat_choice: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    custom_stat_choice: Mapped[str | None] = mapped_column(String(50), nullable=True)
     custom_product: Mapped[str | None] = mapped_column(String(255), nullable=True)
     affiliated_group: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    notes: Mapped[str] = mapped_column(Text, nullable=True, default="")
 
     colony: Mapped[ColonyORM] = relationship("ColonyORM", back_populates="support_upgrades")
 

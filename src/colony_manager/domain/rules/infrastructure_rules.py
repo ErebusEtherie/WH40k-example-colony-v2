@@ -8,14 +8,17 @@ Per Rogue Trader Colony Rules:
 - needed: Counts toward missing infrastructure penalty (-1 Complacency)
 - not_working: Penalties apply
 
-Hard Infrastructure types:
-- Transport: working (+1 Prod, +1 Comp), not_working (-2 Prod, -2 Order)
-- Power Network: working (+2 Prod), not_working (-3 Prod, -1 Comp)
-- Water Management: working (+1 Order, +1 Comp), not_working (-2 Order, -2 Comp)
-- Food Production: working (+1 Prod, +1 Comp), not_working (-2 Prod, -2 Comp)
-- Communications: working (+1 Prod, +1 Order), not_working (-2 Prod, -2 Order)
+Modifiers are loaded from config/infrastructure_types.yaml to keep rule tables
+as data, not code (per .clinerules/02-domain-modeling.md).
 """
 
+from functools import lru_cache
+
+from colony_manager.config.config_loaders import (
+    ConfigurationError,
+    InfrastructureConfigLoader,
+    InfrastructureTypeConfig,
+)
 from colony_manager.domain.enums import (
     InfrastructureState,
     InfrastructureType,
@@ -24,6 +27,23 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
+
+
+# Global config loader instance
+_config_loader = InfrastructureConfigLoader()
+
+
+@lru_cache(maxsize=1)
+def _get_config() -> dict[str, InfrastructureTypeConfig]:
+    """Get cached configuration.
+
+    Returns:
+        Dictionary mapping infrastructure type name to config.
+
+    Raises:
+        ConfigurationError: If config cannot be loaded.
+    """
+    return _config_loader.load()
 
 
 def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifier]:
@@ -35,87 +55,45 @@ def get_infrastructure_modifiers(infrastructure: Infrastructure) -> list[Modifie
 
     Returns:
         List of modifiers (empty if state is planned or in_progress).
+
+    Raises:
+        ConfigurationError: If no config is found for the infrastructure type.
     """
     if infrastructure.state in (InfrastructureState.PLANNED, InfrastructureState.IN_PROGRESS):
         return []
 
-    # Define modifiers by type and state
-    modifiers_data = _get_modifiers_for_type(
-        infrastructure.infrastructure_type, infrastructure.state
-    )
-
-    return [
-        Modifier(
-            colony_id=infrastructure.colony_id,
-            modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
-            modifier_category=ModifierCategory.PERMANENT,
-            modifier_stat=ModifierStat(str(mod["stat"])),
-            modifier_value=int(mod["value"]),  # type: ignore[call-overload]
-            description=f"{infrastructure.infrastructure_type.value} ({infrastructure.state.value})",
-            is_active=True,
+    # Get config for this infrastructure type
+    config = _get_config().get(infrastructure.infrastructure_type.value)
+    if config is None:
+        raise ConfigurationError(
+            f"No config found for infrastructure type: {infrastructure.infrastructure_type}"
         )
-        for mod in modifiers_data
-    ]
 
+    # Get state-specific config
+    state_config = config.states.get(infrastructure.state.value)
+    if state_config is None:
+        raise ConfigurationError(
+            f"No config found for infrastructure state: {infrastructure.state} "
+            f"(type: {infrastructure.infrastructure_type})"
+        )
 
-def _get_modifiers_for_type(
-    infra_type: InfrastructureType,
-    state: InfrastructureState,
-) -> list[dict[str, object]]:
-    """Get modifier data for a specific infrastructure type and state."""
-    modifiers_map = {
-        InfrastructureType.TRANSPORT: {
-            InfrastructureState.WORKING: [
-                {"stat": "productivity", "value": 1},
-                {"stat": "complacency", "value": 1},
-            ],
-            InfrastructureState.NOT_WORKING: [
-                {"stat": "productivity", "value": -2},
-                {"stat": "order", "value": -2},
-            ],
-        },
-        InfrastructureType.POWER_NETWORK: {
-            InfrastructureState.WORKING: [
-                {"stat": "productivity", "value": 2},
-            ],
-            InfrastructureState.NOT_WORKING: [
-                {"stat": "productivity", "value": -3},
-                {"stat": "complacency", "value": -1},
-            ],
-        },
-        InfrastructureType.WATER_MANAGEMENT: {
-            InfrastructureState.WORKING: [
-                {"stat": "order", "value": 1},
-                {"stat": "complacency", "value": 1},
-            ],
-            InfrastructureState.NOT_WORKING: [
-                {"stat": "order", "value": -2},
-                {"stat": "complacency", "value": -2},
-            ],
-        },
-        InfrastructureType.FOOD_PRODUCTION: {
-            InfrastructureState.WORKING: [
-                {"stat": "productivity", "value": 1},
-                {"stat": "complacency", "value": 1},
-            ],
-            InfrastructureState.NOT_WORKING: [
-                {"stat": "productivity", "value": -2},
-                {"stat": "complacency", "value": -2},
-            ],
-        },
-        InfrastructureType.COMMUNICATIONS: {
-            InfrastructureState.WORKING: [
-                {"stat": "productivity", "value": 1},
-                {"stat": "order", "value": 1},
-            ],
-            InfrastructureState.NOT_WORKING: [
-                {"stat": "productivity", "value": -2},
-                {"stat": "order", "value": -2},
-            ],
-        },
-    }
+    # Build modifiers from config
+    modifiers = []
+    for mod_config in state_config.modifiers:
+        modifiers.append(
+            Modifier(
+                colony_id=infrastructure.colony_id,
+                modifier_source_type=ModifierSourceType.INFRASTRUCTURE,
+                modifier_category=ModifierCategory.PERMANENT,
+                modifier_stat=ModifierStat(mod_config.stat),
+                modifier_value=mod_config.value,
+                description=f"{infrastructure.name} ({infrastructure.infrastructure_type.value} - {infrastructure.state.value})",
+                is_active=True,
+                source_entity_id=infrastructure.id,
+            )
+        )
 
-    return modifiers_map.get(infra_type, {}).get(state, [])
+    return modifiers
 
 
 def apply_infrastructure_modifiers(
@@ -189,7 +167,7 @@ def get_missing_infrastructure_penalty(
             modifier_category=ModifierCategory.PERMANENT,
             modifier_stat=ModifierStat.COMPLACENCY,
             modifier_value=total_penalty,
-            description="Missing Infrastructure (-1 per type not Working)",
+            description=f"Missing Infrastructure (-1 per type not Working, {missing_count} missing)",
             is_active=True,
         )
     ]

@@ -24,6 +24,7 @@ class Modifier(BaseModel):
         modifier_description: Human-readable description of the modifier source.
         is_active: Whether the modifier is currently active (can be manually disabled).
         expires_at: Optional date when this modifier expires (None = permanent).
+        source_entity_id: Optional ID of the source entity (infrastructure or support upgrade instance).
     """
 
     id: int | None = None
@@ -32,9 +33,10 @@ class Modifier(BaseModel):
     modifier_category: ModifierCategory
     modifier_stat: ModifierStat
     modifier_value: int
-    modifier_description: str = Field(alias="description", default="")
+    modifier_description: str = Field(validation_alias="description", default="")
     is_active: bool = True
     expires_at: date | None = None
+    source_entity_id: int | None = None
 
     model_config = {"populate_by_name": True}
 

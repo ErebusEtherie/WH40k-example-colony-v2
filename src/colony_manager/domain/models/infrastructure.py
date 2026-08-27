@@ -1,6 +1,6 @@
 """Domain model for infrastructure."""
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType
 
@@ -16,14 +16,24 @@ class Infrastructure(BaseModel):
     - working: Operational, bonuses apply
     - needed: Required but not yet built, counts toward missing infrastructure penalty
     - not_working: Incapacitated, penalties apply
+
+    Attributes:
+        id: Database ID (None if not yet persisted).
+        colony_id: ID of the colony this infrastructure belongs to.
+        name: User-defined name for this infrastructure instance.
+        infrastructure_type: Type of infrastructure (transport, power, etc.).
+        state: Current operational state.
+        notes: Player notes about this infrastructure.
     """
 
     model_config = ConfigDict(validate_assignment=True)
 
     id: int | None = None
     colony_id: int
+    name: str = Field(default="Unnamed Infrastructure", min_length=1, max_length=255)
     infrastructure_type: InfrastructureType
     state: InfrastructureState = InfrastructureState.PLANNED
+    notes: str = Field(default="", max_length=1000)
 
     @property
     def has_effect(self) -> bool:
