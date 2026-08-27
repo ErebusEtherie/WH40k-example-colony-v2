@@ -1,7 +1,6 @@
 """Tests for User domain model validators and properties."""
 
 import pytest
-
 from pydantic import ValidationError
 
 from colony_manager.domain.models.user import User, UserRole

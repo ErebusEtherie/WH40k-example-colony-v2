@@ -24,7 +24,7 @@ class TestResourceService:
         """Helper to create a test colony."""
         colony = Colony(
             name="Test Colony",
-            owner="Owner",
+            founder_name="Test Founder",
             colony_type="mining_and_industry",
             age_days=0,
             age_last_updated=date.today(),

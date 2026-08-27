@@ -54,7 +54,8 @@ class ColonyCreate(BaseModel):
     """Schema for creating a new colony."""
 
     name: str = Field(..., min_length=1, max_length=100)
-    owner: str = Field(..., min_length=1, max_length=100)
+    founder_name: str = Field(..., min_length=1, max_length=100)
+    patron_name: str | None = Field(None, min_length=1, max_length=100)
     colony_type: ColonyType
 
 
@@ -62,7 +63,8 @@ class ColonyUpdate(BaseModel):
     """Schema for updating a colony (partial update)."""
 
     name: str | None = Field(None, min_length=1, max_length=100)
-    owner: str | None = Field(None, min_length=1, max_length=100)
+    founder_name: str | None = Field(None, min_length=1, max_length=100)
+    patron_name: str | None = Field(None, min_length=1, max_length=100)
     age_days: int | None = Field(None, ge=0)
     current_event: str | None = None
 
@@ -72,7 +74,8 @@ class ColonyListItem(BaseModel):
 
     id: int | None
     name: str
-    owner: str
+    founder_name: str
+    patron_name: str | None
     colony_type: ColonyType
     age_days: int
     current_size: int
@@ -88,7 +91,8 @@ class ColonyResponse(BaseModel):
 
     id: int | None
     name: str
-    owner: str
+    founder_name: str
+    patron_name: str | None
     colony_type: ColonyType
     age_days: int
     age_last_updated: date

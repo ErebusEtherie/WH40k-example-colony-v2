@@ -69,7 +69,8 @@ def orm_to_domain_colony(orm: ColonyORM) -> Colony:
     return Colony(
         id=orm.id,
         name=orm.name,
-        owner=orm.owner,
+        founder_name=orm.founder_name,
+        patron_name=orm.patron_name,
         colony_type=ColonyType(orm.colony_type),
         age_days=orm.age_days,
         age_last_updated=orm.age_last_updated,
@@ -102,7 +103,8 @@ def domain_to_orm_colony(domain: Colony) -> ColonyORM:
     return ColonyORM(
         id=domain.id,
         name=domain.name,
-        owner=domain.owner,
+        founder_name=domain.founder_name,
+        patron_name=domain.patron_name,
         colony_type=domain.colony_type.value,
         age_days=domain.age_days,
         age_last_updated=domain.age_last_updated,

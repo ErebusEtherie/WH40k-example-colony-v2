@@ -74,14 +74,14 @@ class TestAuthFlowRegistration:
         # Create a colony (authenticated action)
         colony_data = {
             "name": "Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = integration_client.post("/api/v1/colonies", json=colony_data)
         assert colony_response.status_code == 201
         colony = colony_response.json()
         assert colony["name"] == "Test Colony"
-        assert colony["owner"] == "Test Owner"
+        assert colony["founder_name"] == "Test Owner"
 
     def test_registration_with_invalid_password(self, integration_client):
         """Test registration fails with weak password."""

@@ -32,7 +32,7 @@ def base_colony() -> Colony:
     return Colony(
         id=1,
         name="Test Colony",
-        owner="Test Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.AGRICULTURAL,
         age_days=0,
         age_last_updated=date.today(),

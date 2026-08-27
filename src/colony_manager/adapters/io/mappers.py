@@ -43,7 +43,8 @@ def domain_to_save_file(
     """Convert domain models to save file schema."""
     return ColonySaveFile(
         name=colony.name,
-        owner=colony.owner,
+        founder_name=colony.founder_name,
+        patron_name=colony.patron_name,
         colony_type=colony.colony_type,
         age_days=colony.age_days,
         age_last_updated=colony.age_last_updated.isoformat(),
@@ -82,7 +83,8 @@ def save_file_to_domain(save_file: ColonySaveFile) -> dict[str, Any]:
     """
     colony = Colony(
         name=save_file.name,
-        owner=save_file.owner,
+        founder_name=save_file.founder_name,
+        patron_name=save_file.patron_name,
         colony_type=ColonyType(save_file.colony_type),
         age_days=save_file.age_days,
         age_last_updated=date.fromisoformat(save_file.age_last_updated),

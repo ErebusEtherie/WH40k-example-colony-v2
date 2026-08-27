@@ -4,19 +4,19 @@ from pathlib import Path
 
 import pytest
 
-from colony_manager.application.services.infrastructure_service import InfrastructureService
+from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.infrastructure_repository_impl import (
     SqlAlchemyInfrastructureRepository,
 )
-from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,
 )
-from colony_manager.domain.models.infrastructure import Infrastructure
-from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.enums import InfrastructureType, InfrastructureState, ColonyType
+from colony_manager.application.services.infrastructure_service import InfrastructureService
+from colony_manager.domain.enums import ColonyType, InfrastructureState, InfrastructureType
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.infrastructure import Infrastructure
 
 
 def _create_db_url(tmp_path: Path) -> str:
@@ -32,7 +32,7 @@ def _create_colony(colony_repo, name="Test Colony"):
 
     colony = Colony(
         name=name,
-        owner="Test Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.MINING_AND_INDUSTRY,
         age_days=0,
         age_last_updated=date.today(),
@@ -393,7 +393,7 @@ class TestInfrastructureServiceAuditLogging:
 
         logs = audit_repo.get_by_entity("infrastructure", created.id)
         assert len(logs) == 2
-        update_log = [log for log in logs if log.action.value == "update"][0]
+        update_log = next(log for log in logs if log.action.value == "update")
         assert update_log.changed_by == 60
         assert update_log.field == "state"
         assert update_log.old_value == InfrastructureState.WORKING.value
@@ -423,7 +423,7 @@ class TestInfrastructureServiceAuditLogging:
 
         logs = audit_repo.get_by_entity("infrastructure", created.id)
         assert len(logs) == 2
-        delete_log = [log for log in logs if log.action.value == "delete"][0]
+        delete_log = next(log for log in logs if log.action.value == "delete")
         assert delete_log.changed_by == 60
         assert delete_log.old_value == InfrastructureType.POWER_NETWORK.value
         assert delete_log.new_value is None

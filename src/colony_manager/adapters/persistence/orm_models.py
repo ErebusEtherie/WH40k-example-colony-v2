@@ -26,7 +26,8 @@ class ColonyORM(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    owner: Mapped[str] = mapped_column(String(255), nullable=False)
+    founder_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    patron_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     colony_type: Mapped[str] = mapped_column(String(255), nullable=False)
     age_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     age_last_updated: Mapped[date] = mapped_column(Date, nullable=False)

@@ -5,7 +5,7 @@ import pytest
 
 @pytest.fixture
 def colony(auth_client):
-    create_data = {"name": "Test Colony", "owner": "Owner", "colony_type": "mining_and_industry"}
+    create_data = {"name": "Test Colony", "founder_name": "Owner", "colony_type": "mining_and_industry"}
     response = auth_client.post("/api/v1/colonies", json=create_data)
     return response.json()
 

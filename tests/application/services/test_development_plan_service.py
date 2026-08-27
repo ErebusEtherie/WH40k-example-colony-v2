@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import (
-    SqlAlchemyDevelopmentPlanRepository,
-)
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,
 )
-from colony_manager.domain.models.development_plan import DevelopmentPlanStatus
+from colony_manager.adapters.persistence.repositories.development_plan_repository_impl import (
+    SqlAlchemyDevelopmentPlanRepository,
+)
+from colony_manager.application.services.development_plan_service import DevelopmentPlanService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.development_plan import DevelopmentPlanStatus
 
 
 def _create_db_url(tmp_path: Path) -> str:
@@ -372,7 +372,7 @@ class TestDevelopmentPlanServiceAuditLogging:
 
         logs = audit_repo.get_by_entity("development_plan", plan.id)
         assert len(logs) == 2  # CREATE + UPDATE
-        update_log = [log for log in logs if log.action.value == "update"][0]
+        update_log = next(log for log in logs if log.action.value == "update")
         assert update_log.changed_by == 60
 
     def test_service_without_audit_repo(self, tmp_path):

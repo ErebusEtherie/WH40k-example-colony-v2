@@ -8,8 +8,8 @@ as unit tests disable rate limiting to prevent test interference.
 from colony_manager.adapters.api.middleware.rate_limiter import (
     login_rate_limit,
     password_change_rate_limit,
-    register_rate_limit,
     refresh_token_rate_limit,
+    register_rate_limit,
 )
 
 

@@ -10,7 +10,7 @@ class TestDevelopmentPlansAPI:
         """Test creating a new development plan for a colony."""
         colony_data = {
             "name": "Plan Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=colony_data)
@@ -37,7 +37,7 @@ class TestDevelopmentPlansAPI:
         """Test retrieving a specific development plan by ID."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -65,7 +65,7 @@ class TestDevelopmentPlansAPI:
             "/api/v1/colonies",
             json={
                 "name": "Multi-Plan Colony",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -90,7 +90,7 @@ class TestDevelopmentPlansAPI:
         """Test updating a development plan."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Update Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -121,7 +121,7 @@ class TestDevelopmentPlansAPI:
         """Test deleting a development plan."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Delete Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -164,7 +164,7 @@ class TestDevelopmentPlansAPI:
         """Test all valid development plan status values."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Status Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Status Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 

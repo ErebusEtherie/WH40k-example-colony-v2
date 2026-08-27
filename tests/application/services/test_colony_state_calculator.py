@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import pytest
 
 from colony_manager.adapters.config.loader import FileRuleConfigProvider
+from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 from colony_manager.domain.enums import (
     ColonyType,
     ModifierCategory,
@@ -13,7 +14,6 @@ from colony_manager.domain.enums import (
 )
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
-from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ class TestColonyStateCalculatorWithExpiry:
         """Expired modifiers should not affect calculated stats."""
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
@@ -75,7 +75,7 @@ class TestColonyStateCalculatorWithExpiry:
         """Non-expired modifiers should affect calculated stats."""
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
@@ -105,7 +105,7 @@ class TestColonyStateCalculatorWithExpiry:
         """State calculation respects as_of date for expiry."""
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
@@ -140,7 +140,7 @@ class TestColonyStateCalculatorWithExpiry:
         """Inactive modifiers are excluded even if not expired."""
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),

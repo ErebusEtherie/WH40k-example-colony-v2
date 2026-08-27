@@ -1,7 +1,8 @@
 """Tests for the AuditLog domain model."""
 
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
 from pydantic import ValidationError
 
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
@@ -19,7 +20,7 @@ class TestAuditLogValidators:
             action=AuditLogAction.UPDATE,
             changed_by=2,
             colony_id=1,
-            changed_at=datetime.now(timezone.utc),
+            changed_at=datetime.now(UTC),
         )
         assert log.changed_at is not None
         assert log.changed_at.tzinfo is not None
@@ -32,7 +33,7 @@ class TestAuditLogValidators:
             action=AuditLogAction.UPDATE,
             changed_by=2,
             colony_id=1,
-            changed_at=datetime.now(timezone.utc),
+            changed_at=datetime.now(UTC),
         )
         # UTC has offset of 0
         offset = log.changed_at.utcoffset()
@@ -41,7 +42,7 @@ class TestAuditLogValidators:
 
     def test_changed_at_converts_naive_to_utc(self):
         """Naive datetime for changed_at is converted to UTC."""
-        naive_dt = datetime(2025, 1, 1, 12, 0, 0)
+        naive_dt = datetime(2025, 1, 1, 12, 0, 0)  # noqa: DTZ001 - testing naive datetime conversion
         log = AuditLog(
             entity_type="colony",
             entity_id=1,
@@ -51,7 +52,7 @@ class TestAuditLogValidators:
             changed_at=naive_dt,
         )
         assert log.changed_at.tzinfo is not None
-        assert log.changed_at == naive_dt.replace(tzinfo=timezone.utc)
+        assert log.changed_at == naive_dt.replace(tzinfo=UTC)
 
     def test_entity_type_required(self):
         """entity_type is required and cannot be empty."""
@@ -62,7 +63,7 @@ class TestAuditLogValidators:
                 action=AuditLogAction.UPDATE,
                 changed_by=2,
                 colony_id=1,
-                changed_at=datetime.now(timezone.utc),
+                changed_at=datetime.now(UTC),
             )
         assert "entity_type" in str(exc_info.value)
 
@@ -75,7 +76,7 @@ class TestAuditLogValidators:
                     "action": "update",
                     "changed_by": 2,
                     "colony_id": 1,
-                    "changed_at": datetime.now(timezone.utc),
+                    "changed_at": datetime.now(UTC),
                 }
             )
         assert "entity_id" in str(exc_info.value)
@@ -89,7 +90,7 @@ class TestAuditLogValidators:
                     "entity_id": 1,
                     "action": "update",
                     "colony_id": 1,
-                    "changed_at": datetime.now(timezone.utc),
+                    "changed_at": datetime.now(UTC),
                 }
             )
         assert "changed_by" in str(exc_info.value)
@@ -103,7 +104,7 @@ class TestAuditLogValidators:
                 "entity_id": 1,
                 "action": "create",
                 "changed_by": 2,
-                "changed_at": datetime.now(timezone.utc),
+                "changed_at": datetime.now(UTC),
             }
         )
         assert audit_log.colony_id is None

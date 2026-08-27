@@ -3,7 +3,6 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
     SqlAlchemyTokenIssuanceRepository,

@@ -1,11 +1,10 @@
 """Tests for Event domain model validators and properties."""
 
 import pytest
-
 from pydantic import ValidationError
 
-from colony_manager.domain.models.event import Event, EventModifier
 from colony_manager.domain.enums import ModifierStat
+from colony_manager.domain.models.event import Event, EventModifier
 
 
 class TestEventModifierValidators:

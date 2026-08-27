@@ -375,6 +375,77 @@ class SupportUpgradeService:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
 
+    def update_upgrade_batch(
+        self,
+        upgrade_id: int,
+        update_data: dict,
+        changed_by: int | None = None,
+    ) -> SupportUpgrade:
+        """Update multiple fields on a support upgrade in a single batch operation.
+
+        Args:
+            upgrade_id: ID of the support upgrade to update.
+            update_data: Dictionary of fields to update (name, notes, custom_stat_choice,
+                        custom_product, affiliated_group). Only provided fields are updated.
+            changed_by: Optional user ID who made the change (for audit logging).
+
+        Returns:
+            The updated support upgrade.
+
+        Raises:
+            NotFoundError: If the upgrade is not found.
+        """
+        upgrade = self.get_upgrade(upgrade_id)
+
+        # Track changes for audit logging
+        changes_made = []
+
+        # Apply updates
+        if update_data.get("name") is not None:
+            old_name = upgrade.name
+            upgrade = upgrade.model_copy(update={"name": update_data["name"]})
+            changes_made.append(("name", old_name, update_data["name"]))
+
+        if update_data.get("notes") is not None:
+            old_notes = upgrade.notes
+            upgrade = upgrade.model_copy(update={"notes": update_data["notes"]})
+            changes_made.append(("notes", old_notes, update_data["notes"]))
+
+        if update_data.get("custom_stat_choice") is not None:
+            old_value = upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
+            upgrade = upgrade.model_copy(update={"custom_stat_choice": update_data["custom_stat_choice"]})
+            new_value = upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
+            changes_made.append(("custom_stat_choice", old_value, new_value))
+
+        if update_data.get("custom_product") is not None:
+            old_value = upgrade.custom_product
+            upgrade = upgrade.model_copy(update={"custom_product": update_data["custom_product"]})
+            changes_made.append(("custom_product", old_value, upgrade.custom_product))
+
+        if update_data.get("affiliated_group") is not None:
+            old_value = upgrade.affiliated_group
+            upgrade = upgrade.model_copy(update={"affiliated_group": update_data["affiliated_group"]})
+            changes_made.append(("affiliated_group", old_value, upgrade.affiliated_group))
+
+        # Persist the update
+        result = self._repository.update(upgrade)
+
+        # Log audit entries for each change
+        if self._audit_log_repository is not None and changed_by is not None:
+            for field, old_value, new_value in changes_made:
+                self._log_audit(
+                    colony_id=upgrade.colony_id,
+                    entity_type="support_upgrade",
+                    entity_id=upgrade_id,
+                    action=AuditLogAction.UPDATE,
+                    field=field,
+                    old_value=str(old_value) if old_value is not None else None,
+                    new_value=str(new_value) if new_value is not None else None,
+                    changed_by=changed_by,
+                )
+
+        return result
+
     def preview_upgrade_changes(
         self,
         upgrade_id: int,

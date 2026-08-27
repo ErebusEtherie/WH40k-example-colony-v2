@@ -1,15 +1,14 @@
 """Tests for Representative domain model validators and properties."""
 
 import pytest
-
 from pydantic import ValidationError
 
+from colony_manager.domain.enums import DynastyOutcome, ModifierStat, RepresentativeType
+from colony_manager.domain.models.personality import Personality
 from colony_manager.domain.models.representative import (
     Representative,
     RepresentativeStats,
 )
-from colony_manager.domain.models.personality import Personality
-from colony_manager.domain.enums import DynastyOutcome, RepresentativeType, ModifierStat
 
 
 class TestRepresentativeStatsValidators:

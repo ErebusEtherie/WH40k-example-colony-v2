@@ -185,19 +185,19 @@ async def update_infrastructure(
                 penalty_description=preview_result["penalty_description"],
             )
 
-        # Apply updates
+        # Build update data dict for batch update
+        update_data = {}
         if infra_data.name is not None:
-            infrastructure = service.update_infrastructure_name(
-                infrastructure_id, infra_data.name, changed_by=current_user.id
-            )
+            update_data["name"] = infra_data.name
         if infra_data.notes is not None:
-            infrastructure = service.update_infrastructure_notes(
-                infrastructure_id, infra_data.notes, changed_by=current_user.id
-            )
+            update_data["notes"] = infra_data.notes
         if infra_data.state is not None:
-            infrastructure = service.update_infrastructure_state(
-                infrastructure_id, infra_data.state, changed_by=current_user.id
-            )
+            update_data["state"] = infra_data.state
+
+        # Apply batch update
+        infrastructure = service.update_infrastructure_batch(
+            infrastructure_id, update_data, changed_by=current_user.id
+        )
 
         assert infrastructure.id is not None
         return InfrastructureResponse(

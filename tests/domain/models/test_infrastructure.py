@@ -1,7 +1,7 @@
 """Tests for Infrastructure domain model validators and properties."""
 
-from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType
+from colony_manager.domain.models.infrastructure import Infrastructure
 
 
 class TestInfrastructureProperties:

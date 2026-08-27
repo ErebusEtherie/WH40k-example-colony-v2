@@ -105,8 +105,9 @@ async def list_colonies(
             ColonyListItem(
                 id=colony.id,
                 name=colony.name,
-                owner=colony.owner,
-                colony_type=colony.colony_type,
+                founder_name=colony.founder_name,
+        patron_name=colony.patron_name,
+        colony_type=colony.colony_type,
                 age_days=colony.age_days,
                 current_size=int(state["size"]),  # type: ignore[call-overload]
                 current_complacency=int(state["complacency"]),  # type: ignore[call-overload]
@@ -144,7 +145,8 @@ async def create_colony(
     base_stats = colony_type_config["base_stats"]
     colony = Colony(
         name=colony_data.name,
-        owner=colony_data.owner,
+        founder_name=colony_data.founder_name,
+        patron_name=colony_data.patron_name,
         colony_type=colony_data.colony_type,
         age_days=0,
         age_last_updated=date.today(),
@@ -160,7 +162,8 @@ async def create_colony(
     return ColonyResponse(
         id=created.id,
         name=created.name,
-        owner=created.owner,
+        founder_name=created.founder_name,
+        patron_name=created.patron_name,
         colony_type=created.colony_type,
         age_days=created.age_days,
         age_last_updated=created.age_last_updated,
@@ -192,7 +195,8 @@ async def get_colony(
     return ColonyResponse(
         id=colony.id,
         name=colony.name,
-        owner=colony.owner,
+        founder_name=colony.founder_name,
+        patron_name=colony.patron_name,
         colony_type=colony.colony_type,
         age_days=colony.age_days,
         age_last_updated=colony.age_last_updated,
@@ -227,7 +231,8 @@ async def update_colony(
     return ColonyResponse(
         id=updated.id,
         name=updated.name,
-        owner=updated.owner,
+        founder_name=updated.founder_name,
+        patron_name=updated.patron_name,
         colony_type=updated.colony_type,
         age_days=updated.age_days,
         age_last_updated=updated.age_last_updated,
@@ -287,7 +292,8 @@ async def advance_colony_age(
     return ColonyResponse(
         id=updated.id,
         name=updated.name,
-        owner=updated.owner,
+        founder_name=updated.founder_name,
+        patron_name=updated.patron_name,
         colony_type=updated.colony_type,
         age_days=updated.age_days,
         age_last_updated=updated.age_last_updated,

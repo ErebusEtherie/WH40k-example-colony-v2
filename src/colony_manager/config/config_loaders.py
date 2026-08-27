@@ -13,7 +13,6 @@ from pydantic import BaseModel, Field, ValidationError
 class ConfigurationError(Exception):
     """Raised when configuration loading fails."""
 
-    pass
 
 
 class ModifierConfig(BaseModel):
@@ -171,10 +170,10 @@ class SupportUpgradeConfigLoader:
 
 
 __all__ = [
-    "InfrastructureConfigLoader",
-    "SupportUpgradeConfigLoader",
-    "InfrastructureTypeConfig",
-    "SupportUpgradeConfig",
-    "ModifierConfig",
     "ConfigurationError",
+    "InfrastructureConfigLoader",
+    "InfrastructureTypeConfig",
+    "ModifierConfig",
+    "SupportUpgradeConfig",
+    "SupportUpgradeConfigLoader",
 ]

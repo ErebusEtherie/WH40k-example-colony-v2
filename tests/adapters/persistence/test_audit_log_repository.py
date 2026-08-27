@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import sleep
 
-
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,

@@ -17,7 +17,8 @@ class Colony(BaseModel):
 
     id: int | None = None
     name: str
-    owner: str
+    founder_name: str
+    patron_name: str | None = None
     colony_type: ColonyType
     age_days: int = Field(ge=0)
     age_last_updated: date

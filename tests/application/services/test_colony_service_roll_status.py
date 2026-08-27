@@ -5,9 +5,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.domain.enums import ColonyType
 from colony_manager.domain.models.colony import Colony
-from colony_manager.application.services.colony_service import ColonyService
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ class TestColonyServiceRollStatus:
         # Colony at exactly 60 days (event roll due) and 90 days (dev roll due)
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=180,  # Multiple of both 60 and 90
             age_last_updated=date.today(),
@@ -65,7 +65,7 @@ class TestColonyServiceRollStatus:
         # Colony at 45 days (15 days until event roll, 45 days until dev roll)
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=45,
             age_last_updated=date.today(),
@@ -86,11 +86,11 @@ class TestColonyServiceRollStatus:
 
     def test_roll_status_returns_intervals(self, colony_service, mock_repositories):
         """Roll status includes configured intervals."""
-        colony_repo, _, config, _ = mock_repositories
+        colony_repo, _, _, _ = mock_repositories
 
         colony = Colony(
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=30,
             age_last_updated=date.today(),

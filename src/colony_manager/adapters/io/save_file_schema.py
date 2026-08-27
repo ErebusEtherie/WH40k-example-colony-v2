@@ -111,7 +111,8 @@ class ColonySaveFile(BaseModel):
     """Complete colony save file schema including all related data."""
 
     name: str
-    owner: str
+    founder_name: str
+    patron_name: str | None = None
     colony_type: str
     age_days: int = Field(ge=0)
     age_last_updated: str

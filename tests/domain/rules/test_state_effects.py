@@ -98,7 +98,7 @@ class TestStateEffectsOnProfitFactor:
         return Colony(
             id=1,
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.RESEARCH_MISSION,
             age_days=0,
             age_last_updated=date.today(),
@@ -258,7 +258,7 @@ class TestColonyStateCalculatorLoreState:
         return Colony(
             id=1,
             name="Test Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.RESEARCH_MISSION,
             age_days=0,
             age_last_updated=date.today(),

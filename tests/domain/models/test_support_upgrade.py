@@ -1,7 +1,7 @@
 """Tests for SupportUpgrade domain model validators and properties."""
 
-from colony_manager.domain.models.support_upgrade import SupportUpgrade
 from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
+from colony_manager.domain.models.support_upgrade import SupportUpgrade
 
 
 class TestSupportUpgradeProperties:

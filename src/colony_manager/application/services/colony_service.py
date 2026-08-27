@@ -7,8 +7,8 @@ from datetime import UTC, date, datetime
 from typing import TypedDict
 
 from colony_manager.application.services.colony_state_calculator import ColonyStateCalculator
-from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.enums import ModifierStat
+from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
@@ -201,7 +201,7 @@ class ColonyService:
                 colony_id=result.id,
                 entity_type="colony",
                 entity_id=result.id,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=f"Colony created: {result.name}",
@@ -243,7 +243,7 @@ class ColonyService:
                 colony_id=result.id,
                 entity_type="colony",
                 entity_id=result.id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field="age_days",
                 old_value=str(old_age),
                 new_value=str(age_days),
@@ -285,7 +285,7 @@ class ColonyService:
                 colony_id=result.id,
                 entity_type="modifier",
                 entity_id=modifier.id if modifier.id else 0,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=f"Modifier added: {modifier.modifier_stat.value if hasattr(modifier.modifier_stat, 'value') else modifier.modifier_stat} = {modifier.modifier_value}",
@@ -382,7 +382,7 @@ class ColonyService:
                 colony_id=colony_id,
                 entity_type="colony",
                 entity_id=colony_id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field=field,
                 old_value=str(old_value) if old_value is not None else None,
                 new_value=str(new_value),

@@ -154,7 +154,7 @@ def test_colony_service_update_age_sets_last_updated():
     )
     colony = Colony(
         name="Test Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
@@ -181,7 +181,7 @@ def test_colony_service_add_modifier_updates_colony():
     )
     colony = Colony(
         name="Test Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
@@ -218,7 +218,7 @@ def test_colony_service_get_state_returns_state():
     )
     colony = Colony(
         name="Test Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),
@@ -258,7 +258,7 @@ def test_representative_service_assigns_colony():
 
     colony = Colony(
         name="Test Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.RESEARCH_MISSION,
         age_days=0,
         age_last_updated=datetime.now(UTC).date(),

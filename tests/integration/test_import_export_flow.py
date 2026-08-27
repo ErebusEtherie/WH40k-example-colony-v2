@@ -53,7 +53,7 @@ class TestImportExportFlow:
         # Create a colony
         create_data = {
             "name": "Export Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=create_data)
@@ -76,7 +76,7 @@ class TestImportExportFlow:
         # Create a test export file
         export_data = {
             "name": "Imported Colony",
-            "owner": "Import Owner",
+            "founder_name": "Import Owner",
             "colony_type": "agricultural",
             "age_days": 10,
         }
@@ -95,7 +95,7 @@ class TestImportExportFlow:
         # Create original colony
         create_data = {
             "name": "Roundtrip Colony",
-            "owner": "RT Owner",
+            "founder_name": "RT Owner",
             "colony_type": "ecclesiastical",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=create_data)

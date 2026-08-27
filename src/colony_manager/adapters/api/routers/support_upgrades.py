@@ -192,27 +192,21 @@ async def update_upgrade(
                 bonus_description=preview_result["bonus_description"],
             )
 
-        # Apply updates
+        # Build update data dict for batch update
+        update_data = {}
         if upgrade_data.name is not None:
-            upgrade = service.update_upgrade_name(
-                upgrade_id, upgrade_data.name, changed_by=current_user.id
-            )
+            update_data["name"] = upgrade_data.name
         if upgrade_data.notes is not None:
-            upgrade = service.update_upgrade_notes(
-                upgrade_id, upgrade_data.notes, changed_by=current_user.id
-            )
+            update_data["notes"] = upgrade_data.notes
         if upgrade_data.custom_stat_choice is not None:
-            upgrade = service.update_upgrade_custom_stat_choice(
-                upgrade_id, upgrade_data.custom_stat_choice, changed_by=current_user.id
-            )
+            update_data["custom_stat_choice"] = upgrade_data.custom_stat_choice
         if upgrade_data.custom_product is not None:
-            upgrade = service.update_upgrade_custom_product(
-                upgrade_id, upgrade_data.custom_product, changed_by=current_user.id
-            )
+            update_data["custom_product"] = upgrade_data.custom_product
         if upgrade_data.affiliated_group is not None:
-            upgrade = service.update_upgrade_affiliated_group(
-                upgrade_id, upgrade_data.affiliated_group, changed_by=current_user.id
-            )
+            update_data["affiliated_group"] = upgrade_data.affiliated_group
+
+        # Apply batch update
+        upgrade = service.update_upgrade_batch(upgrade_id, update_data, changed_by=current_user.id)
 
         assert upgrade.id is not None
         return SupportUpgradeResponse(

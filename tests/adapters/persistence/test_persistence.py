@@ -26,7 +26,7 @@ def test_colony_repository_round_trip():
     repository = SqlAlchemyColonyRepository("sqlite:///:memory:")
     colony = Colony(
         name="Test Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type="research_mission",
         age_days=5,
         age_last_updated=date(2024, 1, 1),

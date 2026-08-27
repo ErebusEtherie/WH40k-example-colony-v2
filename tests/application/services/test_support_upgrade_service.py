@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from colony_manager.application.services.support_upgrade_service import SupportUpgradeService
+from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
     SqlAlchemySupportUpgradeRepository,
 )
-from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
-from colony_manager.domain.models.support_upgrade import SupportUpgrade
-from colony_manager.domain.models.colony import Colony
-from colony_manager.domain.enums import SupportUpgradeType, ColonyType
+from colony_manager.application.services.support_upgrade_service import SupportUpgradeService
+from colony_manager.domain.enums import ColonyType, SupportUpgradeType
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.colony import Colony
+from colony_manager.domain.models.support_upgrade import SupportUpgrade
 
 
 def _create_db_url(tmp_path: Path) -> str:
@@ -29,7 +29,7 @@ def _create_colony(colony_repo, name="Test Colony"):
 
     colony = Colony(
         name=name,
-        owner="Test Owner",
+        founder_name="Test Founder",
         colony_type=ColonyType.MINING_AND_INDUSTRY,
         age_days=0,
         age_last_updated=date.today(),

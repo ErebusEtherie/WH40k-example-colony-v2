@@ -148,7 +148,7 @@ class TestColonyRolePermissions:
         test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
         create_data = {
             "name": "Delete Test",
-            "owner": "Owner",
+            "founder_name": "Owner",
             "colony_type": "mining_and_industry",
         }
         create_response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
@@ -166,7 +166,7 @@ class TestCrossColonyIsolation:
     ):
         """Users cannot access infrastructure in colonies they don't own."""
         test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
-        create_data = {"name": "Second Colony", "owner": "Owner", "colony_type": "research_mission"}
+        create_data = {"name": "Second Colony", "founder_name": "Owner", "colony_type": "research_mission"}
         response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
         assert response.status_code == 201
         second_colony_id = response.json()["id"]
@@ -220,7 +220,7 @@ def colony_owner(test_client_with_auth):
 def colony(test_client_with_auth, colony_owner):
     """Create a colony owned by colony_owner."""
     test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
-    create_data = {"name": "Test Colony", "owner": "Owner", "colony_type": "agricultural"}
+    create_data = {"name": "Test Colony", "founder_name": "Owner", "colony_type": "agricultural"}
     response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
     assert response.status_code == 201
     return response.json()

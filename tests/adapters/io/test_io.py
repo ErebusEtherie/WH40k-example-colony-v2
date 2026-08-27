@@ -23,7 +23,7 @@ from colony_manager.domain.models.representative import (
 def test_export_and_import_round_trip(tmp_path):
     colony = Colony(
         name="Exported Colony",
-        owner="Owner",
+        founder_name="Test Founder",
         colony_type="research_mission",
         age_days=3,
         age_last_updated=date(2024, 1, 1),

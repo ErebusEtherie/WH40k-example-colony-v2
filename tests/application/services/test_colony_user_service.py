@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from colony_manager.application.services.colony_user_service import ColonyUserService
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.repositories.colony_user_repository_impl import (
-    SqlAlchemyColonyUserRepository,
-)
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,
 )
-from colony_manager.domain.models.colony_user import ColonyUserRole
+from colony_manager.adapters.persistence.repositories.colony_user_repository_impl import (
+    SqlAlchemyColonyUserRepository,
+)
+from colony_manager.application.services.colony_user_service import ColonyUserService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.models.colony_user import ColonyUserRole
 
 
 def _create_db_url(tmp_path: Path) -> str:
@@ -74,7 +74,7 @@ class TestColonyUserServiceMembership:
         service.add_member(colony_id=1, user_id=100, role=ColonyUserRole.VIEWER)
 
         # Attempt to add duplicate
-        with pytest.raises(Exception):  # SQLAlchemy integrity error
+        with pytest.raises(Exception, match=".*"):  # SQLAlchemy integrity error
             service.add_member(colony_id=1, user_id=100, role=ColonyUserRole.EDITOR)
 
     def test_get_membership_by_id(self, tmp_path):
@@ -243,7 +243,7 @@ class TestColonyUserServiceMembership:
 
         logs = audit_repo.get_by_entity("colony_membership", membership.id)
         assert len(logs) == 2  # CREATE + UPDATE
-        update_log = [log for log in logs if log.action.value == "update"][0]
+        update_log = next(log for log in logs if log.action.value == "update")
         assert update_log.changed_by == 50
 
     def test_service_without_audit_repo(self, tmp_path):

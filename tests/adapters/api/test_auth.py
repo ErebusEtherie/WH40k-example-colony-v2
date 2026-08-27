@@ -314,7 +314,7 @@ class TestRoleBasedAuthorization:
         # Need a colony first
         colony_data = {
             "name": "Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "frontier_world",
         }
         colony_response = test_client_with_auth.post(

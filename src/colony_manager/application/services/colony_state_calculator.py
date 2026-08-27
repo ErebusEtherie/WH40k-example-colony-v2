@@ -8,16 +8,16 @@ from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+from colony_manager.domain.rules.infrastructure_rules import (
+    apply_infrastructure_modifiers,
+    get_missing_infrastructure_penalty,
+)
 from colony_manager.domain.rules.lore_state_resolver import resolve_lore_state
 from colony_manager.domain.rules.profit_factor_calculator import calculate_profit_factor
 from colony_manager.domain.rules.size_calculator import calculate_size
 from colony_manager.domain.rules.stat_calculator import calculate_stat
 from colony_manager.domain.rules.state_effects import apply_orderly_effect, apply_pious_effect
 from colony_manager.domain.rules.support_upgrade_rules import get_support_upgrade_modifiers
-from colony_manager.domain.rules.infrastructure_rules import (
-    apply_infrastructure_modifiers,
-    get_missing_infrastructure_penalty,
-)
 
 
 class ColonyStateCalculator:

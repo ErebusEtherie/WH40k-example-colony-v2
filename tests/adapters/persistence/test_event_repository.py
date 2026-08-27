@@ -8,9 +8,9 @@ from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.repositories.event_repository_impl import (
     SqlAlchemyEventRepository,
 )
+from colony_manager.domain.enums import ModifierStat
 from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.event import Event, EventModifier
-from colony_manager.domain.enums import ModifierStat
 
 
 def _create_db_url(tmp_path: Path) -> str:

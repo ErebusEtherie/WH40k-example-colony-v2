@@ -45,7 +45,8 @@ class SqlAlchemyColonyRepository(ColonyRepository):
             if orm is None:
                 raise ValueError(f"Colony {colony.id} not found")
             orm.name = colony.name
-            orm.owner = colony.owner
+            orm.founder_name = colony.founder_name
+            orm.patron_name = colony.patron_name
             orm.colony_type = colony.colony_type
             orm.age_days = colony.age_days
             orm.age_last_updated = colony.age_last_updated

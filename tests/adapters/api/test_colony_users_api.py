@@ -10,7 +10,7 @@ class TestColonyUsersAPI:
         """Test retrieving all members of a colony."""
         colony_data = {
             "name": "Members Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=colony_data)
@@ -27,7 +27,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Add Member Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -55,7 +55,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Get Member Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -84,7 +84,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Remove Member Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -114,7 +114,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Invalid Role Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -138,7 +138,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Nonexistent User Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -152,7 +152,7 @@ class TestColonyUsersAPI:
         """Test 404 when member doesn't exist."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Not Found Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Not Found Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -163,7 +163,7 @@ class TestColonyUsersAPI:
         """Test adding a user who is already a member fails."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Duplicate Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Duplicate Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -185,7 +185,7 @@ class TestColonyUsersAPI:
         """Test all valid colony member roles."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Roles Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Roles Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
 
@@ -210,7 +210,7 @@ class TestColonyUsersAPI:
             "/api/v1/colonies",
             json={
                 "name": "Update Role Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )

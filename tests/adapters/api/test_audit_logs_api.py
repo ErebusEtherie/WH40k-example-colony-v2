@@ -10,7 +10,7 @@ class TestAuditLogsAPI:
         """Test retrieving audit logs for a colony."""
         colony_data = {
             "name": "Audit Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=colony_data)
@@ -26,7 +26,7 @@ class TestAuditLogsAPI:
         """Test filtering audit logs by entity type."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Filter Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Filter Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}
@@ -46,7 +46,7 @@ class TestAuditLogsAPI:
             "/api/v1/colonies",
             json={
                 "name": "Entity Filter Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -65,7 +65,7 @@ class TestAuditLogsAPI:
             "/api/v1/colonies",
             json={
                 "name": "Single Log Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -86,7 +86,7 @@ class TestAuditLogsAPI:
             "/api/v1/colonies",
             json={
                 "name": "Pagination Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -109,7 +109,7 @@ class TestAuditLogsAPI:
             "/api/v1/colonies",
             json={
                 "name": "Empty Logs Test",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -131,12 +131,12 @@ class TestAuditLogsAPI:
         # Create two colonies
         colony1_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Colony 1", "owner": "Owner1", "colony_type": "mining_and_industry"},
+            json={"name": "Colony 1", "founder_name": "Owner1", "colony_type": "mining_and_industry"},
         )
         colony1_id = colony1_response.json()["id"]
         colony2_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Colony 2", "owner": "Owner2", "colony_type": "mining_and_industry"},
+            json={"name": "Colony 2", "founder_name": "Owner2", "colony_type": "mining_and_industry"},
         )
         colony2_id = colony2_response.json()["id"]
 
@@ -156,7 +156,7 @@ class TestAuditLogsAPI:
         """Test that audit log entries contain all required fields."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Fields Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Fields Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test", "modifiers": []}

@@ -88,7 +88,7 @@ class InfrastructureService:
                 colony_id=infrastructure.colony_id,
                 entity_type="infrastructure",
                 entity_id=result.id,
-                action="create",
+                action=AuditLogAction.CREATE,
                 field=None,
                 old_value=None,
                 new_value=result.infrastructure_type.value,
@@ -138,7 +138,7 @@ class InfrastructureService:
                 colony_id=infra.colony_id,
                 entity_type="infrastructure",
                 entity_id=result.id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field="state",
                 old_value=old_state.value,
                 new_value=state.value,
@@ -178,7 +178,7 @@ class InfrastructureService:
                 colony_id=infra.colony_id,
                 entity_type="infrastructure",
                 entity_id=result.id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field="name",
                 old_value=old_name,
                 new_value=name,
@@ -218,7 +218,7 @@ class InfrastructureService:
                 colony_id=infra.colony_id,
                 entity_type="infrastructure",
                 entity_id=result.id,
-                action="update",
+                action=AuditLogAction.UPDATE,
                 field="notes",
                 old_value=old_notes,
                 new_value=notes,
@@ -249,7 +249,7 @@ class InfrastructureService:
                     colony_id=colony_id,
                     entity_type="infrastructure",
                     entity_id=infrastructure_id,
-                    action="delete",
+                    action=AuditLogAction.DELETE,
                     field=None,
                     old_value=infra_type,
                     new_value=None,
@@ -266,6 +266,70 @@ class InfrastructureService:
     def colony_exists(self, colony_id: int) -> bool:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
+
+    def update_infrastructure_batch(
+        self,
+        infrastructure_id: int,
+        update_data: dict,
+        changed_by: int | None = None,
+    ) -> Infrastructure:
+        """Update multiple fields on infrastructure in a single batch operation.
+
+        Args:
+            infrastructure_id: ID of the infrastructure to update.
+            update_data: Dictionary of fields to update (name, notes, state).
+                        Only provided fields are updated.
+            changed_by: Optional user ID who made the change (for audit logging).
+
+        Returns:
+            The updated infrastructure.
+
+        Raises:
+            NotFoundError: If the infrastructure is not found.
+        """
+        infrastructure = self.get_infrastructure(infrastructure_id)
+
+        # Track changes for audit logging
+        changes_made = []
+
+        # Apply updates
+        if update_data.get("name") is not None:
+            old_name = infrastructure.name
+            infrastructure = infrastructure.model_copy(update={"name": update_data["name"]})
+            changes_made.append(("name", old_name, update_data["name"]))
+
+        if update_data.get("notes") is not None:
+            old_notes = infrastructure.notes
+            infrastructure = infrastructure.model_copy(update={"notes": update_data["notes"]})
+            changes_made.append(("notes", old_notes, update_data["notes"]))
+
+        if update_data.get("state") is not None:
+            old_state = infrastructure.state.value
+            infrastructure = infrastructure.model_copy(update={"state": update_data["state"]})
+            changes_made.append(("state", old_state, infrastructure.state.value))
+
+        # Persist the update
+        result = self._repository.update(infrastructure)
+
+        # Update missing infrastructure penalty if state changed
+        if update_data.get("state") is not None:
+            self._update_missing_infrastructure_penalty(infrastructure.colony_id)
+
+        # Log audit entries for each change
+        if self._audit_log_repository is not None and changed_by is not None:
+            for field, old_value, new_value in changes_made:
+                self._log_audit(
+                    colony_id=infrastructure.colony_id,
+                    entity_type="infrastructure",
+                    entity_id=infrastructure_id,
+                    action=AuditLogAction.UPDATE,
+                    field=field,
+                    old_value=str(old_value) if old_value is not None else None,
+                    new_value=str(new_value) if new_value is not None else None,
+                    changed_by=changed_by,
+                )
+
+        return result
 
     def _update_missing_infrastructure_penalty(self, colony_id: int) -> None:
         """

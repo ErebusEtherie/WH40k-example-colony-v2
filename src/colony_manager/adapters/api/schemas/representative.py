@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from colony_manager.domain.enums import RepresentativeType
 from colony_manager.domain.models.personality import Personality, PersonalityEffect
-from colony_manager.domain.models.representative import Skill, Talent, Representative
+from colony_manager.domain.models.representative import Representative, Skill, Talent
 
 
 class RepresentativeStatsCreate(BaseModel):

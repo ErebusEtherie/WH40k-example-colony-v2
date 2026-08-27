@@ -9,8 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from colony_manager.adapters.api.app import create_app, get_allowed_origins
-from colony_manager.config.settings import get_cors_settings
 from colony_manager.adapters.persistence.db import init_db
+from colony_manager.config.settings import get_cors_settings
 
 
 @pytest.fixture

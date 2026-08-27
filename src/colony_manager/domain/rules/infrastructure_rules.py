@@ -28,7 +28,6 @@ from colony_manager.domain.enums import (
 from colony_manager.domain.models.infrastructure import Infrastructure
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 
-
 # Global config loader instance
 _config_loader = InfrastructureConfigLoader()
 

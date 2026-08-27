@@ -4,14 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from colony_manager.application.services.user_service import UserService
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
 from colony_manager.adapters.persistence.repositories.audit_log_repository_impl import (
     SqlAlchemyAuditLogRepository,
 )
-from colony_manager.domain.models.user import UserRole
+from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.application.services.user_service import UserService
 from colony_manager.domain.errors import NotFoundError, ValidationError
+from colony_manager.domain.models.user import UserRole
 from colony_manager.domain.util.auth import verify_password
 
 

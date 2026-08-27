@@ -78,7 +78,12 @@ def serve(
 
 
 @colony_app.command("create")
-def create_colony(name: str, owner: str, colony_type: str) -> None:
+def create_colony(
+    name: str,
+    founder_name: str,
+    colony_type: str,
+    patron_name: str | None = typer.Option(None, "--patron", help="Optional patron (House) name"),
+) -> None:
     provider = FileRuleConfigProvider(config_dir=_config_dir)
     colony_repo = SqlAlchemyColonyRepository(build_database_url(_db_path))
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
@@ -88,7 +93,8 @@ def create_colony(name: str, owner: str, colony_type: str) -> None:
     base_stats = colony_type_config["base_stats"]
     colony = Colony(
         name=name,
-        owner=owner,
+        founder_name=founder_name,
+        patron_name=patron_name,
         colony_type=ColonyType(colony_type),
         age_days=0,
         age_last_updated=__import__("datetime").date.today(),
@@ -120,7 +126,9 @@ def show_colony(colony_id: int) -> None:
         raise typer.Exit(code=1)
 
     typer.echo(f"Colony #{colony.id}: {colony.name}")
-    typer.echo(f"Owner: {colony.owner}")
+    typer.echo(f"Founder: {colony.founder_name}")
+    if colony.patron_name:
+        typer.echo(f"Patron: {colony.patron_name}")
     typer.echo(f"Type: {colony.colony_type}")
     typer.echo(f"Age: {colony.age_days} days")
     typer.echo("State:")
@@ -144,7 +152,8 @@ def list_colonies() -> None:
 
     typer.echo("Colonies:")
     for colony in colonies:
-        typer.echo(f"- #{colony.id}: {colony.name} ({colony.colony_type}) — owner: {colony.owner}")
+        patron_str = f" | Patron: {colony.patron_name}" if colony.patron_name else ""
+        typer.echo(f"- #{colony.id}: {colony.name} ({colony.colony_type}) — Founder: {colony.founder_name}{patron_str}")
 
 
 @colony_app.command("set-age")

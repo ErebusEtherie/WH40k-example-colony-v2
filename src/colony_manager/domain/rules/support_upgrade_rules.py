@@ -26,7 +26,6 @@ from colony_manager.domain.enums import (
 from colony_manager.domain.models.modifier import Modifier, ModifierSourceType
 from colony_manager.domain.models.support_upgrade import SupportUpgrade
 
-
 # Global config loader instance
 _config_loader = SupportUpgradeConfigLoader()
 

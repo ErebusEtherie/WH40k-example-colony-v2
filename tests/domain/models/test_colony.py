@@ -1,12 +1,12 @@
 """Tests for Colony domain model validators and properties."""
 
-import pytest
 from datetime import date
 
+import pytest
 from pydantic import ValidationError
 
-from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.enums import ColonyType, DynastyOutcome, ResourceType
+from colony_manager.domain.models.colony import Colony
 
 
 class TestColonyValidators:
@@ -17,7 +17,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=-1,
                 age_last_updated=date.today(),
@@ -34,7 +34,7 @@ class TestColonyValidators:
         """age_days accepts zero (newly founded colony)."""
         colony = Colony(
             name="New Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.RESEARCH_MISSION,
             age_days=0,
             age_last_updated=date.today(),
@@ -50,7 +50,7 @@ class TestColonyValidators:
         """age_days accepts positive values."""
         colony = Colony(
             name="Old Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=365,
             age_last_updated=date.today(),
@@ -67,7 +67,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
@@ -84,7 +84,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
@@ -101,7 +101,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
@@ -118,7 +118,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
@@ -135,7 +135,7 @@ class TestColonyValidators:
         with pytest.raises(ValidationError) as exc_info:
             Colony(
                 name="Test Colony",
-                owner="Test Owner",
+                founder_name="Test Founder",
                 colony_type=ColonyType.MINING_AND_INDUSTRY,
                 age_days=0,
                 age_last_updated=date.today(),
@@ -151,7 +151,7 @@ class TestColonyValidators:
         """Base stats accept zero (critical state)."""
         colony = Colony(
             name="Critical Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -171,7 +171,7 @@ class TestColonyValidators:
         """Base stats accept positive values."""
         colony = Colony(
             name="Thriving Colony",
-            owner="Test Owner",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -195,7 +195,7 @@ class TestColonyLockFlags:
         """Lock flags default to False."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -213,7 +213,7 @@ class TestColonyLockFlags:
         """Lock flags can be explicitly set to True."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -238,7 +238,7 @@ class TestColonyCollections:
         """Collection fields default to empty lists."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -257,7 +257,7 @@ class TestColonyCollections:
         """planetary_resources accepts valid ResourceType enums."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -275,7 +275,7 @@ class TestColonyCollections:
         """dynasty_outcome accepts valid DynastyOutcome enums."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -292,7 +292,7 @@ class TestColonyCollections:
         """dynasty_outcome can be None for non-Dynasty representatives."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),
@@ -313,7 +313,7 @@ class TestColonyGetCycleInfo:
         """get_cycle_info correctly calculates event roll timing."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=45,
             age_last_updated=date.today(),
@@ -331,7 +331,7 @@ class TestColonyGetCycleInfo:
         """get_cycle_info correctly calculates development roll timing."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=100,
             age_last_updated=date.today(),
@@ -349,7 +349,7 @@ class TestColonyGetCycleInfo:
         """When age is exact multiple, both since and until are 0."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=180,
             age_last_updated=date.today(),
@@ -369,7 +369,7 @@ class TestColonyGetCycleInfo:
         """New colony (age 0) shows 0 days since, full interval until."""
         colony = Colony(
             name="New",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             age_days=0,
             age_last_updated=date.today(),

@@ -3,7 +3,6 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-
 from colony_manager.adapters.persistence.db import init_db
 from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
     SqlAlchemyTokenBlacklistRepository,
@@ -114,9 +113,10 @@ class TestTokenBlacklistRevokeAll:
         repo = SqlAlchemyTokenBlacklistRepository(db_url)
 
         # Create token issuance table and add some tokens
-        from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
+
+        from colony_manager.adapters.persistence.orm_models import TokenIssuanceORM
 
         engine = create_engine(db_url)
         Session = sessionmaker(bind=engine)

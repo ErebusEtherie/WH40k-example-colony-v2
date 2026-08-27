@@ -1,7 +1,8 @@
 """Tests for ColonyUser domain model validators and properties."""
 
-import pytest
+from datetime import UTC
 
+import pytest
 from pydantic import ValidationError
 
 from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
@@ -60,8 +61,8 @@ class TestColonyUserDefaults:
 
     def test_can_set_explicit_joined_at(self):
         """joined_at can be explicitly set."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        explicit_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        explicit_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
         cu = ColonyUser(colony_id=1, user_id=2, joined_at=explicit_time)
         assert cu.joined_at == explicit_time

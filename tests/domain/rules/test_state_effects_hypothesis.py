@@ -30,7 +30,8 @@ def colony_states(draw):
     colony_type = draw(st.sampled_from(list(ColonyType)))
     return Colony(
         name=draw(st.text(min_size=1, max_size=50)),
-        owner=draw(st.text(min_size=1, max_size=50)),
+        founder_name=draw(st.text(min_size=1, max_size=50)),
+        patron_name=None,
         colony_type=colony_type,
         base_size=base_size,
         base_order=base_order,
@@ -215,7 +216,7 @@ class TestCascadingEffects:
         """When Order = 0 AND Piety = 0, both lock sets apply (Order locked twice, Complacency locked)."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             base_size=5,
             base_order=0,
@@ -248,7 +249,7 @@ class TestCascadingEffects:
         """When Complacency = 0 AND Piety = 0, all three stats (Order, Complacency, Productivity) get locked."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             base_size=5,
             base_order=10,
@@ -304,7 +305,7 @@ class TestCascadingEffects:
         """Anarchy decay doesn't clear existing locks from Complacency = 0."""
         colony = Colony(
             name="Test",
-            owner="Test",
+            founder_name="Test Founder",
             colony_type=ColonyType.MINING_AND_INDUSTRY,
             base_size=5,
             base_order=0,

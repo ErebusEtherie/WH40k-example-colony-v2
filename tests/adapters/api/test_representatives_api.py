@@ -92,7 +92,7 @@ def representatives_with_data(auth_client: TestClient) -> list[dict]:
     # Assign one representative to a colony
     colony_response = auth_client.post(
         "/api/v1/colonies",
-        json={"name": "Test Colony", "owner": "Test Owner", "colony_type": "mining_and_industry"},
+        json={"name": "Test Colony", "founder_name": "Test Owner", "colony_type": "mining_and_industry"},
     )
     colony_id = colony_response.json()["id"]
 
@@ -203,7 +203,7 @@ class TestRepresentativeAssignment:
             "/api/v1/colonies",
             json={
                 "name": "Test Colony",
-                "owner": "Test Owner",
+                "founder_name": "Test Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -252,4 +252,3 @@ class TestRepresentativeAssignment:
         """Test unassigning a representative from their colony."""
         # Note: This test requires colony_users table which needs DB migration setup
         # This is tracked separately from the filtering feature implementation
-        pass

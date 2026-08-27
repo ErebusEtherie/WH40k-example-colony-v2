@@ -10,7 +10,7 @@ class TestEventsAPI:
         """Test creating a new event for a colony."""
         colony_data = {
             "name": "Event Test Colony",
-            "owner": "Test Owner",
+            "founder_name": "Test Owner",
             "colony_type": "mining_and_industry",
         }
         colony_response = auth_client.post("/api/v1/colonies", json=colony_data)
@@ -36,7 +36,7 @@ class TestEventsAPI:
         """Test retrieving a specific event by ID."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "Test Event", "description": "Test description", "modifiers": []}
@@ -54,7 +54,7 @@ class TestEventsAPI:
             "/api/v1/colonies",
             json={
                 "name": "Multi-Event Colony",
-                "owner": "Owner",
+                "founder_name": "Owner",
                 "colony_type": "mining_and_industry",
             },
         )
@@ -69,7 +69,7 @@ class TestEventsAPI:
         """Test updating an event."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Update Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Update Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         event_data = {
@@ -95,7 +95,7 @@ class TestEventsAPI:
         """Test deleting (soft delete) an event."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Delete Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Delete Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         event_data = {"name": "To Delete", "description": "Will be deleted", "modifiers": []}
@@ -124,7 +124,7 @@ class TestEventsAPI:
         """Test retrieving only active events for a colony."""
         colony_response = auth_client.post(
             "/api/v1/colonies",
-            json={"name": "Active Test", "owner": "Owner", "colony_type": "mining_and_industry"},
+            json={"name": "Active Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
         )
         colony_id = colony_response.json()["id"]
         for i in range(3):

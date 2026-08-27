@@ -5,21 +5,21 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from freezegun import freeze_time
 
-from colony_manager.application.services.auth_service import (
-    AuthService,
-    LOCKOUT_MAX_ATTEMPTS,
-    LOCKOUT_WINDOW_MINUTES,
-)
 from colony_manager.adapters.persistence.db import init_db
-from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
+    SqlAlchemyLoginAttemptRepository,
+)
 from colony_manager.adapters.persistence.repositories.token_blacklist_repository_impl import (
     SqlAlchemyTokenBlacklistRepository,
 )
 from colony_manager.adapters.persistence.repositories.token_issuance_repository_impl import (
     SqlAlchemyTokenIssuanceRepository,
 )
-from colony_manager.adapters.persistence.repositories.login_attempt_repository_impl import (
-    SqlAlchemyLoginAttemptRepository,
+from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.application.services.auth_service import (
+    LOCKOUT_MAX_ATTEMPTS,
+    LOCKOUT_WINDOW_MINUTES,
+    AuthService,
 )
 from colony_manager.domain.models.login_attempt import LoginAttempt
 from colony_manager.domain.models.token_blacklist import TokenBlacklist
