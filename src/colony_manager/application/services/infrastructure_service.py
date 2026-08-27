@@ -147,6 +147,86 @@ class InfrastructureService:
 
         return result
 
+    def update_infrastructure_name(
+        self,
+        infrastructure_id: int,
+        name: str,
+        changed_by: int | None = None,
+    ) -> Infrastructure:
+        """Update infrastructure name.
+
+        Args:
+            infrastructure_id: ID of the infrastructure to update.
+            name: New name for the infrastructure.
+            changed_by: Optional user ID who made the change (for audit logging).
+
+        Returns:
+            The updated infrastructure.
+        """
+        infra = self.get_infrastructure(infrastructure_id)
+        old_name = infra.name
+        infra.name = name
+        result = self._repository.update(infra)
+
+        # Log audit entry
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
+            self._log_audit(
+                colony_id=infra.colony_id,
+                entity_type="infrastructure",
+                entity_id=result.id,
+                action="update",
+                field="name",
+                old_value=old_name,
+                new_value=name,
+                changed_by=changed_by,
+            )
+
+        return result
+
+    def update_infrastructure_notes(
+        self,
+        infrastructure_id: int,
+        notes: str,
+        changed_by: int | None = None,
+    ) -> Infrastructure:
+        """Update infrastructure notes.
+
+        Args:
+            infrastructure_id: ID of the infrastructure to update.
+            notes: New notes for the infrastructure.
+            changed_by: Optional user ID who made the change (for audit logging).
+
+        Returns:
+            The updated infrastructure.
+        """
+        infra = self.get_infrastructure(infrastructure_id)
+        old_notes = infra.notes
+        infra.notes = notes
+        result = self._repository.update(infra)
+
+        # Log audit entry
+        if (
+            self._audit_log_repository is not None
+            and changed_by is not None
+            and result.id is not None
+        ):
+            self._log_audit(
+                colony_id=infra.colony_id,
+                entity_type="infrastructure",
+                entity_id=result.id,
+                action="update",
+                field="notes",
+                old_value=old_notes,
+                new_value=notes,
+                changed_by=changed_by,
+            )
+
+        return result
+
     def delete_infrastructure(self, infrastructure_id: int, changed_by: int | None = None) -> None:
         """Delete infrastructure.
 
@@ -224,3 +304,60 @@ class InfrastructureService:
 
         # Save the updated colony
         self._colony_repository.update(colony)
+
+    def preview_state_transition(
+        self,
+        infrastructure_id: int,
+        new_state: InfrastructureState,
+    ) -> dict:
+        """
+        Preview the effects of a state transition without applying it.
+
+        Args:
+            infrastructure_id: ID of the infrastructure to preview.
+            new_state: The requested new state.
+
+        Returns:
+            Dictionary with validation results and modifiers preview.
+        """
+        from colony_manager.domain.rules.infrastructure_rules import (
+            apply_infrastructure_modifiers,
+        )
+
+        infrastructure = self.get_infrastructure(infrastructure_id)
+        current_state = infrastructure.state
+        would_apply_penalty = False
+        penalty_description: str | None = None
+        modifiers_preview: list[dict] = []
+
+        # Create a temporary infrastructure with the new state
+        temp_infra = infrastructure.model_copy(update={"state": new_state})
+
+        # Get modifiers that would apply
+        modifiers = apply_infrastructure_modifiers([temp_infra])
+        modifiers_preview = [
+            {
+                "stat": mod.modifier_stat.value if mod.modifier_stat else None,
+                "value": mod.modifier_value,
+                "description": mod.modifier_description,
+                "source_entity_id": mod.source_entity_id,
+            }
+            for mod in modifiers
+        ]
+
+        # Check if this would remove/apply a missing infrastructure penalty
+        if infrastructure.is_not_working and temp_infra.is_working:
+            would_apply_penalty = False  # Removing penalty
+            penalty_description = "Missing infrastructure penalty would be removed"
+        elif infrastructure.is_working and temp_infra.is_not_working:
+            would_apply_penalty = True
+            penalty_description = "Missing infrastructure penalty would be applied"
+
+        return {
+            "valid": True,
+            "current_state": current_state,
+            "requested_state": new_state,
+            "modifiers_preview": modifiers_preview,
+            "would_apply_penalty": would_apply_penalty,
+            "penalty_description": penalty_description,
+        }

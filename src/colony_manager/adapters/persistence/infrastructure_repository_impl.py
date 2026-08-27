@@ -41,6 +41,8 @@ class SqlAlchemyInfrastructureRepository(InfrastructureRepository):
                 raise ValueError(f"Infrastructure {infrastructure.id} not found")
             orm.infrastructure_type = infrastructure.infrastructure_type.value
             orm.state = infrastructure.state.value
+            orm.name = infrastructure.name
+            orm.notes = infrastructure.notes
             session.commit()
             return orm_to_domain_infrastructure(orm)
 

@@ -45,6 +45,8 @@ class SqlAlchemySupportUpgradeRepository(SupportUpgradeRepository):
             )
             orm.custom_product = upgrade.custom_product
             orm.affiliated_group = upgrade.affiliated_group
+            orm.name = upgrade.name
+            orm.notes = upgrade.notes
             session.commit()
             return orm_to_domain_support_upgrade(orm)
 

@@ -113,7 +113,7 @@ class TestColonyLifecycleInfrastructure:
         initial_productivity = initial_state["productivity"]["current"]
 
         # Add infrastructure (correct endpoint: /colonies/{id}/infrastructure)
-        infra_data = {"infrastructure_type": "power_network", "state": "working"}
+        infra_data = {"name": "Power Network", "infrastructure_type": "power_network", "state": "working"}
         infra_response = auth_client.post(
             f"/api/v1/colonies/{colony_id}/infrastructure", json=infra_data
         )
@@ -139,7 +139,7 @@ class TestColonyLifecycleInfrastructure:
         colony_id = colony["id"]
 
         # Add not working infrastructure (not_working = faulty/incapacitated)
-        infra_data = {"infrastructure_type": "power_network", "state": "not_working"}
+        infra_data = {"name": "Faulty Power Network", "infrastructure_type": "power_network", "state": "not_working"}
         infra_response = auth_client.post(
             f"/api/v1/colonies/{colony_id}/infrastructure", json=infra_data
         )
@@ -192,7 +192,7 @@ class TestColonyLifecycleDevelopment:
         colony_id = colony["id"]
 
         # Add support upgrade (only needs upgrade_type)
-        upgrade_data = {"upgrade_type": "arbites_precinct"}
+        upgrade_data = {"name": "Arbites Precinct", "upgrade_type": "arbites_precinct"}
         upgrade_response = auth_client.post(
             f"/api/v1/colonies/{colony_id}/upgrades", json=upgrade_data
         )

@@ -278,6 +278,44 @@ Expanded property-based testing coverage for the rule engine.
 - Modifier stacking: Multiple modifiers combine additively, positive/negative combination, inactive modifiers ignored
 - All tests use Hypothesis property-based testing with 100 examples each
 
+### ✅ Validation Preview Feature (2026-08-27)
+
+**Status:** COMPLETE — All 28 API adapter tests passing
+
+Added `name`/`notes` fields to Infrastructure and Support Upgrade APIs with `validate_only` preview functionality.
+
+**Changes:**
+
+- Added `name` (required) and `notes` (optional) fields to domain models and API schemas
+- Implemented `validate_only` query parameter on PATCH endpoints for preview without applying changes
+- Moved validation preview logic from router layer to service layer methods:
+  - `InfrastructureService.preview_state_transition()`
+  - `SupportUpgradeService.preview_upgrade_changes()`
+- Added dedicated update methods for consistency:
+  - `SupportUpgradeService.update_upgrade_custom_stat_choice()`
+  - `SupportUpgradeService.update_upgrade_custom_product()`
+  - `SupportUpgradeService.update_upgrade_affiliated_group()`
+- Updated routers to use service layer methods (thin router pattern)
+- Integrated audit logging for name/notes changes
+
+**Files Modified:**
+
+- `src/colony_manager/application/services/infrastructure_service.py` — Added `preview_state_transition()` method
+- `src/colony_manager/application/services/support_upgrade_service.py` — Added `preview_upgrade_changes()` and dedicated update methods
+- `src/colony_manager/adapters/api/routers/infrastructure.py` — Refactored to use service preview method
+- `src/colony_manager/adapters/api/routers/support_upgrades.py` — Refactored to use service preview method
+- `src/colony_manager/adapters/api/schemas/infrastructure.py` — Added validation response schema
+- `src/colony_manager/adapters/api/schemas/support_upgrade.py` — Added validation response schema
+- `tests/adapters/api/test_infrastructure_api.py` — Updated tests for new fields
+- `tests/adapters/api/test_support_upgrades_api.py` — Updated tests for new fields
+
+**Architecture Benefits:**
+
+- Routers are thin (orchestration only, no business logic)
+- Validation logic testable at service layer
+- Follows dependency inversion properly
+- Consistent update patterns across services
+
 ---
 
 ## Remaining Work

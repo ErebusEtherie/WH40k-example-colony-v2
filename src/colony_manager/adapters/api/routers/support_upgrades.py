@@ -12,6 +12,7 @@ from colony_manager.adapters.api.schemas.support_upgrade import (
     SupportUpgradeListItem,
     SupportUpgradeResponse,
     SupportUpgradeUpdate,
+    SupportUpgradeValidationResponse,
 )
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.support_upgrade_repository_impl import (
@@ -62,6 +63,7 @@ async def list_upgrades(
         items=[
             SupportUpgradeListItem(
                 id=upg.id,
+                name=upg.name,
                 upgrade_type=upg.upgrade_type,
                 custom_stat_choice=upg.custom_stat_choice,
                 custom_product=upg.custom_product,
@@ -92,20 +94,24 @@ async def create_upgrade(
 
     upgrade = SupportUpgrade(
         colony_id=colony_id,
+        name=upgrade_data.name,
         upgrade_type=upgrade_data.upgrade_type,
         custom_stat_choice=upgrade_data.custom_stat_choice,
         custom_product=upgrade_data.custom_product,
         affiliated_group=upgrade_data.affiliated_group,
+        notes=upgrade_data.notes,
     )
     created = service.create_upgrade(upgrade)
     assert created.id is not None
     return SupportUpgradeResponse(
         id=created.id,
         colony_id=colony_id,
+        name=created.name,
         upgrade_type=created.upgrade_type,
         custom_stat_choice=created.custom_stat_choice,
         custom_product=created.custom_product,
         affiliated_group=created.affiliated_group,
+        notes=created.notes,
         has_stat_effect=created.has_stat_effect,
     )
 
@@ -130,48 +136,95 @@ async def get_upgrade(
         return SupportUpgradeResponse(
             id=upgrade.id,
             colony_id=upgrade.colony_id,
+            name=upgrade.name,
             upgrade_type=upgrade.upgrade_type,
             custom_stat_choice=upgrade.custom_stat_choice,
             custom_product=upgrade.custom_product,
             affiliated_group=upgrade.affiliated_group,
+            notes=upgrade.notes,
             has_stat_effect=upgrade.has_stat_effect,
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail=f"SupportUpgrade {upgrade_id} not found")
 
 
-@router.patch("/{upgrade_id}", response_model=SupportUpgradeResponse)
+@router.patch(
+    "/{upgrade_id}",
+    response_model=SupportUpgradeResponse | SupportUpgradeValidationResponse,
+    summary="Update support upgrade",
+    description="Update support upgrade name, notes, or type-specific fields. Use `validate_only=true` to preview effects without applying.",
+)
 async def update_upgrade(
     colony_id: int,
     upgrade_id: int,
     upgrade_data: SupportUpgradeUpdate,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    validate_only: bool = Query(False, description="If true, preview changes without applying"),
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
-) -> SupportUpgradeResponse:
-    """Update support upgrade."""
+) -> SupportUpgradeResponse | SupportUpgradeValidationResponse:
+    """Update support upgrade name, notes, or type-specific fields."""
     _check_colony_exists(service, colony_id)
     try:
         upgrade = service.get_upgrade(upgrade_id)
-        update_data = upgrade_data.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            if value is not None:
-                setattr(upgrade, field, value)
-        updated = service.update_upgrade(upgrade)
 
-        if updated.colony_id != colony_id:
+        if upgrade.colony_id != colony_id:
             raise HTTPException(
                 status_code=404,
                 detail=f"SupportUpgrade {upgrade_id} not found in colony {colony_id}",
             )
-        assert updated.id is not None
+
+        # If validate_only, return preview of changes
+        if validate_only:
+            # Build update data dict for preview
+            update_data = {}
+            if upgrade_data.custom_stat_choice is not None:
+                update_data["custom_stat_choice"] = upgrade_data.custom_stat_choice
+            if upgrade_data.custom_product is not None:
+                update_data["custom_product"] = upgrade_data.custom_product
+            if upgrade_data.affiliated_group is not None:
+                update_data["affiliated_group"] = upgrade_data.affiliated_group
+
+            preview_result = service.preview_upgrade_changes(upgrade_id, update_data)
+            return SupportUpgradeValidationResponse(
+                valid=preview_result["valid"],
+                modifiers_preview=preview_result["modifiers_preview"],
+                colony_type_bonus_applied=preview_result["colony_type_bonus_applied"],
+                bonus_description=preview_result["bonus_description"],
+            )
+
+        # Apply updates
+        if upgrade_data.name is not None:
+            upgrade = service.update_upgrade_name(
+                upgrade_id, upgrade_data.name, changed_by=current_user.id
+            )
+        if upgrade_data.notes is not None:
+            upgrade = service.update_upgrade_notes(
+                upgrade_id, upgrade_data.notes, changed_by=current_user.id
+            )
+        if upgrade_data.custom_stat_choice is not None:
+            upgrade = service.update_upgrade_custom_stat_choice(
+                upgrade_id, upgrade_data.custom_stat_choice, changed_by=current_user.id
+            )
+        if upgrade_data.custom_product is not None:
+            upgrade = service.update_upgrade_custom_product(
+                upgrade_id, upgrade_data.custom_product, changed_by=current_user.id
+            )
+        if upgrade_data.affiliated_group is not None:
+            upgrade = service.update_upgrade_affiliated_group(
+                upgrade_id, upgrade_data.affiliated_group, changed_by=current_user.id
+            )
+
+        assert upgrade.id is not None
         return SupportUpgradeResponse(
-            id=updated.id,
-            colony_id=updated.colony_id,
-            upgrade_type=updated.upgrade_type,
-            custom_stat_choice=updated.custom_stat_choice,
-            custom_product=updated.custom_product,
-            affiliated_group=updated.affiliated_group,
-            has_stat_effect=updated.has_stat_effect,
+            id=upgrade.id,
+            colony_id=upgrade.colony_id,
+            name=upgrade.name,
+            upgrade_type=upgrade.upgrade_type,
+            custom_stat_choice=upgrade.custom_stat_choice,
+            custom_product=upgrade.custom_product,
+            affiliated_group=upgrade.affiliated_group,
+            notes=upgrade.notes,
+            has_stat_effect=upgrade.has_stat_effect,
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail=f"SupportUpgrade {upgrade_id} not found")

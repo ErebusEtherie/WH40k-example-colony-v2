@@ -12,6 +12,7 @@ from colony_manager.adapters.api.schemas.infrastructure import (
     InfrastructureListItem,
     InfrastructureResponse,
     InfrastructureUpdate,
+    InfrastructureValidationResponse,
 )
 from colony_manager.adapters.persistence.colony_repository_impl import SqlAlchemyColonyRepository
 from colony_manager.adapters.persistence.infrastructure_repository_impl import (
@@ -62,6 +63,7 @@ async def list_infrastructure(
         items=[
             InfrastructureListItem(
                 id=infra.id,
+                name=infra.name,
                 infrastructure_type=infra.infrastructure_type,
                 state=infra.state,
                 has_effect=infra.has_effect,
@@ -92,16 +94,20 @@ async def create_infrastructure(
 
     infrastructure = Infrastructure(
         colony_id=colony_id,
+        name=infra_data.name,
         infrastructure_type=infra_data.infrastructure_type,
         state=infra_data.state,
+        notes=infra_data.notes,
     )
     created = service.create_infrastructure(infrastructure)
     assert created.id is not None
     return InfrastructureResponse(
         id=created.id,
         colony_id=colony_id,
+        name=created.name,
         infrastructure_type=created.infrastructure_type,
         state=created.state,
+        notes=created.notes,
         has_effect=created.has_effect,
         is_working=created.is_working,
         is_not_working=created.is_not_working,
@@ -128,8 +134,10 @@ async def get_infrastructure(
         return InfrastructureResponse(
             id=infrastructure.id,
             colony_id=infrastructure.colony_id,
+            name=infrastructure.name,
             infrastructure_type=infrastructure.infrastructure_type,
             state=infrastructure.state,
+            notes=infrastructure.notes,
             has_effect=infrastructure.has_effect,
             is_working=infrastructure.is_working,
             is_not_working=infrastructure.is_not_working,
@@ -138,35 +146,67 @@ async def get_infrastructure(
         raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")
 
 
-@router.patch("/{infrastructure_id}", response_model=InfrastructureResponse)
+@router.patch(
+    "/{infrastructure_id}",
+    response_model=InfrastructureResponse | InfrastructureValidationResponse,
+    summary="Update infrastructure",
+    description="Update infrastructure name, notes, or state. Use `validate_only=true` to preview effects without applying.",
+)
 async def update_infrastructure(
     colony_id: int,
     infrastructure_id: int,
     infra_data: InfrastructureUpdate,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    validate_only: bool = Query(False, description="If true, preview changes without applying"),
     service: InfrastructureService = Depends(get_infrastructure_service),
-) -> InfrastructureResponse:
-    """Update infrastructure state."""
+) -> InfrastructureResponse | InfrastructureValidationResponse:
+    """Update infrastructure name, notes, or state."""
     _check_colony_exists(service, colony_id)
     try:
-        if infra_data.state is not None:
-            infrastructure = service.update_infrastructure_state(
-                infrastructure_id, infra_data.state
-            )
-        else:
-            infrastructure = service.get_infrastructure(infrastructure_id)
+        infrastructure = service.get_infrastructure(infrastructure_id)
 
         if infrastructure.colony_id != colony_id:
             raise HTTPException(
                 status_code=404,
                 detail=f"Infrastructure {infrastructure_id} not found in colony {colony_id}",
             )
+
+        # If validate_only, return preview of changes
+        if validate_only:
+            preview_result = service.preview_state_transition(
+                infrastructure_id, infra_data.state or infrastructure.state
+            )
+            return InfrastructureValidationResponse(
+                valid=preview_result["valid"],
+                current_state=preview_result["current_state"],
+                requested_state=preview_result["requested_state"],
+                modifiers_preview=preview_result["modifiers_preview"],
+                would_apply_penalty=preview_result["would_apply_penalty"],
+                penalty_description=preview_result["penalty_description"],
+            )
+
+        # Apply updates
+        if infra_data.name is not None:
+            infrastructure = service.update_infrastructure_name(
+                infrastructure_id, infra_data.name, changed_by=current_user.id
+            )
+        if infra_data.notes is not None:
+            infrastructure = service.update_infrastructure_notes(
+                infrastructure_id, infra_data.notes, changed_by=current_user.id
+            )
+        if infra_data.state is not None:
+            infrastructure = service.update_infrastructure_state(
+                infrastructure_id, infra_data.state, changed_by=current_user.id
+            )
+
         assert infrastructure.id is not None
         return InfrastructureResponse(
             id=infrastructure.id,
             colony_id=infrastructure.colony_id,
+            name=infrastructure.name,
             infrastructure_type=infrastructure.infrastructure_type,
             state=infrastructure.state,
+            notes=infrastructure.notes,
             has_effect=infrastructure.has_effect,
             is_working=infrastructure.is_working,
             is_not_working=infrastructure.is_not_working,
