@@ -1,7 +1,7 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-25
-**Current Status:** 695 tests passing, 100% pass rate (4 skipped)
+**Last Updated:** 2026-08-28
+**Current Status:** 739 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -343,3 +343,39 @@ None — all service tests complete.
 - **Domain tests should not mock domain code** — domain has no I/O
 - **API tests verify wiring/serialization**, not domain math (covered in domain tests)
 - **Add corresponding tests when adding new models/repositories**
+
+---
+
+## Completed: Pagination & Filtering Tests (2026-08-28)
+
+**Status:** ✅ COMPLETE — 20 new tests added in `test_pagination_and_filtering_api.py`
+
+Added comprehensive integration tests for pagination and filtering on list endpoints:
+
+### Infrastructure (7 tests)
+- `test_list_infrastructure_pagination` — Tests offset, limit, has_more, total_pages
+- `test_list_infrastructure_pagination_edge_cases` — Boundary conditions (exact page, offset beyond total, limit=1)
+- `test_list_infrastructure_filter_by_state` — Filter by operational state
+- `test_list_infrastructure_filter_by_type` — Filter by infrastructure type
+- `test_list_infrastructure_filter_by_search` — Filter by name search
+- `test_list_infrastructure_combined_filters` — Multiple filters together
+- `test_list_infrastructure_filters_with_pagination` — Filters + pagination
+
+### Support Upgrades (6 tests)
+- `test_list_upgrades_pagination` — Tests offset, limit, has_more, total_pages
+- `test_list_upgrades_filter_by_type` — Filter by upgrade type
+- `test_list_upgrades_filter_by_search` — Filter by name search
+- `test_list_upgrades_filter_by_affiliated_group` — Filter by affiliated group (Contacts)
+- `test_list_upgrades_combined_filters` — Multiple filters together
+- `test_list_upgrades_filters_with_pagination` — Filters + pagination
+
+### Development Plans (7 tests)
+- `test_list_development_plans_pagination` — Tests offset, limit, has_more, total_pages
+- `test_list_development_plans_filter_by_status` — Filter by plan status
+- `test_list_development_plans_filter_by_upgrade_type` — Filter by upgrade type
+- `test_list_development_plans_filter_by_priority` — Filter by priority level
+- `test_list_development_plans_filter_by_search` — Filter by target name search
+- `test_list_development_plans_combined_filters` — Multiple filters together
+- `test_list_development_plans_filters_with_pagination` — Filters + pagination
+
+**Test Count:** 739 passed, 4 skipped (added 20 tests)
