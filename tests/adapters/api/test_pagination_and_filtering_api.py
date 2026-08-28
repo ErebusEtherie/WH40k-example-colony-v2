@@ -67,6 +67,38 @@ class TestInfrastructurePaginationAndFiltering:
         assert len(data["items"]) == 1, f"Expected 1 item, got {len(data['items'])}"
         assert data["items"][0]["name"] == "Power Grid A"
 
+    def test_list_infrastructure_filter_by_search(self, auth_client: TestClient):
+        """Test filtering infrastructure by name search."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Search", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        test_data = [
+            {"name": "Power Grid Alpha", "infrastructure_type": "power_network", "state": "working"},
+            {"name": "Defense Network", "infrastructure_type": "defense", "state": "working"},
+            {"name": "Transport Hub", "infrastructure_type": "transport", "state": "working"},
+            {"name": "Housing Complex", "infrastructure_type": "housing", "state": "working"},
+            {"name": "Medical Facility", "infrastructure_type": "life_support", "state": "working"},
+        ]
+        for item in test_data:
+            auth_client.post(f"/api/v1/colonies/{colony_id}/infrastructure", json=item)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/infrastructure?name_search=power")
+        data = response.json()
+        power_items = [item for item in data["items"] if "Power" in item["name"]]
+        assert len(power_items) >= 1, "Expected at least one item with 'Power' in name"
+
+    def test_list_infrastructure_filters_with_pagination(self, auth_client: TestClient):
+        """Test combining filters with pagination."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "FilterPag", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        for i in range(15):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/infrastructure", json={"name": f"Power Grid {i}", "infrastructure_type": "power_network", "state": "working"})
+        for i in range(10):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/infrastructure", json={"name": f"Other {i}", "infrastructure_type": "transport", "state": "working"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/infrastructure?type=power_network&limit=5")
+        data = response.json()
+        assert len(data["items"]) == 5, f"Expected 5 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 15, f"Expected total=15, got {data['meta']['total']}"
+        assert data["meta"]["has_more"] is True
+
 
 class TestDevelopmentPlansPaginationAndFiltering:
     """Tests for development plans pagination and filters."""
