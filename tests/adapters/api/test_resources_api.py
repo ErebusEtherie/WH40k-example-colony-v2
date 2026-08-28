@@ -45,8 +45,11 @@ class TestResourcesAPI:
             auth_client.post(f"/api/v1/colonies/{colony_id}/resources", json=resource_data)
         response = auth_client.get(f"/api/v1/colonies/{colony_id}/resources")
         assert response.status_code == 200
-        resources = response.json()
+        data = response.json()
+        resources = data["items"]
         assert len(resources) == 3
+        assert "meta" in data
+        assert data["meta"]["total"] == 3
 
     def test_get_resource(self, auth_client: TestClient):
         """Test retrieving a specific resource by ID."""
@@ -95,7 +98,8 @@ class TestResourcesAPI:
         response = auth_client.delete(f"/api/v1/colonies/{colony_id}/resources/{resource_id}")
         assert response.status_code == 204
         response = auth_client.get(f"/api/v1/colonies/{colony_id}/resources")
-        assert len(response.json()) == 0
+        data = response.json()
+        assert len(data["items"]) == 0
 
     def test_resource_not_found(self, auth_client: TestClient):
         """Test 404 when resource doesn\'t exist."""
@@ -115,5 +119,7 @@ class TestResourcesAPI:
         assert response.status_code == 401
         detail = response.json()["detail"]
         assert "Authorization" in detail or "credential" in detail.lower()
+
+
 
 

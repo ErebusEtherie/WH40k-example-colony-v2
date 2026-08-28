@@ -93,7 +93,9 @@ def test_colony_modifiers(auth_client):
 
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
     assert response.status_code == 200
-    assert response.json() == []
+    data = response.json()
+    assert data["items"] == []
+    assert data["meta"]["total"] == 0
 
     modifier_data = {
         "modifier_source_type": "infrastructure",
@@ -109,14 +111,19 @@ def test_colony_modifiers(auth_client):
 
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
     assert response.status_code == 200
-    assert len(response.json()) == 1
+    data = response.json()
+    assert len(data["items"]) == 1
+    assert data["meta"]["total"] == 1
 
     modifier_id = modifier["id"]
     response = auth_client.delete(f"/api/v1/colonies/{colony_id}/modifiers/{modifier_id}")
     assert response.status_code == 204
 
     response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifiers")
-    assert response.json() == []
+    assert response.status_code == 200
+    data = response.json()
+    assert data["items"] == []
+    assert data["meta"]["total"] == 0
 
 
 def test_create_representative(auth_client):

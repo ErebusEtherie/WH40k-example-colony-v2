@@ -2,9 +2,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api.dependencies import get_db_path, build_database_url
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.resource import (
     ResourceCreate,
@@ -36,25 +37,40 @@ def _check_colony_exists(service: ResourceService, colony_id: int) -> None:
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=list[ResourceListItem])
+@router.get("", response_model=PaginatedResponse[ResourceListItem])
 async def list_resources(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ResourceService = Depends(get_resource_service),
-) -> list[ResourceListItem]:
-    """List all planetary resources for a colony."""
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[ResourceListItem]:
+    """List all planetary resources for a colony with pagination."""
     _check_colony_exists(service, colony_id)
     resources = service.list_resources(colony_id)
-    return [
-        ResourceListItem(
-            id=r.id,
-            name=r.name,
-            resource_type=r.resource_type,
-            abundance=r.abundance,
-            abundance_level=r.abundance_level,
-        )
-        for r in resources
-    ]
+    
+    # Apply pagination
+    total = len(resources)
+    paginated_resources = resources[offset : offset + limit]
+    
+    return PaginatedResponse(
+        items=[
+            ResourceListItem(
+                id=r.id,
+                name=r.name,
+                resource_type=r.resource_type,
+                abundance=r.abundance,
+                abundance_level=r.abundance_level,
+            )
+            for r in paginated_resources
+        ],
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.post("", response_model=ResourceResponse, status_code=status.HTTP_201_CREATED)

@@ -313,28 +313,43 @@ async def advance_colony_age(
     )
 
 
-@router.get("/{colony_id}/modifiers", response_model=list[ModifierResponse])
+@router.get("/{colony_id}/modifiers", response_model=PaginatedResponse[ModifierResponse])
 async def list_colony_modifiers(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: ColonyService = Depends(get_colony_service),
-) -> list[ModifierResponse]:
-    """List all modifiers for a colony."""
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[ModifierResponse]:
+    """List all modifiers for a colony with pagination."""
     colony = _check_colony_exists(service, colony_id)
-    return [
-        ModifierResponse(
-            id=mod.id,
-            colony_id=colony_id,
-            modifier_source_type=mod.modifier_source_type,
-            modifier_category=mod.modifier_category,
-            modifier_stat=mod.modifier_stat,
-            modifier_value=mod.modifier_value,
-            modifier_description=mod.modifier_description,
-            is_active=mod.is_active,
-            expires_at=mod.expires_at,
-        )
-        for mod in colony.modifiers
-    ]
+    
+    # Apply pagination
+    total = len(colony.modifiers)
+    paginated_modifiers = colony.modifiers[offset : offset + limit]
+    
+    return PaginatedResponse(
+        items=[
+            ModifierResponse(
+                id=mod.id,
+                colony_id=colony_id,
+                modifier_source_type=mod.modifier_source_type,
+                modifier_category=mod.modifier_category,
+                modifier_stat=mod.modifier_stat,
+                modifier_value=mod.modifier_value,
+                modifier_description=mod.modifier_description,
+                is_active=mod.is_active,
+                expires_at=mod.expires_at,
+            )
+            for mod in paginated_modifiers
+        ],
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.post(
