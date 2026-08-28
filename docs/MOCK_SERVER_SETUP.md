@@ -65,7 +65,7 @@ Example response:
   {
     "id": 1,
     "name": "string",
-    "owner": "string",
+    "founder_name": "string",
     "colony_type": "hive_city",
     "age_days": 0,
     ...
@@ -78,7 +78,7 @@ Example response:
 ```bash
 curl -X POST http://localhost:4010/api/v1/colonies \
   -H "Content-Type: application/json" \
-  -d '{"name": "Hive Primus", "owner": "Rogue Trader", "colony_type": "hive_city"}'
+  -d '{"name": "Hive Primus", "founder_name": "Rogue Trader", "colony_type": "hive_city"}'
 ```
 
 ### Authentication Endpoints
@@ -128,7 +128,7 @@ Example:
 ```python
 class ColonyCreate(BaseModel):
     name: str = Field(..., example="Hive City Primus")
-    owner: str = Field(..., example="Rogue Trader Von Draken")
+    founder_name: str = Field(..., example="Rogue Trader Von Draken")
     colony_type: ColonyType = Field(..., example="hive_city")
 ```
 

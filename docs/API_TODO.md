@@ -71,9 +71,11 @@ class ColonyBase(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 ```
 
-**Status:** 🟡 Planned  
+**Status:** ✅ Complete  
 **Phase:** Phase 1  
-**UI Impact:** Colony Details Panel - Basic Info section
+**Changes:**
+- Documentation updated to use `founder_name` consistently
+- OpenAPI spec regenerated
 
 ---
 
@@ -188,3 +190,4 @@ Returns all active modifiers affecting colony stats.
 - `docs/UI_VISUALIZATION_PROMPT.md` — UI specification with API mappings
 - `docs/api_guide_phase_3.md` — Current API documentation
 - `docs/UI_PANEL_REQUIREMENTS.md` — Original UI requirements
+

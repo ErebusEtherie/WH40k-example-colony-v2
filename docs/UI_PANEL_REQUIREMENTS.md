@@ -316,7 +316,7 @@ UI updates all calculated fields
 {
   "id": 1,
   "name": "Yukonia III",
-  "owner": "Valmar Valtheran",
+  "founder_name": "Valmar Valtheran",
   "colony_type": "industry",
   "age_days": 162,
   "state": {

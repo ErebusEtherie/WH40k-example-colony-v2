@@ -2345,8 +2345,8 @@
         "tags": [
           "infrastructure"
         ],
-        "summary": "Update Infrastructure",
-        "description": "Update infrastructure state.",
+        "summary": "Update infrastructure",
+        "description": "Update infrastructure name, notes, or state. Use `validate_only=true` to preview effects without applying.",
         "operationId": "update_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__patch",
         "security": [
           {
@@ -2371,6 +2371,18 @@
               "type": "integer",
               "title": "Infrastructure Id"
             }
+          },
+          {
+            "name": "validate_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "If true, preview changes without applying",
+              "default": false,
+              "title": "Validate Only"
+            },
+            "description": "If true, preview changes without applying"
           }
         ],
         "requestBody": {
@@ -2389,7 +2401,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfrastructureResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InfrastructureResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InfrastructureValidationResponse"
+                    }
+                  ],
+                  "title": "Response Update Infrastructure Api V1 Colonies  Colony Id  Infrastructure  Infrastructure Id  Patch"
                 }
               }
             }
@@ -3419,8 +3439,8 @@
         "tags": [
           "support_upgrades"
         ],
-        "summary": "Update Upgrade",
-        "description": "Update support upgrade.",
+        "summary": "Update support upgrade",
+        "description": "Update support upgrade name, notes, or type-specific fields. Use `validate_only=true` to preview effects without applying.",
         "operationId": "update_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__patch",
         "security": [
           {
@@ -3445,6 +3465,18 @@
               "type": "integer",
               "title": "Upgrade Id"
             }
+          },
+          {
+            "name": "validate_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "If true, preview changes without applying",
+              "default": false,
+              "title": "Validate Only"
+            },
+            "description": "If true, preview changes without applying"
           }
         ],
         "requestBody": {
@@ -3463,7 +3495,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SupportUpgradeResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SupportUpgradeResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SupportUpgradeValidationResponse"
+                    }
+                  ],
+                  "title": "Response Update Upgrade Api V1 Colonies  Colony Id  Upgrades  Upgrade Id  Patch"
                 }
               }
             }
@@ -4169,11 +4209,24 @@
             "minLength": 1,
             "title": "Name"
           },
-          "owner": {
+          "founder_name": {
             "type": "string",
             "maxLength": 100,
             "minLength": 1,
-            "title": "Owner"
+            "title": "Founder Name"
+          },
+          "patron_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patron Name"
           },
           "colony_type": {
             "$ref": "#/components/schemas/ColonyType"
@@ -4182,7 +4235,7 @@
         "type": "object",
         "required": [
           "name",
-          "owner",
+          "founder_name",
           "colony_type"
         ],
         "title": "ColonyCreate",
@@ -4205,9 +4258,20 @@
             "type": "string",
             "title": "Name"
           },
-          "owner": {
+          "founder_name": {
             "type": "string",
-            "title": "Owner"
+            "title": "Founder Name"
+          },
+          "patron_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patron Name"
           },
           "colony_type": {
             "$ref": "#/components/schemas/ColonyType"
@@ -4245,7 +4309,8 @@
         "required": [
           "id",
           "name",
-          "owner",
+          "founder_name",
+          "patron_name",
           "colony_type",
           "age_days",
           "current_size",
@@ -4297,9 +4362,20 @@
             "type": "string",
             "title": "Name"
           },
-          "owner": {
+          "founder_name": {
             "type": "string",
-            "title": "Owner"
+            "title": "Founder Name"
+          },
+          "patron_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patron Name"
           },
           "colony_type": {
             "$ref": "#/components/schemas/ColonyType"
@@ -4392,7 +4468,8 @@
         "required": [
           "id",
           "name",
-          "owner",
+          "founder_name",
+          "patron_name",
           "colony_type",
           "age_days",
           "age_last_updated",
@@ -4559,7 +4636,7 @@
             ],
             "title": "Name"
           },
-          "owner": {
+          "founder_name": {
             "anyOf": [
               {
                 "type": "string",
@@ -4570,7 +4647,20 @@
                 "type": "null"
               }
             ],
-            "title": "Owner"
+            "title": "Founder Name"
+          },
+          "patron_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patron Name"
           },
           "age_days": {
             "anyOf": [
@@ -5129,16 +5219,31 @@
       },
       "InfrastructureCreate": {
         "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "User-defined name for this infrastructure instance"
+          },
           "infrastructure_type": {
             "$ref": "#/components/schemas/InfrastructureType"
           },
           "state": {
             "$ref": "#/components/schemas/InfrastructureState",
             "default": "planned"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "description": "Optional notes about this infrastructure",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
+          "name",
           "infrastructure_type"
         ],
         "title": "InfrastructureCreate",
@@ -5156,6 +5261,10 @@
               }
             ],
             "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
           },
           "infrastructure_type": {
             "$ref": "#/components/schemas/InfrastructureType"
@@ -5179,6 +5288,7 @@
         "type": "object",
         "required": [
           "id",
+          "name",
           "infrastructure_type",
           "state",
           "has_effect",
@@ -5198,11 +5308,19 @@
             "type": "integer",
             "title": "Colony Id"
           },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
           "infrastructure_type": {
             "$ref": "#/components/schemas/InfrastructureType"
           },
           "state": {
             "$ref": "#/components/schemas/InfrastructureState"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
           },
           "has_effect": {
             "type": "boolean",
@@ -5221,8 +5339,10 @@
         "required": [
           "id",
           "colony_id",
+          "name",
           "infrastructure_type",
           "state",
+          "notes",
           "has_effect",
           "is_working",
           "is_not_working"
@@ -5256,6 +5376,19 @@
       },
       "InfrastructureUpdate": {
         "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "state": {
             "anyOf": [
               {
@@ -5265,11 +5398,71 @@
                 "type": "null"
               }
             ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
           }
         },
         "type": "object",
         "title": "InfrastructureUpdate",
         "description": "Schema for updating infrastructure (partial update)."
+      },
+      "InfrastructureValidationResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "current_state": {
+            "$ref": "#/components/schemas/InfrastructureState"
+          },
+          "requested_state": {
+            "$ref": "#/components/schemas/InfrastructureState"
+          },
+          "modifiers_preview": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Modifiers Preview"
+          },
+          "would_apply_penalty": {
+            "type": "boolean",
+            "title": "Would Apply Penalty"
+          },
+          "penalty_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Penalty Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "current_state",
+          "requested_state",
+          "modifiers_preview",
+          "would_apply_penalty",
+          "penalty_description"
+        ],
+        "title": "InfrastructureValidationResponse",
+        "description": "Response for infrastructure state transition validation."
       },
       "InstallationResult": {
         "properties": {
@@ -6465,6 +6658,13 @@
       },
       "SupportUpgradeCreate": {
         "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "User-defined name for this upgrade instance"
+          },
           "upgrade_type": {
             "$ref": "#/components/schemas/SupportUpgradeType"
           },
@@ -6499,10 +6699,18 @@
               }
             ],
             "title": "Affiliated Group"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "description": "Optional notes about this upgrade",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
+          "name",
           "upgrade_type"
         ],
         "title": "SupportUpgradeCreate",
@@ -6520,6 +6728,10 @@
               }
             ],
             "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
           },
           "upgrade_type": {
             "$ref": "#/components/schemas/SupportUpgradeType"
@@ -6564,6 +6776,7 @@
         "type": "object",
         "required": [
           "id",
+          "name",
           "upgrade_type",
           "custom_stat_choice",
           "custom_product",
@@ -6583,6 +6796,10 @@
             "type": "integer",
             "title": "Colony Id"
           },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
           "upgrade_type": {
             "$ref": "#/components/schemas/SupportUpgradeType"
           },
@@ -6618,6 +6835,10 @@
             ],
             "title": "Affiliated Group"
           },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          },
           "has_stat_effect": {
             "type": "boolean",
             "title": "Has Stat Effect"
@@ -6627,10 +6848,12 @@
         "required": [
           "id",
           "colony_id",
+          "name",
           "upgrade_type",
           "custom_stat_choice",
           "custom_product",
           "affiliated_group",
+          "notes",
           "has_stat_effect"
         ],
         "title": "SupportUpgradeResponse",
@@ -6655,6 +6878,19 @@
       },
       "SupportUpgradeUpdate": {
         "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "custom_stat_choice": {
             "anyOf": [
               {
@@ -6686,11 +6922,63 @@
               }
             ],
             "title": "Affiliated Group"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
           }
         },
         "type": "object",
         "title": "SupportUpgradeUpdate",
         "description": "Schema for updating support upgrade (partial update)."
+      },
+      "SupportUpgradeValidationResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "modifiers_preview": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Modifiers Preview"
+          },
+          "colony_type_bonus_applied": {
+            "type": "boolean",
+            "title": "Colony Type Bonus Applied"
+          },
+          "bonus_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bonus Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "modifiers_preview",
+          "colony_type_bonus_applied",
+          "bonus_description"
+        ],
+        "title": "SupportUpgradeValidationResponse",
+        "description": "Response for support upgrade validation."
       },
       "Talent": {
         "properties": {

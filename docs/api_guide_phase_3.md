@@ -189,7 +189,7 @@ List all colonies the current user has access to.
       "colony_type": "forge_world",
       "base_size": 5,
       "current_size": 7,
-      "owner": "commander",
+      "founder_name": "commander",
       "created_at": "2026-08-20T10:00:00Z"
     }
   ],
@@ -224,7 +224,7 @@ Get detailed information about a specific colony.
   "productivity": 6,
   "piety": 3,
   "profit_factor": 4,
-  "owner": "commander",
+  "founder_name": "commander",
   "representative_id": 2,
   "created_at": "2026-08-20T10:00:00Z",
   "last_updated": "2026-08-26T14:30:00Z",
@@ -308,7 +308,7 @@ Create a new colony.
   "productivity": 0,
   "piety": 0,
   "profit_factor": 0,
-  "owner": "commander",
+  "founder_name": "commander",
   "representative_id": null,
   "created_at": "2026-08-26T15:00:00Z",
   "last_updated": "2026-08-26T15:00:00Z"
