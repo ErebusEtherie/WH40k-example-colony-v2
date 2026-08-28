@@ -18,8 +18,10 @@ class TestColonyUsersAPI:
 
         response = auth_client.get(f"/api/v1/colonies/{colony_id}/members")
         assert response.status_code == 200
-        members = response.json()
-        assert isinstance(members, list)
+        data = response.json()
+        assert "items" in data
+        assert "meta" in data
+        assert isinstance(data["items"], list)
 
     def test_add_member_to_colony(self, auth_client: TestClient):
         """Test adding a user as a member to a colony."""
@@ -106,7 +108,8 @@ class TestColonyUsersAPI:
 
         # After removing the added member, only the colony creator remains
         response = auth_client.get(f"/api/v1/colonies/{colony_id}/members")
-        assert len(response.json()) == 1  # Creator is auto-added as owner
+        data = response.json()
+        assert len(data["items"]) == 1  # Creator is auto-added as owner
 
     def test_invalid_role_rejected(self, auth_client: TestClient):
         """Test adding a member with invalid role fails."""
@@ -234,3 +237,185 @@ class TestColonyUsersAPI:
         assert response.status_code == 200
         member = response.json()
         assert member["role"] == "editor"
+
+
+class TestColonyUsersPagination:
+    """Tests for colony users pagination."""
+
+    def test_list_colony_users_pagination(self, auth_client: TestClient):
+        """Test colony users pagination with offset, limit, has_more, total."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Pagination Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 24 users and add them to the colony (owner already exists, total=25)
+        for i in range(24):
+            user_data = {
+                "username": f"user{i}",
+                "email": f"user{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members")
+        data = response.json()
+        assert len(data["items"]) == 20, f"Expected 20 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 25, f"Expected total=25, got {data['meta']['total']}"
+        assert data["meta"]["has_more"] is True
+        assert data["meta"]["offset"] == 0
+        assert data["meta"]["limit"] == 20
+
+    def test_list_colony_users_pagination_edge_cases(self, auth_client: TestClient):
+        """Test pagination boundary conditions."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Edge Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 9 users (owner already exists, total=10)
+        for i in range(9):
+            user_data = {
+                "username": f"edge{i}",
+                "email": f"edge{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        # Test exact page size
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?limit=10")
+        data = response.json()
+        assert len(data["items"]) == 10
+        assert data["meta"]["has_more"] is False
+        # Test offset beyond total
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?offset=100")
+        data = response.json()
+        assert len(data["items"]) == 0
+        assert data["meta"]["has_more"] is False
+        # Test limit=1
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?limit=1")
+        data = response.json()
+        assert len(data["items"]) == 1
+        assert data["meta"]["has_more"] is True
+
+    def test_list_colony_users_empty(self, auth_client: TestClient):
+        """Test listing members for colony with no members (except owner)."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Empty Members", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members")
+        data = response.json()
+        # Colony has at least the owner
+        assert data["meta"]["total"] >= 1
+        assert data["meta"]["has_more"] is False
+
+    def test_list_colony_users_offset(self, auth_client: TestClient):
+        """Test pagination with different offset values."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Offset Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 14 users (owner already exists, total=15)
+        for i in range(14):
+            user_data = {
+                "username": f"offset{i}",
+                "email": f"offset{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        # Test offset=5
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?offset=5&limit=5")
+        data = response.json()
+        assert len(data["items"]) == 5
+        assert data["meta"]["offset"] == 5
+        assert data["meta"]["has_more"] is True
+        # Test offset=10
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?offset=10&limit=5")
+        data = response.json()
+        assert len(data["items"]) == 5
+        assert data["meta"]["offset"] == 10
+        assert data["meta"]["has_more"] is False
+
+    def test_list_colony_users_limit_variations(self, auth_client: TestClient):
+        """Test pagination with different limit values."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Limit Test", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 29 users (owner already exists, total=30)
+        for i in range(29):
+            user_data = {
+                "username": f"limit{i}",
+                "email": f"limit{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        # Test limit=5
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?limit=5")
+        data = response.json()
+        assert len(data["items"]) == 5
+        assert data["meta"]["limit"] == 5
+        assert data["meta"]["has_more"] is True
+        # Test limit=50 (max is 100)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?limit=50")
+        data = response.json()
+        assert len(data["items"]) == 30
+        assert data["meta"]["limit"] == 50
+        assert data["meta"]["has_more"] is False
+
+    def test_list_colony_users_total_pages(self, auth_client: TestClient):
+        """Test that total_pages is calculated correctly."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Total Pages", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 24 users (owner already exists, total=25)
+        for i in range(24):
+            user_data = {
+                "username": f"pages{i}",
+                "email": f"pages{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?limit=10")
+        data = response.json()
+        assert data["meta"]["total"] == 25
+        assert data["meta"]["total_pages"] == 3  # ceil(25/10) = 3
+        assert data["meta"]["limit"] == 10
+
+    def test_list_colony_users_last_page(self, auth_client: TestClient):
+        """Test pagination on the last page."""
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={"name": "Last Page", "founder_name": "Owner", "colony_type": "mining_and_industry"},
+        )
+        colony_id = colony_response.json()["id"]
+        # Create 21 users (owner already exists, total=22)
+        for i in range(21):
+            user_data = {
+                "username": f"last{i}",
+                "email": f"last{i}@example.com",
+                "password": "TestPass123!",
+            }
+            user_response = auth_client.post("/api/v1/auth/register", json=user_data)
+            user_id = user_response.json()["id"]
+            auth_client.post(f"/api/v1/colonies/{colony_id}/members", json={"user_id": user_id, "role": "viewer"})
+        # Get last page (offset=20, limit=10)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/members?offset=20&limit=10")
+        data = response.json()
+        assert len(data["items"]) == 2  # Only 2 items on last page
+        assert data["meta"]["has_more"] is False
+        assert data["meta"]["offset"] == 20

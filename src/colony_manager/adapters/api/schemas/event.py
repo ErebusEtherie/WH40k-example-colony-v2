@@ -39,6 +39,19 @@ class EventModifierResponse(BaseModel):
     description: str
 
 
+class EventListItem(BaseModel):
+    """Schema for event list item (paginated list response)."""
+
+    id: int
+    colony_id: int
+    name: str
+    description: str
+    is_active: bool
+    modifier_count: int
+
+    model_config = {"from_attributes": True}
+
+
 class EventResponse(BaseModel):
     """Schema for event response."""
 

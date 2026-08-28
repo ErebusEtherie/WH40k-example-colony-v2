@@ -2,12 +2,14 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.event import (
     EventCreate,
+    EventListItem,
     EventModifierResponse,
     EventResponse,
     EventUpdate,
@@ -123,7 +125,7 @@ def get_event(
     )
 
 
-@router.get("/colonies/{colony_id}", response_model=list[EventResponse])
+@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[EventListItem])
 def get_events_by_colony(
     colony_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
@@ -131,9 +133,28 @@ def get_events_by_colony(
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],
-    active_only: bool = False,
-) -> list[EventResponse]:
-    """Get all events for a colony."""
+    active_only: bool = Query(
+        default=False,
+        description="If True, only return active events",
+    ),
+    name_search: str | None = Query(
+        default=None,
+        description="Search by name (case-insensitive substring match)",
+        examples=["warp", "storm"],
+    ),
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[EventListItem]:
+    """List all events for a colony with pagination and filtering.
+    
+    Filters:
+    - active_only: If True, only return active events
+    - search: Search by name (case-insensitive substring match)
+    
+    Note: Filters are applied in-memory after loading all items. This is acceptable
+    for typical colony sizes (<100 items). For colonies with >1000 events,
+    consider adding filtered query methods to the repository layer.
+    """
     # Check permission on the colony
     if current_user.id is None:
         raise HTTPException(
@@ -142,28 +163,49 @@ def get_events_by_colony(
     membership = colony_user_repo.get_by_colony_and_user(colony_id, current_user.id)
     if membership is None and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")
-
+    
     events = service.get_events_by_colony(colony_id, active_only)
-    result: list[EventResponse] = []
-    for e in events:
+    
+    # Apply filters
+    filtered = events
+    
+    # Normalize empty string to None for name_search
+    if name_search is not None and not name_search.strip():
+        name_search = None
+    
+    if name_search is not None:
+        search_lower = name_search.lower()
+        filtered = [e for e in filtered if search_lower in e.name.lower()]
+    
+    # Calculate pagination
+    total = len(filtered)
+    items = filtered[offset : offset + limit]
+    
+    # Build paginated response
+    result: list[EventListItem] = []
+    for e in items:
         if e.id is None or e.created_at is None:
             continue  # Skip events with incomplete data
         result.append(
-            EventResponse(
+            EventListItem(
                 id=e.id,
                 colony_id=e.colony_id,
                 name=e.name,
                 description=e.description,
-                created_by=e.created_by,
-                created_at=e.created_at,
                 is_active=e.is_active,
-                modifiers=[
-                    EventModifierResponse(stat=m.stat, value=m.value, description=m.description)
-                    for m in e.modifiers
-                ],
+                modifier_count=len(e.modifiers),
             )
         )
-    return result
+    
+    return PaginatedResponse(
+        items=result,
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.patch("/{event_id}", response_model=EventResponse)

@@ -86,6 +86,31 @@ class SqlAlchemyAuditLogRepository(AuditLogRepository):
             orm_logs = result.scalars().all()
             return [orm_to_domain_audit_log(orm) for orm in orm_logs]
 
+    def count_by_colony(
+        self,
+        colony_id: int,
+        entity_type: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> int:
+        """Count audit log entries for a colony with optional filtering."""
+        from sqlalchemy import func
+
+        with self._get_session() as session:
+            query = select(func.count(AuditLogORM.id)).where(AuditLogORM.colony_id == colony_id)
+
+            if entity_type:
+                query = query.where(AuditLogORM.entity_type == entity_type)
+
+            if start_date:
+                query = query.where(AuditLogORM.changed_at >= start_date)
+
+            if end_date:
+                query = query.where(AuditLogORM.changed_at <= end_date)
+
+            result = session.execute(query)
+            return result.scalar() or 0
+
     def get_by_entity(self, entity_type: str, entity_id: int) -> list[AuditLog]:
         """Get audit log entries for a specific entity."""
         with self._get_session() as session:

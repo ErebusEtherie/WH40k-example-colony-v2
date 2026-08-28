@@ -40,6 +40,18 @@ class ColonyUserResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ColonyUserListItem(BaseModel):
+    """Schema for colony user list item (paginated list response)."""
+
+    id: int
+    colony_id: int
+    user_id: int
+    role: str
+    joined_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class ColonyMemberResponse(BaseModel):
     """Schema for colony member response with user details."""
 

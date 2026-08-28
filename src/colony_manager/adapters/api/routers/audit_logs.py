@@ -1,32 +1,46 @@
 """API router for audit log endpoints."""
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from colony_manager.adapters.api.dependencies import get_audit_log_repository
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
-from colony_manager.adapters.api.schemas.audit_log import AuditLogResponse
+from colony_manager.adapters.api.schemas.audit_log import (
+    AuditLogListItem,
+    AuditLogResponse,
+)
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.domain.models.user import User
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/colonies/{colony_id}/audit-logs", tags=["audit_logs"])
 
 
-@router.get("", response_model=list[AuditLogResponse])
+@router.get("", response_model=PaginatedResponse[AuditLogListItem])
 def get_audit_logs_by_colony(
     colony_id: int,
     repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
     entity_type: str | None = Query(default=None, description="Filter by entity type"),
-    limit: int = Query(default=100, ge=1, le=500, description="Maximum number of results"),
+    limit: int = Query(default=50, ge=1, le=500, description="Maximum number of results"),
     offset: int = Query(default=0, ge=0, description="Number of results to skip"),
-) -> list[AuditLogResponse]:
-    """Get audit logs for a colony.
+) -> PaginatedResponse[AuditLogListItem]:
+    """Get audit logs for a colony with pagination.
 
     Returns a chronological history of changes made to the colony.
     Requires colony owner role.
     """
+    # Get total count for pagination metadata
+    total = repository.count_by_colony(
+        colony_id=colony_id,
+        entity_type=entity_type,
+    )
+    
+    # Get paginated results
     logs = repository.get_by_colony(
         colony_id=colony_id,
         limit=limit,
@@ -34,27 +48,34 @@ def get_audit_logs_by_colony(
         entity_type=entity_type,
     )
 
-    result: list[AuditLogResponse] = []
+    result: list[AuditLogListItem] = []
     for log in logs:
         if log.id is None or log.changed_at is None:
-            continue  # Skip logs with incomplete data
-        assert log.id is not None
+            logger.warning("Skipping audit log with incomplete data: colony_id=%s, log=%s", colony_id, log)
+            continue
         assert log.colony_id is not None
         result.append(
-            AuditLogResponse(
+            AuditLogListItem(
                 id=log.id,
                 entity_type=log.entity_type,
                 entity_id=log.entity_id,
                 action=log.action.value,
                 field=log.field,
-                old_value=log.old_value,
-                new_value=log.new_value,
                 changed_by=log.changed_by,
                 changed_at=log.changed_at,
                 colony_id=log.colony_id,
             )
         )
-    return result
+    
+    return PaginatedResponse(
+        items=result,
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.get("/{log_id}", response_model=AuditLogResponse)

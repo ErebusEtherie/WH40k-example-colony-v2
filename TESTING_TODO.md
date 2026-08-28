@@ -1,7 +1,7 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-28
-**Current Status:** 754 tests passing, 100% pass rate (4 skipped)
+**Last Updated:** 2026-08-29
+**Current Status:** 768 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -413,7 +413,76 @@ Added basic API integration tests for remaining endpoints without coverage:
 
 **Test Count:** 754 passed, 4 skipped
 
+---
+
+## Completed: Events & Colony Members Pagination Tests (2026-08-29)
+
+**Status:** ✅ COMPLETE — 17 new tests added
+
+Added pagination support and comprehensive tests for Events and Colony Members API endpoints:
+
+### Events API (7 new pagination tests) — `test_events_api.py`
+- `test_list_events_pagination` — Tests offset, limit, has_more, total
+- `test_list_events_pagination_edge_cases` — Boundary conditions (exact page, offset beyond total, limit=1)
+- `test_list_events_filter_by_active_only` — Filter by active status
+- `test_list_events_filter_by_search` — Filter by name search
+- `test_list_events_combined_filters` — Multiple filters together
+- `test_list_events_filters_with_pagination` — Filters + pagination
+- `test_list_events_empty` — Empty colony events list
+
+**Changes:**
+- Updated `events.py` router: Added `offset`/`limit` params, `name_search` filter, pagination response
+- Added `EventListItem` schema for list responses
+- Updated existing tests to handle paginated response format
+
+### Colony Members API (7 new pagination tests) — `test_colony_users_api.py`
+- `test_list_colony_users_pagination` — Tests offset, limit, has_more, total
+- `test_list_colony_users_pagination_edge_cases` — Boundary conditions
+- `test_list_colony_users_empty` — Colony with only owner member
+- `test_list_colony_users_offset` — Different offset values
+- `test_list_colony_users_limit_variations` — Different limit values
+- `test_list_colony_users_total_pages` — Verify total_pages calculation
+- `test_list_colony_users_last_page` — Last page edge case
+
+**Changes:**
+- Updated `colony_users.py` router: Added `offset`/`limit` params, pagination response
+- Added `ColonyUserListItem` schema for list responses
+- Updated existing tests to handle paginated response format
+
+**Test Count:** 768 passed, 4 skipped (added 14 tests total)
 
 
+
+**Test Count:** 768 passed, 4 skipped (added 14 tests total)
+
+---
+
+## Completed: Audit Logs & Modifiers Pagination (2026-08-29)
+
+**Status:** ✅ COMPLETE — 2 endpoints updated with pagination
+
+Added pagination support to remaining list endpoints that were using plain list responses:
+
+### Audit Logs API (Updated)
+- Updated `audit_logs.py` router: Changed from `list[AuditLogResponse]` to `PaginatedResponse[AuditLogListItem]`
+- Added `AuditLogListItem` schema for lightweight list responses
+- Added `count_by_colony` method to `AuditLogRepository` interface and implementation
+- Updated 9 existing tests to handle paginated response format
+- Pagination params: `offset` (default 0), `limit` (default 50, max 500), `entity_type` filter
+
+### Modifiers API (Updated)
+- Updated `modifiers.py` router: Changed from `list[ModifierResponse]` to `PaginatedResponse[ModifierListItem]`
+- Added `ModifierListItem` schema for lightweight list responses
+- Added filter params: `colony_id`, `is_active`
+- Updated 5 existing tests to handle paginated response format
+- Pagination params: `offset` (default 0), `limit` (default 50, max 200)
+
+**Pattern Consistency:** Both endpoints now follow the standard pagination pattern used across the codebase:
+- `PaginatedResponse[ListItem]` return type
+- `offset`/`limit` Query params with FastAPI validation (`ge=0`, `le=max`)
+- `PaginationMeta` with `total`, `offset`, `limit`, `has_more`
+- Lightweight `*ListItem` schemas for list endpoints (omit heavy fields like `old_value`, `new_value`, `modifier_description`, `expires_at`)
+
+**Test Count:** 768 passed, 4 skipped (no new tests added, existing tests updated)
 
 

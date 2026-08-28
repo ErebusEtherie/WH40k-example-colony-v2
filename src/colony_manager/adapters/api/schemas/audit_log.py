@@ -23,6 +23,19 @@ class AuditLogFilter(BaseModel):
     offset: int = Field(default=0, ge=0)
 
 
+class AuditLogListItem(BaseModel):
+    """Lightweight schema for audit log list items (paginated endpoints)."""
+
+    id: int
+    entity_type: str
+    entity_id: int
+    action: str
+    field: str | None
+    changed_by: int
+    changed_at: datetime
+    colony_id: int
+
+
 class AuditLogResponse(BaseModel):
     """Schema for audit log response."""
 

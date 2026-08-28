@@ -19,6 +19,18 @@ class ModifierCreate(BaseModel):
     expires_at: date | None = None
 
 
+class ModifierListItem(BaseModel):
+    """Lightweight schema for modifier list items (paginated endpoints)."""
+
+    id: int | None
+    colony_id: int
+    modifier_source_type: ModifierSourceType
+    modifier_category: ModifierCategory
+    modifier_stat: ModifierStat
+    modifier_value: int
+    is_active: bool
+
+
 class ModifierResponse(BaseModel):
     """Full modifier response."""
 

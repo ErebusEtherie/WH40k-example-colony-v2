@@ -63,6 +63,26 @@ class AuditLogRepository(Protocol):
         """
         ...
 
+    def count_by_colony(
+        self,
+        colony_id: int,
+        entity_type: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> int:
+        """Count audit log entries for a colony with optional filtering.
+
+        Args:
+            colony_id: Colony ID to filter by.
+            entity_type: Optional filter by entity type.
+            start_date: Optional filter for entries after this date.
+            end_date: Optional filter for entries before this date.
+
+        Returns:
+            Total count of matching audit log entries.
+        """
+        ...
+
     def get_by_entity(self, entity_type: str, entity_id: int) -> list[AuditLog]:
         """Get audit log entries for a specific entity.
 
