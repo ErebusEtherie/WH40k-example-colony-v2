@@ -282,3 +282,53 @@ class TestSupportUpgradesPaginationAndFiltering:
         assert len(data["items"]) == 5, f"Expected 5 items, got {len(data['items'])}"
         assert data["meta"]["total"] == 15, f"Expected total=15, got {data['meta']['total']}"
         assert data["meta"]["has_more"] is True
+
+
+class TestColoniesPagination:
+    """Tests for colonies list endpoint pagination."""
+
+    def test_list_colonies_pagination(self, auth_client: TestClient):
+        """Test pagination for colonies list endpoint."""
+        # Create 25 colonies
+        for i in range(25):
+            auth_client.post("/api/v1/colonies", json={"name": f"Colony {i}", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        
+        # Get first page (default limit=20)
+        response = auth_client.get("/api/v1/colonies")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) == 20, f"Expected 20 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 25, f"Expected total=25, got {data['meta']['total']}"
+        assert data["meta"]["has_more"] is True
+        assert data["meta"]["offset"] == 0
+        assert data["meta"]["limit"] == 20
+
+        # Get second page
+        response = auth_client.get("/api/v1/colonies?offset=20")
+        data = response.json()
+        assert len(data["items"]) == 5, f"Expected 5 items on page 2, got {len(data['items'])}"
+        assert data["meta"]["has_more"] is False
+
+    def test_list_colonies_pagination_edge_cases(self, auth_client: TestClient):
+        """Test pagination edge cases for colonies."""
+        # Create 10 colonies
+        for i in range(10):
+            auth_client.post("/api/v1/colonies", json={"name": f"Edge Colony {i}", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        
+        # Exact page boundary (limit=10, total=10)
+        response = auth_client.get("/api/v1/colonies?limit=10")
+        data = response.json()
+        assert len(data["items"]) == 10, f"Expected 10 items, got {len(data['items'])}"
+        assert data["meta"]["has_more"] is False
+        
+        # Offset beyond total
+        response = auth_client.get("/api/v1/colonies?offset=100")
+        data = response.json()
+        assert len(data["items"]) == 0, f"Expected 0 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 10
+        
+        # Limit=1 (one item per page)
+        response = auth_client.get("/api/v1/colonies?limit=1&offset=0")
+        data = response.json()
+        assert len(data["items"]) == 1, f"Expected 1 item, got {len(data['items'])}"
+        assert data["meta"]["has_more"] is True

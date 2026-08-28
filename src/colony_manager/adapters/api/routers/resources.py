@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from colony_manager.adapters.api.dependencies import get_db_path
+from colony_manager.adapters.api.dependencies import get_db_path, build_database_url
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.resource import (
     ResourceCreate,
@@ -25,8 +25,8 @@ router = APIRouter(prefix="/colonies/{colony_id}/resources", tags=["resources"])
 
 def get_resource_service(colony_id: int, db_path: str = Depends(get_db_path)) -> ResourceService:
     """Get resource service instance with proper repositories."""
-    colony_repo = SqlAlchemyColonyRepository(db_path)
-    resource_repo = SqlAlchemyResourceRepository(db_path)
+    colony_repo = SqlAlchemyColonyRepository(build_database_url(db_path))
+    resource_repo = SqlAlchemyResourceRepository(build_database_url(db_path))
     return ResourceService(resource_repo, colony_repo)
 
 
@@ -178,3 +178,6 @@ async def delete_resource(
         service.remove_resource(resource_id)
     except (NotFoundError, ValueError):
         raise HTTPException(status_code=404, detail=f"Resource {resource_id} not found")
+
+
+
