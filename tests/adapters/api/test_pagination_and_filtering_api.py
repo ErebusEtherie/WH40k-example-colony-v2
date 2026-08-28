@@ -181,3 +181,104 @@ class TestDevelopmentPlansPaginationAndFiltering:
         assert len(data['items']) == 5, f"Expected 5 items, got {len(data['items'])}"
         assert data['meta']['total'] == 15, f"Expected total=15, got {data['meta']['total']}"
         assert data['meta']['has_more'] is True
+class TestSupportUpgradesPaginationAndFiltering:
+    """Tests for support upgrades pagination and filters."""
+
+    def test_list_upgrades_pagination(self, auth_client: TestClient):
+        """Test pagination for support upgrades list endpoint."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Upgrades", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        for i in range(25):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json={"name": f"Upgrade {i}", "upgrade_type": "arbites_precinct"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades")
+        data = response.json()
+        assert len(data["items"]) == 20, f"Expected 20 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 25, f"Expected total=25, got {data['meta']['total']}"
+        assert data["meta"]["has_more"] is True
+
+    def test_list_upgrades_pagination_edge_cases(self, auth_client: TestClient):
+        """Test pagination edge cases for support upgrades."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Edge", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        for i in range(10):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json={"name": f"Upgrade {i}", "upgrade_type": "arbites_precinct"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?limit=10")
+        data = response.json()
+        assert len(data["items"]) == 10, f"Expected 10 items, got {len(data['items'])}"
+        assert data["meta"]["has_more"] is False
+
+    def test_list_upgrades_filter_by_type(self, auth_client: TestClient):
+        """Test filtering support upgrades by type."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Type", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        for i, utype in enumerate(["arbites_precinct", "ecclesioarchy_mission", "mechanicum_station", "cultural_improvement", "contacts"]):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json={"name": f"Upgrade {i}", "upgrade_type": utype})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?type=contacts")
+        data = response.json()
+        assert len(data["items"]) == 1, f"Expected 1 contacts item, got {len(data['items'])}"
+        assert data["items"][0]["upgrade_type"] == "contacts"
+
+    def test_list_upgrades_filter_by_search(self, auth_client: TestClient):
+        """Test filtering support upgrades by name search."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Search", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        test_data = [
+            {"name": "Arbites Precinct", "upgrade_type": "arbites_precinct"},
+            {"name": "Ecclesiarchy Mission", "upgrade_type": "ecclesioarchy_mission"},
+            {"name": "Mechanicum Station", "upgrade_type": "mechanicum_station"},
+            {"name": "Cultural Center", "upgrade_type": "cultural_improvement"},
+            {"name": "Medical Facility", "upgrade_type": "cultural_improvement"},
+        ]
+        for item in test_data:
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json=item)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?name_search=arbites")
+        data = response.json()
+        arbites_items = [item for item in data["items"] if "Arbites" in item["name"]]
+        assert len(arbites_items) >= 1, "Expected at least one item with 'Arbites' in name"
+
+    def test_list_upgrades_filter_by_affiliated_group(self, auth_client: TestClient):
+        """Test filtering support upgrades by affiliated group (Contacts)."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Affil", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        test_data = [
+            {"name": "Merchant Guild Contacts", "upgrade_type": "contacts", "affiliated_group": "Merchant Guild"},
+            {"name": "Adeptus Contacts", "upgrade_type": "contacts", "affiliated_group": "Adeptus Mechanicus"},
+            {"name": "Guard Contacts", "upgrade_type": "contacts", "affiliated_group": "Imperial Guard"},
+            {"name": "Arbites Precinct", "upgrade_type": "arbites_precinct"},
+        ]
+        for item in test_data:
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json=item)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?affiliated_group=adeptus")
+        data = response.json()
+        adeptus_items = [item for item in data["items"] if item.get("affiliated_group") and "Adeptus" in item["affiliated_group"]]
+        assert len(adeptus_items) >= 1, "Expected at least one item with 'Adeptus' in affiliated_group"
+
+    def test_list_upgrades_combined_filters(self, auth_client: TestClient):
+        """Test combining filters for support upgrades."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "Combined", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        test_data = [
+            {"name": "Guild Contacts A", "upgrade_type": "contacts", "affiliated_group": "Merchant Guild"},
+            {"name": "Guild Contacts B", "upgrade_type": "contacts", "affiliated_group": "Trade Guild"},
+            {"name": "Arbites Precinct", "upgrade_type": "arbites_precinct", "affiliated_group": "Merchant Guild"},
+        ]
+        for item in test_data:
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json=item)
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?type=contacts&affiliated_group=merchant")
+        data = response.json()
+        assert len(data["items"]) == 1, f"Expected 1 item, got {len(data['items'])}"
+        assert data["items"][0]["name"] == "Guild Contacts A"
+
+    def test_list_upgrades_filters_with_pagination(self, auth_client: TestClient):
+        """Test combining filters with pagination for support upgrades."""
+        colony_response = auth_client.post("/api/v1/colonies", json={"name": "FilterPag", "founder_name": "Owner", "colony_type": "mining_and_industry"})
+        colony_id = colony_response.json()["id"]
+        for i in range(15):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json={"name": f"Contacts {i}", "upgrade_type": "contacts", "affiliated_group": "Merchant Guild"})
+        for i in range(10):
+            auth_client.post(f"/api/v1/colonies/{colony_id}/upgrades", json={"name": f"Other {i}", "upgrade_type": "arbites_precinct"})
+        response = auth_client.get(f"/api/v1/colonies/{colony_id}/upgrades?type=contacts&limit=5")
+        data = response.json()
+        assert len(data["items"]) == 5, f"Expected 5 items, got {len(data['items'])}"
+        assert data["meta"]["total"] == 15, f"Expected total=15, got {data['meta']['total']}"
+        assert data["meta"]["has_more"] is True

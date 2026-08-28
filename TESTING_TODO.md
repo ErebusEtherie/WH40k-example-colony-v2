@@ -1,7 +1,7 @@
 # Testing ToDo List
 
 **Last Updated:** 2026-08-28
-**Current Status:** 733 tests passing, 100% pass rate (4 skipped)
+**Current Status:** 740 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -348,7 +348,7 @@ None — all service tests complete.
 
 ## Completed: Pagination & Filtering Tests (2026-08-28)
 
-**Status:** ✅ COMPLETE — 14 new tests added in `test_pagination_and_filtering_api.py`
+**Status:** ✅ COMPLETE — 21 new tests added in `test_pagination_and_filtering_api.py`
 
 Added comprehensive integration tests for pagination and filtering on list endpoints:
 
@@ -361,6 +361,15 @@ Added comprehensive integration tests for pagination and filtering on list endpo
 - `test_list_infrastructure_combined_filters` — Multiple filters together
 - `test_list_infrastructure_filters_with_pagination` — Filters + pagination
 
+### Support Upgrades (7 tests)
+- `test_list_upgrades_pagination` — Tests offset, limit, has_more, total_pages
+- `test_list_upgrades_pagination_edge_cases` — Boundary conditions
+- `test_list_upgrades_filter_by_type` — Filter by upgrade type
+- `test_list_upgrades_filter_by_search` — Filter by name search
+- `test_list_upgrades_filter_by_affiliated_group` — Filter by affiliated group (Contacts)
+- `test_list_upgrades_combined_filters` — Multiple filters together
+- `test_list_upgrades_filters_with_pagination` — Filters + pagination
+
 ### Development Plans (7 tests)
 - `test_list_development_plans_pagination` — Tests offset, limit, has_more, total_pages
 - `test_list_development_plans_filter_by_status` — Filter by plan status
@@ -370,6 +379,4 @@ Added comprehensive integration tests for pagination and filtering on list endpo
 - `test_list_development_plans_combined_filters` — Multiple filters together
 - `test_list_development_plans_filters_with_pagination` — Filters + pagination
 
-**Note:** Support Upgrades tests were removed as the API endpoint uses `/upgrades` (not `/support-upgrades`) with a different schema (no `tier` or `state` fields on create). See existing `test_support_upgrades_api.py` for correct tests.
-
-**Test Count:** 733 passed, 4 skipped (added 14 tests)
+**Test Count:** 740 passed, 4 skipped (added 21 tests)
