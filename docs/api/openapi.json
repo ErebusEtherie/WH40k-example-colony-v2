@@ -672,7 +672,7 @@
           "colonies"
         ],
         "summary": "List Colony Modifiers",
-        "description": "List all modifiers for a colony.",
+        "description": "List all modifiers for a colony with pagination.",
         "operationId": "list_colony_modifiers_api_v1_colonies__colony_id__modifiers_get",
         "security": [
           {
@@ -688,6 +688,33 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -696,11 +723,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ModifierResponse"
-                  },
-                  "title": "Response List Colony Modifiers Api V1 Colonies  Colony Id  Modifiers Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_ModifierResponse_"
                 }
               }
             }
@@ -1047,7 +1070,7 @@
           "events"
         ],
         "summary": "Get Events By Colony",
-        "description": "Get all events for a colony.",
+        "description": "List all events for a colony with pagination and filtering.\n\nFilters:\n- active_only: If True, only return active events\n- search: Search by name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 events,\nconsider adding filtered query methods to the repository layer.",
         "operationId": "get_events_by_colony_api_v1_events_colonies__colony_id__get",
         "security": [
           {
@@ -1070,9 +1093,60 @@
             "required": false,
             "schema": {
               "type": "boolean",
+              "description": "If True, only return active events",
               "default": false,
               "title": "Active Only"
-            }
+            },
+            "description": "If True, only return active events"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name (case-insensitive substring match)",
+              "examples": [
+                "warp",
+                "storm"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by name (case-insensitive substring match)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -1081,11 +1155,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventResponse"
-                  },
-                  "title": "Response Get Events By Colony Api V1 Events Colonies  Colony Id  Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_EventListItem_"
                 }
               }
             }
@@ -1308,7 +1378,7 @@
           "development_plans"
         ],
         "summary": "Get Development Plans By Colony",
-        "description": "Get all development plans for a colony.",
+        "description": "Get all development plans for a colony with pagination and filtering.\n\nFilters:\n- status: Filter by plan status (planned, in_progress, acquired, delivered)\n- upgrade_type: Filter by upgrade type (infrastructure or support_upgrade)\n- priority: Filter by priority level (1-5)\n- search: Search by target name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 development plans). For colonies with >1000 plans,\nconsider adding filtered query methods to the repository layer to push filtering\nto the database.",
         "operationId": "get_development_plans_by_colony_api_v1_development_plans_colonies__colony_id__get",
         "security": [
           {
@@ -1324,6 +1394,121 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DevelopmentPlanStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by plan status",
+              "examples": [
+                "planned",
+                "in_progress",
+                "acquired",
+                "delivered"
+              ],
+              "title": "Status"
+            },
+            "description": "Filter by plan status"
+          },
+          {
+            "name": "upgrade_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by upgrade type (infrastructure or support_upgrade)",
+              "examples": [
+                "infrastructure",
+                "support_upgrade"
+              ],
+              "title": "Upgrade Type"
+            },
+            "description": "Filter by upgrade type (infrastructure or support_upgrade)"
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by priority level (1-5)",
+              "title": "Priority"
+            },
+            "description": "Filter by priority level (1-5)"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by target name (case-insensitive substring match)",
+              "examples": [
+                "spaceport",
+                "barracks"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by target name (case-insensitive substring match)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -1332,11 +1517,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DevelopmentPlanResponse"
-                  },
-                  "title": "Response Get Development Plans By Colony Api V1 Development Plans Colonies  Colony Id  Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_DevelopmentPlanResponse_"
                 }
               }
             }
@@ -1551,7 +1732,7 @@
           "audit_logs"
         ],
         "summary": "Get Audit Logs By Colony",
-        "description": "Get audit logs for a colony.\n\nReturns a chronological history of changes made to the colony.\nRequires colony owner role.",
+        "description": "Get audit logs for a colony with pagination.\n\nReturns a chronological history of changes made to the colony.\nRequires colony owner role.",
         "operationId": "get_audit_logs_by_colony_api_v1_colonies__colony_id__audit_logs_get",
         "security": [
           {
@@ -1595,7 +1776,7 @@
               "maximum": 500,
               "minimum": 1,
               "description": "Maximum number of results",
-              "default": 100,
+              "default": 50,
               "title": "Limit"
             },
             "description": "Maximum number of results"
@@ -1620,11 +1801,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AuditLogResponse"
-                  },
-                  "title": "Response Get Audit Logs By Colony Api V1 Colonies  Colony Id  Audit Logs Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_AuditLogListItem_"
                 }
               }
             }
@@ -1705,7 +1882,7 @@
           "colony_users"
         ],
         "summary": "Get Colony Members",
-        "description": "Get all members of a colony.",
+        "description": "Get all members of a colony with pagination.\n\nNote: Pagination is applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 members). For colonies with >1000 members,\nconsider adding paginated query methods to the repository layer.",
         "operationId": "get_colony_members_api_v1_colonies__colony_id__members_get",
         "security": [
           {
@@ -1721,6 +1898,33 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -1729,11 +1933,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ColonyUserResponse"
-                  },
-                  "title": "Response Get Colony Members Api V1 Colonies  Colony Id  Members Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_ColonyUserListItem_"
                 }
               }
             }
@@ -2160,7 +2360,7 @@
           "infrastructure"
         ],
         "summary": "List Infrastructure",
-        "description": "List all infrastructure for a colony with pagination.",
+        "description": "List all infrastructure for a colony with pagination and filtering.\n\nFilters:\n- state: Filter by operational state (working, planned, in_progress, needed, not_working)\n- type: Filter by infrastructure type (transport, power, housing, etc.)\n- search: Search by name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 infrastructure\nitems, consider adding filtered query methods to the repository layer to push\nfiltering to the database.",
         "operationId": "list_infrastructure_api_v1_colonies__colony_id__infrastructure_get",
         "security": [
           {
@@ -2176,6 +2376,79 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/InfrastructureState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by infrastructure state",
+              "examples": [
+                "working",
+                "planned",
+                "in_progress",
+                "needed",
+                "not_working"
+              ],
+              "title": "State"
+            },
+            "description": "Filter by infrastructure state"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/InfrastructureType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by infrastructure type",
+              "examples": [
+                "transport",
+                "power",
+                "housing",
+                "life_support",
+                "defense",
+                "production"
+              ],
+              "title": "Type"
+            },
+            "description": "Filter by infrastructure type"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name (case-insensitive substring match)",
+              "examples": [
+                "spaceport",
+                "reactor"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by name (case-insensitive substring match)"
           },
           {
             "name": "offset",
@@ -2897,29 +3170,100 @@
           "modifiers"
         ],
         "summary": "List All Modifiers",
-        "description": "List all modifiers across all colonies.",
+        "description": "List all modifiers across all colonies with pagination.\n\nOptional filters:\n- colony_id: Filter modifiers by specific colony\n- is_active: Filter by active status (true/false)\n\nNote: This endpoint loads all modifiers into memory before applying pagination.\nFor large datasets, consider implementing repository-level pagination in the future.",
         "operationId": "list_all_modifiers_api_v1_modifiers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          },
+          {
+            "name": "colony_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by colony ID",
+              "title": "Colony Id"
+            },
+            "description": "Filter by colony ID"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by active status",
+              "title": "Is Active"
+            },
+            "description": "Filter by active status"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ModifierResponse"
-                  },
-                  "type": "array",
-                  "title": "Response List All Modifiers Api V1 Modifiers Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_ModifierListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/modifiers/{modifier_id}": {
@@ -2976,7 +3320,7 @@
           "resources"
         ],
         "summary": "List Resources",
-        "description": "List all planetary resources for a colony.",
+        "description": "List all planetary resources for a colony with pagination.",
         "operationId": "list_resources_api_v1_colonies__colony_id__resources_get",
         "security": [
           {
@@ -2992,6 +3336,33 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -3000,11 +3371,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ResourceListItem"
-                  },
-                  "title": "Response List Resources Api V1 Colonies  Colony Id  Resources Get"
+                  "$ref": "#/components/schemas/PaginatedResponse_ResourceListItem_"
                 }
               }
             }
@@ -3254,7 +3621,7 @@
           "support_upgrades"
         ],
         "summary": "List Upgrades",
-        "description": "List all support upgrades for a colony with pagination.",
+        "description": "List all support upgrades for a colony with pagination and filtering.\n\nFilters:\n- type: Filter by upgrade type (arbites_precinct, ecclesioarchy_mission, etc.)\n- search: Search by name (case-insensitive substring match)\n- affiliated_group: Filter by affiliated group (for Contacts upgrades)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 support upgrades,\nconsider adding filtered query methods to the repository layer to push filtering\nto the database.",
         "operationId": "list_upgrades_api_v1_colonies__colony_id__upgrades_get",
         "security": [
           {
@@ -3270,6 +3637,80 @@
               "type": "integer",
               "title": "Colony Id"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SupportUpgradeType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by upgrade type",
+              "examples": [
+                "arbites_precinct",
+                "ecclesioarchy_mission",
+                "mechanicum_station",
+                "cultural_improvement",
+                "industrial_facility",
+                "contacts",
+                "infantry_garrison",
+                "imperial_navy_station",
+                "personal_lodgings",
+                "trappings"
+              ],
+              "title": "Type"
+            },
+            "description": "Filter by upgrade type"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name (case-insensitive substring match)",
+              "examples": [
+                "barracks",
+                "factory"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by name (case-insensitive substring match)"
+          },
+          {
+            "name": "affiliated_group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by affiliated group (for Contacts upgrades)",
+              "examples": [
+                "Adeptus Mechanicus",
+                "Imperial Guard"
+              ],
+              "title": "Affiliated Group"
+            },
+            "description": "Filter by affiliated group (for Contacts upgrades)"
           },
           {
             "name": "offset",
@@ -4152,6 +4593,63 @@
         "title": "AssignmentChangeInfo",
         "description": "Information about changes made during representative assignment/unassignment.\n\nThis provides explicit feedback about what changed when assigning or unassigning\na representative, including the previous and new representative IDs and leadership\nmodifier values."
       },
+      "AuditLogListItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "integer",
+            "title": "Entity Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "changed_by": {
+            "type": "integer",
+            "title": "Changed By"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Changed At"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "entity_type",
+          "entity_id",
+          "action",
+          "field",
+          "changed_by",
+          "changed_at",
+          "colony_id"
+        ],
+        "title": "AuditLogListItem",
+        "description": "Lightweight schema for audit log list items (paginated endpoints)."
+      },
       "AuditLogResponse": {
         "properties": {
           "id": {
@@ -4763,6 +5261,41 @@
         "title": "ColonyUserCreate",
         "description": "Schema for creating a colony-user membership."
       },
+      "ColonyUserListItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joined At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "user_id",
+          "role",
+          "joined_at"
+        ],
+        "title": "ColonyUserListItem",
+        "description": "Schema for colony user list item (paginated list response)."
+      },
       "ColonyUserResponse": {
         "properties": {
           "id": {
@@ -5113,6 +5646,45 @@
         ],
         "title": "EventCreate",
         "description": "Schema for creating an event."
+      },
+      "EventListItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "modifier_count": {
+            "type": "integer",
+            "title": "Modifier Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "name",
+          "description",
+          "is_active",
+          "modifier_count"
+        ],
+        "title": "EventListItem",
+        "description": "Schema for event list item (paginated list response)."
       },
       "EventModifierCreate": {
         "properties": {
@@ -5719,6 +6291,54 @@
         "title": "ModifierCreate",
         "description": "Schema for creating a new modifier."
       },
+      "ModifierListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "modifier_source_type": {
+            "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "modifier_category": {
+            "$ref": "#/components/schemas/ModifierCategory"
+          },
+          "modifier_stat": {
+            "$ref": "#/components/schemas/ModifierStat"
+          },
+          "modifier_value": {
+            "type": "integer",
+            "title": "Modifier Value"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "modifier_source_type",
+          "modifier_category",
+          "modifier_stat",
+          "modifier_value",
+          "is_active"
+        ],
+        "title": "ModifierListItem",
+        "description": "Lightweight schema for modifier list items (paginated endpoints)."
+      },
       "ModifierResponse": {
         "properties": {
           "id": {
@@ -5837,6 +6457,26 @@
         "title": "ModifierUpdate",
         "description": "Schema for updating a modifier (partial update)."
       },
+      "PaginatedResponse_AuditLogListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[AuditLogListItem]"
+      },
       "PaginatedResponse_ColonyListItem_": {
         "properties": {
           "items": {
@@ -5856,6 +6496,66 @@
           "meta"
         ],
         "title": "PaginatedResponse[ColonyListItem]"
+      },
+      "PaginatedResponse_ColonyUserListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ColonyUserListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ColonyUserListItem]"
+      },
+      "PaginatedResponse_DevelopmentPlanResponse_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentPlanResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[DevelopmentPlanResponse]"
+      },
+      "PaginatedResponse_EventListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EventListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[EventListItem]"
       },
       "PaginatedResponse_InfrastructureListItem_": {
         "properties": {
@@ -5877,6 +6577,46 @@
         ],
         "title": "PaginatedResponse[InfrastructureListItem]"
       },
+      "PaginatedResponse_ModifierListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ModifierListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ModifierListItem]"
+      },
+      "PaginatedResponse_ModifierResponse_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ModifierResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ModifierResponse]"
+      },
       "PaginatedResponse_RepresentativeListItem_": {
         "properties": {
           "items": {
@@ -5896,6 +6636,26 @@
           "meta"
         ],
         "title": "PaginatedResponse[RepresentativeListItem]"
+      },
+      "PaginatedResponse_ResourceListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ResourceListItem]"
       },
       "PaginatedResponse_SupportUpgradeListItem_": {
         "properties": {
@@ -5934,6 +6694,12 @@
           "has_more": {
             "type": "boolean",
             "title": "Has More"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "description": "Calculate total number of pages.",
+            "readOnly": true
           }
         },
         "type": "object",
@@ -5941,7 +6707,8 @@
           "total",
           "offset",
           "limit",
-          "has_more"
+          "has_more",
+          "total_pages"
         ],
         "title": "PaginationMeta",
         "description": "Pagination metadata."
