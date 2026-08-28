@@ -17,6 +17,7 @@ from colony_manager.domain.ports.colony_repository import ColonyRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
 from colony_manager.domain.ports.representative_repository import RepresentativeRepository
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+from colony_manager.domain.rules.representative_rules import get_personality_modifiers
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +87,16 @@ def _build_stat_breakdown(
 
     for mod in modifiers:
         # Get source name from modifier description or source
-        source_name = mod.modifier_description or f"{mod.modifier_source_type.value}"
+        # Extract entity name from description (e.g., "Advanced Manufactorum (manufactorum - working)" → "Advanced Manufactorum")
+        if mod.modifier_description:
+            # Extract entity name before first parenthesis, fallback to full description
+            source_name = mod.modifier_description.split(" (")[0].strip() or mod.modifier_description
+        else:
+            source_name = f"{mod.modifier_source_type.value}"
         breakdown_mods.append(
             ModifierBreakdownItemDict(
                 source_type=mod.modifier_source_type.value,
-                source_id=None,  # Could be extended to track source entity ID
+                source_id=mod.source_entity_id,
                 source_name=source_name,
                 value=mod.modifier_value,
                 description=mod.modifier_description,
@@ -502,7 +508,15 @@ class ColonyService:
 
         # Calculate full state first
         state = self._state_calculator.calculate(colony, as_of)
+        # Collect ALL modifiers from all sources
         active_modifiers = self._state_calculator._get_active_modifiers(colony, as_of)
+        active_modifiers.extend(self._state_calculator.get_infrastructure_modifiers(colony))
+        active_modifiers.extend(self._state_calculator.get_support_upgrade_modifiers(colony))
+        # Add representative personality modifiers if representative exists
+        if colony.representative_id:
+            rep = self._representative_repository.get(colony.representative_id)
+            if rep:
+                active_modifiers.extend(get_personality_modifiers(rep, colony.base_order, colony.base_size, colony.id or 1))
 
         # Group modifiers by stat
         from colony_manager.domain.enums import ModifierStat

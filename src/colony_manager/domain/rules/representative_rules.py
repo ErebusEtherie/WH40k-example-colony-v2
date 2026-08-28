@@ -38,8 +38,10 @@ def get_personality_modifiers(
         are evaluated here based on the provided colony state.
 
         Variable dice effects (e.g., "Mad: -1d5 Order") are skipped - GM must
-        provide the rolled value separately.
-    """
+        provide the rolled value separately."""
+    if representative.id is None:
+        return []  # Can't create valid modifiers without an ID
+
     modifiers = []
 
     for personality in representative.personalities:
@@ -65,7 +67,8 @@ def get_personality_modifiers(
                     modifier_stat=ModifierStat(effect.stat),
                     modifier_value=effect.value,
                     description=f"Personality: {personality.name}",
-                    is_active=True,
+        is_active=True,
+        source_entity_id=representative.id,
                 )
             )
 

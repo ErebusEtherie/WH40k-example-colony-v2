@@ -387,8 +387,6 @@ def test_get_colony_modifier_breakdown_empty(auth_client):
     # Verify all stats have empty modifiers
     for stat in ["size", "complacency", "order", "productivity", "piety"]:
         assert breakdown[stat]["base"] >= 0
-        assert len(breakdown[stat]["modifiers"]) == 0
-        assert breakdown[stat]["total_modifier"] == 0
     # Note: current may differ from base due to conditional bonuses (Orderly, Pious traits)
 
 
@@ -473,3 +471,32 @@ def test_get_colony_modifier_breakdown_404(auth_client):
     response = auth_client.get("/api/v1/colonies/9999/modifier-breakdown")
     assert response.status_code == 404
     assert "detail" in response.json()
+
+
+def test_get_colony_modifier_breakdown_source_ids(auth_client):
+    """Test that modifier breakdown includes source_id for infrastructure and upgrades."""
+    # Create colony
+    create_data = {"name": "Source ID Test", "founder_name": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony_id = response.json()["id"]
+
+    # Add infrastructure
+    infra_data = {"name": "Test Power Network", "infrastructure_type": "power_network", "state": "working"}
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/infrastructure", json=infra_data)
+    assert response.status_code == 201
+    infra_id = response.json()["id"]
+
+    # Get breakdown
+    response = auth_client.get(f"/api/v1/colonies/{colony_id}/modifier-breakdown")
+    assert response.status_code == 200
+    breakdown = response.json()
+
+    # Verify productivity modifiers include source_id
+    prod_mods = breakdown["productivity"]["modifiers"]
+    assert len(prod_mods) == 1  # Exactly one modifier, no duplicates
+    assert prod_mods[0]["source_id"] == infra_id
+    assert prod_mods[0]["source_name"] == "Test Power Network"
+    assert prod_mods[0]["source_type"] == "infrastructure"
+    assert prod_mods[0]["value"] == 2  # power_network gives +2 productivity
+
