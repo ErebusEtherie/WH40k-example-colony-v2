@@ -4097,6 +4097,61 @@
   },
   "components": {
     "schemas": {
+      "AssignmentChangeInfo": {
+        "properties": {
+          "representative_changed": {
+            "type": "boolean",
+            "title": "Representative Changed",
+            "description": "Whether the representative assignment changed (always true for assign/unassign operations)",
+            "default": true
+          },
+          "previous_representative_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Representative Id",
+            "description": "ID of the previously assigned representative (None if no previous representative)"
+          },
+          "new_representative_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Representative Id",
+            "description": "ID of the newly assigned representative (None for unassign operations)"
+          },
+          "leadership_modifier_changed": {
+            "type": "boolean",
+            "title": "Leadership Modifier Changed",
+            "description": "Whether the leadership modifier changed as a result of this assignment",
+            "default": false
+          },
+          "previous_leadership": {
+            "type": "integer",
+            "title": "Previous Leadership",
+            "description": "Previous leadership modifier value (0 if no previous representative)",
+            "default": 0
+          },
+          "new_leadership": {
+            "type": "integer",
+            "title": "New Leadership",
+            "description": "New leadership modifier value after assignment/unassignment",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "AssignmentChangeInfo",
+        "description": "Information about changes made during representative assignment/unassignment.\n\nThis provides explicit feedback about what changed when assigning or unassigning\na representative, including the previous and new representative IDs and leadership\nmodifier values."
+      },
       "AuditLogResponse": {
         "properties": {
           "id": {
@@ -6255,6 +6310,17 @@
               }
             ],
             "title": "Assigned To Colony Id"
+          },
+          "assignment_change": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentChangeInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Change tracking information for assignment/unassign operations (None for other endpoints)"
           }
         },
         "type": "object",

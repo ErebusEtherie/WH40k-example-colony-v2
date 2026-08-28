@@ -10,6 +10,7 @@ from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.representative import (
+    AssignmentChangeInfo,
     PersonalityCreate,
     RepresentativeCreate,
     RepresentativeListItem,
@@ -255,11 +256,14 @@ async def assign_to_colony(
 ) -> RepresentativeResponse:
     """Assign a representative to a colony."""
     try:
-        updated = service.assign_to_colony(colony_id, rep_id)
+        result = service.assign_to_colony(colony_id, rep_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except ColonyManagerError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+    updated = result.representative
+
     return RepresentativeResponse(
         id=updated.id,
         name=updated.name,
@@ -268,8 +272,16 @@ async def assign_to_colony(
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
         skills=updated.skills,
         talents=updated.talents,
-        leadership_modifier=_get_leadership_modifier(updated.stats),
+        leadership_modifier=result.new_leadership,
         assigned_to_colony_id=updated.assigned_to_colony_id,
+        assignment_change=AssignmentChangeInfo(
+            representative_changed=True,
+            previous_representative_id=result.previous_representative_id,
+            new_representative_id=result.new_representative_id,
+            leadership_modifier_changed=result.leadership_modifier_changed,
+            previous_leadership=result.previous_leadership,
+            new_leadership=result.new_leadership,
+        ),
     )
 
 
@@ -302,11 +314,14 @@ async def unassign_from_colony(
             )
 
     try:
-        updated = service.unassign_from_colony(rep_id)
+        result = service.unassign_from_colony(rep_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except ColonyManagerError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+    updated = result.representative
+
     return RepresentativeResponse(
         id=updated.id,
         name=updated.name,
@@ -315,6 +330,14 @@ async def unassign_from_colony(
         stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
         skills=updated.skills,
         talents=updated.talents,
-        leadership_modifier=_get_leadership_modifier(updated.stats),
+        leadership_modifier=result.new_leadership,
         assigned_to_colony_id=updated.assigned_to_colony_id,
+        assignment_change=AssignmentChangeInfo(
+            representative_changed=True,
+            previous_representative_id=result.previous_representative_id,
+            new_representative_id=result.new_representative_id,
+            leadership_modifier_changed=result.leadership_modifier_changed,
+            previous_leadership=result.previous_leadership,
+            new_leadership=result.new_leadership,
+        ),
     )

@@ -43,8 +43,9 @@ During the UI panel requirements analysis, the following minor API enhancements 
 }
 ```
 
-**Status:** 🟡 Planned  
+**Status:** ✅ Complete  
 **Phase:** Phase 2  
+**Endpoint:** `GET /api/v1/colonies/{id}/modifier-breakdown`  
 **UI Impact:** Colony Details Panel - Modifier Breakdown Modal
 
 ---
@@ -97,8 +98,19 @@ class ColonyBase(BaseModel):
 }
 ```
 
-**Status:** 🟢 Nice-to-have  
-**Phase:** Phase 3  
+**Status:** ✅ Complete  
+**Phase:** Phase 2  
+**Implementation:**
+- Added `AssignmentChangeInfo` schema to `representative.py`
+- Added optional `assignment_change` field to `RepresentativeResponse`
+- Updated `RepresentativeService.assign_to_colony()` and `unassign_from_colony()` to return `AssignmentResult` dataclass with change tracking
+- Updated `/api/v1/representatives/{id}/assign` and `/api/v1/representatives/{id}/unassign` endpoints to populate `assignment_change`
+- Added comprehensive tests for new assignment, replacement, and unassign scenarios
+
+**Endpoints:**
+- `POST /api/v1/representatives/{id}/assign` - Returns `assignment_change` with full change tracking
+- `POST /api/v1/representatives/{id}/unassign` - Returns `assignment_change` showing removal
+
 **UI Impact:** Representative Management Panel - Assignment confirmation
 
 ---

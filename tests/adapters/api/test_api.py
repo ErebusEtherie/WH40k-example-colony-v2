@@ -186,6 +186,173 @@ def test_assign_representative(auth_client):
     assert response.json()["assigned_to_colony_id"] == colony_id
 
 
+def test_assign_representative_change_tracking_new_assignment(auth_client):
+    """Test that assignment returns change tracking for new assignment (no previous rep)."""
+    colony_data = {"name": "Change Test Colony", "founder_name": "Owner", "colony_type": "mining_and_industry"}
+    response = auth_client.post("/api/v1/colonies", json=colony_data)
+    colony_id = response.json()["id"]
+
+    rep_data = {
+        "name": "New Rep",
+        "type": "satrap",
+        "personalities": [{"name": "Bold", "description": "Bold personality", "effect": "+1 Fel"}],
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 45,
+            "per": 35,
+            "wp": 40,
+            "fel": 50,
+        },
+        "skills": [],
+        "talents": [],
+    }
+    response = auth_client.post("/api/v1/representatives", json=rep_data)
+    rep_id = response.json()["id"]
+
+    # Assign to colony with no previous representative
+    response = auth_client.post(
+        f"/api/v1/representatives/{rep_id}/assign", params={"colony_id": colony_id}
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify change tracking
+    assert data["assignment_change"] is not None
+    assert data["assignment_change"]["representative_changed"] is True
+    assert data["assignment_change"]["previous_representative_id"] is None
+    assert data["assignment_change"]["new_representative_id"] == rep_id
+    assert data["assignment_change"]["previous_leadership"] == 0
+    assert data["assignment_change"]["new_leadership"] == 5  # fel 50 // 10 = 5
+    assert data["assignment_change"]["leadership_modifier_changed"] is True
+
+
+def test_assign_representative_change_tracking_replacement(auth_client):
+    """Test that assignment returns change tracking when replacing existing representative."""
+    colony_data = {"name": "Replace Test Colony", "founder_name": "Owner", "colony_type": "ecclesiastical"}
+    response = auth_client.post("/api/v1/colonies", json=colony_data)
+    colony_id = response.json()["id"]
+
+    # Create first representative with lower leadership
+    rep1_data = {
+        "name": "Old Rep",
+        "type": "judge",
+        "personalities": [{"name": "Calm", "description": "Calm personality", "effect": "+1 Int"}],
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 35,
+            "per": 30,
+            "wp": 40,
+            "fel": 30,
+        },
+        "skills": [],
+        "talents": [],
+    }
+    response = auth_client.post("/api/v1/representatives", json=rep1_data)
+    rep1_id = response.json()["id"]
+
+    # Create second representative with higher leadership
+    rep2_data = {
+        "name": "New Rep",
+        "type": "satrap",
+        "personalities": [{"name": "Bold", "description": "Bold personality", "effect": "+1 Fel"}],
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 45,
+            "per": 35,
+            "wp": 40,
+            "fel": 60,
+        },
+        "skills": [],
+        "talents": [],
+    }
+    response = auth_client.post("/api/v1/representatives", json=rep2_data)
+    rep2_id = response.json()["id"]
+
+    # Assign first representative
+    response = auth_client.post(
+        f"/api/v1/representatives/{rep1_id}/assign", params={"colony_id": colony_id}
+    )
+    assert response.status_code == 200
+    assert response.json()["assignment_change"]["new_leadership"] == 3  # int 35 // 10 = 3
+
+    # Replace with second representative
+    response = auth_client.post(
+        f"/api/v1/representatives/{rep2_id}/assign", params={"colony_id": colony_id}
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify change tracking shows replacement
+    assert data["assignment_change"]["representative_changed"] is True
+    assert data["assignment_change"]["previous_representative_id"] == rep1_id
+    assert data["assignment_change"]["new_representative_id"] == rep2_id
+    assert data["assignment_change"]["previous_leadership"] == 3
+    assert data["assignment_change"]["new_leadership"] == 6  # fel 60 // 10 = 6
+    assert data["assignment_change"]["leadership_modifier_changed"] is True
+
+
+def test_unassign_representative_change_tracking(auth_client):
+    """Test that unassign returns change tracking showing removal."""
+    colony_data = {"name": "Unassign Test Colony", "founder_name": "Owner", "colony_type": "agricultural"}
+    response = auth_client.post("/api/v1/colonies", json=colony_data)
+    colony_id = response.json()["id"]
+
+    rep_data = {
+        "name": "Temp Rep",
+        "type": "judge",
+        "personalities": [{"name": "Wise", "description": "Wise personality", "effect": "+1 Int"}],
+        "stats": {
+            "ws": 30,
+            "bs": 30,
+            "s": 30,
+            "t": 30,
+            "ag": 30,
+            "int": 55,
+            "per": 30,
+            "wp": 40,
+            "fel": 30,
+        },
+        "skills": [],
+        "talents": [],
+    }
+    response = auth_client.post("/api/v1/representatives", json=rep_data)
+    rep_id = response.json()["id"]
+
+    # Assign first
+    response = auth_client.post(
+        f"/api/v1/representatives/{rep_id}/assign", params={"colony_id": colony_id}
+    )
+    assert response.status_code == 200
+    assert response.json()["assigned_to_colony_id"] == colony_id
+
+    # Unassign
+    response = auth_client.post(f"/api/v1/representatives/{rep_id}/unassign")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify change tracking
+    assert data["assignment_change"] is not None
+    assert data["assignment_change"]["representative_changed"] is True
+    assert data["assignment_change"]["previous_representative_id"] == rep_id
+    assert data["assignment_change"]["new_representative_id"] is None
+    assert data["assignment_change"]["previous_leadership"] == 5  # int 55 // 10 = 5
+    assert data["assignment_change"]["new_leadership"] == 0
+    assert data["assignment_change"]["leadership_modifier_changed"] is True
+    assert data["assigned_to_colony_id"] is None
+
+
 def test_list_all_modifiers(auth_client):
     """Test listing all modifiers across colonies."""
     for i in range(2):

@@ -234,10 +234,11 @@ def assign_representative(colony_id: int, representative_id: int) -> None:
     representative_repo = SqlAlchemyRepresentativeRepository(build_database_url(_db_path))
     service = RepresentativeService(colony_repo, representative_repo)
     try:
-        updated = service.assign_to_colony(colony_id, representative_id)
+        result = service.assign_to_colony(colony_id, representative_id)
     except ColonyManagerError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
+    updated = result.representative
     typer.echo(
         f"Assigned representative {representative_id} to colony {colony_id}: colony_id={updated.assigned_to_colony_id}"
     )

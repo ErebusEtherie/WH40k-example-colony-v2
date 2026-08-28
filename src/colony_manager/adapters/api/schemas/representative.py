@@ -150,3 +150,41 @@ class RepresentativeResponse(BaseModel):
     talents: list[Talent]
     leadership_modifier: int
     assigned_to_colony_id: int | None
+    assignment_change: AssignmentChangeInfo | None = Field(
+        default=None,
+        description="Change tracking information for assignment/unassign operations (None for other endpoints)",
+    )
+
+
+class AssignmentChangeInfo(BaseModel):
+    """Information about changes made during representative assignment/unassignment.
+
+    This provides explicit feedback about what changed when assigning or unassigning
+    a representative, including the previous and new representative IDs and leadership
+    modifier values.
+    """
+
+    representative_changed: bool = Field(
+        default=True,
+        description="Whether the representative assignment changed (always true for assign/unassign operations)",
+    )
+    previous_representative_id: int | None = Field(
+        default=None,
+        description="ID of the previously assigned representative (None if no previous representative)",
+    )
+    new_representative_id: int | None = Field(
+        default=None,
+        description="ID of the newly assigned representative (None for unassign operations)",
+    )
+    leadership_modifier_changed: bool = Field(
+        default=False,
+        description="Whether the leadership modifier changed as a result of this assignment",
+    )
+    previous_leadership: int = Field(
+        default=0,
+        description="Previous leadership modifier value (0 if no previous representative)",
+    )
+    new_leadership: int = Field(
+        default=0,
+        description="New leadership modifier value after assignment/unassignment",
+    )

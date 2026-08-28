@@ -283,4 +283,10 @@ def test_representative_service_assigns_colony():
 
     updated = representative_service.assign_to_colony(created_colony.id, created_rep.id)
 
-    assert updated.assigned_to_colony_id == created_colony.id
+    assert updated.representative.assigned_to_colony_id == created_colony.id
+    # Verify change tracking
+    assert updated.previous_representative_id is None
+    assert updated.new_representative_id == created_rep.id
+    assert updated.previous_leadership == 0
+    assert updated.new_leadership == 1  # all stats 10 // 10 = 1
+    assert updated.leadership_modifier_changed is True
