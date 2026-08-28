@@ -20,6 +20,7 @@ from colony_manager.adapters.persistence.support_upgrade_repository_impl import 
 )
 from colony_manager.application.services.support_upgrade_service import SupportUpgradeService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
 from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies/{colony_id}/upgrades", tags=["support_upgrades"])
@@ -48,16 +49,52 @@ async def list_upgrades(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: SupportUpgradeService = Depends(get_support_upgrade_service),
+    type_filter: SupportUpgradeType | None = Query(
+        default=None,
+        alias="type",
+        description="Filter by upgrade type",
+        examples=["arbites_precinct", "ecclesioarchy_mission", "mechanicum_station", "cultural_improvement", "industrial_facility", "contacts", "infantry_garrison", "imperial_navy_station", "personal_lodgings", "trappings"],
+    ),
+    name_search: str | None = Query(
+        default=None,
+        description="Search by name (case-insensitive substring match)",
+        examples=["barracks", "factory"],
+    ),
+    affiliated_group: str | None = Query(
+        default=None,
+        description="Filter by affiliated group (for Contacts upgrades)",
+        examples=["Adeptus Mechanicus", "Imperial Guard"],
+    ),
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[SupportUpgradeListItem]:
-    """List all support upgrades for a colony with pagination."""
+    """List all support upgrades for a colony with pagination and filtering.
+    
+    Filters:
+    - type: Filter by upgrade type (arbites_precinct, ecclesioarchy_mission, etc.)
+    - search: Search by name (case-insensitive substring match)
+    - affiliated_group: Filter by affiliated group (for Contacts upgrades)
+    """
     _check_colony_exists(service, colony_id)
     all_upgrades = service.list_by_colony(colony_id)
-
+    
+    # Apply filters
+    filtered = all_upgrades
+    
+    if type_filter is not None:
+        filtered = [u for u in filtered if u.upgrade_type == type_filter]
+    
+    if name_search is not None:
+        search_lower = name_search.lower()
+        filtered = [u for u in filtered if search_lower in u.name.lower()]
+    
+    if affiliated_group is not None:
+        group_lower = affiliated_group.lower()
+        filtered = [u for u in filtered if u.affiliated_group and group_lower in u.affiliated_group.lower()]
+    
     # Calculate pagination
-    total = len(all_upgrades)
-    items = all_upgrades[offset : offset + limit]
+    total = len(filtered)
+    items = filtered[offset : offset + limit]
 
     return PaginatedResponse(
         items=[
@@ -180,9 +217,9 @@ async def update_upgrade(
             if upgrade_data.custom_stat_choice is not None:
                 update_data["custom_stat_choice"] = upgrade_data.custom_stat_choice
             if upgrade_data.custom_product is not None:
-                update_data["custom_product"] = upgrade_data.custom_product
+                update_data["custom_product"] = upgrade_data.custom_product  # type: ignore[assignment]
             if upgrade_data.affiliated_group is not None:
-                update_data["affiliated_group"] = upgrade_data.affiliated_group
+                update_data["affiliated_group"] = upgrade_data.affiliated_group  # type: ignore[assignment]
 
             preview_result = service.preview_upgrade_changes(upgrade_id, update_data)
             return SupportUpgradeValidationResponse(
@@ -195,15 +232,15 @@ async def update_upgrade(
         # Build update data dict for batch update
         update_data = {}
         if upgrade_data.name is not None:
-            update_data["name"] = upgrade_data.name
+            update_data["name"] = upgrade_data.name  # type: ignore[assignment]
         if upgrade_data.notes is not None:
-            update_data["notes"] = upgrade_data.notes
+            update_data["notes"] = upgrade_data.notes  # type: ignore[assignment]
         if upgrade_data.custom_stat_choice is not None:
             update_data["custom_stat_choice"] = upgrade_data.custom_stat_choice
         if upgrade_data.custom_product is not None:
-            update_data["custom_product"] = upgrade_data.custom_product
+            update_data["custom_product"] = upgrade_data.custom_product  # type: ignore[assignment]
         if upgrade_data.affiliated_group is not None:
-            update_data["affiliated_group"] = upgrade_data.affiliated_group
+            update_data["affiliated_group"] = upgrade_data.affiliated_group  # type: ignore[assignment]
 
         # Apply batch update
         upgrade = service.update_upgrade_batch(upgrade_id, update_data, changed_by=current_user.id)

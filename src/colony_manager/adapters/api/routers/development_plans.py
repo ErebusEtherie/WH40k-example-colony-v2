@@ -2,13 +2,15 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.development_plan import (
     DevelopmentPlanCreate,
     DevelopmentPlanResponse,
+    DevelopmentPlanStatusEnum,
     DevelopmentPlanUpdate,
     InstallationResult,
 )
@@ -132,7 +134,7 @@ def get_development_plan(
     )
 
 
-@router.get("/colonies/{colony_id}", response_model=list[DevelopmentPlanResponse])
+@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[DevelopmentPlanResponse])
 def get_development_plans_by_colony(
     colony_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
@@ -140,8 +142,41 @@ def get_development_plans_by_colony(
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],
-) -> list[DevelopmentPlanResponse]:
-    """Get all development plans for a colony."""
+    status_filter: DevelopmentPlanStatusEnum | None = Query(
+        default=None,
+        alias="status",
+        description="Filter by plan status",
+        examples=["planned", "in_progress", "acquired", "delivered"],
+    ),
+    upgrade_type_filter: str | None = Query(
+        default=None,
+        alias="upgrade_type",
+        description="Filter by upgrade type (infrastructure or support_upgrade)",
+        examples=["infrastructure", "support_upgrade"],
+    ),
+    priority_filter: int | None = Query(
+        default=None,
+        ge=1,
+        le=5,
+        alias="priority",
+        description="Filter by priority level (1-5)",
+    ),
+    name_search: str | None = Query(
+        default=None,
+        description="Search by target name (case-insensitive substring match)",
+        examples=["spaceport", "barracks"],
+    ),
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
+) -> PaginatedResponse[DevelopmentPlanResponse]:
+    """Get all development plans for a colony with pagination and filtering.
+    
+    Filters:
+    - status: Filter by plan status (planned, in_progress, acquired, delivered)
+    - upgrade_type: Filter by upgrade type (infrastructure or support_upgrade)
+    - priority: Filter by priority level (1-5)
+    - search: Search by target name (case-insensitive substring match)
+    """
     # Check permission on the colony
     if current_user.id is None:
         raise HTTPException(
@@ -152,8 +187,29 @@ def get_development_plans_by_colony(
         raise HTTPException(status_code=403, detail=f"User is not a member of colony {colony_id}")
 
     plans = service.get_plans_by_colony(colony_id)
+    
+    # Apply filters
+    filtered = plans
+    
+    if status_filter is not None:
+        filtered = [p for p in filtered if p.status.value == status_filter.value]
+    
+    if upgrade_type_filter is not None:
+        filtered = [p for p in filtered if p.upgrade_type == upgrade_type_filter]
+    
+    if priority_filter is not None:
+        filtered = [p for p in filtered if p.priority == priority_filter]
+    
+    if name_search is not None:
+        search_lower = name_search.lower()
+        filtered = [p for p in filtered if search_lower in p.target_name.lower()]
+    
+    # Build response with pagination
+    total = len(filtered)
+    items = filtered[offset : offset + limit]
+    
     result: list[DevelopmentPlanResponse] = []
-    for p in plans:
+    for p in items:
         if p.id is None or p.created_at is None:
             continue  # Skip plans with incomplete data
         result.append(
@@ -172,7 +228,16 @@ def get_development_plans_by_colony(
                 created_at=p.created_at,
             )
         )
-    return result
+    
+    return PaginatedResponse(
+        items=result,
+        meta=PaginationMeta(
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        ),
+    )
 
 
 @router.patch("/{plan_id}", response_model=DevelopmentPlanResponse)

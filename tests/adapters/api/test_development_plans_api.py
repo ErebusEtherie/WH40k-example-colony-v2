@@ -83,8 +83,9 @@ class TestDevelopmentPlansAPI:
 
         response = auth_client.get(f"/api/v1/development-plans/colonies/{colony_id}")
         assert response.status_code == 200
-        plans = response.json()
-        assert len(plans) == 3
+        data = response.json()
+        assert "items" in data
+        assert len(data["items"]) == 3
 
     def test_update_development_plan(self, auth_client: TestClient):
         """Test updating a development plan."""
@@ -141,7 +142,8 @@ class TestDevelopmentPlansAPI:
         assert response.status_code == 204
 
         response = auth_client.get(f"/api/v1/development-plans/colonies/{colony_id}")
-        assert len(response.json()) == 0
+        data = response.json()
+        assert len(data["items"]) == 0
 
     def test_development_plan_not_found(self, auth_client: TestClient):
         """Test 404 when development plan doesn't exist."""

@@ -20,6 +20,7 @@ from colony_manager.adapters.persistence.infrastructure_repository_impl import (
 )
 from colony_manager.application.services.infrastructure_service import InfrastructureService
 from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.enums import InfrastructureState, InfrastructureType
 from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies/{colony_id}/infrastructure", tags=["infrastructure"])
@@ -48,17 +49,53 @@ async def list_infrastructure(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
     service: InfrastructureService = Depends(get_infrastructure_service),
+    state_filter: InfrastructureState | None = Query(
+        default=None,
+        alias="state",
+        description="Filter by infrastructure state",
+        examples=["working", "planned", "in_progress", "needed", "not_working"],
+    ),
+    type_filter: InfrastructureType | None = Query(
+        default=None,
+        alias="type",
+        description="Filter by infrastructure type",
+        examples=["transport", "power", "housing", "life_support", "defense", "production"],
+    ),
+    name_search: str | None = Query(
+        default=None,
+        description="Search by name (case-insensitive substring match)",
+        examples=["spaceport", "reactor"],
+    ),
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[InfrastructureListItem]:
-    """List all infrastructure for a colony with pagination."""
+    """List all infrastructure for a colony with pagination and filtering.
+    
+    Filters:
+    - state: Filter by operational state (working, planned, in_progress, needed, not_working)
+    - type: Filter by infrastructure type (transport, power, housing, etc.)
+    - search: Search by name (case-insensitive substring match)
+    """
     _check_colony_exists(service, colony_id)
     all_infrastructure = service.list_by_colony(colony_id)
-
+    
+    # Apply filters
+    filtered = all_infrastructure
+    
+    if state_filter is not None:
+        filtered = [i for i in filtered if i.state == state_filter]
+    
+    if type_filter is not None:
+        filtered = [i for i in filtered if i.infrastructure_type == type_filter]
+    
+    if name_search is not None:
+        search_lower = name_search.lower()
+        filtered = [i for i in filtered if search_lower in i.name.lower()]
+    
     # Calculate pagination
-    total = len(all_infrastructure)
-    items = all_infrastructure[offset : offset + limit]
-
+    total = len(filtered)
+    items = filtered[offset : offset + limit]
+    
     return PaginatedResponse(
         items=[
             InfrastructureListItem(

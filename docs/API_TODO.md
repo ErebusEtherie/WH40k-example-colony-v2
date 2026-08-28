@@ -143,9 +143,23 @@ class ColonyBase(BaseModel):
 - `?type=manufactorum` (type filter)
 - `?status=working` (status filter)
 
-**Status:** ⚪ Future consideration  
-**Phase:** Phase 4+  
-**UI Impact:** All list views - pagination controls
+**Status:** ✅ Complete  
+**Phase:** Phase 4  
+**Implementation:**
+- **Representatives** (`GET /api/v1/representatives`): Already had pagination + filtering (`available_only`, `type`, `search`)
+- **Infrastructure** (`GET /api/v1/colonies/{id}/infrastructure`): Added filtering (`state`, `type`, `search`)
+- **Support Upgrades** (`GET /api/v1/colonies/{id}/upgrades`): Added filtering (`type`, `search`, `affiliated_group`)
+- **Development Plans** (`GET /api/v1/development-plans/colonies/{id}`): Added pagination + filtering (`status`, `upgrade_type`, `priority`, `search`)
+- All endpoints use consistent `PaginatedResponse` wrapper with `items`, `total`, `offset`, `limit`, `has_more`
+- Updated tests to verify filtering and pagination behavior
+
+**Endpoints:**
+- `GET /api/v1/representatives` - Filter: `available`, `type`, `search`
+- `GET /api/v1/colonies/{id}/infrastructure` - Filter: `state`, `type`, `search`
+- `GET /api/v1/colonies/{id}/upgrades` - Filter: `type`, `search`, `affiliated_group`
+- `GET /api/v1/development-plans/colonies/{id}` - Filter: `status`, `upgrade_type`, `priority`, `search`
+
+**UI Impact:** All list views - pagination controls and filter dropdowns
 
 ### 6. Export/Import Colony
 
