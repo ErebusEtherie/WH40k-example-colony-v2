@@ -75,11 +75,15 @@ async def list_infrastructure(
     - state: Filter by operational state (working, planned, in_progress, needed, not_working)
     - type: Filter by infrastructure type (transport, power, housing, etc.)
     - search: Search by name (case-insensitive substring match)
+
+    Note: Filters are applied in-memory after loading all items. This is acceptable
+    for typical colony sizes (<100 items). For colonies with >1000 infrastructure
+    items, consider adding filtered query methods to the repository layer to push
+    filtering to the database.
     """
     _check_colony_exists(service, colony_id)
     all_infrastructure = service.list_by_colony(colony_id)
     
-    # Apply filters
     filtered = all_infrastructure
     
     if state_filter is not None:

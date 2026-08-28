@@ -1,8 +1,9 @@
 """Common API schemas."""
 
+import math
 from typing import TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 
 class ErrorResponse(BaseModel):
@@ -26,6 +27,15 @@ class PaginationMeta(BaseModel):
     offset: int
     limit: int
     has_more: bool
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def total_pages(self) -> int:
+        """Calculate total number of pages."""
+        # Defensive: limit is validated as ge=1 in query params, but guard against invalid data
+        if self.limit <= 0:
+            return 0
+        return math.ceil(self.total / self.limit)
 
 
 T = TypeVar("T")

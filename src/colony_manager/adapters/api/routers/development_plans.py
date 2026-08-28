@@ -176,6 +176,11 @@ def get_development_plans_by_colony(
     - upgrade_type: Filter by upgrade type (infrastructure or support_upgrade)
     - priority: Filter by priority level (1-5)
     - search: Search by target name (case-insensitive substring match)
+
+    Note: Filters are applied in-memory after loading all items. This is acceptable
+    for typical colony sizes (<100 development plans). For colonies with >1000 plans,
+    consider adding filtered query methods to the repository layer to push filtering
+    to the database.
     """
     # Check permission on the colony
     if current_user.id is None:
@@ -188,11 +193,13 @@ def get_development_plans_by_colony(
 
     plans = service.get_plans_by_colony(colony_id)
     
-    # Apply filters
     filtered = plans
     
     if status_filter is not None:
-        filtered = [p for p in filtered if p.status.value == status_filter.value]
+        # Convert schema enum to domain enum for comparison
+        # Note: Assumes schema enum values match domain enum values
+        domain_status = DevelopmentPlanStatus(status_filter.value)
+        filtered = [p for p in filtered if p.status == domain_status]
     
     if upgrade_type_filter is not None:
         filtered = [p for p in filtered if p.upgrade_type == upgrade_type_filter]

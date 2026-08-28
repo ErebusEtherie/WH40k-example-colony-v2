@@ -74,11 +74,15 @@ async def list_upgrades(
     - type: Filter by upgrade type (arbites_precinct, ecclesioarchy_mission, etc.)
     - search: Search by name (case-insensitive substring match)
     - affiliated_group: Filter by affiliated group (for Contacts upgrades)
+
+    Note: Filters are applied in-memory after loading all items. This is acceptable
+    for typical colony sizes (<100 items). For colonies with >1000 support upgrades,
+    consider adding filtered query methods to the repository layer to push filtering
+    to the database.
     """
     _check_colony_exists(service, colony_id)
     all_upgrades = service.list_by_colony(colony_id)
     
-    # Apply filters
     filtered = all_upgrades
     
     if type_filter is not None:
@@ -213,6 +217,8 @@ async def update_upgrade(
         # If validate_only, return preview of changes
         if validate_only:
             # Build update data dict for preview
+            # Note: Dict values are heterogeneous types (str, ModifierStat, etc.) validated by Pydantic.
+            # We use type: ignore[assignment] because mypy can't infer the union type of dict values.
             update_data = {}
             if upgrade_data.custom_stat_choice is not None:
                 update_data["custom_stat_choice"] = upgrade_data.custom_stat_choice
@@ -230,6 +236,8 @@ async def update_upgrade(
             )
 
         # Build update data dict for batch update
+        # Note: Dict values are heterogeneous types (str, ModifierStat, etc.) validated by Pydantic.
+        # We use type: ignore[assignment] because mypy can't infer the union type of dict values.
         update_data = {}
         if upgrade_data.name is not None:
             update_data["name"] = upgrade_data.name  # type: ignore[assignment]
