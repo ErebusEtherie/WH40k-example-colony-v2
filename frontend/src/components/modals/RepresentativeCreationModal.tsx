@@ -14,13 +14,8 @@ import {
   REPRESENTATIVE_TYPES 
 } from '../../data/rulesReference';
 import { 
-  User, 
   UserPlus, 
   Check, 
-  Plus, 
-  Trash2, 
-  ShieldCheck, 
-  Sparkles, 
   ArrowRight, 
   ArrowLeft 
 } from 'lucide-react';
@@ -72,7 +67,7 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
   const repTypeInfo = REPRESENTATIVE_TYPES[repType];
 
   const handleTogglePersonality = (pKey: PersonalityKey) => {
-    const exists = selectedPersonalities.find((p) => p.personalityKey === pKey);
+    const exists = selectedPersonalities.some((p) => p.personalityKey === pKey);
     if (exists) {
       if (selectedPersonalities.length > 1) {
         setSelectedPersonalities(selectedPersonalities.filter((p) => p.personalityKey !== pKey));
@@ -315,7 +310,7 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
                       min="1"
                       max="5"
                       value={madRoll}
-                      onChange={(e) => setMadRoll(parseInt(e.target.value) || 1)}
+                      onChange={(e) => setMadRoll(Number.parseInt(e.target.value) || 1)}
                       className="w-14 bg-slate-900 border border-red-700 rounded-xs px-2 py-1 text-center text-red-100 font-bold"
                     />
                   </div>
@@ -416,7 +411,7 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
                         onChange={(e) =>
                           setCharacteristics({
                             ...characteristics,
-                            [key]: parseInt(e.target.value) || 20,
+                            [key]: Number.parseInt(e.target.value) || 20,
                           })
                         }
                         className="w-full bg-slate-900 border border-cyan-800 text-slate-100 text-center font-bold text-sm my-1 py-0.5 rounded-xs"

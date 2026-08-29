@@ -8,11 +8,7 @@ import {
 import { COLONY_TYPES } from '../../data/rulesReference';
 import { 
   Building2, 
-  Sparkles, 
-  Check, 
-  User, 
-  ShieldCheck, 
-  Info 
+  Check
 } from 'lucide-react';
 
 interface ColonyCreationModalProps {

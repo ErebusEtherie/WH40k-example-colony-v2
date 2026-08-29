@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Colony, Representative } from '../../types';
 import { REPRESENTATIVE_TYPES } from '../../data/rulesReference';
-import { User, UserCheck, AlertTriangle, Plus, Check } from 'lucide-react';
+import { UserCheck, AlertTriangle, Plus, Check } from 'lucide-react';
 
 interface ChangeRepresentativeModalProps {
   isOpen: boolean;

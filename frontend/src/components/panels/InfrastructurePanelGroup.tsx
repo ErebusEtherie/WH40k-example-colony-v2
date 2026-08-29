@@ -18,23 +18,12 @@ import {
 } from '../../data/rulesReference';
 import { OrnamentalFrame } from '../common/OrnamentalFrame';
 import { 
-  Layers, 
   Plus, 
   Trash2, 
   Edit3, 
   Check, 
   X, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Clock, 
-  ShieldAlert, 
-  ArrowUpRight, 
-  Archive, 
-  ArrowRight, 
-  Sliders, 
-  HelpCircle,
-  Sparkles,
-  Info
+  ArrowUpRight
 } from 'lucide-react';
 
 interface InfrastructurePanelGroupProps {
@@ -271,7 +260,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
   };
 
   // Promotion execution
-  const handleExecutePromotion = (archive: boolean) => {
+  const handleExecutePromotion = (_archive: boolean) => {
     if (!promotingPlan) return;
 
     if (promotingPlan.category === 'hard_infrastructure') {
@@ -678,7 +667,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                     min="1"
                     max="5"
                     value={suContactCount}
-                    onChange={(e) => setSuContactCount(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setSuContactCount(Number.parseInt(e.target.value) || 1)}
                     className="w-full bg-slate-950 border border-cyan-700 rounded-xs px-2 py-1 text-xs text-slate-100 font-mono"
                   />
                 </div>

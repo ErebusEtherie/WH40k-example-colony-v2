@@ -1,13 +1,8 @@
 import React from 'react';
 import { 
-  Shield, 
   AlertTriangle, 
   CheckCircle2, 
-  HelpCircle, 
-  Flame, 
-  Sparkles, 
-  Skull, 
-  Cog 
+  Sparkles
 } from 'lucide-react';
 import { StatName } from '../../types';
 
@@ -22,7 +17,7 @@ interface StateBadgeProps {
 
 export const StateBadge: React.FC<StateBadgeProps> = ({
   stat,
-  state,
+  state: _state,
   label,
   type,
   showStatPrefix = false,

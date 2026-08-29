@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../utils/apiClient'
-import type { Modifier, ModifierCreate } from '../types'
+import type { ModifierCreate } from '../types'
 
 /**
  * Fetch all modifiers for a colony

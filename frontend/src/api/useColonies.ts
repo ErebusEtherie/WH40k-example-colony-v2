@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../utils/apiClient'
-import type { Colony, ColonyCreate, ColonyUpdate } from '../types'
+import type { ColonyCreate, ColonyUpdate } from '../types'
 
 /**
  * Fetch all colonies with pagination

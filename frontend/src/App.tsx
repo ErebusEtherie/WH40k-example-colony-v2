@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   Colony, 
   ColorPalette, 
@@ -41,8 +41,7 @@ export default function App() {
     isAuthenticated, 
     isLoading: authLoading, 
     user,
-    logout,
-    isLoggingOut 
+    logout
   } = useAuth();
 
   // Theme State
@@ -110,8 +109,8 @@ export default function App() {
     : null;
   const currentCalculations = currentColony ? calculateColonyState(currentColony, currentRepresentative) : null;
 
-  // Total Dynasty Profit Factor calculation
-  const totalDynastyProfitFactor = colonies.reduce((acc: number, c: Colony) => {
+  // Total Dynasty Profit Factor calculation (reserved for future dynasty view)
+  const _totalDynastyProfitFactor = colonies.reduce((acc: number, c: Colony) => {
     const rep = representatives.find((r: Representative) => r.id === c.representativeId) || null;
     const calc = calculateColonyState(c, rep);
     return acc + calc.profitFactor.total;
@@ -157,10 +156,11 @@ export default function App() {
     });
   };
 
-  const handleDeleteColony = (colonyId: string) => {
+  // Reserved for future colony deletion feature
+  const _handleDeleteColony = (colonyId: string) => {
     if (colonies.length <= 1) return;
     if (selectedColonyId === colonyId) {
-      const remaining = colonies.filter((c: Colony) => c.id !== colonyId);
+      const remaining = colonies.find((c: Colony) => c.id !== colonyId);
       setSelectedColonyId(remaining[0]?.id || null);
     }
     deleteColonyMutation.mutate(Number(colonyId));

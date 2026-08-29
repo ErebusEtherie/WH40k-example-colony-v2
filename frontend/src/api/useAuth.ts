@@ -27,7 +27,7 @@ export function useAuth() {
     data: user,
     isLoading,
     error,
-    refetch,
+    refetch: _refetch,
   } = useQuery<UserResponse | null, Error>({
     queryKey: AUTH_QUERY_KEYS.user(),
     queryFn: async () => {

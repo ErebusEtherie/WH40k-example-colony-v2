@@ -34,10 +34,10 @@ export function wrapperWithQueryClient({ children }: { children: ReactNode }) {
 export function renderWithProviders(
   ui: ReactElement,
   {
-    preloadedState = {},
+    _preloadedState = {},
     ...renderOptions
   }: {
-    preloadedState?: Record<string, any>
+    _preloadedState?: Record<string, any>
   } & Record<string, any> = {}
 ) {
   return {

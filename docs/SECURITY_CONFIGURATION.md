@@ -19,12 +19,14 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 **Requirements:**
+
 - Minimum 32 characters
 - Cryptographically random
 - Unique per deployment
 - Stored securely (password manager, secrets manager)
 
 **Never:**
+
 - ❌ Use the development default
 - ❌ Commit to version control
 - ❌ Share in chat/email
@@ -43,11 +45,13 @@ COOKIE_HTTPONLY=True        # Prevents XSS token theft
 ```
 
 **Why it matters:**
+
 - `COOKIE_SECURE=True`: Ensures cookies only sent over HTTPS
 - `COOKIE_SAME_SITE=lax`: Prevents CSRF attacks
 - `COOKIE_HTTPONLY=True`: Prevents JavaScript access (XSS protection)
 
 **Verification:**
+
 ```javascript
 // In browser DevTools → Application → Cookies
 // Check that cookies have:
@@ -68,12 +72,14 @@ CORS_ALLOW_CREDENTIALS=True
 ```
 
 **Security Rules:**
+
 - ✅ Only list specific, trusted domains
 - ✅ Use HTTPS URLs only
 - ❌ Never use wildcard (`*`) with credentials
 - ❌ Never allow `null` origin in production
 
 **Testing:**
+
 ```bash
 # Test CORS from browser console
 fetch('https://api.yourdomain.com/api/v1/health', {
@@ -96,10 +102,12 @@ LOCKOUT_DURATION_MINUTES=15
 **Purpose:** Prevents brute-force attacks on authentication
 
 **Recommended Values:**
+
 - `MAX_LOGIN_ATTEMPTS`: 5 (lock after 5 failed attempts)
 - `LOCKOUT_DURATION_MINUTES`: 15 (15-minute lockout)
 
 **Monitoring:**
+
 - Track authentication failures in logs
 - Alert on unusual patterns (many IPs, many usernames)
 
@@ -115,6 +123,7 @@ REQUIRE_PASSWORD_COMPLEXITY=True
 ```
 
 **Complexity Requirements:**
+
 - Minimum 8 characters
 - At least one uppercase letter
 - At least one lowercase letter
@@ -132,6 +141,7 @@ REQUIRE_PASSWORD_COMPLEXITY=True
    - Commercial CA (paid, extended validation)
 
 2. **Configure Web Server**
+
    ```nginx
    server {
        listen 80;
@@ -147,18 +157,20 @@ REQUIRE_PASSWORD_COMPLEXITY=True
    ```
 
 3. **Verify Configuration**
-   - Use: https://www.ssllabs.com/ssltest/
+   - Use: <https://www.ssllabs.com/ssltest/>
 
 ---
 
 ### 7. Database Security
 
 **SQLite:**
+
 - Store outside web root
 - Restrict file permissions (600)
 - Regular backups
 
 **PostgreSQL:**
+
 - Use strong, unique passwords
 - Enable SSL for connections
 - Network isolation
@@ -174,12 +186,14 @@ LOG_LEVEL=INFO
 ```
 
 **Log:**
+
 - ✅ Authentication attempts
 - ✅ Authorization failures
 - ✅ Token refresh events
 - ✅ Password changes
 
 **Don't Log:**
+
 - ❌ Passwords
 - ❌ Full JWT tokens
 - ❌ PII

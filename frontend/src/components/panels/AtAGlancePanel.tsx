@@ -17,16 +17,11 @@ import {
   Coins, 
   Calendar, 
   User, 
-  Layers, 
   ArrowRight, 
-  CheckCircle2, 
-  AlertTriangle, 
   Sparkles, 
   Gem, 
   Crosshair, 
-  Flame, 
-  ShieldAlert,
-  HelpCircle
+  Flame
 } from 'lucide-react';
 
 interface AtAGlancePanelProps {

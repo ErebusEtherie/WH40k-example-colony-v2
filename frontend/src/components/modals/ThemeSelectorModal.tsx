@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Check, Sparkles, Palette, Shield, Terminal, Eye } from 'lucide-react';
+import { X, Check, Palette } from 'lucide-react';
 import { AppTheme } from '../../types';
 import { APP_THEMES } from '../../data/themes';
 

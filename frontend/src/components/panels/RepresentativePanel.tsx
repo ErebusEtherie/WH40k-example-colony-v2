@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { 
   Colony, 
   Representative, 
-  RepresentativeCharacteristics, 
-  RepresentativeTypeKey 
+  RepresentativeCharacteristics
 } from '../../types';
 import { 
   CHARACTERISTICS_INFO, 
@@ -15,20 +14,10 @@ import {
   User, 
   UserCheck, 
   Plus, 
-  Trash2, 
   Edit3, 
   Check, 
   X, 
-  ShieldAlert, 
-  Award, 
-  Zap, 
-  Brain, 
-  Target, 
-  Swords, 
-  HeartHandshake, 
-  Sparkles,
-  Layers,
-  ChevronDown
+  ShieldAlert
 } from 'lucide-react';
 
 interface RepresentativePanelProps {
@@ -49,7 +38,7 @@ export const RepresentativePanel: React.FC<RepresentativePanelProps> = ({
   onUpdateRepresentative,
   onOpenCreateRepresentative,
   colonies,
-  currentColony,
+  currentColony: _currentColony,
   onAssignToColony,
 }) => {
   const activeRep = representatives.find((r) => r.id === selectedRepId) || representatives[0];

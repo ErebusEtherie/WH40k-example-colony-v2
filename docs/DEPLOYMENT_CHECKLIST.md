@@ -13,9 +13,11 @@
 #### Backend (.env.production)
 
 - [ ] **Generate JWT Secret Key**
+
   ```powershell
   python -c "import secrets; print(secrets.token_urlsafe(32))"
   ```
+
   - [ ] Copy generated key to `.env.production`
   - [ ] Verify key is at least 32 characters
   - [ ] Store backup of key in secure location (password manager)
@@ -70,6 +72,7 @@
   - [ ] Cookies only transmitted over HTTPS
   - [ ] httpOnly flag set (prevents JavaScript access)
   - [ ] SameSite attribute configured
+
 ---
 
 ### 3. Infrastructure Setup
@@ -317,6 +320,7 @@ git checkout <previous-commit>
 **Symptom:** Frontend shows CORS errors in console
 
 **Solution:**
+
 1. Verify `ALLOWED_ORIGINS` includes frontend URL
 2. Ensure `CORS_ALLOW_CREDENTIALS=True`
 3. Check backend is running and accessible
@@ -327,6 +331,7 @@ git checkout <previous-commit>
 **Symptom:** Login succeeds but cookies not set
 
 **Solution:**
+
 1. Verify HTTPS is enabled (required for `COOKIE_SECURE=True`)
 2. Check `COOKIE_SAME_SITE` setting
 3. Verify domain matches cookie domain
@@ -337,6 +342,7 @@ git checkout <previous-commit>
 **Symptom:** Session expires unexpectedly
 
 **Solution:**
+
 1. Verify refresh token expiry setting
 2. Check token refresh endpoint is accessible
 3. Verify clock synchronization between client/server
@@ -347,6 +353,7 @@ git checkout <previous-commit>
 **Symptom:** Alembic migration errors
 
 **Solution:**
+
 1. Backup database before retrying
 2. Check migration script for errors
 3. Verify database user has correct permissions
@@ -380,6 +387,7 @@ Deployment is considered successful when:
 
 **Last Updated:** 2026-08-29  
 **Next Review:** After first production deployment
+
 - [ ] **Token Refresh**
   - [ ] Access token refreshes automatically (wait 25+ minutes or trigger)
   - [ ] User session persists across page refreshes

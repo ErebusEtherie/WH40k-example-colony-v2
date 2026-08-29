@@ -6,7 +6,7 @@
  * Tokens are automatically refreshed on 401 responses.
  */
 
-import { Colony, Representative, ModifierItem, HardInfrastructureItem, SupportUpgradeItem, DevelopmentPlanItem, LoginResponse, UserResponse, RefreshResponse } from '../types';
+import { Colony, Representative, ModifierItem, SupportUpgradeItem, DevelopmentPlanItem, LoginResponse, UserResponse, RefreshResponse } from '../types';
 
 const API_BASE = '/api/v1';
 const AUTH_BASE = '/api/v1/auth';
@@ -63,7 +63,7 @@ export class ApiClient {
             this.setToken(newToken);
             return newToken;
           })
-          .catch((error) => {
+          .catch((_error) => {
             // Refresh failed - clear token
             this.setToken(null);
             throw new Error('Session expired');

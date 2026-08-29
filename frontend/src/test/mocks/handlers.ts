@@ -112,7 +112,7 @@ export const handlers = [
   }),
 
   // DELETE /api/v1/colonies/:id - Delete colony
-  http.delete('/api/v1/colonies/:id', ({ params }) => {
+  http.delete('/api/v1/colonies/:id', ({ params: _params }) => {
     return new HttpResponse(null, { status: 204 })
   }),
 

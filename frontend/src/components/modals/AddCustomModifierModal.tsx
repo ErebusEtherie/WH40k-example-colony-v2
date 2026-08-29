@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { CustomModifierItem, StatName } from '../../types';
-import { Plus, Check, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface AddCustomModifierModalProps {
   isOpen: boolean;
@@ -98,7 +98,7 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
                 type="number"
                 required
                 value={value}
-                onChange={(e) => setValue(parseInt(e.target.value) || 0)}
+                onChange={(e) => setValue(Number.parseInt(e.target.value) || 0)}
                 className={`w-full bg-slate-950 border rounded-xs px-2.5 py-1.5 font-bold text-center ${
                   value > 0
                     ? 'border-emerald-700 text-emerald-300'

@@ -13,7 +13,6 @@ import {
   REPRESENTATIVE_TYPES 
 } from '../../data/rulesReference';
 import { formatColonyAge } from '../../utils/calculator';
-import { StateBadge } from '../common/StateBadge';
 import { OrnamentalFrame } from '../common/OrnamentalFrame';
 import { 
   Building2, 
@@ -21,21 +20,15 @@ import {
   Plus, 
   Trash2, 
   Edit3, 
-  User, 
   UserCheck, 
   ArrowRight, 
   Sparkles, 
-  ShieldCheck, 
-  HelpCircle, 
   Check, 
   X, 
   Coins, 
   Crosshair, 
   Flame, 
-  Gem, 
-  ToggleLeft, 
-  ToggleRight,
-  Clock,
+  Gem,
   Info
 } from 'lucide-react';
 

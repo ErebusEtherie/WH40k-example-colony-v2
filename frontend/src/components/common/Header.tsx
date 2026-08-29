@@ -4,18 +4,12 @@ import {
   ChevronDown, 
   Plus, 
   Eye, 
-  Type, 
-  Sun, 
   Sliders, 
-  User, 
   LogOut, 
-  ShieldCheck, 
-  Sparkles,
   Cog,
   Check,
   Palette,
-  Clock,
-  Paintbrush
+  Clock
 } from 'lucide-react';
 import { Colony, AccessibilityPalette, FontSizeSetting, AppTheme } from '../../types';
 import { COLONY_TYPES } from '../../data/rulesReference';
@@ -60,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeFontSize,
   isHighContrast,
   onToggleHighContrast,
-  username,
+  username: _username,
   onLogout,
   backendStatus = 'connected',
 }) => {

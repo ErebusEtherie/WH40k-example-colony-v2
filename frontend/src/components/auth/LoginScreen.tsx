@@ -3,15 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../api/useAuth';
 import { OrnamentalFrame } from '../common/OrnamentalFrame';
 import { 
-  ShieldCheck, 
   KeyRound, 
   Lock, 
   User, 
   Compass, 
   Sparkles, 
   AlertCircle, 
-  ArrowRight,
-  Terminal,
   UserPlus
 } from 'lucide-react';
 
@@ -59,13 +56,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
         try {
           await login({ username, password });
           navigate('/');
-        } catch (loginErr) {
+        } catch {
           // Login failed after successful registration
           setError('Registration successful, but login failed. Please try logging in manually.');
           setMode('login'); // Switch to login mode so they can try again
         }
       }
-    } catch (err) {
+    } catch {
       // Error is handled by the hook for login, or caught above for registration
     }
   };
