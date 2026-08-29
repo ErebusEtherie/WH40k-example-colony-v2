@@ -44,6 +44,8 @@ simultaneously — they are not alternatives.
 | `04-testing-strategy.md` | pytest + hypothesis, what to test and how much |
 | `05-code-style-and-documentation.md` | Type hints, docstrings, linting/formatting |
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |
+| `07-frontend-architecture.md` | React/TS/Vite layering, TanStack Query state split, Tailwind + Mechanicum styling, oxlint |
+| `08-frontend-testing.md` | Vitest + RTL + MSW, frontend-specific risk prioritization |
 
 ## Cline execution environment — hard constraints
 
