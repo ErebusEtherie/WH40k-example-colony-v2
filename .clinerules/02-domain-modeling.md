@@ -46,7 +46,7 @@ Modifiers come from two sources with different persistence strategies:
 **Stored modifiers** (persisted in colony.modifiers):
 - Missing infrastructure penalty (computed once, stored for efficiency)
 - GM custom modifiers (user-defined, need persistence)
-- Event effects (time-limited, need expiry tracking)
+- Event effects (GM-created during play, may include expiry tracking if specified by GM)
 
 **Computed modifiers** (calculated on-the-fly from entities):
 - Infrastructure bonuses (derived from Infrastructure entities and their state)

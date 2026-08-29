@@ -49,3 +49,29 @@ two-or-more-uses / real-duplication-harm / readability test from
 `01-architecture.md`. If it fails that test, say so and propose the
 simpler direct version instead — don't propose the abstraction "just in
 case" and wait to be told no.
+
+
+---
+
+## Game Automation vs. Tracking — Critical Distinction
+
+**This application is a tracking/organization tool, NOT a game automation system.**
+
+Before proposing any feature, check:
+
+1. **Does this automate a game mechanic?**
+   - Dice rolling → ❌ NO (GM rolls at table, enters result)
+   - Event resolution → ❌ NO (GM decides outcomes)
+   - Time-based cycles → ❌ NO (GM tracks game time)
+   - Stat adjustments → ❌ NO (GM orders changes)
+
+2. **Does this help track or organize information?**
+   - Recording modifiers → ✅ YES
+   - Calculating derived stats → ✅ YES
+   - Audit logging → ✅ YES
+   - Export/import → ✅ YES
+
+**If a feature would automate gameplay, do not propose it.** Instead, suggest
+a tracking mechanism that lets the GM record what happened at the table.
+
+See docs/SCOPE_CLARIFICATIONS.md for detailed examples.

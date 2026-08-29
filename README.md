@@ -1,6 +1,6 @@
 # WH40k Colony Manager
 
-**A Python engine for organizing and simulating a Warhammer 40k Rogue Trader Colony**
+**A Python engine for organizing and tracking a Warhammer 40k Rogue Trader Colony**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -32,7 +32,7 @@ The **WH40k Colony Manager** is a comprehensive Python engine designed to replac
 - **Infrastructure management**: Hard Infrastructure and Support Upgrades with conditional bonuses
 - **Representative system**: RPG stats/skills/talents that modify colony behavior
 - **State transitions**: Threshold-based events (Anarchy, Placated, Productive, etc.)
-- **Time-based cycles**: Growth/decay mechanics and event rolls
+- **Modifier tracking**: Record GM-created modifiers, dice roll results, and event effects
 
 The engine is designed for consumption by multiple frontends: REST API, web UI, and (future) desktop app.
 
@@ -60,6 +60,29 @@ The engine is designed for consumption by multiple frontends: REST API, web UI, 
 - **Real-time Updates**: Server-Sent Events for live notifications
 - **Security**: JWT authentication, rate limiting, password validation
 
+
+
+### ⚠️ Scope Clarification
+
+**This application is a tracking and organization tool, NOT a game automation system.**
+
+What the application does:
+- ✅ Track colony stats and calculate derived values
+- ✅ Store infrastructure, upgrades, and their states
+- ✅ Record modifiers created by the GM
+- ✅ Maintain audit logs and history
+- ✅ Provide API access for frontends
+
+What the application does NOT do:
+- ❌ Automate dice rolls (GM enters results manually)
+- ❌ Run automatic event cycles or time-based mechanics
+- ❌ Make gameplay decisions or resolve game mechanics
+- ❌ Replace the GM during gameplay
+
+All game mechanics happen at the table during the actual play session. The GM
+manually enters results, modifiers, and outcomes into the system.
+
+---
 ---
 
 ## Quick Start

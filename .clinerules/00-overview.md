@@ -2,7 +2,7 @@
 
 ## What this project is
 
-A Python engine for organizing and simulating a **Warhammer 40k Rogue Trader
+A Python engine for organizing and tracking a **Warhammer 40k Rogue Trader
 Colony** (tabletop RPG). It replaces a manually-maintained Excel sheet that
 tracks:
 
@@ -14,8 +14,13 @@ tracks:
   that further modify colony behavior.
 - Threshold-based state transitions (e.g. Order reaching 0 → "Anarchy",
   Complacency exceeding Size → "Placated").
-- Time-based cycles (e.g. every 90 days) that trigger growth/decay and
-  events.
+- GM-created modifiers (including manual dice roll results and event effects
+  entered by the GM during play).
+
+**Important: This is a tracking/organization tool, not a game automation system.**
+All game mechanics (dice rolls, event resolution, cycle advancement) happen at
+the table during the actual gameplay session. The GM manually enters results
+and modifiers into the system — the application does not automate gameplay.
 
 The core engine must be consumable from multiple front ends: a REST API, a
 web frontend, and (eventually) a desktop frontend. **The engine itself must
