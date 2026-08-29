@@ -1,7 +1,0 @@
-interface:
-  display_name: "Security First"
-  short_description: "Secure-by-default coding guardrail"
-  default_prompt: "Use $security-first to identify trust boundaries, state assumptions, review the relevant attack surface, and list the minimum secure checks before coding."
-
-policy:
-  allow_implicit_invocation: true

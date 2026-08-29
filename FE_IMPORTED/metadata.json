@@ -1,6 +1,0 @@
-{
-  "name": "WH40k Rogue Trader Colony Manager",
-  "description": "High-fidelity Imperial data-slate interface for managing Warhammer 40k Rogue Trader colonies, representatives, infrastructure, and development plans.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

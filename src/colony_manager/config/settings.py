@@ -50,6 +50,23 @@ class SecuritySettings(BaseSettings):
         default=15, description="Lockout duration in minutes", ge=1
     )
 
+    # Cookie Configuration (httpOnly for security)
+    cookie_secure: bool = Field(
+        default=False, description="Use secure cookies (HTTPS only). Enable in production."
+    )
+    cookie_samesite: str = Field(
+        default="lax", description="Cookie SameSite attribute (lax, strict, none)"
+    )
+    cookie_httponly: bool = Field(
+        default=True, description="Use httpOnly cookies (prevents XSS theft)"
+    )
+    cookie_access_token_name: str = Field(
+        default="rt_access_token", description="Cookie name for access token"
+    )
+    cookie_refresh_token_name: str = Field(
+        default="rt_refresh_token", description="Cookie name for refresh token"
+    )
+
     @field_validator("jwt_secret_key")
     @classmethod
     def validate_jwt_secret(cls, v: str) -> str:

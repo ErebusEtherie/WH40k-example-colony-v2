@@ -10,6 +10,8 @@ import {
 } from './types';
 import { calculateColonyState } from './utils/calculator';
 import { apiClient } from './utils/apiClient';
+import { useAuth } from './api/useAuth';
+import { LoadingScreen } from './components/ui/LoadingScreen';
 import { Header } from './components/common/Header';
 import { TabNavigation } from './components/common/TabNavigation';
 import { AtAGlancePanel } from './components/panels/AtAGlancePanel';
@@ -34,11 +36,14 @@ import {
 } from './api';
 
 export default function App() {
-  // Authentication State (defaults to true for instant interactive preview)
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('rt_colony_auth') !== 'false';
-  });
-  const [userRole, setUserRole] = useState<'lord_captain' | 'game_master' | 'scribe'>('lord_captain');
+  // Authentication State via useAuth hook
+  const { 
+    isAuthenticated, 
+    isLoading: authLoading, 
+    user,
+    logout,
+    isLoggingOut 
+  } = useAuth();
 
   // Theme State
   const [theme, setTheme] = useState<AppTheme>(() => {
@@ -208,20 +213,18 @@ export default function App() {
     }
   };
 
-  const handleLogin = (role: 'lord_captain' | 'game_master' | 'scribe') => {
-    setUserRole(role);
-    setIsAuthenticated(true);
-    localStorage.setItem('rt_colony_auth', 'true');
+  const handleLogout = async () => {
+    await logout();
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.setItem('rt_colony_auth', 'false');
-  };
+  // Show loading screen during auth check
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
 
   // If not logged in, render Login screen
   if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return <LoginScreen />;
   }
 
   // Accessibility classes application
@@ -266,7 +269,7 @@ export default function App() {
         onChangeFontSize={setFontSize}
         isHighContrast={isHighContrast}
         onToggleHighContrast={() => setIsHighContrast(!isHighContrast)}
-        username={userRole === 'lord_captain' ? 'Lord Captain' : userRole === 'game_master' ? 'Game Master' : 'Scribe'}
+        username={user?.username || 'Authenticated User'}
         onLogout={handleLogout}
       />
 

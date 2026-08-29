@@ -219,3 +219,48 @@ export type ColonyUpdate = Partial<Colony>;
 export type RepresentativeCreate = Partial<Representative>;
 export type Modifier = ModifierItem;
 export type ModifierCreate = Partial<ModifierItem>;
+
+// ==================== AUTH TYPES ====================
+
+export type UserRole = 'admin' | 'user' | 'viewer';
+
+export interface UserResponse {
+  id: number;
+  username: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: 'bearer';
+  expires_in: number;
+}
+
+export interface RefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: 'bearer';
+  expires_in: number;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface AuthState {
+  user: UserResponse | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}

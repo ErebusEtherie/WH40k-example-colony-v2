@@ -11,7 +11,8 @@ Security Features:
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 
 from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
 from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
@@ -230,12 +231,40 @@ def login(
         user_agent=user_agent,
     )
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=1800,
+    # Get cookie settings
+    settings = get_security_settings()
+
+    # Create response with user info
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.access_token_expire_minutes * 60,
+        }
     )
+
+    # Set httpOnly cookies for secure token storage
+    response.set_cookie(
+        key=settings.cookie_access_token_name,
+        value=access_token,
+        max_age=settings.access_token_expire_minutes * 60,
+        httponly=settings.cookie_httponly,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        path="/",
+    )
+    response.set_cookie(
+        key=settings.cookie_refresh_token_name,
+        value=refresh_token,
+        max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
+        httponly=settings.cookie_httponly,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        path="/",
+    )
+
+    return response
 
 
 @router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []})
@@ -280,12 +309,37 @@ def refresh_token_endpoint(
     new_access_token = create_access_token(user, secret_key)
     new_refresh_token = create_refresh_token(user, secret_key)
 
-    return TokenResponse(
-        access_token=new_access_token,
-        refresh_token=new_refresh_token,  # Rotated refresh token
-        token_type="bearer",
-        expires_in=settings.access_token_expire_minutes * 60,  # Convert minutes to seconds
+    # Create response with new tokens
+    response = JSONResponse(
+        content={
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.access_token_expire_minutes * 60,
+        }
     )
+
+    # Set httpOnly cookies for secure token storage (token rotation)
+    response.set_cookie(
+        key=settings.cookie_access_token_name,
+        value=new_access_token,
+        max_age=settings.access_token_expire_minutes * 60,
+        httponly=settings.cookie_httponly,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        path="/",
+    )
+    response.set_cookie(
+        key=settings.cookie_refresh_token_name,
+        value=new_refresh_token,
+        max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
+        httponly=settings.cookie_httponly,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        path="/",
+    )
+
+    return response
 
 
 @router.get("/me", response_model=UserResponse)
@@ -367,7 +421,23 @@ def revoke_token(
             detail=str(e),
         ) from e
 
-    return TokenRevokeResponse(message="Token revoked successfully", tokens_revoked=1)
+    # Create response
+    response = JSONResponse(
+        content={"message": "Token revoked successfully", "tokens_revoked": 1}
+    )
+
+    # Clear httpOnly cookies on logout
+    settings = get_security_settings()
+    response.delete_cookie(
+        key=settings.cookie_access_token_name,
+        path="/",
+    )
+    response.delete_cookie(
+        key=settings.cookie_refresh_token_name,
+        path="/",
+    )
+
+    return response
 
 
 @router.post("/revoke-all", response_model=TokenRevokeResponse)

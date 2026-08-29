@@ -16,6 +16,10 @@ def test_client_with_auth(tmp_path):
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-testing-only"
 
     import colony_manager.adapters.api.dependencies as deps
+    from colony_manager.adapters.api.dependencies import init_rule_config_provider
+
+    # Initialize rule config provider (normally done in lifespan)
+    init_rule_config_provider()
 
     init_db(db_path)
     app = create_app()

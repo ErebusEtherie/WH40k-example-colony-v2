@@ -71,6 +71,16 @@ def get_allowed_origins() -> list[str]:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize database and load configuration on startup."""
     from colony_manager.adapters.api.dependencies import init_rule_config_provider
+    from colony_manager.config.settings import get_security_settings
+    import os
+
+    # Security warning for production deployments
+    settings = get_security_settings()
+    if os.getenv("ENVIRONMENT") == "production" and not settings.cookie_secure:
+        logger.warning(
+            "⚠️  SECURITY WARNING: cookie_secure=False in production. "
+            "Set COOKIE_SECURE=true to enable HTTPS-only cookies."
+        )
 
     # Initialize rule config provider singleton
     init_rule_config_provider()
@@ -129,9 +139,10 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
-        allow_credentials=True,
+        allow_credentials=True,  # Required for httpOnly cookies
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
+        expose_headers=["X-Request-ID"],  # For debugging/tracing
     )
 
     # Rate limiting middleware
