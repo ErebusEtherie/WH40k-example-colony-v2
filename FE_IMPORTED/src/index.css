@@ -1,0 +1,750 @@
+@import "tailwindcss";
+
+@layer base {
+  .font-dyslexic {
+    font-family: 'Lexend', sans-serif !important;
+  }
+}
+
+/* =========================================================================
+   UNIVERSAL SCANLINE & AMBIENT COGITATOR EFFECTS
+   ========================================================================= */
+.cogitator-glow {
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Colorblind palettes */
+.protanopia-palette {
+  filter: contrast(1.1) hue-rotate(15deg);
+}
+
+.tritanopia-palette {
+  filter: contrast(1.1) hue-rotate(-20deg);
+}
+
+/* =========================================================================
+   THEME: CANONICAL MECHANICUM (Mechanicum Data-Slate UI Design System)
+   Specifications:
+   - Core palette: Void #0D0D0D, Dark Steel Panels #1A1A1A / #2D2D2D, Input #1F1F1F, Grid #3A3A3A
+   - Accents: Copper #B87333, Bronze #CD7F32, Gold #D4AF37, Plasma Blue #00D4FF, Amber #FF6B35, Blood Red #8B0000
+   - Text: Primary #E0E0E0, Muted #888888
+   - Plasma blue calculated monospace numbers, copper-bordered panels with top accent strips and binary data lines
+   ========================================================================= */
+.theme-canonical_mechanicum {
+  background-color: #0d0d0d !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(184, 115, 51, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 0% 50%, rgba(205, 127, 50, 0.04) 0%, transparent 50%) !important;
+  color: #e0e0e0;
+}
+
+.theme-canonical_mechanicum header {
+  border-bottom-color: #b87333 !important;
+  background-color: rgba(26, 26, 26, 0.98) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.8);
+}
+
+.theme-canonical_mechanicum .tab-navigation-bar {
+  border-bottom-color: #2d2d2d !important;
+  background-color: #141414 !important;
+}
+
+.theme-canonical_mechanicum .tab-active {
+  background: linear-gradient(180deg, rgba(184, 115, 51, 0.25) 0%, rgba(26, 26, 26, 0.95) 100%) !important;
+  border-color: #b87333 !important;
+  color: #00d4ff !important;
+  box-shadow: 0 4px 16px -2px rgba(184, 115, 51, 0.35), 0 0 10px rgba(0, 212, 255, 0.2) !important;
+}
+.theme-canonical_mechanicum .tab-active .tab-icon-box {
+  background-color: rgba(184, 115, 51, 0.6) !important;
+  border-color: #b87333 !important;
+  color: #00d4ff !important;
+}
+.theme-canonical_mechanicum .tab-indicator {
+  background-color: #b87333 !important;
+  box-shadow: 0 0 8px #00d4ff !important;
+}
+
+/* Ornamental Frames / Panels with top copper strip */
+.theme-canonical_mechanicum .ornamental-frame {
+  border: 1px solid #2d2d2d !important;
+  border-top: 2px solid #b87333 !important;
+  background-color: rgba(26, 26, 26, 0.96) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.7) !important;
+}
+.theme-canonical_mechanicum .ornamental-corner {
+  border-color: #b87333 !important;
+  color: #b87333 !important;
+}
+.theme-canonical_mechanicum .ornamental-header {
+  border-bottom-color: #2d2d2d !important;
+  background: linear-gradient(90deg, rgba(45, 45, 45, 0.9) 0%, rgba(26, 26, 26, 0.6) 70%, transparent 100%) !important;
+}
+.theme-canonical_mechanicum .ornamental-pip {
+  background-color: #b87333 !important;
+  box-shadow: 0 0 6px rgba(184, 115, 51, 0.8) !important;
+}
+
+/* Background overrides */
+.theme-canonical_mechanicum .bg-slate-900,
+.theme-canonical_mechanicum .bg-slate-900\/90,
+.theme-canonical_mechanicum .bg-slate-900\/95,
+.theme-canonical_mechanicum .bg-slate-900\/60,
+.theme-canonical_mechanicum .bg-slate-900\/80 {
+  background-color: #1a1a1a !important;
+}
+.theme-canonical_mechanicum .bg-slate-950,
+.theme-canonical_mechanicum .bg-slate-950\/60,
+.theme-canonical_mechanicum .bg-slate-950\/80,
+.theme-canonical_mechanicum .bg-slate-950\/90 {
+  background-color: #0d0d0d !important;
+}
+
+.theme-canonical_mechanicum .bg-slate-800,
+.theme-canonical_mechanicum .bg-slate-800\/60,
+.theme-canonical_mechanicum .bg-slate-800\/80 {
+  background-color: #1f1f1f !important;
+}
+
+/* Border overrides */
+.theme-canonical_mechanicum .border-amber-700\/80,
+.theme-canonical_mechanicum .border-amber-600\/70,
+.theme-canonical_mechanicum .border-amber-600\/90,
+.theme-canonical_mechanicum .border-amber-700\/60,
+.theme-canonical_mechanicum .border-amber-600\/60,
+.theme-canonical_mechanicum .border-amber-800\/60,
+.theme-canonical_mechanicum .border-amber-800\/40,
+.theme-canonical_mechanicum .border-amber-500\/80,
+.theme-canonical_mechanicum .border-slate-800,
+.theme-canonical_mechanicum .border-slate-700 {
+  border-color: #2d2d2d !important;
+}
+
+/* Accent texts - Copper */
+.theme-canonical_mechanicum .text-amber-400,
+.theme-canonical_mechanicum .text-amber-300,
+.theme-canonical_mechanicum .text-amber-200 {
+  color: #b87333 !important;
+}
+
+/* Plasma Blue for data readouts & calculated values */
+.theme-canonical_mechanicum .text-cyan-400,
+.theme-canonical_mechanicum .text-cyan-300,
+.theme-canonical_mechanicum .text-cyan-200 {
+  color: #00d4ff !important;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.35);
+}
+
+.theme-canonical_mechanicum .bg-amber-950,
+.theme-canonical_mechanicum .bg-amber-950\/40,
+.theme-canonical_mechanicum .bg-amber-950\/50,
+.theme-canonical_mechanicum .bg-amber-950\/60,
+.theme-canonical_mechanicum .bg-amber-950\/70,
+.theme-canonical_mechanicum .bg-amber-950\/80 {
+  background-color: rgba(184, 115, 51, 0.25) !important;
+  border-color: #b87333 !important;
+}
+
+.theme-canonical_mechanicum .bg-cyan-950,
+.theme-canonical_mechanicum .bg-cyan-950\/80,
+.theme-canonical_mechanicum .bg-cyan-950\/50 {
+  background-color: rgba(0, 212, 255, 0.15) !important;
+  border-color: rgba(0, 212, 255, 0.4) !important;
+}
+
+/* Form controls focus and input styling */
+.theme-canonical_mechanicum input,
+.theme-canonical_mechanicum select,
+.theme-canonical_mechanicum textarea {
+  background-color: #1f1f1f !important;
+  border-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+}
+.theme-canonical_mechanicum input:focus,
+.theme-canonical_mechanicum select:focus,
+.theme-canonical_mechanicum textarea:focus {
+  border-color: #b87333 !important;
+  box-shadow: 0 0 10px rgba(184, 115, 51, 0.5) !important;
+  outline: none !important;
+}
+
+/* =========================================================================
+   THEME 1: MECHANICUS AMBER (Martian Amber & Cogitator Cyan)
+   ========================================================================= */
+.theme-mechanicus_amber {
+  background-color: #07080b !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(34, 211, 238, 0.04) 0%, transparent 50%) !important;
+  color: #f1f5f9;
+}
+
+.theme-mechanicus_amber header {
+  border-bottom-color: rgba(217, 119, 6, 0.75) !important;
+  background-color: rgba(9, 10, 15, 0.96) !important;
+}
+
+.theme-mechanicus_amber .tab-navigation-bar {
+  border-bottom-color: rgba(180, 83, 9, 0.6) !important;
+  background-color: rgba(7, 8, 12, 0.98) !important;
+}
+
+.theme-mechanicus_amber .tab-active {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.16) 0%, rgba(13, 15, 21, 0.9) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #fef3c7 !important;
+  box-shadow: 0 4px 14px -2px rgba(245, 158, 11, 0.25) !important;
+}
+.theme-mechanicus_amber .tab-active .tab-icon-box {
+  background-color: rgba(120, 53, 15, 0.6) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+}
+.theme-mechanicus_amber .tab-indicator {
+  background-color: #f59e0b !important;
+}
+
+/* Ornamental Frames */
+.theme-mechanicus_amber .ornamental-frame {
+  border-color: rgba(217, 119, 6, 0.65) !important;
+  background-color: rgba(13, 15, 21, 0.94) !important;
+}
+.theme-mechanicus_amber .ornamental-corner {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
+}
+.theme-mechanicus_amber .ornamental-header {
+  border-bottom-color: rgba(180, 83, 9, 0.6) !important;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, rgba(13, 15, 21, 0.9) 60%, transparent 100%) !important;
+}
+.theme-mechanicus_amber .ornamental-pip {
+  background-color: #f59e0b !important;
+}
+
+
+/* =========================================================================
+   THEME: DARKTIDE OMNISSIAH FORGE (Sanctum Forge, Molten Runes & Olive Slates)
+   ========================================================================= */
+.theme-darktide_forge {
+  background-color: #070a08 !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(249, 115, 22, 0.12) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 0% 50%, rgba(234, 179, 8, 0.04) 0%, transparent 50%) !important;
+  color: #ecfdf5;
+}
+
+.theme-darktide_forge header {
+  border-bottom-color: rgba(249, 115, 22, 0.8) !important;
+  background-color: rgba(8, 14, 10, 0.96) !important;
+}
+
+.theme-darktide_forge .tab-navigation-bar {
+  border-bottom-color: rgba(234, 88, 12, 0.6) !important;
+  background-color: rgba(6, 11, 8, 0.98) !important;
+}
+
+.theme-darktide_forge .tab-active {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.22) 0%, rgba(20, 35, 25, 0.95) 100%) !important;
+  border-color: #f97316 !important;
+  color: #fef08a !important;
+  box-shadow: 0 4px 16px -2px rgba(249, 115, 22, 0.35) !important;
+}
+.theme-darktide_forge .tab-active .tab-icon-box {
+  background-color: rgba(124, 45, 18, 0.7) !important;
+  border-color: rgba(249, 115, 22, 0.5) !important;
+  color: #fb923c !important;
+}
+.theme-darktide_forge .tab-indicator {
+  background-color: #f97316 !important;
+}
+
+/* Ornamental Frames for Darktide Forge */
+.theme-darktide_forge .ornamental-frame {
+  border-color: rgba(249, 115, 22, 0.65) !important;
+  background-color: rgba(15, 24, 18, 0.95) !important;
+}
+.theme-darktide_forge .ornamental-corner {
+  border-color: #f97316 !important;
+  color: #f97316 !important;
+}
+.theme-darktide_forge .ornamental-header {
+  border-bottom-color: rgba(234, 88, 12, 0.6) !important;
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.2) 0%, rgba(18, 30, 23, 0.9) 60%, transparent 100%) !important;
+}
+.theme-darktide_forge .ornamental-pip {
+  background-color: #f97316 !important;
+}
+
+/* Component Overrides for Darktide Forge */
+.theme-darktide_forge .bg-slate-900,
+.theme-darktide_forge .bg-slate-900\/90,
+.theme-darktide_forge .bg-slate-900\/95,
+.theme-darktide_forge .bg-slate-900\/60,
+.theme-darktide_forge .bg-slate-900\/80 {
+  background-color: #121d16 !important;
+}
+.theme-darktide_forge .bg-slate-950,
+.theme-darktide_forge .bg-slate-950\/60,
+.theme-darktide_forge .bg-slate-950\/80,
+.theme-darktide_forge .bg-slate-950\/90 {
+  background-color: #0b120d !important;
+}
+
+.theme-darktide_forge .border-amber-700\/80,
+.theme-darktide_forge .border-amber-600\/70,
+.theme-darktide_forge .border-amber-600\/90,
+.theme-darktide_forge .border-amber-700\/60,
+.theme-darktide_forge .border-amber-600\/60,
+.theme-darktide_forge .border-amber-800\/60,
+.theme-darktide_forge .border-amber-800\/40,
+.theme-darktide_forge .border-amber-500\/80,
+.theme-darktide_forge .border-cyan-800\/80,
+.theme-darktide_forge .border-cyan-800\/60,
+.theme-darktide_forge .border-cyan-600\/60 {
+  border-color: rgba(249, 115, 22, 0.65) !important;
+}
+
+.theme-darktide_forge .text-amber-400,
+.theme-darktide_forge .text-amber-300,
+.theme-darktide_forge .text-amber-200 {
+  color: #fdba74 !important;
+}
+
+.theme-darktide_forge .text-cyan-400,
+.theme-darktide_forge .text-cyan-300 {
+  color: #4ade80 !important;
+}
+
+.theme-darktide_forge .bg-amber-950,
+.theme-darktide_forge .bg-amber-950\/40,
+.theme-darktide_forge .bg-amber-950\/50,
+.theme-darktide_forge .bg-amber-950\/60,
+.theme-darktide_forge .bg-amber-950\/70,
+.theme-darktide_forge .bg-amber-950\/80,
+.theme-darktide_forge .bg-cyan-950,
+.theme-darktide_forge .bg-cyan-950\/80,
+.theme-darktide_forge .bg-cyan-950\/50 {
+  background-color: rgba(124, 45, 18, 0.6) !important;
+}
+
+
+
+/* =========================================================================
+   THEME 2: VOID CYAN (Gothic Voidfarer - Cobalt Navy & Holo Cyan)
+   ========================================================================= */
+.theme-void_cyan {
+  background-color: #020617 !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.05) 0%, transparent 50%) !important;
+  color: #f0f9ff;
+}
+
+.theme-void_cyan header {
+  border-bottom-color: rgba(6, 182, 212, 0.75) !important;
+  background-color: rgba(2, 8, 23, 0.96) !important;
+}
+
+.theme-void_cyan .tab-navigation-bar {
+  border-bottom-color: rgba(2, 132, 199, 0.6) !important;
+  background-color: rgba(2, 6, 23, 0.98) !important;
+}
+
+.theme-void_cyan .tab-active {
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.2) 0%, rgba(3, 15, 38, 0.95) 100%) !important;
+  border-color: #06b6d4 !important;
+  color: #cffafe !important;
+  box-shadow: 0 4px 14px -2px rgba(6, 182, 212, 0.35) !important;
+}
+.theme-void_cyan .tab-active .tab-icon-box {
+  background-color: rgba(8, 47, 73, 0.7) !important;
+  border-color: rgba(6, 182, 212, 0.5) !important;
+  color: #38bdf8 !important;
+}
+.theme-void_cyan .tab-indicator {
+  background-color: #06b6d4 !important;
+}
+
+/* Ornamental Frames for Void Cyan */
+.theme-void_cyan .ornamental-frame {
+  border-color: rgba(6, 182, 212, 0.65) !important;
+  background-color: rgba(5, 14, 36, 0.94) !important;
+}
+.theme-void_cyan .ornamental-corner {
+  border-color: #06b6d4 !important;
+  color: #06b6d4 !important;
+}
+.theme-void_cyan .ornamental-header {
+  border-bottom-color: rgba(2, 132, 199, 0.6) !important;
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.2) 0%, rgba(5, 14, 36, 0.9) 60%, transparent 100%) !important;
+}
+.theme-void_cyan .ornamental-pip {
+  background-color: #06b6d4 !important;
+}
+
+/* Theme transformations on UI components for Void Cyan */
+.theme-void_cyan .bg-slate-900,
+.theme-void_cyan .bg-slate-900\/90,
+.theme-void_cyan .bg-slate-900\/95,
+.theme-void_cyan .bg-slate-900\/60,
+.theme-void_cyan .bg-slate-900\/80 {
+  background-color: #06112c !important;
+}
+.theme-void_cyan .bg-slate-950,
+.theme-void_cyan .bg-slate-950\/60,
+.theme-void_cyan .bg-slate-950\/80,
+.theme-void_cyan .bg-slate-950\/90 {
+  background-color: #030a1c !important;
+}
+
+.theme-void_cyan .border-amber-700\/80,
+.theme-void_cyan .border-amber-600\/70,
+.theme-void_cyan .border-amber-600\/90,
+.theme-void_cyan .border-amber-700\/60,
+.theme-void_cyan .border-amber-600\/60,
+.theme-void_cyan .border-amber-800\/60,
+.theme-void_cyan .border-amber-800\/40,
+.theme-void_cyan .border-amber-500\/80 {
+  border-color: rgba(6, 182, 212, 0.65) !important;
+}
+
+.theme-void_cyan .text-amber-400,
+.theme-void_cyan .text-amber-300,
+.theme-void_cyan .text-amber-200 {
+  color: #38bdf8 !important;
+}
+
+.theme-void_cyan .bg-amber-950,
+.theme-void_cyan .bg-amber-950\/40,
+.theme-void_cyan .bg-amber-950\/50,
+.theme-void_cyan .bg-amber-950\/60,
+.theme-void_cyan .bg-amber-950\/70,
+.theme-void_cyan .bg-amber-950\/80 {
+  background-color: rgba(8, 47, 73, 0.6) !important;
+}
+
+
+/* =========================================================================
+   THEME 3: INQUISITION CRIMSON (Inquisition Sanctum - Blood & Relic Gold)
+   ========================================================================= */
+.theme-inquisition_crimson {
+  background-color: #0c0608 !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(225, 29, 72, 0.14) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.05) 0%, transparent 50%) !important;
+  color: #fff1f2;
+}
+
+.theme-inquisition_crimson header {
+  border-bottom-color: rgba(225, 29, 72, 0.8) !important;
+  background-color: rgba(16, 7, 10, 0.96) !important;
+}
+
+.theme-inquisition_crimson .tab-navigation-bar {
+  border-bottom-color: rgba(190, 18, 60, 0.6) !important;
+  background-color: rgba(12, 6, 8, 0.98) !important;
+}
+
+.theme-inquisition_crimson .tab-active {
+  background: linear-gradient(180deg, rgba(225, 29, 72, 0.24) 0%, rgba(31, 10, 18, 0.95) 100%) !important;
+  border-color: #e11d48 !important;
+  color: #fde047 !important;
+  box-shadow: 0 4px 14px -2px rgba(225, 29, 72, 0.4) !important;
+}
+.theme-inquisition_crimson .tab-active .tab-icon-box {
+  background-color: rgba(76, 5, 25, 0.7) !important;
+  border-color: rgba(225, 29, 72, 0.5) !important;
+  color: #fbbf24 !important;
+}
+.theme-inquisition_crimson .tab-indicator {
+  background-color: #e11d48 !important;
+}
+
+/* Ornamental Frames for Inquisition Crimson */
+.theme-inquisition_crimson .ornamental-frame {
+  border-color: rgba(225, 29, 72, 0.65) !important;
+  background-color: rgba(22, 9, 13, 0.94) !important;
+}
+.theme-inquisition_crimson .ornamental-corner {
+  border-color: #e11d48 !important;
+  color: #e11d48 !important;
+}
+.theme-inquisition_crimson .ornamental-header {
+  border-bottom-color: rgba(190, 18, 60, 0.6) !important;
+  background: linear-gradient(90deg, rgba(225, 29, 72, 0.22) 0%, rgba(22, 9, 13, 0.9) 60%, transparent 100%) !important;
+}
+.theme-inquisition_crimson .ornamental-pip {
+  background-color: #e11d48 !important;
+}
+
+/* Theme transformations on UI components for Inquisition Crimson */
+.theme-inquisition_crimson .bg-slate-900,
+.theme-inquisition_crimson .bg-slate-900\/90,
+.theme-inquisition_crimson .bg-slate-900\/95,
+.theme-inquisition_crimson .bg-slate-900\/60,
+.theme-inquisition_crimson .bg-slate-900\/80 {
+  background-color: #1a0b10 !important;
+}
+.theme-inquisition_crimson .bg-slate-950,
+.theme-inquisition_crimson .bg-slate-950\/60,
+.theme-inquisition_crimson .bg-slate-950\/80,
+.theme-inquisition_crimson .bg-slate-950\/90 {
+  background-color: #0f0508 !important;
+}
+
+.theme-inquisition_crimson .border-amber-700\/80,
+.theme-inquisition_crimson .border-amber-600\/70,
+.theme-inquisition_crimson .border-amber-600\/90,
+.theme-inquisition_crimson .border-amber-700\/60,
+.theme-inquisition_crimson .border-amber-600\/60,
+.theme-inquisition_crimson .border-amber-800\/60,
+.theme-inquisition_crimson .border-amber-800\/40,
+.theme-inquisition_crimson .border-amber-500\/80,
+.theme-inquisition_crimson .border-cyan-800\/80,
+.theme-inquisition_crimson .border-cyan-800\/60,
+.theme-inquisition_crimson .border-cyan-600\/60 {
+  border-color: rgba(225, 29, 72, 0.65) !important;
+}
+
+.theme-inquisition_crimson .text-amber-400,
+.theme-inquisition_crimson .text-amber-300,
+.theme-inquisition_crimson .text-amber-200 {
+  color: #fda4af !important;
+}
+
+.theme-inquisition_crimson .text-cyan-400,
+.theme-inquisition_crimson .text-cyan-300 {
+  color: #fbbf24 !important;
+}
+
+.theme-inquisition_crimson .bg-amber-950,
+.theme-inquisition_crimson .bg-amber-950\/40,
+.theme-inquisition_crimson .bg-amber-950\/50,
+.theme-inquisition_crimson .bg-amber-950\/60,
+.theme-inquisition_crimson .bg-amber-950\/70,
+.theme-inquisition_crimson .bg-amber-950\/80,
+.theme-inquisition_crimson .bg-cyan-950,
+.theme-inquisition_crimson .bg-cyan-950\/80,
+.theme-inquisition_crimson .bg-cyan-950\/50 {
+  background-color: rgba(76, 5, 25, 0.6) !important;
+}
+
+
+/* =========================================================================
+   THEME 4: AUSPEX EMERALD (Tactical Auspex - Phosphor Green & Scanlines)
+   ========================================================================= */
+.theme-auspex_emerald {
+  background-color: #030a05 !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.13) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.05) 0%, transparent 50%) !important;
+  color: #ecfdf5;
+}
+
+.theme-auspex_emerald header {
+  border-bottom-color: rgba(16, 185, 129, 0.75) !important;
+  background-color: rgba(4, 16, 8, 0.96) !important;
+}
+
+.theme-auspex_emerald .tab-navigation-bar {
+  border-bottom-color: rgba(5, 150, 105, 0.6) !important;
+  background-color: rgba(3, 10, 5, 0.98) !important;
+}
+
+.theme-auspex_emerald .tab-active {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 28, 13, 0.95) 100%) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+  box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.35) !important;
+}
+.theme-auspex_emerald .tab-active .tab-icon-box {
+  background-color: rgba(6, 78, 59, 0.7) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: #34d399 !important;
+}
+.theme-auspex_emerald .tab-indicator {
+  background-color: #10b981 !important;
+}
+
+/* Ornamental Frames for Auspex Emerald */
+.theme-auspex_emerald .ornamental-frame {
+  border-color: rgba(16, 185, 129, 0.65) !important;
+  background-color: rgba(6, 20, 10, 0.94) !important;
+}
+.theme-auspex_emerald .ornamental-corner {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+.theme-auspex_emerald .ornamental-header {
+  border-bottom-color: rgba(5, 150, 105, 0.6) !important;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 20, 10, 0.9) 60%, transparent 100%) !important;
+}
+.theme-auspex_emerald .ornamental-pip {
+  background-color: #10b981 !important;
+}
+
+/* Theme transformations on UI components for Auspex Emerald */
+.theme-auspex_emerald .bg-slate-900,
+.theme-auspex_emerald .bg-slate-900\/90,
+.theme-auspex_emerald .bg-slate-900\/95,
+.theme-auspex_emerald .bg-slate-900\/60,
+.theme-auspex_emerald .bg-slate-900\/80 {
+  background-color: #06190c !important;
+}
+.theme-auspex_emerald .bg-slate-950,
+.theme-auspex_emerald .bg-slate-950\/60,
+.theme-auspex_emerald .bg-slate-950\/80,
+.theme-auspex_emerald .bg-slate-950\/90 {
+  background-color: #030d06 !important;
+}
+
+.theme-auspex_emerald .border-amber-700\/80,
+.theme-auspex_emerald .border-amber-600\/70,
+.theme-auspex_emerald .border-amber-600\/90,
+.theme-auspex_emerald .border-amber-700\/60,
+.theme-auspex_emerald .border-amber-600\/60,
+.theme-auspex_emerald .border-amber-800\/60,
+.theme-auspex_emerald .border-amber-800\/40,
+.theme-auspex_emerald .border-amber-500\/80,
+.theme-auspex_emerald .border-cyan-800\/80,
+.theme-auspex_emerald .border-cyan-800\/60,
+.theme-auspex_emerald .border-cyan-600\/60 {
+  border-color: rgba(16, 185, 129, 0.65) !important;
+}
+
+.theme-auspex_emerald .text-amber-400,
+.theme-auspex_emerald .text-amber-300,
+.theme-auspex_emerald .text-amber-200,
+.theme-auspex_emerald .text-cyan-400,
+.theme-auspex_emerald .text-cyan-300 {
+  color: #34d399 !important;
+}
+
+.theme-auspex_emerald .bg-amber-950,
+.theme-auspex_emerald .bg-amber-950\/40,
+.theme-auspex_emerald .bg-amber-950\/50,
+.theme-auspex_emerald .bg-amber-950\/60,
+.theme-auspex_emerald .bg-amber-950\/70,
+.theme-auspex_emerald .bg-amber-950\/80,
+.theme-auspex_emerald .bg-cyan-950,
+.theme-auspex_emerald .bg-cyan-950\/80,
+.theme-auspex_emerald .bg-cyan-950\/50 {
+  background-color: rgba(6, 78, 59, 0.6) !important;
+}
+
+
+/* =========================================================================
+   THEME 5: VELLUM PARCHMENT (Imperial Parchment - Aged Scribe & Antique Brass)
+   ========================================================================= */
+.theme-vellum_parchment {
+  background-color: #0d0b08 !important;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(217, 119, 6, 0.12) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(254, 243, 199, 0.04) 0%, transparent 50%) !important;
+  color: #fef3c7;
+}
+
+.theme-vellum_parchment header {
+  border-bottom-color: rgba(217, 119, 6, 0.8) !important;
+  background-color: rgba(20, 16, 11, 0.96) !important;
+}
+
+.theme-vellum_parchment .tab-navigation-bar {
+  border-bottom-color: rgba(180, 83, 9, 0.6) !important;
+  background-color: rgba(13, 11, 8, 0.98) !important;
+}
+
+.theme-vellum_parchment .tab-active {
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.22) 0%, rgba(33, 25, 17, 0.95) 100%) !important;
+  border-color: #d97706 !important;
+  color: #fef3c7 !important;
+  box-shadow: 0 4px 14px -2px rgba(217, 119, 6, 0.35) !important;
+}
+.theme-vellum_parchment .tab-active .tab-icon-box {
+  background-color: rgba(120, 53, 15, 0.7) !important;
+  border-color: rgba(217, 119, 6, 0.5) !important;
+  color: #fde68a !important;
+}
+.theme-vellum_parchment .tab-indicator {
+  background-color: #d97706 !important;
+}
+
+/* Ornamental Frames for Vellum Parchment */
+.theme-vellum_parchment .ornamental-frame {
+  border-color: rgba(217, 119, 6, 0.65) !important;
+  background-color: rgba(24, 19, 14, 0.94) !important;
+}
+.theme-vellum_parchment .ornamental-corner {
+  border-color: #d97706 !important;
+  color: #d97706 !important;
+}
+.theme-vellum_parchment .ornamental-header {
+  border-bottom-color: rgba(180, 83, 9, 0.6) !important;
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.2) 0%, rgba(24, 19, 14, 0.9) 60%, transparent 100%) !important;
+}
+.theme-vellum_parchment .ornamental-pip {
+  background-color: #d97706 !important;
+}
+
+/* Theme transformations on UI components for Vellum Parchment */
+.theme-vellum_parchment .bg-slate-900,
+.theme-vellum_parchment .bg-slate-900\/90,
+.theme-vellum_parchment .bg-slate-900\/95,
+.theme-vellum_parchment .bg-slate-900\/60,
+.theme-vellum_parchment .bg-slate-900\/80 {
+  background-color: #1a140e !important;
+}
+.theme-vellum_parchment .bg-slate-950,
+.theme-vellum_parchment .bg-slate-950\/60,
+.theme-vellum_parchment .bg-slate-950\/80,
+.theme-vellum_parchment .bg-slate-950\/90 {
+  background-color: #110e0a !important;
+}
+
+.theme-vellum_parchment .border-amber-700\/80,
+.theme-vellum_parchment .border-amber-600\/70,
+.theme-vellum_parchment .border-amber-600\/90,
+.theme-vellum_parchment .border-amber-700\/60,
+.theme-vellum_parchment .border-amber-600\/60,
+.theme-vellum_parchment .border-amber-800\/60,
+.theme-vellum_parchment .border-amber-800\/40,
+.theme-vellum_parchment .border-amber-500\/80,
+.theme-vellum_parchment .border-cyan-800\/80,
+.theme-vellum_parchment .border-cyan-800\/60,
+.theme-vellum_parchment .border-cyan-600\/60 {
+  border-color: rgba(217, 119, 6, 0.65) !important;
+}
+
+.theme-vellum_parchment .text-cyan-400,
+.theme-vellum_parchment .text-cyan-300 {
+  color: #fde68a !important;
+}
+
+.theme-vellum_parchment .text-amber-400,
+.theme-vellum_parchment .text-amber-300 {
+  color: #f59e0b !important;
+}
+
+.theme-vellum_parchment .bg-amber-950,
+.theme-vellum_parchment .bg-amber-950\/40,
+.theme-vellum_parchment .bg-amber-950\/50,
+.theme-vellum_parchment .bg-amber-950\/60,
+.theme-vellum_parchment .bg-amber-950\/70,
+.theme-vellum_parchment .bg-amber-950\/80,
+.theme-vellum_parchment .bg-cyan-950,
+.theme-vellum_parchment .bg-cyan-950\/80,
+.theme-vellum_parchment .bg-cyan-950\/50 {
+  background-color: rgba(120, 53, 15, 0.6) !important;
+}
+
+@keyframes binary-flow {
+  0% { background-position: 0 0; }
+  100% { background-position: 8px 0; }
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

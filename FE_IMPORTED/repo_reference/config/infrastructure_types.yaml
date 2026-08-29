@@ -1,0 +1,131 @@
+# Hard Infrastructure Types for WH40k Colony Manager
+# Source: Rogue Trader Colony Rules - Infrastructure Upgrades
+# States: in_progress (no effect), working (bonus applies), not_working (penalty applies)
+
+# =============================================================================
+# Transport
+# Roads, bridges, maglev lines, canals, and spaceports
+# =============================================================================
+- name: "transport"
+  display_name: "Transport"
+  description: "Roads, bridges, maglev lines, canals, and spaceports. Essential for moving goods and people efficiently."
+  states:
+    in_progress:
+      description: "Infrastructure planned but not yet installed. No mechanical effect."
+      modifiers: []
+    working:
+      description: "Infrastructure operational. Bonuses apply."
+      modifiers:
+        - stat: "productivity"
+          value: 1
+        - stat: "complacency"
+          value: 1
+    not_working:
+      description: "Infrastructure incapacitated. Penalties apply."
+      modifiers:
+        - stat: "productivity"
+          value: -2
+        - stat: "order"
+          value: -2
+
+# =============================================================================
+# Power
+# Peat-burning generators, solar panels, or block-sized fusion reactors
+# =============================================================================
+- name: "power"
+  display_name: "Power"
+  description: "Peat-burning generators, solar panels, or block-sized fusion reactors. The 'lifeblood' of industry."
+  states:
+    in_progress:
+      description: "Infrastructure planned but not yet installed. No mechanical effect."
+      modifiers: []
+    working:
+      description: "Infrastructure operational. Bonuses apply."
+      modifiers:
+        - stat: "productivity"
+          value: 2
+    not_working:
+      description: "Infrastructure incapacitated. Penalties apply."
+      modifiers:
+        - stat: "productivity"
+          value: -3
+        - stat: "complacency"
+          value: -1
+
+# =============================================================================
+# Water
+# Purification plants, reservoirs, and sewage systems
+# =============================================================================
+- name: "water"
+  display_name: "Water"
+  description: "Purification plants, reservoirs, and sewage systems. Necessary to prevent dehydration and disease."
+  states:
+    in_progress:
+      description: "Infrastructure planned but not yet installed. No mechanical effect."
+      modifiers: []
+    working:
+      description: "Infrastructure operational. Bonuses apply."
+      modifiers:
+        - stat: "order"
+          value: 1
+        - stat: "complacency"
+          value: 1
+    not_working:
+      description: "Water tainted or cut off. Penalties apply."
+      modifiers:
+        - stat: "order"
+          value: -2
+        - stat: "complacency"
+          value: -2
+
+# =============================================================================
+# Food Production
+# Hydroponic farms or regular deliveries of corpse starch rations
+# =============================================================================
+- name: "food_production"
+  display_name: "Food Production"
+  description: "Hydroponic farms or regular deliveries of corpse starch rations. Vital for growth."
+  states:
+    in_progress:
+      description: "Infrastructure planned but not yet installed. No mechanical effect."
+      modifiers: []
+    working:
+      description: "Infrastructure operational. Bonuses apply."
+      modifiers:
+        - stat: "productivity"
+          value: 1
+        - stat: "complacency"
+          value: 1
+    not_working:
+      description: "Food production incapacitated. Penalties apply."
+      modifiers:
+        - stat: "productivity"
+          value: -2
+        - stat: "complacency"
+          value: -2
+
+# =============================================================================
+# Communications
+# Radio buoys, orbital signal repeaters, and Astropathic choirs
+# =============================================================================
+- name: "communications"
+  display_name: "Communications"
+  description: "Radio buoys, orbital signal repeaters, and Astropathic choirs. Used for day-to-day operations and propaganda."
+  states:
+    in_progress:
+      description: "Infrastructure planned but not yet installed. No mechanical effect."
+      modifiers: []
+    working:
+      description: "Infrastructure operational. Bonuses apply."
+      modifiers:
+        - stat: "productivity"
+          value: 1
+        - stat: "order"
+          value: 1
+    not_working:
+      description: "Communications incapacitated. Penalties apply."
+      modifiers:
+        - stat: "productivity"
+          value: -2
+        - stat: "order"
+          value: -2

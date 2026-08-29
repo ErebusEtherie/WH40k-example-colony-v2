@@ -1,0 +1,6929 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "WH40k Colony Manager API",
+    "description": "REST API for managing Warhammer 40k Rogue Trader colonies",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Register",
+        "description": "Register a new user account.\n\nThis endpoint is public and does not require authentication.\n\nPassword Requirements:\n- Minimum 8 characters (configurable)\n- At least one uppercase letter\n- At least one lowercase letter\n- At least one number\n- At least one special character",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__auth__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Login",
+        "description": "Authenticate user and return JWT tokens.\n\nThis endpoint is public and does not require authentication.\n\nSecurity:\n- Account lockout after 5 failed attempts within 15 minutes\n- Lockout duration: 15 minutes\n- All attempts are logged for audit purposes",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Refresh Token Endpoint",
+        "description": "Refresh access token using refresh token.\n\nThis endpoint is public and does not require authentication.\n\nSecurity: Implements refresh token rotation - old refresh token is\ninvalidated when a new one is issued. If an old token is reused,\nall sessions for that user should be invalidated (future enhancement).",
+        "operationId": "refresh_token_endpoint_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Get Current User Info",
+        "description": "Get current authenticated user information.",
+        "operationId": "get_current_user_info_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__auth__UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Change Password",
+        "description": "Change password for current user.",
+        "operationId": "change_password_api_v1_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Change Password Api V1 Auth Change Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/revoke": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Revoke Token",
+        "description": "Revoke current access token (logout).\n\nThis endpoint adds the current token to the blacklist, preventing\nfurther use even if the token hasn't expired yet.\n\nNote: The client should discard the token after calling this endpoint.\nThe token used to make this request will still be valid for this request\nbut will be blacklisted for future requests.",
+        "operationId": "revoke_token_api_v1_auth_revoke_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRevokeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenRevokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/revoke-all": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Revoke All Tokens",
+        "description": "Revoke all tokens for a user.\n\nFor regular users: Revokes all tokens for the current user.\nFor admins: Can revoke tokens for any user by specifying user_id.\n\nThis is useful for:\n- Password changes (revoke all sessions)\n- Suspected account compromise\n- User deactivation",
+        "operationId": "revoke_all_tokens_api_v1_auth_revoke_all_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRevokeAllRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenRevokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/colonies": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "List Colonies",
+        "description": "List all colonies with pagination.\n\nReturns a paginated list of colonies. Use offset/limit for pagination.",
+        "operationId": "list_colonies_api_v1_colonies_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_ColonyListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Create Colony",
+        "description": "Create a new colony.",
+        "operationId": "create_colony_api_v1_colonies_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Get Colony",
+        "description": "Get a colony by ID.",
+        "operationId": "get_colony_api_v1_colonies__colony_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Update Colony",
+        "description": "Update a colony (partial update).",
+        "operationId": "update_colony_api_v1_colonies__colony_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Delete Colony",
+        "description": "Delete a colony.",
+        "operationId": "delete_colony_api_v1_colonies__colony_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/state": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Get Colony State",
+        "description": "Get computed state for a colony.",
+        "operationId": "get_colony_state_api_v1_colonies__colony_id__state_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyStateNested"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/age": {
+      "post": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Advance Colony Age",
+        "description": "Advance colony age.",
+        "operationId": "advance_colony_age_api_v1_colonies__colony_id__age_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "age_days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Age Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/modifiers": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "List Colony Modifiers",
+        "description": "List all modifiers for a colony.",
+        "operationId": "list_colony_modifiers_api_v1_colonies__colony_id__modifiers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModifierResponse"
+                  },
+                  "title": "Response List Colony Modifiers Api V1 Colonies  Colony Id  Modifiers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Add Colony Modifier",
+        "description": "Add a modifier to a colony.",
+        "operationId": "add_colony_modifier_api_v1_colonies__colony_id__modifiers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifierCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/modifiers/{modifier_id}": {
+      "delete": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Remove Colony Modifier",
+        "description": "Remove a modifier from a colony.",
+        "operationId": "remove_colony_modifier_api_v1_colonies__colony_id__modifiers__modifier_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "modifier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Modifier Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Update Colony Modifier",
+        "description": "Update a modifier (partial update).\n\nTypically used to toggle is_active status without deleting and re-adding.",
+        "operationId": "update_colony_modifier_api_v1_colonies__colony_id__modifiers__modifier_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "modifier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Modifier Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifierUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/roll-status": {
+      "get": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Get Colony Roll Status",
+        "description": "Get the roll status for a colony.\n\nReturns information about when the next event and development rolls are due.\nEvent rolls occur every 60 days, development rolls every 90 days.",
+        "operationId": "get_colony_roll_status_api_v1_colonies__colony_id__roll_status_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyRollStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/colonies/{colony_id}": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Create Event",
+        "description": "Create a new event for a colony.\n\nEvents are GM-created occurrences that affect colony stats.\nRequires colony_manager role or higher.",
+        "operationId": "create_event_api_v1_events_colonies__colony_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get Events By Colony",
+        "description": "Get all events for a colony.",
+        "operationId": "get_events_by_colony_api_v1_events_colonies__colony_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Active Only"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response Get Events By Colony Api V1 Events Colonies  Colony Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{event_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get Event",
+        "description": "Get an event by ID.",
+        "operationId": "get_event_api_v1_events__event_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update Event",
+        "description": "Update an event. Requires colony_manager role or higher.",
+        "operationId": "update_event_api_v1_events__event_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Delete Event",
+        "description": "Delete (soft delete) an event. Requires colony_manager role or higher.",
+        "operationId": "delete_event_api_v1_events__event_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/development-plans/colonies/{colony_id}": {
+      "post": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Create Development Plan",
+        "description": "Create a new development plan for a colony.\n\nDevelopment plans track long-term colony development goals.\nRequires colony_manager role or higher.",
+        "operationId": "create_development_plan_api_v1_development_plans_colonies__colony_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DevelopmentPlanCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevelopmentPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Get Development Plans By Colony",
+        "description": "Get all development plans for a colony.",
+        "operationId": "get_development_plans_by_colony_api_v1_development_plans_colonies__colony_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DevelopmentPlanResponse"
+                  },
+                  "title": "Response Get Development Plans By Colony Api V1 Development Plans Colonies  Colony Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/development-plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Get Development Plan",
+        "description": "Get a development plan by ID.",
+        "operationId": "get_development_plan_api_v1_development_plans__plan_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevelopmentPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Update Development Plan",
+        "description": "Update a development plan. Requires colony_manager role or higher.",
+        "operationId": "update_development_plan_api_v1_development_plans__plan_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DevelopmentPlanUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevelopmentPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Delete Development Plan",
+        "description": "Delete a development plan. Requires colony_manager role or higher.",
+        "operationId": "delete_development_plan_api_v1_development_plans__plan_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/development-plans/{plan_id}/install": {
+      "post": {
+        "tags": [
+          "development_plans"
+        ],
+        "summary": "Install Development Plan",
+        "description": "Install a development plan as an Infrastructure or Support Upgrade.\n\nOnly plans in DELIVERED status can be installed. This creates the actual\nInfrastructure or SupportUpgrade entity and deletes the development plan.\nRequires colony_manager role or higher.",
+        "operationId": "install_development_plan_api_v1_development_plans__plan_id__install_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/audit-logs": {
+      "get": {
+        "tags": [
+          "audit_logs"
+        ],
+        "summary": "Get Audit Logs By Colony",
+        "description": "Get audit logs for a colony.\n\nReturns a chronological history of changes made to the colony.\nRequires colony owner role.",
+        "operationId": "get_audit_logs_by_colony_api_v1_colonies__colony_id__audit_logs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by entity type",
+              "title": "Entity Type"
+            },
+            "description": "Filter by entity type"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Maximum number of results",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Maximum number of results"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of results to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of results to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogResponse"
+                  },
+                  "title": "Response Get Audit Logs By Colony Api V1 Colonies  Colony Id  Audit Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/audit-logs/{log_id}": {
+      "get": {
+        "tags": [
+          "audit_logs"
+        ],
+        "summary": "Get Audit Log",
+        "description": "Get a specific audit log entry by ID.\n\nRequires colony owner role.",
+        "operationId": "get_audit_log_api_v1_colonies__colony_id__audit_logs__log_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "log_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Log Id"
+            }
+          },
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/members": {
+      "get": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Get Colony Members",
+        "description": "Get all members of a colony.",
+        "operationId": "get_colony_members_api_v1_colonies__colony_id__members_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ColonyUserResponse"
+                  },
+                  "title": "Response Get Colony Members Api V1 Colonies  Colony Id  Members Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Add Colony Member",
+        "description": "Add a user to a colony.\n\nRequires appropriate permissions (typically owner or editor role).",
+        "operationId": "add_colony_member_api_v1_colonies__colony_id__members_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyUserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyUserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/members/{user_id}": {
+      "get": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Get Colony Member",
+        "description": "Get a specific user's membership in a colony.",
+        "operationId": "get_colony_member_api_v1_colonies__colony_id__members__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyUserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Update Colony Member Role",
+        "description": "Update a member's role in the colony.\n\nRequires appropriate permissions (typically owner role).",
+        "operationId": "update_colony_member_role_api_v1_colonies__colony_id__members__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyUserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonyUserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Remove Colony Member",
+        "description": "Remove a user from a colony.\n\nRequires appropriate permissions (typically owner role).",
+        "operationId": "remove_colony_member_api_v1_colonies__colony_id__members__user_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/members/transfer-ownership": {
+      "post": {
+        "tags": [
+          "colony_users"
+        ],
+        "summary": "Transfer Colony Ownership",
+        "description": "Transfer colony ownership to another user.\n\nRequires owner-level permissions. The current owner is demoted to editor\nby default (can be disabled with demote_current=False).\n\nReturns:\n    Dictionary with new_owner and previous_owner user IDs.",
+        "operationId": "transfer_colony_ownership_api_v1_colonies__colony_id__members_transfer_ownership_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyOwnershipTransfer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Transfer Colony Ownership Api V1 Colonies  Colony Id  Members Transfer Ownership Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/export": {
+      "get": {
+        "tags": [
+          "export_import"
+        ],
+        "summary": "Export Colony",
+        "description": "Export a colony and all its related data to a JSON file.\n\nRequires edit permission in the colony. Returns a JSON file with:\n- Colony base data and modifiers\n- Representative (if assigned)\n- All events\n- All development plans\n- All colony users\n\nThe exported file can be imported later to restore the colony state.",
+        "operationId": "export_colony_api_v1_colonies__colony_id__export_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/import": {
+      "post": {
+        "tags": [
+          "export_import"
+        ],
+        "summary": "Import Colony",
+        "description": "Import a colony from a previously exported JSON file.\n\nThe JSON content should be provided in the request body.\nCreates a new colony with all related data (representative, events, development plans, users).\n\nReturns the ID of the newly created colony.",
+        "operationId": "import_colony_api_v1_colonies_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "File Content"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Import Colony Api V1 Colonies Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/stream": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Notification Stream",
+        "description": "Stream real-time notifications via Server-Sent Events.\n\nConnect to this endpoint to receive a stream of notifications about:\n- Colony changes\n- Event creation/updates/deletion\n- Development plan changes\n- Colony user changes\n\nThe connection will remain open and push notifications as they occur.\nClients should implement automatic reconnection logic.",
+        "operationId": "notification_stream_api_v1_notifications_stream_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/colonies/{colony_id}/infrastructure": {
+      "get": {
+        "tags": [
+          "infrastructure"
+        ],
+        "summary": "List Infrastructure",
+        "description": "List all infrastructure for a colony with pagination.",
+        "operationId": "list_infrastructure_api_v1_colonies__colony_id__infrastructure_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_InfrastructureListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "infrastructure"
+        ],
+        "summary": "Create Infrastructure",
+        "description": "Add new infrastructure to a colony.",
+        "operationId": "create_infrastructure_api_v1_colonies__colony_id__infrastructure_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfrastructureCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/infrastructure/{infrastructure_id}": {
+      "get": {
+        "tags": [
+          "infrastructure"
+        ],
+        "summary": "Get Infrastructure",
+        "description": "Get a specific infrastructure by ID.",
+        "operationId": "get_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "infrastructure_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Infrastructure Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "infrastructure"
+        ],
+        "summary": "Update Infrastructure",
+        "description": "Update infrastructure state.",
+        "operationId": "update_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "infrastructure_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Infrastructure Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfrastructureUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "infrastructure"
+        ],
+        "summary": "Delete Infrastructure",
+        "description": "Remove infrastructure from a colony.",
+        "operationId": "delete_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "infrastructure_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Infrastructure Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/representatives": {
+      "get": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "List Representatives",
+        "description": "List all representatives with pagination and filtering.\n\nReturns a paginated list of representatives. Use offset/limit for pagination.",
+        "operationId": "list_representatives_api_v1_representatives_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "available_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only show unassigned representatives",
+              "default": false,
+              "title": "Available Only"
+            },
+            "description": "Only show unassigned representatives"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RepresentativeType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by representative type",
+              "examples": [
+                "judge",
+                "cardinal",
+                "satrap"
+              ],
+              "title": "Type"
+            },
+            "description": "Filter by representative type"
+          },
+          {
+            "name": "name_search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name (case-insensitive substring match)",
+              "examples": [
+                "cardinal",
+                "valmar"
+              ],
+              "title": "Name Search"
+            },
+            "description": "Search by name (case-insensitive substring match)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_RepresentativeListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Create Representative",
+        "description": "Create a new representative.",
+        "operationId": "create_representative_api_v1_representatives_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepresentativeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/representatives/{rep_id}": {
+      "get": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Get Representative",
+        "description": "Get a representative by ID.",
+        "operationId": "get_representative_api_v1_representatives__rep_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rep_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rep Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Update Representative",
+        "description": "Update a representative (partial update).",
+        "operationId": "update_representative_api_v1_representatives__rep_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rep_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rep Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepresentativeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Delete Representative",
+        "description": "Delete a representative.",
+        "operationId": "delete_representative_api_v1_representatives__rep_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rep_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rep Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/representatives/{rep_id}/assign": {
+      "post": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Assign To Colony",
+        "description": "Assign a representative to a colony.",
+        "operationId": "assign_to_colony_api_v1_representatives__rep_id__assign_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rep_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rep Id"
+            }
+          },
+          {
+            "name": "colony_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/representatives/{rep_id}/unassign": {
+      "post": {
+        "tags": [
+          "representatives"
+        ],
+        "summary": "Unassign From Colony",
+        "description": "Unassign a representative from their colony.",
+        "operationId": "unassign_from_colony_api_v1_representatives__rep_id__unassign_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rep_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rep Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/modifiers": {
+      "get": {
+        "tags": [
+          "modifiers"
+        ],
+        "summary": "List All Modifiers",
+        "description": "List all modifiers across all colonies.",
+        "operationId": "list_all_modifiers_api_v1_modifiers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModifierResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List All Modifiers Api V1 Modifiers Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/modifiers/{modifier_id}": {
+      "get": {
+        "tags": [
+          "modifiers"
+        ],
+        "summary": "Get Modifier",
+        "description": "Get a specific modifier by ID (searches across all colonies).",
+        "operationId": "get_modifier_api_v1_modifiers__modifier_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "modifier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Modifier Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/resources": {
+      "get": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "List Resources",
+        "description": "List all planetary resources for a colony.",
+        "operationId": "list_resources_api_v1_colonies__colony_id__resources_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceListItem"
+                  },
+                  "title": "Response List Resources Api V1 Colonies  Colony Id  Resources Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Create Resource",
+        "description": "Add a new planetary resource to a colony.",
+        "operationId": "create_resource_api_v1_colonies__colony_id__resources_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/resources/{resource_id}": {
+      "get": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Get Resource",
+        "description": "Get a specific planetary resource by ID.",
+        "operationId": "get_resource_api_v1_colonies__colony_id__resources__resource_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Resource Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Update Resource",
+        "description": "Update a planetary resource's abundance or notes.",
+        "operationId": "update_resource_api_v1_colonies__colony_id__resources__resource_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Resource Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourceUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Delete Resource",
+        "description": "Remove a planetary resource from a colony.",
+        "operationId": "delete_resource_api_v1_colonies__colony_id__resources__resource_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Resource Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/upgrades": {
+      "get": {
+        "tags": [
+          "support_upgrades"
+        ],
+        "summary": "List Upgrades",
+        "description": "List all support upgrades for a colony with pagination.",
+        "operationId": "list_upgrades_api_v1_colonies__colony_id__upgrades_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of items to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of items to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_SupportUpgradeListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "support_upgrades"
+        ],
+        "summary": "Create Upgrade",
+        "description": "Add new support upgrade to a colony.",
+        "operationId": "create_upgrade_api_v1_colonies__colony_id__upgrades_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportUpgradeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportUpgradeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/upgrades/{upgrade_id}": {
+      "get": {
+        "tags": [
+          "support_upgrades"
+        ],
+        "summary": "Get Upgrade",
+        "description": "Get a specific support upgrade by ID.",
+        "operationId": "get_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "upgrade_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Upgrade Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportUpgradeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "support_upgrades"
+        ],
+        "summary": "Update Upgrade",
+        "description": "Update support upgrade.",
+        "operationId": "update_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "upgrade_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Upgrade Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportUpgradeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportUpgradeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "support_upgrades"
+        ],
+        "summary": "Delete Upgrade",
+        "description": "Remove support upgrade from a colony.",
+        "operationId": "delete_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "upgrade_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Upgrade Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List Users",
+        "description": "List all users with pagination.\n\nRequires admin privileges. Returns paginated list of users.\n\nRaises:\n    HTTPException: 403 if user is not an admin.",
+        "operationId": "list_users_api_v1_users_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Number of users to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Number of users to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of users to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of users to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Create User",
+        "description": "Create a new user.\n\nRequires admin privileges. Creates a new user account with the provided details.\nUsername and email are immutable after creation.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 400 if username or email already exists.",
+        "operationId": "create_user_api_v1_users_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User",
+        "description": "Get a specific user by ID.\n\nRequires admin privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 404 if user not found.",
+        "operationId": "get_user_api_v1_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update User",
+        "description": "Update a user.\n\nRequires admin privileges. Username and email are immutable.\nAdmins cannot modify other admins, and users cannot escalate their own privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.\n    HTTPException: 400 if validation fails.",
+        "operationId": "update_user_api_v1_users__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete User",
+        "description": "Delete a user (soft delete).\n\nRequires admin privileges. Sets is_active to False instead of hard deleting.\nAdmins cannot delete other admins.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
+        "operationId": "delete_user_api_v1_users__user_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/reset-password": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Reset Password",
+        "description": "Reset a user's password.\n\nRequires admin privileges. Sets a temporary password that the user\nmust change on next login.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
+        "operationId": "reset_password_api_v1_users__user_id__reset_password_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordReset"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/colony-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Colony Types",
+        "description": "Get list of available colony types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "operationId": "get_colony_types_api_v1_config_colony_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Colony Types Api V1 Config Colony Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/representative-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Representative Types",
+        "description": "Get list of available representative types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "operationId": "get_representative_types_api_v1_config_representative_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Representative Types Api V1 Config Representative Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/infrastructure-types": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Infrastructure Types",
+        "description": "Get list of infrastructure types with bonuses and costs.\n\nReturns data for dropdown menus and displaying bonus information.",
+        "operationId": "get_infrastructure_types_api_v1_config_infrastructure_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Infrastructure Types Api V1 Config Infrastructure Types Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/support-upgrades": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Support Upgrades",
+        "description": "Get list of support upgrades with bonuses and costs.\n\nReturns data for dropdown menus and displaying bonus information.",
+        "operationId": "get_support_upgrades_api_v1_config_support_upgrades_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Get Support Upgrades Api V1 Config Support Upgrades Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/profit-factor-table": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Profit Factor Table",
+        "description": "Get colony size to profit factor lookup table.\n\nReturns a mapping of colony size to base profit factor value.",
+        "operationId": "get_profit_factor_table_api_v1_config_profit_factor_table_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Get Profit Factor Table Api V1 Config Profit Factor Table Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/thresholds": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Thresholds",
+        "description": "Get threshold values for state transitions.\n\nReturns thresholds for Anarchy, Placated, Productive, Halted, Pious, Heretical states.",
+        "operationId": "get_thresholds_api_v1_config_thresholds_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Thresholds Api V1 Config Thresholds Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/growth-decay": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Growth Decay",
+        "description": "Get growth and decay rule configuration.\n\nReturns interval days for event and development rolls.",
+        "operationId": "get_growth_decay_api_v1_config_growth_decay_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Get Growth Decay Api V1 Config Growth Decay Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "root"
+        ],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuditLogResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "integer",
+            "title": "Entity Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "old_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Value"
+          },
+          "new_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Value"
+          },
+          "changed_by": {
+            "type": "integer",
+            "title": "Changed By"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Changed At"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "entity_type",
+          "entity_id",
+          "action",
+          "field",
+          "old_value",
+          "new_value",
+          "changed_by",
+          "changed_at",
+          "colony_id"
+        ],
+        "title": "AuditLogResponse",
+        "description": "Schema for audit log response."
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest",
+        "description": "Request schema for changing password."
+      },
+      "ColonyCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "owner": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Owner"
+          },
+          "colony_type": {
+            "$ref": "#/components/schemas/ColonyType"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "owner",
+          "colony_type"
+        ],
+        "title": "ColonyCreate",
+        "description": "Schema for creating a new colony."
+      },
+      "ColonyListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "colony_type": {
+            "$ref": "#/components/schemas/ColonyType"
+          },
+          "age_days": {
+            "type": "integer",
+            "title": "Age Days"
+          },
+          "current_size": {
+            "type": "integer",
+            "title": "Current Size"
+          },
+          "current_complacency": {
+            "type": "integer",
+            "title": "Current Complacency"
+          },
+          "current_order": {
+            "type": "integer",
+            "title": "Current Order"
+          },
+          "current_productivity": {
+            "type": "integer",
+            "title": "Current Productivity"
+          },
+          "current_piety": {
+            "type": "integer",
+            "title": "Current Piety"
+          },
+          "profit_factor": {
+            "type": "integer",
+            "title": "Profit Factor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "owner",
+          "colony_type",
+          "age_days",
+          "current_size",
+          "current_complacency",
+          "current_order",
+          "current_productivity",
+          "current_piety",
+          "profit_factor"
+        ],
+        "title": "ColonyListItem",
+        "description": "Summary information for colony list."
+      },
+      "ColonyOwnershipTransfer": {
+        "properties": {
+          "new_owner_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "New Owner Id",
+            "description": "User ID of the new owner"
+          },
+          "demote_current": {
+            "type": "boolean",
+            "title": "Demote Current",
+            "description": "Whether to demote current owner to editor",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_owner_id"
+        ],
+        "title": "ColonyOwnershipTransfer",
+        "description": "Request schema for transferring colony ownership."
+      },
+      "ColonyResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "colony_type": {
+            "$ref": "#/components/schemas/ColonyType"
+          },
+          "age_days": {
+            "type": "integer",
+            "title": "Age Days"
+          },
+          "age_last_updated": {
+            "type": "string",
+            "format": "date",
+            "title": "Age Last Updated"
+          },
+          "current_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Event"
+          },
+          "base_complacency": {
+            "type": "integer",
+            "title": "Base Complacency"
+          },
+          "base_order": {
+            "type": "integer",
+            "title": "Base Order"
+          },
+          "base_productivity": {
+            "type": "integer",
+            "title": "Base Productivity"
+          },
+          "base_piety": {
+            "type": "integer",
+            "title": "Base Piety"
+          },
+          "base_size": {
+            "type": "integer",
+            "title": "Base Size"
+          },
+          "representative_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Representative Id"
+          },
+          "dynasty_outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DynastyOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complacency_locked": {
+            "type": "boolean",
+            "title": "Complacency Locked"
+          },
+          "order_locked": {
+            "type": "boolean",
+            "title": "Order Locked"
+          },
+          "productivity_locked": {
+            "type": "boolean",
+            "title": "Productivity Locked"
+          },
+          "planetary_resources": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceType"
+            },
+            "type": "array",
+            "title": "Planetary Resources"
+          },
+          "state": {
+            "$ref": "#/components/schemas/ColonyStateNested"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "owner",
+          "colony_type",
+          "age_days",
+          "age_last_updated",
+          "current_event",
+          "base_complacency",
+          "base_order",
+          "base_productivity",
+          "base_piety",
+          "base_size",
+          "representative_id",
+          "dynasty_outcome",
+          "complacency_locked",
+          "order_locked",
+          "productivity_locked",
+          "planetary_resources",
+          "state"
+        ],
+        "title": "ColonyResponse",
+        "description": "Full colony response with computed state."
+      },
+      "ColonyRollStatus": {
+        "properties": {
+          "event_roll_due": {
+            "type": "boolean",
+            "title": "Event Roll Due"
+          },
+          "development_roll_due": {
+            "type": "boolean",
+            "title": "Development Roll Due"
+          },
+          "days_since_event_roll": {
+            "type": "integer",
+            "title": "Days Since Event Roll"
+          },
+          "days_until_event_roll": {
+            "type": "integer",
+            "title": "Days Until Event Roll"
+          },
+          "days_since_development_roll": {
+            "type": "integer",
+            "title": "Days Since Development Roll"
+          },
+          "days_until_development_roll": {
+            "type": "integer",
+            "title": "Days Until Development Roll"
+          },
+          "event_interval_days": {
+            "type": "integer",
+            "title": "Event Interval Days"
+          },
+          "development_interval_days": {
+            "type": "integer",
+            "title": "Development Interval Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_roll_due",
+          "development_roll_due",
+          "days_since_event_roll",
+          "days_until_event_roll",
+          "days_since_development_roll",
+          "days_until_development_roll",
+          "event_interval_days",
+          "development_interval_days"
+        ],
+        "title": "ColonyRollStatus",
+        "description": "Response schema for colony roll status."
+      },
+      "ColonyStateNested": {
+        "properties": {
+          "size": {
+            "$ref": "#/components/schemas/ColonyStateStat"
+          },
+          "complacency": {
+            "$ref": "#/components/schemas/ColonyStateStat"
+          },
+          "order": {
+            "$ref": "#/components/schemas/ColonyStateStat"
+          },
+          "productivity": {
+            "$ref": "#/components/schemas/ColonyStateStat"
+          },
+          "piety": {
+            "$ref": "#/components/schemas/ColonyStateStat"
+          },
+          "leadership_modifier": {
+            "type": "integer",
+            "title": "Leadership Modifier"
+          },
+          "profit_factor": {
+            "type": "integer",
+            "title": "Profit Factor"
+          },
+          "lore_state": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Lore State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "size",
+          "complacency",
+          "order",
+          "productivity",
+          "piety",
+          "leadership_modifier",
+          "profit_factor",
+          "lore_state"
+        ],
+        "title": "ColonyStateNested",
+        "description": "Nested colony state structure."
+      },
+      "ColonyStateStat": {
+        "properties": {
+          "base": {
+            "type": "integer",
+            "title": "Base"
+          },
+          "current": {
+            "type": "integer",
+            "title": "Current"
+          },
+          "lore_state": {
+            "type": "string",
+            "title": "Lore State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "base",
+          "current",
+          "lore_state"
+        ],
+        "title": "ColonyStateStat",
+        "description": "Nested stat information with base, current, and lore state."
+      },
+      "ColonyType": {
+        "type": "string",
+        "enum": [
+          "research_mission",
+          "mining_and_industry",
+          "ecclesiastical",
+          "agricultural"
+        ],
+        "title": "ColonyType",
+        "description": "Colony archetypes defining starting characteristics and specializations.\n\nPer colony_types.yaml - note that MINING and INDUSTRY were merged into\nMINING_AND_INDUSTRY per GM ruling."
+      },
+      "ColonyUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "age_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Days"
+          },
+          "current_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Event"
+          }
+        },
+        "type": "object",
+        "title": "ColonyUpdate",
+        "description": "Schema for updating a colony (partial update)."
+      },
+      "ColonyUserCreate": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ColonyUserRoleEnum",
+            "default": "viewer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "ColonyUserCreate",
+        "description": "Schema for creating a colony-user membership."
+      },
+      "ColonyUserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joined At"
+          },
+          "invited_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invited By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "user_id",
+          "role",
+          "joined_at",
+          "invited_by"
+        ],
+        "title": "ColonyUserResponse",
+        "description": "Schema for colony-user membership response."
+      },
+      "ColonyUserRoleEnum": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "editor",
+          "viewer"
+        ],
+        "title": "ColonyUserRoleEnum",
+        "description": "Enum for colony user roles."
+      },
+      "ColonyUserUpdate": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ColonyUserRoleEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "ColonyUserUpdate",
+        "description": "Schema for updating a colony-user membership."
+      },
+      "DevelopmentPlanCreate": {
+        "properties": {
+          "upgrade_type": {
+            "type": "string",
+            "pattern": "^(infrastructure|support_upgrade)$",
+            "title": "Upgrade Type"
+          },
+          "target_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Type"
+          },
+          "target_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Name"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "default": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Notes",
+            "default": ""
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "upgrade_type",
+          "target_type",
+          "target_name",
+          "description"
+        ],
+        "title": "DevelopmentPlanCreate",
+        "description": "Schema for creating a development plan."
+      },
+      "DevelopmentPlanResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "upgrade_type": {
+            "type": "string",
+            "title": "Upgrade Type"
+          },
+          "target_type": {
+            "type": "string",
+            "title": "Target Type"
+          },
+          "target_name": {
+            "type": "string",
+            "title": "Target Name"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_by": {
+            "type": "integer",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "upgrade_type",
+          "target_type",
+          "target_name",
+          "priority",
+          "description",
+          "notes",
+          "order",
+          "status",
+          "created_by",
+          "created_at"
+        ],
+        "title": "DevelopmentPlanResponse",
+        "description": "Schema for development plan response."
+      },
+      "DevelopmentPlanStatusEnum": {
+        "type": "string",
+        "enum": [
+          "planned",
+          "in_progress",
+          "acquired",
+          "delivered"
+        ],
+        "title": "DevelopmentPlanStatusEnum",
+        "description": "Enum for development plan status."
+      },
+      "DevelopmentPlanUpdate": {
+        "properties": {
+          "upgrade_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(infrastructure|support_upgrade)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Type"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
+          },
+          "target_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Name"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentPlanStatusEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "DevelopmentPlanUpdate",
+        "description": "Schema for updating a development plan."
+      },
+      "DynastyOutcome": {
+        "type": "string",
+        "enum": [
+          "that_one_has_potential",
+          "one_to_keep_an_eye_on",
+          "thrilling_heroics",
+          "come_on_its_just_a_grox",
+          "you_built_the_palace_on_a_volcano"
+        ],
+        "title": "DynastyOutcome",
+        "description": "Consequences of Nepotism for Dynasty Member representatives."
+      },
+      "EventCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/EventModifierCreate"
+            },
+            "type": "array",
+            "title": "Modifiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "EventCreate",
+        "description": "Schema for creating an event."
+      },
+      "EventModifierCreate": {
+        "properties": {
+          "stat": {
+            "$ref": "#/components/schemas/ModifierStat"
+          },
+          "value": {
+            "type": "integer",
+            "title": "Value"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stat",
+          "value",
+          "description"
+        ],
+        "title": "EventModifierCreate",
+        "description": "Schema for creating an event modifier."
+      },
+      "EventModifierResponse": {
+        "properties": {
+          "stat": {
+            "$ref": "#/components/schemas/ModifierStat"
+          },
+          "value": {
+            "type": "integer",
+            "title": "Value"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stat",
+          "value",
+          "description"
+        ],
+        "title": "EventModifierResponse",
+        "description": "Schema for event modifier response."
+      },
+      "EventResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "created_by": {
+            "type": "integer",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/EventModifierResponse"
+            },
+            "type": "array",
+            "title": "Modifiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "name",
+          "description",
+          "created_by",
+          "created_at",
+          "is_active",
+          "modifiers"
+        ],
+        "title": "EventResponse",
+        "description": "Schema for event response."
+      },
+      "EventUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "EventUpdate",
+        "description": "Schema for updating an event."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InfrastructureCreate": {
+        "properties": {
+          "infrastructure_type": {
+            "$ref": "#/components/schemas/InfrastructureType"
+          },
+          "state": {
+            "$ref": "#/components/schemas/InfrastructureState",
+            "default": "planned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "infrastructure_type"
+        ],
+        "title": "InfrastructureCreate",
+        "description": "Schema for creating new infrastructure."
+      },
+      "InfrastructureListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "infrastructure_type": {
+            "$ref": "#/components/schemas/InfrastructureType"
+          },
+          "state": {
+            "$ref": "#/components/schemas/InfrastructureState"
+          },
+          "has_effect": {
+            "type": "boolean",
+            "title": "Has Effect"
+          },
+          "is_working": {
+            "type": "boolean",
+            "title": "Is Working"
+          },
+          "is_not_working": {
+            "type": "boolean",
+            "title": "Is Not Working"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "infrastructure_type",
+          "state",
+          "has_effect",
+          "is_working",
+          "is_not_working"
+        ],
+        "title": "InfrastructureListItem",
+        "description": "Summary information for infrastructure list."
+      },
+      "InfrastructureResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "infrastructure_type": {
+            "$ref": "#/components/schemas/InfrastructureType"
+          },
+          "state": {
+            "$ref": "#/components/schemas/InfrastructureState"
+          },
+          "has_effect": {
+            "type": "boolean",
+            "title": "Has Effect"
+          },
+          "is_working": {
+            "type": "boolean",
+            "title": "Is Working"
+          },
+          "is_not_working": {
+            "type": "boolean",
+            "title": "Is Not Working"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "infrastructure_type",
+          "state",
+          "has_effect",
+          "is_working",
+          "is_not_working"
+        ],
+        "title": "InfrastructureResponse",
+        "description": "Full infrastructure response."
+      },
+      "InfrastructureState": {
+        "type": "string",
+        "enum": [
+          "planned",
+          "in_progress",
+          "working",
+          "needed",
+          "not_working"
+        ],
+        "title": "InfrastructureState",
+        "description": "State of infrastructure installation/operation.\n\nPer colony-manager-rules-reference.md:\n- planned: Not yet installed, no mechanical effect\n- in_progress: Currently being installed, no mechanical effect\n- working: Operational, bonuses apply\n- needed: Required but not yet built, counts toward missing infrastructure penalty"
+      },
+      "InfrastructureType": {
+        "type": "string",
+        "enum": [
+          "transport",
+          "power_network",
+          "water_management",
+          "food_production",
+          "communications"
+        ],
+        "title": "InfrastructureType",
+        "description": "Hard Infrastructure types - physical systems required for colony survival."
+      },
+      "InfrastructureUpdate": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InfrastructureState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "InfrastructureUpdate",
+        "description": "Schema for updating infrastructure (partial update)."
+      },
+      "InstallationResult": {
+        "properties": {
+          "plan_id": {
+            "type": "integer",
+            "title": "Plan Id"
+          },
+          "plan_name": {
+            "type": "string",
+            "title": "Plan Name"
+          },
+          "plan_target_type": {
+            "type": "string",
+            "title": "Plan Target Type"
+          },
+          "installed_type": {
+            "type": "string",
+            "title": "Installed Type"
+          },
+          "installed_id": {
+            "type": "integer",
+            "title": "Installed Id"
+          },
+          "installed_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Installed Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "plan_name",
+          "plan_target_type",
+          "installed_type",
+          "installed_id",
+          "installed_data"
+        ],
+        "title": "InstallationResult",
+        "description": "Response for installing a development plan."
+      },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Request schema for user login."
+      },
+      "ModifierCategory": {
+        "type": "string",
+        "enum": [
+          "permanent",
+          "conditional",
+          "custom"
+        ],
+        "title": "ModifierCategory",
+        "description": "Category of modifier for tracking and filtering purposes."
+      },
+      "ModifierCreate": {
+        "properties": {
+          "modifier_source_type": {
+            "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "modifier_category": {
+            "$ref": "#/components/schemas/ModifierCategory"
+          },
+          "modifier_stat": {
+            "$ref": "#/components/schemas/ModifierStat"
+          },
+          "modifier_value": {
+            "type": "integer",
+            "title": "Modifier Value"
+          },
+          "modifier_description": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Modifier Description",
+            "default": ""
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modifier_source_type",
+          "modifier_category",
+          "modifier_stat",
+          "modifier_value"
+        ],
+        "title": "ModifierCreate",
+        "description": "Schema for creating a new modifier."
+      },
+      "ModifierResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "modifier_source_type": {
+            "$ref": "#/components/schemas/ModifierSourceType"
+          },
+          "modifier_category": {
+            "$ref": "#/components/schemas/ModifierCategory"
+          },
+          "modifier_stat": {
+            "$ref": "#/components/schemas/ModifierStat"
+          },
+          "modifier_value": {
+            "type": "integer",
+            "title": "Modifier Value"
+          },
+          "modifier_description": {
+            "type": "string",
+            "title": "Modifier Description"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "modifier_source_type",
+          "modifier_category",
+          "modifier_stat",
+          "modifier_value",
+          "modifier_description",
+          "is_active"
+        ],
+        "title": "ModifierResponse",
+        "description": "Full modifier response."
+      },
+      "ModifierSourceType": {
+        "type": "string",
+        "enum": [
+          "gm_custom",
+          "growth_decay",
+          "representative_leadership",
+          "resource",
+          "infrastructure",
+          "support_upgrade"
+        ],
+        "title": "ModifierSourceType"
+      },
+      "ModifierStat": {
+        "type": "string",
+        "enum": [
+          "size",
+          "complacency",
+          "order",
+          "productivity",
+          "piety",
+          "profit_factor"
+        ],
+        "title": "ModifierStat"
+      },
+      "ModifierUpdate": {
+        "properties": {
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "modifier_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modifier Description"
+          }
+        },
+        "type": "object",
+        "title": "ModifierUpdate",
+        "description": "Schema for updating a modifier (partial update)."
+      },
+      "PaginatedResponse_ColonyListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ColonyListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[ColonyListItem]"
+      },
+      "PaginatedResponse_InfrastructureListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[InfrastructureListItem]"
+      },
+      "PaginatedResponse_RepresentativeListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RepresentativeListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[RepresentativeListItem]"
+      },
+      "PaginatedResponse_SupportUpgradeListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SupportUpgradeListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[SupportUpgradeListItem]"
+      },
+      "PaginationMeta": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "offset",
+          "limit",
+          "has_more"
+        ],
+        "title": "PaginationMeta",
+        "description": "Pagination metadata."
+      },
+      "Personality": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "stat_effects": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalityEffect"
+            },
+            "type": "array",
+            "title": "Stat Effects"
+          },
+          "calamitous_modifier": {
+            "type": "integer",
+            "title": "Calamitous Modifier",
+            "default": 0
+          },
+          "special_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "Personality",
+        "description": "Representative personality template with mechanical effects.\n\nThis is the template definition loaded from config/personalities.yaml.\nPersonalities are assigned directly to Representatives as Personality\nobjects. Variable effects (Mad's Order penalty, Scholarly/Ties With...\nstat choices) are handled via Custom Modifiers applied by the GM rather\nthan tracked in the domain model."
+      },
+      "PersonalityCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "effect": {
+            "type": "string",
+            "title": "Effect",
+            "default": ""
+          },
+          "calamitous_modifier": {
+            "type": "integer",
+            "title": "Calamitous Modifier",
+            "default": 0
+          },
+          "special_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "PersonalityCreate",
+        "description": "Schema for creating a personality with simplified effect string."
+      },
+      "PersonalityEffect": {
+        "properties": {
+          "stat": {
+            "type": "string",
+            "title": "Stat"
+          },
+          "value": {
+            "type": "integer",
+            "title": "Value"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choices"
+          },
+          "dice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stat",
+          "value"
+        ],
+        "title": "PersonalityEffect",
+        "description": "A single stat effect from a personality."
+      },
+      "RefreshTokenRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshTokenRequest",
+        "description": "Request schema for refreshing access token."
+      },
+      "RegisterRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest",
+        "description": "Request schema for user registration."
+      },
+      "RepresentativeCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RepresentativeType"
+          },
+          "personalities": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalityCreate"
+            },
+            "type": "array",
+            "title": "Personalities",
+            "description": "List of 1-4 personalities. Count limit depends on 'Quite a Character' position."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/RepresentativeStatsCreate"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "talents": {
+            "items": {
+              "$ref": "#/components/schemas/Talent"
+            },
+            "type": "array",
+            "title": "Talents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type",
+          "stats"
+        ],
+        "title": "RepresentativeCreate",
+        "description": "Schema for creating a new representative.\n\nPersonality count rules (per Rogue Trader Table 3-6):\n- Base limit: 2 personalities maximum\n- If 'Quite a Character' is first (index 0): limit increases to 4\n- If 'Quite a Character' is second (index 1): limit increases to 3\n- Minimum: 1 personality required"
+      },
+      "RepresentativeListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RepresentativeType"
+          },
+          "leadership_modifier": {
+            "type": "integer",
+            "title": "Leadership Modifier"
+          },
+          "assigned_to_colony_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To Colony Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "leadership_modifier",
+          "assigned_to_colony_id"
+        ],
+        "title": "RepresentativeListItem",
+        "description": "Summary information for representative list."
+      },
+      "RepresentativeResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RepresentativeType"
+          },
+          "personalities": {
+            "items": {
+              "$ref": "#/components/schemas/Personality"
+            },
+            "type": "array",
+            "title": "Personalities"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/RepresentativeStatsCreate"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "talents": {
+            "items": {
+              "$ref": "#/components/schemas/Talent"
+            },
+            "type": "array",
+            "title": "Talents"
+          },
+          "leadership_modifier": {
+            "type": "integer",
+            "title": "Leadership Modifier"
+          },
+          "assigned_to_colony_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To Colony Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "personalities",
+          "stats",
+          "skills",
+          "talents",
+          "leadership_modifier",
+          "assigned_to_colony_id"
+        ],
+        "title": "RepresentativeResponse",
+        "description": "Full representative response."
+      },
+      "RepresentativeStatsCreate": {
+        "properties": {
+          "ws": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Ws"
+          },
+          "bs": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Bs"
+          },
+          "s": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "S"
+          },
+          "t": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "T"
+          },
+          "ag": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Ag"
+          },
+          "int": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Int"
+          },
+          "per": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Per"
+          },
+          "wp": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Wp"
+          },
+          "fel": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Fel"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ws",
+          "bs",
+          "s",
+          "t",
+          "ag",
+          "int",
+          "per",
+          "wp",
+          "fel"
+        ],
+        "title": "RepresentativeStatsCreate",
+        "description": "Schema for creating representative stats."
+      },
+      "RepresentativeType": {
+        "type": "string",
+        "enum": [
+          "satrap",
+          "judge",
+          "cardinal",
+          "colonist_representative",
+          "military_commander",
+          "dynasty_member"
+        ],
+        "title": "RepresentativeType"
+      },
+      "RepresentativeUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "personalities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PersonalityCreate"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personalities"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepresentativeStatsCreate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skills": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Skill"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skills"
+          },
+          "talents": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Talent"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Talents"
+          }
+        },
+        "type": "object",
+        "title": "RepresentativeUpdate",
+        "description": "Schema for updating a representative (partial update)."
+      },
+      "ResourceCreate": {
+        "properties": {
+          "resource_type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "abundance": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Abundance"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource_type",
+          "name",
+          "abundance"
+        ],
+        "title": "ResourceCreate",
+        "description": "Schema for creating a new planetary resource."
+      },
+      "ResourceListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "resource_type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "abundance": {
+            "type": "integer",
+            "title": "Abundance"
+          },
+          "abundance_level": {
+            "type": "string",
+            "title": "Abundance Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "resource_type",
+          "abundance",
+          "abundance_level"
+        ],
+        "title": "ResourceListItem",
+        "description": "Summary information for resource list."
+      },
+      "ResourceResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "resource_type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "abundance": {
+            "type": "integer",
+            "title": "Abundance"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          },
+          "discovered_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Discovered Date"
+          },
+          "abundance_level": {
+            "type": "string",
+            "title": "Abundance Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "resource_type",
+          "name",
+          "abundance",
+          "notes",
+          "discovered_date",
+          "abundance_level"
+        ],
+        "title": "ResourceResponse",
+        "description": "Full resource response with computed fields."
+      },
+      "ResourceType": {
+        "type": "string",
+        "enum": [
+          "mineral",
+          "organic_compound",
+          "archeotech_cache",
+          "xenos_ruins"
+        ],
+        "title": "ResourceType",
+        "description": "Planetary resource types that colonies can exploit.\n\nPer Rogue Trader Colony Rules, different colony types gain bonuses\nwhen exploiting specific resource types."
+      },
+      "ResourceUpdate": {
+        "properties": {
+          "abundance": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abundance"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "ResourceUpdate",
+        "description": "Schema for updating a planetary resource (partial update)."
+      },
+      "Skill": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "level": {
+            "$ref": "#/components/schemas/SkillLevel"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "level",
+          "description"
+        ],
+        "title": "Skill"
+      },
+      "SkillLevel": {
+        "type": "string",
+        "enum": [
+          "known",
+          "+10",
+          "+20",
+          "+30"
+        ],
+        "title": "SkillLevel"
+      },
+      "SupportUpgradeCreate": {
+        "properties": {
+          "upgrade_type": {
+            "$ref": "#/components/schemas/SupportUpgradeType"
+          },
+          "custom_stat_choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModifierStat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_product": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Product"
+          },
+          "affiliated_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliated Group"
+          }
+        },
+        "type": "object",
+        "required": [
+          "upgrade_type"
+        ],
+        "title": "SupportUpgradeCreate",
+        "description": "Schema for creating new support upgrade."
+      },
+      "SupportUpgradeListItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "upgrade_type": {
+            "$ref": "#/components/schemas/SupportUpgradeType"
+          },
+          "custom_stat_choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModifierStat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_product": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Product"
+          },
+          "affiliated_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliated Group"
+          },
+          "has_stat_effect": {
+            "type": "boolean",
+            "title": "Has Stat Effect"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "upgrade_type",
+          "custom_stat_choice",
+          "custom_product",
+          "affiliated_group",
+          "has_stat_effect"
+        ],
+        "title": "SupportUpgradeListItem",
+        "description": "Summary information for support upgrade list."
+      },
+      "SupportUpgradeResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "colony_id": {
+            "type": "integer",
+            "title": "Colony Id"
+          },
+          "upgrade_type": {
+            "$ref": "#/components/schemas/SupportUpgradeType"
+          },
+          "custom_stat_choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModifierStat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_product": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Product"
+          },
+          "affiliated_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliated Group"
+          },
+          "has_stat_effect": {
+            "type": "boolean",
+            "title": "Has Stat Effect"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "colony_id",
+          "upgrade_type",
+          "custom_stat_choice",
+          "custom_product",
+          "affiliated_group",
+          "has_stat_effect"
+        ],
+        "title": "SupportUpgradeResponse",
+        "description": "Full support upgrade response."
+      },
+      "SupportUpgradeType": {
+        "type": "string",
+        "enum": [
+          "arbites_precinct",
+          "ecclesiarchy_mission",
+          "mechanicum_station",
+          "infantry_garrison",
+          "imperial_navy_station",
+          "cultural_improvement",
+          "industrial_facility",
+          "personal_lodgings",
+          "contacts",
+          "trappings"
+        ],
+        "title": "SupportUpgradeType",
+        "description": "Support (Soft) Upgrades - non-essential but valuable additions."
+      },
+      "SupportUpgradeUpdate": {
+        "properties": {
+          "custom_stat_choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModifierStat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_product": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Product"
+          },
+          "affiliated_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliated Group"
+          }
+        },
+        "type": "object",
+        "title": "SupportUpgradeUpdate",
+        "description": "Schema for updating support upgrade (partial update)."
+      },
+      "Talent": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "Talent"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "default": 1800
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token"
+        ],
+        "title": "TokenResponse",
+        "description": "Response schema for token endpoints."
+      },
+      "TokenRevokeAllRequest": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id",
+            "description": "Target user ID (admin only). If omitted, revokes own tokens."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Optional reason for revocation"
+          }
+        },
+        "type": "object",
+        "title": "TokenRevokeAllRequest",
+        "description": "Request schema for revoking all user tokens."
+      },
+      "TokenRevokeRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Optional reason for revocation"
+          }
+        },
+        "type": "object",
+        "title": "TokenRevokeRequest",
+        "description": "Request schema for token revocation (logout)."
+      },
+      "TokenRevokeResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "tokens_revoked": {
+            "type": "integer",
+            "title": "Tokens Revoked",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "TokenRevokeResponse",
+        "description": "Response schema for token revocation."
+      },
+      "UserCreate": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username",
+            "description": "Username (immutable after creation)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email address (immutable after creation)"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "description": "Initial password"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role: viewer, colony_manager, or admin",
+            "default": "viewer"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Whether the user account is active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "title": "UserCreate",
+        "description": "Request schema for creating a new user (admin only)."
+      },
+      "UserListResponse": {
+        "properties": {
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
+            },
+            "type": "array",
+            "title": "Users"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "users",
+          "total",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "title": "UserListResponse",
+        "description": "Response schema for listing users with pagination."
+      },
+      "UserPasswordReset": {
+        "properties": {
+          "temporary_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Temporary Password",
+            "description": "Temporary password to set"
+          }
+        },
+        "type": "object",
+        "required": [
+          "temporary_password"
+        ],
+        "title": "UserPasswordReset",
+        "description": "Request schema for admin password reset."
+      },
+      "UserUpdate": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "User role: viewer, colony_manager, or admin"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "Whether the user account is active"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate",
+        "description": "Request schema for updating a user (admin only).\n\nNote: username and email are immutable. Only role and is_active can be updated.\nColony membership is managed separately via the /colonies/{colony_id}/members endpoints."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "colony_manager__adapters__api__schemas__auth__UserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "is_active"
+        ],
+        "title": "UserResponse",
+        "description": "Response schema for user information (excludes sensitive data)."
+      },
+      "colony_manager__adapters__api__schemas__user__UserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "is_active"
+        ],
+        "title": "UserResponse",
+        "description": "Response schema for user information (excludes sensitive data)."
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

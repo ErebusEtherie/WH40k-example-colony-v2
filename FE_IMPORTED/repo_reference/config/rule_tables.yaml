@@ -1,0 +1,98 @@
+# Core rule tables for colony calculations
+# Source: docs/colony-manager-rules-reference.md
+
+# =============================================================================
+# Size to Profit Factor lookup (per-size, not range-based)
+# Source: Rogue Trader Colony Rules - "Data" sheet
+# =============================================================================
+size_to_profit_factor:
+  - size: 0
+    profit_factor: 0
+    description: "Ghost Town"
+  - size: 1
+    profit_factor: 1
+    description: "Settlement"
+  - size: 2
+    profit_factor: 2
+    description: "Outpost"
+  - size: 3
+    profit_factor: 3
+    description: "Freehold"
+  - size: 4
+    profit_factor: 4
+    description: "Demesne"
+  - size: 5
+    profit_factor: 6
+    description: "Holding"
+  - size: 6
+    profit_factor: 8
+    description: "Dominion"
+  - size: 7
+    profit_factor: 10
+    description: "Territory"
+  - size: 8
+    profit_factor: 12
+    description: "City"
+  - size: 9
+    profit_factor: 14
+    description: "Metropolis"
+  - size: 10
+    profit_factor: 18
+    description: "Hive"
+
+# =============================================================================
+# Leadership Modifier (valid range 2-6 per game rules)
+# Source: Rogue Trader Colony Rules - "Leadership" section
+# Values outside this range are invalid (0-1: dead/incapacitated; 7+: impossible)
+# =============================================================================
+leadership_modifier:
+  - stat_bonus: 2
+    modifier: -2
+  - stat_bonus: 3
+    modifier: -1
+  - stat_bonus: 4
+    modifier: 0
+  - stat_bonus: 5
+    modifier: 1
+  - stat_bonus: 6
+    modifier: 2
+
+# =============================================================================
+# Lore Thresholds (reference labels for state resolution)
+# Source: Rogue Trader Colony Rules - Conditional States
+# Actual resolution logic is in domain/rules/lore_state_resolver.py
+# =============================================================================
+lore_thresholds:
+  complacency:
+    placated_threshold: "> size"
+    zero_state: "riots_and_unrest"
+    default: "stable"
+  order:
+    orderly_threshold: "> size"
+    zero_state: "anarchy"
+    default: "stable"
+  productivity:
+    productive_threshold: "> size"
+    zero_state: "halted"
+    default: "stable"
+  piety:
+    pious_threshold: "> size"
+    zero_state: "heretical"
+    default: "stable"
+
+# =============================================================================
+# Game Cycles (global intervals)
+# Source: Rogue Trader Colony Rules
+# =============================================================================
+game_cycles:
+  event_roll_interval_days: 60
+  development_roll_interval_days: 90
+
+# =============================================================================
+# PF State Bonuses
+# Source: Rogue Trader Colony Rules - Profit Factor Value Calculation
+# =============================================================================
+pf_state_bonuses:
+  placated: 1
+  productive: 2
+  orderly: 2
