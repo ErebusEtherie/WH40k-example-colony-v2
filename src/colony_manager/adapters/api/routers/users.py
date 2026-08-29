@@ -10,9 +10,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api.dependencies import get_user_service
 from colony_manager.adapters.api.middleware.permissions import require_admin
+from colony_manager.adapters.api.schemas.common import PaginatedResponse
 from colony_manager.adapters.api.schemas.user import (
     UserCreate,
-    UserListResponse,
+    UserListItem,
     UserPasswordReset,
     UserResponse,
     UserUpdate,
@@ -37,13 +38,13 @@ def _user_to_response(user: User) -> UserResponse:
     )
 
 
-@router.get("", response_model=UserListResponse)
+@router.get("", response_model=PaginatedResponse[UserListItem])
 async def list_users(
     current_user: Annotated[User, Depends(require_admin)],
     user_service: Annotated[UserService, Depends(get_user_service)],
     limit: Annotated[int, Query(ge=1, le=100, description="Number of users to return")] = 20,
     offset: Annotated[int, Query(ge=0, description="Number of users to skip")] = 0,
-) -> UserListResponse:
+) -> PaginatedResponse[UserListItem]:
     """List all users with pagination.
 
     Requires admin privileges. Returns paginated list of users.
@@ -62,14 +63,10 @@ async def list_users(
         )
 
     users, total = user_service.list_users(limit=limit, offset=offset)
-    has_more = (offset + limit) < total
 
-    return UserListResponse(
-        users=[_user_to_response(user) for user in users],
-        total=total,
-        limit=limit,
-        offset=offset,
-        has_more=has_more,
+    return PaginatedResponse(
+        items=[_user_to_response(user) for user in users],
+        meta={"total": total, "offset": offset, "limit": limit, "has_more": (offset + limit) < total},
     )
 
 

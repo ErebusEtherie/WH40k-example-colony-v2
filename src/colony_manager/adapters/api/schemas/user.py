@@ -5,6 +5,18 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 
+class UserListItem(BaseModel):
+    """Lightweight schema for user list items (excludes timestamps)."""
+
+    id: int
+    username: str
+    email: str
+    role: str
+    is_active: bool
+
+    model_config = {"from_attributes": True}
+
+
 class UserResponse(BaseModel):
     """Response schema for user information (excludes sensitive data)."""
 
@@ -50,13 +62,3 @@ class UserPasswordReset(BaseModel):
     temporary_password: str = Field(
         ..., min_length=8, max_length=128, description="Temporary password to set"
     )
-
-
-class UserListResponse(BaseModel):
-    """Response schema for listing users with pagination."""
-
-    users: list[UserResponse]
-    total: int
-    limit: int
-    offset: int
-    has_more: bool

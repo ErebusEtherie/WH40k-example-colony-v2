@@ -485,4 +485,46 @@ Added pagination support to remaining list endpoints that were using plain list 
 
 **Test Count:** 768 passed, 4 skipped (no new tests added, existing tests updated)
 
+---
+
+## Completed: API Response Standardization (2026-08-29)
+
+**Status:** ✅ COMPLETE — Standardized paginated response format across all list endpoints
+
+Standardized all paginated API endpoints to use consistent response format:
+
+### Users API
+- Updated `users.py` router: Changed from custom `UserListResponse` to `PaginatedResponse[UserListItem]`
+- Added `UserListItem` schema for lightweight list responses (excludes timestamps)
+- Updated 1 test to handle new paginated response format (`items` vs `users`, `meta` object)
+
+### Development Plans API
+- Confirmed `development_plans.py` router uses `PaginatedResponse[DevelopmentPlanResponse]`
+- Added `DevelopmentPlanListItem` schema for future optimization (currently using full response)
+- No test changes needed (already using paginated format)
+
+### Pattern Consistency
+All paginated endpoints now follow the standard pattern:
+- `PaginatedResponse[T]` return type with `items: list[T]` and `meta: PaginationMeta`
+- `PaginationMeta` with `total`, `offset`, `limit`, `has_more`, `total_pages` (computed)
+- `offset`/`limit` Query params with FastAPI validation (`ge=0`, `le=max`)
+- Lightweight `*ListItem` schemas for list endpoints where beneficial
+
+**Endpoints Standardized:**
+1. `/api/v1/colonies/{colony_id}/infrastructure` — `PaginatedResponse[InfrastructureListItem]`
+2. `/api/v1/colonies/{colony_id}/resources` — `PaginatedResponse[ResourceListItem]`
+3. `/api/v1/colonies/{colony_id}/modifiers` — `PaginatedResponse[ModifierListItem]`
+4. `/api/v1/colonies/{colony_id}/upgrades` — `PaginatedResponse[SupportUpgradeListItem]`
+5. `/api/v1/colonies/{colony_id}/audit-logs` — `PaginatedResponse[AuditLogListItem]`
+6. `/api/v1/colonies/{colony_id}/events` — `PaginatedResponse[EventListItem]`
+7. `/api/v1/colonies/{colony_id}/members` — `PaginatedResponse[ColonyUserListItem]`
+8. `/api/v1/colonies` — `PaginatedResponse[ColonyListItem]`
+9. `/api/v1/representatives` — `PaginatedResponse[RepresentativeListItem]`
+10. `/api/v1/users` — `PaginatedResponse[UserListItem]`
+11. `/api/v1/development-plans/colonies/{colony_id}` — `PaginatedResponse[DevelopmentPlanResponse]`
+
+**Test Count:** 768 passed, 4 skipped (all tests passing)
+
+**OpenAPI Documentation:** Updated `docs/api/openapi.json` with all endpoint signatures
+
 

@@ -9,6 +9,7 @@ from colony_manager.adapters.api.middleware.auth import get_current_user, requir
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.development_plan import (
     DevelopmentPlanCreate,
+    DevelopmentPlanListItem,
     DevelopmentPlanResponse,
     DevelopmentPlanStatusEnum,
     DevelopmentPlanUpdate,

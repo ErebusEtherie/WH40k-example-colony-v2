@@ -60,6 +60,22 @@ class DevelopmentPlanResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class DevelopmentPlanListItem(BaseModel):
+    """Lightweight schema for development plan list items."""
+
+    id: int
+    colony_id: int
+    upgrade_type: str
+    target_type: str
+    target_name: str
+    priority: int
+    order: int
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class InstallationResult(BaseModel):
     """Response for installing a development plan."""
 

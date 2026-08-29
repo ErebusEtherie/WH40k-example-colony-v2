@@ -150,11 +150,12 @@ class TestUsersAPI:
 
         if response.status_code == 200:
             data = response.json()
-            assert "users" in data
-            assert "total" in data
-            assert "limit" in data
-            assert "offset" in data
-            assert "has_more" in data
-            assert isinstance(data["users"], list)
-            assert data["limit"] == 5
-            assert data["offset"] == 0
+            assert "items" in data
+            assert "meta" in data
+            assert "total" in data["meta"]
+            assert "limit" in data["meta"]
+            assert "offset" in data["meta"]
+            assert "has_more" in data["meta"]
+            assert isinstance(data["items"], list)
+            assert data["meta"]["limit"] == 5
+            assert data["meta"]["offset"] == 0

@@ -12,6 +12,13 @@ from colony_manager.adapters.api.schemas.common import (
     MessageResponse,
     PaginatedResponse,
 )
+from colony_manager.adapters.api.schemas.development_plan import (
+    DevelopmentPlanCreate,
+    DevelopmentPlanListItem,
+    DevelopmentPlanResponse,
+    DevelopmentPlanUpdate,
+    InstallationResult,
+)
 from colony_manager.adapters.api.schemas.modifier import (
     ModifierCreate,
     ModifierResponse,
@@ -24,7 +31,7 @@ from colony_manager.adapters.api.schemas.representative import (
 )
 from colony_manager.adapters.api.schemas.user import (
     UserCreate,
-    UserListResponse,
+    UserListItem,
     UserPasswordReset,
     UserResponse,
     UserUpdate,
@@ -36,7 +43,12 @@ __all__ = [
     "ColonyResponse",
     "ColonyStateNested",
     "ColonyUpdate",
+    "DevelopmentPlanCreate",
+    "DevelopmentPlanListItem",
+    "DevelopmentPlanResponse",
+    "DevelopmentPlanUpdate",
     "ErrorResponse",
+    "InstallationResult",
     "MessageResponse",
     "ModifierCreate",
     "ModifierResponse",
@@ -46,7 +58,7 @@ __all__ = [
     "RepresentativeResponse",
     "RepresentativeUpdate",
     "UserCreate",
-    "UserListResponse",
+    "UserListItem",
     "UserPasswordReset",
     "UserResponse",
     "UserUpdate",

@@ -4058,7 +4058,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserListResponse"
+                  "$ref": "#/components/schemas/PaginatedResponse_UserListItem_"
                 }
               }
             }
@@ -6677,6 +6677,26 @@
         ],
         "title": "PaginatedResponse[SupportUpgradeListItem]"
       },
+      "PaginatedResponse_UserListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PaginatedResponse[UserListItem]"
+      },
       "PaginationMeta": {
         "properties": {
           "total": {
@@ -7976,42 +7996,39 @@
         "title": "UserCreate",
         "description": "Request schema for creating a new user (admin only)."
       },
-      "UserListResponse": {
+      "UserListItem": {
         "properties": {
-          "users": {
-            "items": {
-              "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
-            },
-            "type": "array",
-            "title": "Users"
-          },
-          "total": {
+          "id": {
             "type": "integer",
-            "title": "Total"
+            "title": "Id"
           },
-          "limit": {
-            "type": "integer",
-            "title": "Limit"
+          "username": {
+            "type": "string",
+            "title": "Username"
           },
-          "offset": {
-            "type": "integer",
-            "title": "Offset"
+          "email": {
+            "type": "string",
+            "title": "Email"
           },
-          "has_more": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
             "type": "boolean",
-            "title": "Has More"
+            "title": "Is Active"
           }
         },
         "type": "object",
         "required": [
-          "users",
-          "total",
-          "limit",
-          "offset",
-          "has_more"
+          "id",
+          "username",
+          "email",
+          "role",
+          "is_active"
         ],
-        "title": "UserListResponse",
-        "description": "Response schema for listing users with pagination."
+        "title": "UserListItem",
+        "description": "Lightweight schema for user list items (excludes timestamps)."
       },
       "UserPasswordReset": {
         "properties": {
