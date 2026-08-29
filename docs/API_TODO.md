@@ -196,6 +196,37 @@ class ColonyBase(BaseModel):
 
 ## Completed Enhancements
 
+### ✅ Phase 3: Authentication System
+
+**Status:** ✅ Complete (Phase 3 — 2026-08-29)
+
+**Endpoints Implemented:**
+- `POST /api/v1/auth/register` — Register new user with auto-login
+- `POST /api/v1/auth/login` — Authenticate and receive JWT tokens (httpOnly cookies)
+- `POST /api/v1/auth/refresh` — Refresh access token using refresh token
+- `POST /api/v1/auth/logout` — Revoke current access token
+- `POST /api/v1/auth/revoke-all` — Revoke all tokens for a user
+- `POST /api/v1/auth/change-password` — Change current user's password
+- `GET /api/v1/auth/me` — Get current user info
+
+**Features:**
+- httpOnly, secure cookies for token storage
+- Automatic token refresh (proactive at 25min + reactive on 401)
+- Promise-based refresh queue (no race conditions)
+- Role-based access control (admin, user, viewer)
+- Password complexity validation
+- Token blacklisting for revoked tokens
+- Login attempt tracking
+
+**Test Coverage:**
+- 777 backend tests passing (4 skipped)
+- 18 frontend tests passing
+- All code review issues resolved (6 fixes)
+
+**UI Impact:** Login/registration flows, session management, role-based UI
+
+---
+
 ### ✅ Colony State Roll Status
 
 **Endpoint:** `GET /api/v1/colonies/{id}/roll-status`
@@ -205,6 +236,8 @@ Returns days until next event/development roll (every 90 days).
 **Status:** ✅ Complete (Phase 3)  
 **UI Impact:** Dashboard - Event timer display
 
+---
+
 ### ✅ Modifier Endpoint
 
 **Endpoint:** `GET /api/v1/colonies/{id}/modifiers`
@@ -213,6 +246,8 @@ Returns all active modifiers affecting colony stats.
 
 **Status:** ✅ Complete (Phase 3)  
 **UI Impact:** Colony Details - Modifier breakdown
+
+---
 
 ### ✅ Development Plans
 
