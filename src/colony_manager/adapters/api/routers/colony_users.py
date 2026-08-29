@@ -97,6 +97,11 @@ def add_colony_member(
             role=ColonyUserRole(member_data.role),
             invited_by=current_user.id,
         )
+    except NotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

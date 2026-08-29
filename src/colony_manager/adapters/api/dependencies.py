@@ -222,9 +222,10 @@ def get_development_plan_service(
 def get_colony_user_service(
     membership_repository: Annotated[ColonyUserRepository, Depends(get_colony_user_repository)],
     audit_log_repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> ColonyUserService:
     """Get colony user service instance with dependencies."""
-    return ColonyUserService(membership_repository, audit_log_repository)
+    return ColonyUserService(membership_repository, audit_log_repository, user_repository)
 
 
 def get_token_blacklist_repository(

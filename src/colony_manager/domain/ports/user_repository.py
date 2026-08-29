@@ -37,7 +37,8 @@ class UserRepository(Protocol):
             user_id: User ID to retrieve
 
         Returns:
-            User if found, None otherwise
+            User if found, None otherwise. Does not raise NotFoundError for
+            missing users - callers should check for None return value.
         """
         ...
 

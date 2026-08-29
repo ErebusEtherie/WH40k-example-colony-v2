@@ -8,6 +8,7 @@ from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.colony_user import ColonyUser, ColonyUserRole
 from colony_manager.domain.ports.audit_log_repository import AuditLogRepository
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
+from colony_manager.domain.ports.user_repository import UserRepository
 
 
 class ColonyUserService:
@@ -20,9 +21,23 @@ class ColonyUserService:
         self,
         membership_repository: ColonyUserRepository,
         audit_log_repository: AuditLogRepository | None = None,
+        user_repository: UserRepository | None = None,
     ) -> None:
         self._membership_repository = membership_repository
         self._audit_log_repository = audit_log_repository
+        self._user_repository = user_repository
+
+    def _validate_user_exists(self, user_id: int) -> None:
+        """Validate that a user exists in the system.
+        
+        Args:
+            user_id: ID of the user to validate.
+            
+        Raises:
+            NotFoundError: If user does not exist.
+        """
+        if not self._user_repository.get_by_id(user_id):
+            raise NotFoundError(f"User {user_id} not found")
 
     def add_member(
         self,
@@ -43,8 +58,13 @@ class ColonyUserService:
             Created membership.
 
         Raises:
+            NotFoundError: If user does not exist.
             ValueError: If user is already a member.
         """
+        # Validate user exists before creating membership
+        if self._user_repository:
+            self._validate_user_exists(user_id)
+
         membership = ColonyUser(
             colony_id=colony_id,
             user_id=user_id,
@@ -187,11 +207,18 @@ class ColonyUserService:
             Tuple of (new_owner_membership, current_owner_membership_or_none).
 
         Raises:
-            NotFoundError: If either user is not a member of the colony.
+            NotFoundError: If either user does not exist or is not a member of the colony.
             ValueError: If new_owner_id is the same as current_owner_id.
         """
         if current_owner_id == new_owner_id:
             raise ValueError("Cannot transfer ownership to the same user")
+
+        # Validate both users exist before making any changes
+        if self._user_repository:
+            # Validate current owner first (they must exist to transfer)
+            self._validate_user_exists(current_owner_id)
+            # Validate new owner exists before attempting transfer
+            self._validate_user_exists(new_owner_id)
 
         # Get current owner's membership
         current_owner_membership = self._membership_repository.get_by_colony_and_user(

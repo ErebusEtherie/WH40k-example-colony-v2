@@ -1,7 +1,7 @@
 # Testing ToDo List
 
 **Last Updated:** 2026-08-29
-**Current Status:** 772 tests passing, 100% pass rate (4 skipped)
+**Current Status:** 777 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -528,4 +528,45 @@ All paginated endpoints now follow the standard pattern:
 **OpenAPI Documentation:** Updated `docs/api/openapi.json` with all endpoint signatures
 
 
+---
+
+## Completed: User Validation in ColonyUserService (2026-08-29)
+
+**Status:** ✅ COMPLETE — Enhanced validation and added 5 new tests
+
+### Changes Made
+
+1. **Extracted `_validate_user_exists()` method** in `ColonyUserService`:
+   - Private helper method to validate user existence
+   - Raises `NotFoundError` if user doesn't exist
+   - Used by `add_member()` and `transfer_ownership()`
+
+2. **Refactored `add_member()` method**:
+   - Now validates user exists before creating membership
+   - Validation is optional (only runs if `user_repository` is provided)
+   - Maintains backward compatibility
+   - Added 1 new test: `test_add_member_happy_path()`
+
+3. **Enhanced `transfer_ownership()` method**:
+   - Validates both current and new owner exist **before** any state changes
+   - Prevents orphaned colonies from invalid transfers
+   - Defense-in-depth: complements database foreign key constraints
+   - Added 4 new tests:
+     - `test_transfer_ownership_happy_path()` — successful transfer with demotion
+     - `test_transfer_ownership_nonexistent_new_owner()` — 404 on invalid user
+     - `test_transfer_ownership_same_user()` — 400 on self-transfer
+     - `test_transfer_ownership_without_demotion()` — transfer without demoting current owner
+
+### Test Coverage
+
+- **Total tests:** 777 (increased from 772)
+- **New tests:** 5 (1 for add_member, 4 for transfer_ownership)
+- **All tests passing:** ✅
+
+### Design Decisions
+
+- **Optional validation:** User validation only runs if `user_repository` is injected, maintaining backward compatibility
+- **Fail-fast approach:** `transfer_ownership()` validates both users before any mutations
+- **Error handling:** API router properly converts `NotFoundError` to HTTP 404 responses
+- **No abstraction overkill:** Simple private method instead of complex validation framework
 
