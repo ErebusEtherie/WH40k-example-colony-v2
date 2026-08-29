@@ -291,6 +291,10 @@ Phase 4 is complete when:
 - [Testing TODO](../TESTING_TODO.md) — Test coverage tracking
 - [API TODO](API_TODO.md) — API enhancement tracking
 - [Architecture Overview](../.clinerules/01-architecture.md) — System architecture
+- [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) — Step-by-step deployment guide
+- [Security Configuration](SECURITY_CONFIGURATION.md) — Security hardening guide
+- [Environment Template](../.env.example) — Environment variables reference
+- [Frontend Environment](../frontend/.env.example) — Frontend configuration reference
 
 ---
 
