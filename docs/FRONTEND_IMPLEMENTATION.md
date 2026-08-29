@@ -3,7 +3,7 @@
 ## Status: Phase 1 Complete ✅
 
 **Last Updated:** 2026-08-29  
-**Dev Server:** Running on http://localhost:5173/
+**Dev Server:** Running on <http://localhost:5173/>
 
 ---
 
@@ -16,6 +16,7 @@
    - Build verified successfully
 
 2. **Installed dependencies:**
+
    ```json
    {
      "@tanstack/react-query": "^5.102.8",
@@ -60,6 +61,46 @@
    - `noUnusedLocals: false`
    - `noUnusedParameters: false`
 
+### Testing Infrastructure ✅
+
+**Completed:** 2026-08-29
+
+1. **Installed testing dependencies:**
+   - `vitest` - Test runner (Vite-native)
+   - `@testing-library/react` - Component testing
+   - `@testing-library/jest-dom` - DOM matchers
+   - `@testing-library/user-event` - User interaction simulation
+   - `msw` - Mock Service Worker for API mocking
+   - `jsdom` - Browser environment for tests
+
+2. **Created test utilities:**
+   - `src/test/setup.ts` - Global test setup with MSW and cleanup
+   - `src/test/utils.tsx` - Custom render functions with QueryClientProvider
+   - `src/test/mocks/handlers.ts` - MSW request handlers mirroring API
+   - `src/test/mocks/server.ts` - MSW server instance
+
+3. **Created React Query hooks:**
+   - `src/api/useColonies.ts` - Colony CRUD operations
+   - `src/api/useModifiers.ts` - Modifier management
+   - `src/api/index.ts` - Hook exports
+
+4. **Created example tests (18 tests total, all passing):**
+   - `src/api/useColonies.test.ts` - 7 tests for colony hooks
+   - `src/api/useModifiers.test.ts` - 4 tests for modifier hooks
+   - `src/components/common/StateBadge.test.tsx` - 7 tests for StateBadge component
+
+5. **Test commands:**
+   ```bash
+   npm run test        # Run tests in watch mode
+   npm run test:run    # Run tests once
+   npm run test:coverage  # Run tests with coverage (when coverage configured)
+   ```
+
+6. **Testing approach:**
+   - Hooks are tested with mocked apiClient (vi.mock)
+   - Components are tested with React Testing Library
+   - MSW is available for integration-style tests
+   - Tests follow risk-based prioritization per `08-frontend-testing.md`
 ---
 
 ## Current Architecture
@@ -112,7 +153,9 @@ frontend/
 ## Next Steps (Phase 2: Backend Integration)
 
 ### Priority 1: React Query Hooks
+
 Create custom hooks in `src/hooks/` for API integration:
+
 - [ ] `useColonies()` - Fetch/list colonies
 - [ ] `useColony(id)` - Get single colony with full state
 - [ ] `useCreateColony()` - Create new colony
@@ -123,7 +166,9 @@ Create custom hooks in `src/hooks/` for API integration:
 - [ ] `useAuth()` - Authentication with JWT refresh
 
 ### Priority 2: Update App.tsx
+
 Refactor App.tsx to use React Query instead of localStorage state:
+
 - [ ] Replace `colonies` state with `useColonies()` hook
 - [ ] Replace `representatives` state with `useRepresentatives()` hook
 - [ ] Add error handling for API failures
@@ -131,12 +176,14 @@ Refactor App.tsx to use React Query instead of localStorage state:
 - [ ] Implement optimistic updates where appropriate
 
 ### Priority 3: Authentication Flow
+
 - [ ] Connect LoginScreen to FastAPI auth endpoints
 - [ ] Implement JWT token storage and refresh
 - [ ] Add auth interceptor to ApiClient
 - [ ] Handle 401 responses with redirect to login
 
 ### Priority 4: Testing
+
 - [ ] Verify dev server runs without errors
 - [ ] Test all modals open/close correctly
 - [ ] Test theme switching
@@ -160,18 +207,21 @@ Refactor App.tsx to use React Query instead of localStorage state:
 ## Running the Application
 
 ### Prerequisites
+
 - Node.js 18+ installed
 - Backend running on `http://localhost:8000`
 
 ### Start Frontend Dev Server
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-Access at: http://localhost:5173/
+Access at: <http://localhost:5173/>
 
 ### Build for Production
+
 ```bash
 npm run build
 npm run preview
@@ -182,6 +232,7 @@ npm run preview
 ## Design Reference
 
 See screenshots in project root for UI reference:
+
 - Login screen with Imperial aesthetic
 - Colony dashboard with "At a Glance" and "Colony Details" panels
 - Infrastructure management with status indicators
@@ -190,6 +241,7 @@ See screenshots in project root for UI reference:
 - Theme selector with 7 themes
 
 **Themes Available:**
+
 1. Mechanicus Amber (default)
 2. Canonical Mechanicum
 3. Darktide Forge
