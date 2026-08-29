@@ -176,9 +176,21 @@ class ColonyBase(BaseModel):
 - `GET /api/v1/colonies/{id}/export` → JSON/YAML file
 - `POST /api/v1/colonies/import` ← Upload file
 
-**Status:** ⚪ Future consideration  
+**Status:** ✅ Complete  
 **Phase:** Phase 6  
-**UI Impact:** Colony management - backup/restore features
+**Implementation:**
+- Added `ColonyExporter` and `ColonyImporter` classes in `adapters/io/`
+- Export endpoint returns JSON file with colony, representative, events, development plans, and colony users
+- Import endpoint validates file format, creates colony with all related data
+- Import handles multi-user scenarios: current user becomes owner, other users are looked up by username and added if they exist (skipped with warning if not found)
+- Roundtrip test validates export→import→export preserves all data
+- Added comprehensive tests including roundtrip validation
+
+**Endpoints:**
+- `GET /api/v1/colonies/{id}/export` - Export colony to JSON file
+- `POST /api/v1/colonies/import` - Import colony from JSON file
+
+**UI Impact:** Colony management - backup/restore features, colony sharing between GMs
 
 ---
 

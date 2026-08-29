@@ -1,7 +1,7 @@
 # Testing ToDo List
 
 **Last Updated:** 2026-08-29
-**Current Status:** 768 tests passing, 100% pass rate (4 skipped)
+**Current Status:** 772 tests passing, 100% pass rate (4 skipped)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -526,5 +526,6 @@ All paginated endpoints now follow the standard pattern:
 **Test Count:** 768 passed, 4 skipped (all tests passing)
 
 **OpenAPI Documentation:** Updated `docs/api/openapi.json` with all endpoint signatures
+
 
 

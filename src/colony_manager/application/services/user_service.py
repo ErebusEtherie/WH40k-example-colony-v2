@@ -58,6 +58,17 @@ class UserService:
         """
         return self._user_repository.get_by_id(user_id)
 
+    def get_user_by_username(self, username: str) -> User | None:
+        """Get a user by username.
+
+        Args:
+            username: Username to look up.
+
+        Returns:
+            User if found, None otherwise.
+        """
+        return self._user_repository.get_by_username(username)
+
     def create_user(
         self,
         username: str,

@@ -38,7 +38,7 @@ def domain_to_save_file(
     representative: Representative | None = None,
     events: list[Event] | None = None,
     development_plans: list[DevelopmentPlan] | None = None,
-    colony_users: list[ColonyUser] | None = None,
+    colony_users: list[ColonyUser] | list[SaveColonyUser] | None = None,
 ) -> ColonySaveFile:
     """Convert domain models to save file schema."""
     return ColonySaveFile(
@@ -71,7 +71,10 @@ def domain_to_save_file(
         else domain_to_save_representative(representative),
         events=[domain_to_save_event(e) for e in (events or [])],
         development_plans=[domain_to_save_plan(p) for p in (development_plans or [])],
-        colony_users=[domain_to_save_colony_user(u) for u in (colony_users or [])],
+        colony_users=[
+            u if isinstance(u, SaveColonyUser) else domain_to_save_colony_user(u)
+            for u in (colony_users or [])
+        ],
     )
 
 
