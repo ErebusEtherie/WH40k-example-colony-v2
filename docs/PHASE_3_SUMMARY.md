@@ -1,9 +1,11 @@
 # Phase 3: Authentication Flow - Implementation Complete
 
 ## Summary
+
 Implemented comprehensive authentication with httpOnly cookies, automatic token refresh, and role-based access.
 
 ## Technical Decisions (Confirmed)
+
 1. Token Storage: httpOnly cookies (security-first)
 2. Registration: Available in UI
 3. Role Mapping: admin→Arch Magos, user→Magos, viewer→Techpriest
@@ -11,6 +13,7 @@ Implemented comprehensive authentication with httpOnly cookies, automatic token 
 5. Session: 1h access token, 7-day refresh token
 
 ## Test Results
+
 - Backend: 777 tests PASSED
 - Frontend: 18 tests PASSED
 - Build: SUCCESS
@@ -32,44 +35,52 @@ Implemented comprehensive authentication with httpOnly cookies, automatic token 
 
 ### Security Improvements
 
-3. **getCurrentUser Error Logging** (`frontend/src/api/useAuth.ts`)
+1. **getCurrentUser Error Logging** (`frontend/src/api/useAuth.ts`)
    - Only returns null for 401/403 (expected auth errors)
    - Logs unexpected errors (500, network issues) for debugging
    - Throws non-auth errors for React Query retry handling
 
-4. **Relative Login Redirect** (`frontend/src/utils/apiClient.ts`)
+2. **Relative Login Redirect** (`frontend/src/utils/apiClient.ts`)
    - Changed from `/login` to `login` (relative path)
    - Works correctly when app deployed at sub-path
 
-5. **Production Security Warning** (`src/colony_manager/adapters/api/app.py`)
+3. **Production Security Warning** (`src/colony_manager/adapters/api/app.py`)
    - Logs warning if `cookie_secure=False` in production
    - Helps prevent accidental insecure deployments
 
 ### Code Cleanup
 
-6. **Removed No-Op Callback** (`frontend/src/App.tsx`, `LoginScreen.tsx`)
+1. **Removed No-Op Callback** (`frontend/src/App.tsx`, `LoginScreen.tsx`)
    - Removed unused `onLoginSuccess` prop
    - Navigation handled entirely by useAuth hook
 
 ## Files Changed (Code Review)
+
 Backend:
+
 - app.py (security warning on startup)
 
 Frontend:
+
 - apiClient.ts (Promise-based refresh, relative redirect)
 - useAuth.ts (error logging)
 - LoginScreen.tsx (registration error handling, removed onLoginSuccess)
 - App.tsx (removed onLoginSuccess prop)
 
 Tests:
+
 - tests/adapters/api/test_auth.py (added init_rule_config_provider call)
+
 ## Files Changed
+
 Backend:
+
 - settings.py (cookie config)
 - auth_router.py (cookie support)
 - app.py (CORS credentials)
 
 Frontend:
+
 - types.ts (auth types)
 - apiClient.ts (auth methods + 401 interceptor)
 - useAuth.ts (NEW - React Query hook)

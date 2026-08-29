@@ -107,6 +107,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 **Status:** ✅ COMPLETE — 2026-08-29
 
 **Implementation Summary:**
+
 - Full authentication system with httpOnly cookies
 - JWT token-based auth (1h access, 7-day refresh)
 - Automatic token refresh (proactive @ 25min + reactive on 401)
@@ -117,11 +118,13 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 - Production security warnings
 
 **Test Coverage:**
+
 - Backend: **777 tests PASSED** (4 skipped)
 - Frontend: **18 tests PASSED**
 - All code review fixes applied (6 issues resolved)
 
 **Key Features Tested:**
+
 - [x] User registration with validation
 - [x] Login/logout flows
 - [x] Token refresh (proactive and reactive)
@@ -393,6 +396,7 @@ None — all service tests complete.
 Added comprehensive integration tests for pagination and filtering on list endpoints:
 
 ### Infrastructure (7 tests)
+
 - `test_list_infrastructure_pagination` — Tests offset, limit, has_more, total_pages
 - `test_list_infrastructure_pagination_edge_cases` — Boundary conditions (exact page, offset beyond total, limit=1)
 - `test_list_infrastructure_filter_by_state` — Filter by operational state
@@ -402,6 +406,7 @@ Added comprehensive integration tests for pagination and filtering on list endpo
 - `test_list_infrastructure_filters_with_pagination` — Filters + pagination
 
 ### Support Upgrades (7 tests)
+
 - `test_list_upgrades_pagination` — Tests offset, limit, has_more, total_pages
 - `test_list_upgrades_pagination_edge_cases` — Boundary conditions
 - `test_list_upgrades_filter_by_type` — Filter by upgrade type
@@ -411,10 +416,12 @@ Added comprehensive integration tests for pagination and filtering on list endpo
 - `test_list_upgrades_filters_with_pagination` — Filters + pagination
 
 ### Colonies (2 tests)
+
 - `test_list_colonies_pagination` — Tests offset, limit, has_more, total
 - `test_list_colonies_pagination_edge_cases` — Boundary conditions (exact page, offset beyond total, limit=1)
 
 ### Development Plans (7 tests)
+
 - `test_list_development_plans_pagination` — Tests offset, limit, has_more, total_pages
 - `test_list_development_plans_filter_by_status` — Filter by plan status
 - `test_list_development_plans_filter_by_upgrade_type` — Filter by upgrade type
@@ -434,6 +441,7 @@ Added comprehensive integration tests for pagination and filtering on list endpo
 Added basic API integration tests for remaining endpoints without coverage:
 
 ### Resources API (7 tests) — `test_resources_api.py`
+
 - `test_create_resource` — Create new planetary resource
 - `test_list_resources` — List all resources for a colony
 - `test_get_resource` — Get specific resource by ID
@@ -443,6 +451,7 @@ Added basic API integration tests for remaining endpoints without coverage:
 - `test_create_resource_unauthorized` — Auth required for creation
 
 ### Modifiers API (5 tests) — `test_modifiers_api.py`
+
 - `test_list_all_modifiers_empty` — Empty list when no modifiers exist
 - `test_list_all_modifiers_with_colony` — List modifiers across colonies
 - `test_get_modifier_not_found` — 404 for non-existent modifier
@@ -462,6 +471,7 @@ Added basic API integration tests for remaining endpoints without coverage:
 Added pagination support and comprehensive tests for Events and Colony Members API endpoints:
 
 ### Events API (7 new pagination tests) — `test_events_api.py`
+
 - `test_list_events_pagination` — Tests offset, limit, has_more, total
 - `test_list_events_pagination_edge_cases` — Boundary conditions (exact page, offset beyond total, limit=1)
 - `test_list_events_filter_by_active_only` — Filter by active status
@@ -471,11 +481,13 @@ Added pagination support and comprehensive tests for Events and Colony Members A
 - `test_list_events_empty` — Empty colony events list
 
 **Changes:**
+
 - Updated `events.py` router: Added `offset`/`limit` params, `name_search` filter, pagination response
 - Added `EventListItem` schema for list responses
 - Updated existing tests to handle paginated response format
 
 ### Colony Members API (7 new pagination tests) — `test_colony_users_api.py`
+
 - `test_list_colony_users_pagination` — Tests offset, limit, has_more, total
 - `test_list_colony_users_pagination_edge_cases` — Boundary conditions
 - `test_list_colony_users_empty` — Colony with only owner member
@@ -485,13 +497,12 @@ Added pagination support and comprehensive tests for Events and Colony Members A
 - `test_list_colony_users_last_page` — Last page edge case
 
 **Changes:**
+
 - Updated `colony_users.py` router: Added `offset`/`limit` params, pagination response
 - Added `ColonyUserListItem` schema for list responses
 - Updated existing tests to handle paginated response format
 
 **Test Count:** 768 passed, 4 skipped (added 14 tests total)
-
-
 
 **Test Count:** 768 passed, 4 skipped (added 14 tests total)
 
@@ -504,6 +515,7 @@ Added pagination support and comprehensive tests for Events and Colony Members A
 Added pagination support to remaining list endpoints that were using plain list responses:
 
 ### Audit Logs API (Updated)
+
 - Updated `audit_logs.py` router: Changed from `list[AuditLogResponse]` to `PaginatedResponse[AuditLogListItem]`
 - Added `AuditLogListItem` schema for lightweight list responses
 - Added `count_by_colony` method to `AuditLogRepository` interface and implementation
@@ -511,6 +523,7 @@ Added pagination support to remaining list endpoints that were using plain list 
 - Pagination params: `offset` (default 0), `limit` (default 50, max 500), `entity_type` filter
 
 ### Modifiers API (Updated)
+
 - Updated `modifiers.py` router: Changed from `list[ModifierResponse]` to `PaginatedResponse[ModifierListItem]`
 - Added `ModifierListItem` schema for lightweight list responses
 - Added filter params: `colony_id`, `is_active`
@@ -518,6 +531,7 @@ Added pagination support to remaining list endpoints that were using plain list 
 - Pagination params: `offset` (default 0), `limit` (default 50, max 200)
 
 **Pattern Consistency:** Both endpoints now follow the standard pagination pattern used across the codebase:
+
 - `PaginatedResponse[ListItem]` return type
 - `offset`/`limit` Query params with FastAPI validation (`ge=0`, `le=max`)
 - `PaginationMeta` with `total`, `offset`, `limit`, `has_more`
@@ -534,23 +548,28 @@ Added pagination support to remaining list endpoints that were using plain list 
 Standardized all paginated API endpoints to use consistent response format:
 
 ### Users API
+
 - Updated `users.py` router: Changed from custom `UserListResponse` to `PaginatedResponse[UserListItem]`
 - Added `UserListItem` schema for lightweight list responses (excludes timestamps)
 - Updated 1 test to handle new paginated response format (`items` vs `users`, `meta` object)
 
 ### Development Plans API
+
 - Confirmed `development_plans.py` router uses `PaginatedResponse[DevelopmentPlanResponse]`
 - Added `DevelopmentPlanListItem` schema for future optimization (currently using full response)
 - No test changes needed (already using paginated format)
 
 ### Pattern Consistency
+
 All paginated endpoints now follow the standard pattern:
+
 - `PaginatedResponse[T]` return type with `items: list[T]` and `meta: PaginationMeta`
 - `PaginationMeta` with `total`, `offset`, `limit`, `has_more`, `total_pages` (computed)
 - `offset`/`limit` Query params with FastAPI validation (`ge=0`, `le=max`)
 - Lightweight `*ListItem` schemas for list endpoints where beneficial
 
 **Endpoints Standardized:**
+
 1. `/api/v1/colonies/{colony_id}/infrastructure` — `PaginatedResponse[InfrastructureListItem]`
 2. `/api/v1/colonies/{colony_id}/resources` — `PaginatedResponse[ResourceListItem]`
 3. `/api/v1/colonies/{colony_id}/modifiers` — `PaginatedResponse[ModifierListItem]`
@@ -566,7 +585,6 @@ All paginated endpoints now follow the standard pattern:
 **Test Count:** 768 passed, 4 skipped (all tests passing)
 
 **OpenAPI Documentation:** Updated `docs/api/openapi.json` with all endpoint signatures
-
 
 ---
 
@@ -609,4 +627,3 @@ All paginated endpoints now follow the standard pattern:
 - **Fail-fast approach:** `transfer_ownership()` validates both users before any mutations
 - **Error handling:** API router properly converts `NotFoundError` to HTTP 404 responses
 - **No abstraction overkill:** Simple private method instead of complex validation framework
-

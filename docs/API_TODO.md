@@ -20,6 +20,7 @@ During the UI panel requirements analysis, the following minor API enhancements 
 **Current:** `GET /api/v1/colonies/{id}/modifiers` returns flat list of modifiers.
 
 **Enhancement:** Add nested structure showing:
+
 - Grouped by stat (size, complacency, order, productivity, piety)
 - Each modifier includes:
   - `source_type` (infrastructure, upgrade, representative, event, custom)
@@ -29,6 +30,7 @@ During the UI panel requirements analysis, the following minor API enhancements 
   - `description` (optional explanation)
 
 **Example Response:**
+
 ```json
 {
   "size": {
@@ -59,6 +61,7 @@ During the UI panel requirements analysis, the following minor API enhancements 
 **Current:** Colony model has `owner: str` field.
 
 **Options:**
+
 1. Rename field to `founder` (breaking change)
 2. Add alias in schema (non-breaking)
 3. Keep as-is with documentation note
@@ -75,6 +78,7 @@ class ColonyBase(BaseModel):
 **Status:** ✅ Complete  
 **Phase:** Phase 1  
 **Changes:**
+
 - Documentation updated to use `founder_name` consistently
 - OpenAPI spec regenerated
 
@@ -87,6 +91,7 @@ class ColonyBase(BaseModel):
 **Current:** `PATCH /api/v1/colonies/{id}` with `representative_id` returns full colony object.
 
 **Enhancement:** Add explicit response field indicating change:
+
 ```json
 {
   "representative_changed": true,
@@ -101,6 +106,7 @@ class ColonyBase(BaseModel):
 **Status:** ✅ Complete  
 **Phase:** Phase 2  
 **Implementation:**
+
 - Added `AssignmentChangeInfo` schema to `representative.py`
 - Added optional `assignment_change` field to `RepresentativeResponse`
 - Updated `RepresentativeService.assign_to_colony()` and `unassign_from_colony()` to return `AssignmentResult` dataclass with change tracking
@@ -108,6 +114,7 @@ class ColonyBase(BaseModel):
 - Added comprehensive tests for new assignment, replacement, and unassign scenarios
 
 **Endpoints:**
+
 - `POST /api/v1/representatives/{id}/assign` - Returns `assignment_change` with full change tracking
 - `POST /api/v1/representatives/{id}/unassign` - Returns `assignment_change` showing removal
 
@@ -124,6 +131,7 @@ class ColonyBase(BaseModel):
 **Current:** Must call DELETE/PATCH for each item individually.
 
 **Enhancement:** Add bulk endpoints:
+
 - `DELETE /api/v1/colonies/{id}/infrastructure?ids=1,2,3`
 - `PATCH /api/v1/colonies/{id}/infrastructure/bulk` with list of updates
 
@@ -138,6 +146,7 @@ class ColonyBase(BaseModel):
 **Current:** No pagination or filtering on list endpoints.
 
 **Enhancement:** Add standard query params:
+
 - `?page=1&per_page=20`
 - `?search=malachus` (name/description search)
 - `?type=manufactorum` (type filter)
@@ -146,6 +155,7 @@ class ColonyBase(BaseModel):
 **Status:** ✅ Complete  
 **Phase:** Phase 4  
 **Implementation:**
+
 - **Representatives** (`GET /api/v1/representatives`): Already had pagination + filtering (`available_only`, `type`, `search`)
 - **Infrastructure** (`GET /api/v1/colonies/{id}/infrastructure`): Added filtering (`state`, `type`, `search`)
 - **Support Upgrades** (`GET /api/v1/colonies/{id}/upgrades`): Added filtering (`type`, `search`, `affiliated_group`)
@@ -154,6 +164,7 @@ class ColonyBase(BaseModel):
 - Updated tests to verify filtering and pagination behavior
 
 **Endpoints:**
+
 - `GET /api/v1/representatives` - Filter: `available`, `type`, `search`
 - `GET /api/v1/colonies/{id}/infrastructure` - Filter: `state`, `type`, `search`
 - `GET /api/v1/colonies/{id}/upgrades` - Filter: `type`, `search`, `affiliated_group`
@@ -162,6 +173,7 @@ class ColonyBase(BaseModel):
 **UI Impact:** All list views - pagination controls and filter dropdowns
 
 **Post-Implementation Enhancements (2026-08-28):**
+
 - ✅ Added `total_pages` computed field to `PaginationMeta` schema for easier UI pagination
 - ✅ Added explanatory comments for in-memory filtering limitation in all router files
 - ✅ Added type ignore explanation comments in `support_upgrades.py` for heterogeneous dict values
@@ -173,12 +185,14 @@ class ColonyBase(BaseModel):
 **Issue:** No way to backup/restore or share colony configurations.
 
 **Enhancement:** Add export/import endpoints:
+
 - `GET /api/v1/colonies/{id}/export` → JSON/YAML file
 - `POST /api/v1/colonies/import` ← Upload file
 
 **Status:** ✅ Complete  
 **Phase:** Phase 6  
 **Implementation:**
+
 - Added `ColonyExporter` and `ColonyImporter` classes in `adapters/io/`
 - Export endpoint returns JSON file with colony, representative, events, development plans, and colony users
 - Import endpoint validates file format, creates colony with all related data
@@ -187,6 +201,7 @@ class ColonyBase(BaseModel):
 - Added comprehensive tests including roundtrip validation
 
 **Endpoints:**
+
 - `GET /api/v1/colonies/{id}/export` - Export colony to JSON file
 - `POST /api/v1/colonies/import` - Import colony from JSON file
 
@@ -201,6 +216,7 @@ class ColonyBase(BaseModel):
 **Status:** ✅ Complete (Phase 3 — 2026-08-29)
 
 **Endpoints Implemented:**
+
 - `POST /api/v1/auth/register` — Register new user with auto-login
 - `POST /api/v1/auth/login` — Authenticate and receive JWT tokens (httpOnly cookies)
 - `POST /api/v1/auth/refresh` — Refresh access token using refresh token
@@ -210,6 +226,7 @@ class ColonyBase(BaseModel):
 - `GET /api/v1/auth/me` — Get current user info
 
 **Features:**
+
 - httpOnly, secure cookies for token storage
 - Automatic token refresh (proactive at 25min + reactive on 401)
 - Promise-based refresh queue (no race conditions)
@@ -219,6 +236,7 @@ class ColonyBase(BaseModel):
 - Login attempt tracking
 
 **Test Coverage:**
+
 - 777 backend tests passing (4 skipped)
 - 18 frontend tests passing
 - All code review issues resolved (6 fixes)
@@ -267,7 +285,7 @@ Returns all active modifiers affecting colony stats.
 ---
 
 **Related Files:**
+
 - `docs/UI_VISUALIZATION_PROMPT.md` — UI specification with API mappings
 - `docs/api_guide_phase_3.md` — Current API documentation
 - `docs/UI_PANEL_REQUIREMENTS.md` — Original UI requirements
-

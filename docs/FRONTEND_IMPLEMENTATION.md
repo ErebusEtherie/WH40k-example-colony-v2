@@ -90,6 +90,7 @@
    - `src/components/common/StateBadge.test.tsx` - 7 tests for StateBadge component
 
 5. **Test commands:**
+
    ```bash
    npm run test        # Run tests in watch mode
    npm run test:run    # Run tests once
@@ -101,6 +102,7 @@
    - Components are tested with React Testing Library
    - MSW is available for integration-style tests
    - Tests follow risk-based prioritization per `08-frontend-testing.md`
+
 ---
 
 ## Current Architecture
