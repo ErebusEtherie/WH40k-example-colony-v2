@@ -81,13 +81,13 @@ volumes:
     external: true
 ```
 
-5. **Replace** `YOUR_SECRET_KEY_HERE` with your generated secret
-6. **Deploy the stack**
+1. **Replace** `YOUR_SECRET_KEY_HERE` with your generated secret
+2. **Deploy the stack**
 
 ### Access
 
-- **Frontend:** http://your-ip:8880
-- **Backend API:** http://your-ip:8001/docs
+- **Frontend:** <http://your-ip:8880>
+- **Backend API:** <http://your-ip:8001/docs>
 
 ---
 
@@ -167,6 +167,7 @@ docker volume ls | grep colony-backend-data
 ### Port Conflicts
 
 Change external port in stack:
+
 ```yaml
 ports:
   - "8002:8000"  # Different external port
