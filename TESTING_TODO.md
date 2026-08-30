@@ -27,15 +27,15 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
 | **Total** | **52+ files** | **777 tests** | ✅ **100% passing** |
 
-### ✅ Frontend Tests (9 files, 87 tests)
+### ✅ Frontend Tests (16 files, 153 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
 | **Common Components** | 2 files | 26 tests | ✅ Header (19), StateBadge (7) |
 | **Panel Components** | 3 files | 26 tests | ✅ EventCard (7), ColonyDetailsPanel (4), RepresentativePanel (12), InfrastructurePanelGroup (3) |
-| **Modals** | 1 file | 5 tests | ✅ EventCreationModal (5) |
+| **Modals** | 6 files | 72 tests | ✅ EventCreationModal (5), ColonyCreationModal (12), RepresentativeCreationModal (7), AddCustomModifierModal (14), ChangeRepresentativeModal (17), ThemeSelectorModal (17) |
 | **API Hooks** | 4 files | 30 tests | ✅ useColonies (7), useModifiers (4), useAuth (12), useRepresentatives (7) |
-| **Total** | **11 files** | **87 tests** | ✅ **Passing** |
+| **Total** | **16 files** | **153 tests** | ✅ **Passing** |
 
 ### Test Patterns in Use
 
