@@ -35,7 +35,7 @@ requirements are in `business_analysis.md`.
 | Document | Purpose | Who Should Read |
 |----------|---------|-----------------|
 | [`api_reference.md`](api_reference.md) | Complete REST API reference with examples | Frontend developers, API users |
-| [`api_future_phase_4.md`](api_future_phase_4.md) | Phase 4+ API roadmap (events, audit logs, collaboration) | Architects |
+| [`API_TODO.md`](API_TODO.md) | API enhancement roadmap (events, audit logs, collaboration) | Architects |
 | [`UI_DESIGN_SYSTEM.md`](UI_DESIGN_SYSTEM.md) | Cult Mechanicus design system, components, patterns | UI developers |
 | [`API_TODO.md`](API_TODO.md) | API enhancement roadmap and minor gaps | Backend developers, architects |
 
@@ -59,14 +59,15 @@ requirements are in `business_analysis.md`.
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [`Colony_Sheet_Analysis.md`](Colony_Sheet_Analysis.md) | Analysis of reference Excel workbook (Polish) | Reference |
 | [`DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md) | Production deployment instructions | DevOps |
 | [`SECURITY_CONFIGURATION.md`](SECURITY_CONFIGURATION.md) | Security hardening guide | DevOps |
+| [`colony-manager-rules-reference.md`](colony-manager-rules-reference.md) | Rulebook reference and game mechanics | Reference |
 
 **Archived Documents:** The following documents are archived for historical reference only:
 
-- `archive/AGENT_BRIEFING.md` — AI agent onboarding (superseded by `.clinerules/`)
-- `archive/MOCK_SERVER_SETUP.md` — Mock API server setup (MSW is now standard)
+- `archive/UI_VISUALIZATION_PROMPT.md` — External mockup prompt
+- `archive/agent_briefing.md` — AI agent onboarding (superseded by `.clinerules/`)
+- `archive/UI_PANEL_REQUIREMENTS.md` — UI feature specifications (superseded by UI_DESIGN_SYSTEM.md)
 
 ---
 
@@ -87,7 +88,7 @@ See [`TESTING_TODO.md`](../TESTING_TODO.md) for detailed checklist.
 ### Next Steps
 
 1. Complete Phase 5 (Personalities, Infrastructure integration, Dashboard UI)
-2. Phase 6+ (Events, Audit Logs, Collaboration) — see [`api_future_phase_4.md`](api_future_phase_4.md)
+2. Phase 6+ (Events, Audit Logs, Collaboration) — see [`API_TODO.md`](API_TODO.md)
 
 ---
 

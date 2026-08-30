@@ -10,7 +10,7 @@
 
 The Colony Dashboard is the primary view for managing a colony. It displays all critical information in a three-panel layout.
 
-**Detailed Specifications:** See [`../UI_PANEL_REQUIREMENTS.md`](../UI_PANEL_REQUIREMENTS.md) for complete panel specifications, calculations, and API integration details.
+**Detailed Specifications:** See [`../archive/UI_PANEL_REQUIREMENTS.md`](../archive/UI_PANEL_REQUIREMENTS.md) for complete panel specifications, calculations, and API integration details.
 
 This document provides:
 
@@ -81,7 +81,7 @@ This document provides:
 | Size | ❌ | Calculated from base + modifiers |
 | Size Lore State | ❌ | Auto-calculated |
 
-**See:** [`../UI_PANEL_REQUIREMENTS.md`](../UI_PANEL_REQUIREMENTS.md) §Panel 1
+**See:** [`../archive/UI_PANEL_REQUIREMENTS.md`](../archive/UI_PANEL_REQUIREMENTS.md) §Panel 1
 
 ---
 
@@ -98,7 +98,7 @@ This document provides:
 | Leadership Modifier | ❌ | From Representative |
 | All Lore States | ❌ | Auto-calculated |
 
-**See:** [`../UI_PANEL_REQUIREMENTS.md`](../UI_PANEL_REQUIREMENTS.md) §Panel 2
+**See:** [`../archive/UI_PANEL_REQUIREMENTS.md`](../archive/UI_PANEL_REQUIREMENTS.md) §Panel 2
 
 ---
 
@@ -196,7 +196,7 @@ GET /api/v1/colonies/:id/support-upgrades
 
 **Related Documents:**
 
-- [Panel Specifications](../UI_PANEL_REQUIREMENTS.md) — Complete panel details
+- [Panel Specifications](../archive/UI_PANEL_REQUIREMENTS.md) — Complete panel details
 - [Infrastructure Management](./05-infrastructure-management.md)
 - [Support Upgrades](./06-support-upgrades.md)
 - [Shared Components](./11-components.md)

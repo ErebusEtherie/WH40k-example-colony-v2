@@ -234,7 +234,7 @@ Complete API reference: [API Reference](docs/api_reference.md)
 |----------|-------------|
 | [Roadmap](docs/ROADMAP.md) | Project roadmap and future phases |
 | [Testing TODO](TESTING_TODO.md) | Test coverage and strategy |
-| [API TODO](API_TODO.md) | API development tracking |
+| [API TODO](docs/API_TODO.md) | API development tracking |
 | [Scope Clarifications](docs/SCOPE_CLARIFICATIONS.md) | Important scope boundaries |
 | [Quality Report](docs/SONARQUBE_REPORT.md) | Code quality metrics |
 
