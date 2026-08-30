@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Dependencies
 # ============================================
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN uv venv /app/.venv && \
 # ============================================
 # Stage 2: Runtime
 # ============================================
-FROM python:3.12-slim as runtime
+FROM python:3.12-slim AS runtime
 
 # Create non-root user for security
 RUN groupadd -r colony && useradd -r -g colony colony

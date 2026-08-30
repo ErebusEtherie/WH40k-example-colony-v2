@@ -17,7 +17,6 @@
 - [Overview](#overview)
 - [Features](#features)
 - [Quick Start](#quick-start)
-- [Docker Deployment](#docker-deployment)
 - [Architecture](#architecture)
 - [API Usage](#api-usage)
 - [Documentation](#documentation)
@@ -121,6 +120,7 @@ uv run uvicorn colony_manager.main:app --reload
 5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
 
 See the [API Reference](docs/api_reference.md) for detailed examples.
+
 ### Docker Deployment (Recommended for Testing)
 
 ```bash

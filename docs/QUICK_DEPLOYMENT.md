@@ -42,7 +42,7 @@ docker run -d --name portainer --restart=unless-stopped \
   -v portainer_data:/data portainer/portainer-ce:latest
 ```
 
-**Access:** http://localhost:9090
+**Access:** <http://localhost:9090>
 
 ---
 
@@ -77,10 +77,10 @@ docker cp colony-backend:/data/colony_manager.sqlite ./backup.sqlite
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:8880 |
-| Backend API | http://localhost:8001 |
-| API Docs | http://localhost:8001/docs |
-| Portainer | http://localhost:9090 |
+| Frontend | <http://localhost:8880> |
+| Backend API | <http://localhost:8001> |
+| API Docs | <http://localhost:8001/docs> |
+| Portainer | <http://localhost:9090> |
 
 ---
 

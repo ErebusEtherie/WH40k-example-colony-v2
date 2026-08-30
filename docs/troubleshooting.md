@@ -357,48 +357,6 @@ Copy-Item colony_manager.db.backup colony_manager.db
 
 **The Emperor Protects** — but backups protect your data. Save often!
 
-# Check database size
-
-Get-Item colony_manager.db | Select-Object Length
-
-# For large databases, consider
-
-# - Adding indexes (see migrations)
-
-# - Implementing caching
-
-# - Pagination on list endpoints
-
-```
-
-### Memory Issues
-
-**Symptom:** High memory usage during long sessions
-
-```bash
-# Check for memory leaks
-# Run with memory profiler
-python -m memory_profiler -m uvicorn colony_manager.adapters.api.main:app
-
-# Restart server periodically in development
-```
-
-# Correct: DATABASE_PATH=./colony_manager.db
-
-# Wrong: DATABASE_PATH = ./colony_manager.db
-
-# Load manually in Python
-
-from dotenv import load_dotenv
-load_dotenv()
-
-```
-taskkill /PID <PID> /F
-
-# Or use a different port
-make dev PORT=8001
-```
-
 **Symptom:** Import errors on startup
 
 ```bash

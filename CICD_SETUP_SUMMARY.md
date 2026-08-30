@@ -22,14 +22,16 @@ docker-compose -f docker-compose.test.yml up -d --build
 ```
 
 **Access:**
-- Frontend: http://localhost:8880
-- API Docs: http://localhost:8001/docs
+
+- Frontend: <http://localhost:8880>
+- API Docs: <http://localhost:8001/docs>
 
 ---
 
 ## 📦 What Was Created
 
 **Docker (7 files):**
+
 - `Dockerfile` - Backend (Python 3.12)
 - `frontend/Dockerfile` - Frontend (Nginx)
 - `docker-compose.test.yml` - Testing stack
@@ -37,9 +39,11 @@ docker-compose -f docker-compose.test.yml up -d --build
 - `.dockerignore` files
 
 **CI/CD (1 file):**
+
 - `.github/workflows/ci-cd.yml` - GitHub Actions
 
 **Documentation (5 files):**
+
 - `docs/CICD_INFRASTRUCTURE.md` - Complete guide
 - `docs/DEPLOYMENT_CHECKLIST_MINI_PC.md` - Checklist
 - `docs/QUICK_DEPLOYMENT.md` - Quick reference
@@ -57,7 +61,7 @@ docker run -d --name portainer --restart=unless-stopped \
   -v portainer_data:/data portainer/portainer-ce:latest
 ```
 
-**Access:** http://localhost:9090
+**Access:** <http://localhost:9090>
 
 ---
 
@@ -65,7 +69,7 @@ docker run -d --name portainer --restart=unless-stopped \
 
 1. ✅ Test locally: `docker-compose -f docker-compose.test.yml up -d`
 2. ✅ Verify: `curl http://localhost:8001/api/v1/health`
-3. ✅ Access: http://localhost:8880
+3. ✅ Access: <http://localhost:8880>
 4. 📖 Read: `docs/QUICK_DEPLOYMENT.md` for details
 
 ---

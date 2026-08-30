@@ -60,9 +60,11 @@ Phase 4 deployment preparation is **COMPLETE**. All production configuration fil
 | Document | Purpose | Status |
 |----------|---------|--------|
 | `DEPLOYMENT_CHECKLIST.md` | Step-by-step deployment guide | ✅ Created |
+| `DEPLOYMENT_CHECKLIST_MINI_PC.md` | Mini-PC/Portainer deployment | ✅ Created |
 | `SECURITY_CONFIGURATION.md` | Security hardening reference | ✅ Created |
+| `CICD_INFRASTRUCTURE.md` | CI/CD setup guide | ✅ Created |
 | `ROADMAP.md` | Updated with cleanup summary | ✅ Updated |
-| Document | Purpose | Status |\n|----------|---------|--------|\n| `DEPLOYMENT_CHECKLIST.md` | Step-by-step deployment guide | ✅ Created |\n| `DEPLOYMENT_CHECKLIST_MINI_PC.md` | Mini-PC/Portainer deployment | ✅ Created |\n| `SECURITY_CONFIGURATION.md` | Security hardening reference | ✅ Created |\n| `CICD_INFRASTRUCTURE.md` | CI/CD setup guide | ✅ Created |\n| `ROADMAP.md` | Updated with cleanup summary | ✅ Updated |\n| `DEPLOYMENT_STATUS.md` | This summary document | ✅ Updated |
+| `DEPLOYMENT_STATUS.md` | This summary document | ✅ Updated |
 
 ---
 
@@ -166,7 +168,7 @@ docker-compose -f docker-compose.test.yml logs -f
 
 **Portainer Deployment:**
 
-1. Access Portainer: http://mini-pc-ip:9000
+1. Access Portainer: <http://mini-pc-ip:9000>
 2. Navigate to **Stacks** → **Add stack**
 3. Name: `wh40k-colony-manager`
 4. Paste `docker-compose.test.yml` content
@@ -175,9 +177,9 @@ docker-compose -f docker-compose.test.yml logs -f
 
 **Access URLs:**
 
-- Frontend: http://localhost:80
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+- Frontend: <http://localhost:80>
+- Backend API: <http://localhost:8000>
+- API Docs: <http://localhost:8000/docs>
 
 ### GitHub Actions CI/CD
 

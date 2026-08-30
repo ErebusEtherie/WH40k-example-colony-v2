@@ -108,7 +108,9 @@ jobs:
 
       - name: Build frontend
         working-directory: ./frontend
-# ============================================
+        run: npm run build
+
+  # ============================================
   # Build - Backend Image
   # ============================================
   build-backend:
@@ -227,7 +229,7 @@ jobs:
     
     environment:
       name: testing
-      url: http://${{ secrets.MINI_PC_HOST }}:80
+      url: http://${{ secrets.MINI_PC_HOST }}:8880
 
     steps:
       - name: Checkout repository
@@ -277,4 +279,3 @@ jobs:
             docker-compose -f docker-compose.prod.yml --env-file .env.production pull
             docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
             docker system prune -f
-        run: npm run build

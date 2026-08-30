@@ -11,13 +11,15 @@
 
 1. [Overview](#overview)
 2. [Prerequisites](#prerequisites)
-3. [Docker Configuration](#docker-configuration)
-4. [Portainer Setup](#portainer-setup)
-5. [GitHub Actions CI/CD](#github-actions-cicd)
-6. [Environment Configuration](#environment-configuration)
-7. [Deployment Procedures](#deployment-procedures)
-8. [Monitoring & Maintenance](#monitoring--maintenance)
-9. [Troubleshooting](#troubleshooting)
+3. [Portainer Setup](#portainer-setup)
+4. [GitHub Actions CI/CD](#github-actions-cicd)
+5. [Deployment Procedures](#deployment-procedures)
+6. [Monitoring & Maintenance](#monitoring--maintenance)
+7. [Troubleshooting](#troubleshooting)
+8. [Security Considerations](#security-considerations)
+9. [Quick Reference](#quick-reference)
+10. [Related Documents](#related-documents)
+11. [Docker Configuration](#docker-configuration)
 
 ---
 
@@ -82,6 +84,7 @@ This guide provides complete infrastructure setup for:
 - **Portainer**: Version 2.19+ (optional but recommended)
 - **Git**: For repository management
 - **SSH Access**: For GitHub Actions deployment
+
 ---
 
 ## Portainer Setup
@@ -103,7 +106,7 @@ docker run -d \
   portainer/portainer-ce:latest
 ```
 
-**Access:** http://your-mini-pc-ip:9090
+**Access:** <http://your-mini-pc-ip:9090>
 
 ### Step 2: Configure Portainer Stack
 
@@ -130,9 +133,9 @@ VITE_API_BASE_URL: http://your-mini-pc-ip:8000
 
 ### Step 5: Access Application
 
-- **Frontend:** http://your-mini-pc-ip:8880
-- **Backend API:** http://your-mini-pc-ip:8001
-- **API Docs:** http://your-mini-pc-ip:8001/docs
+- **Frontend:** <http://your-mini-pc-ip:8880>
+- **Backend API:** <http://your-mini-pc-ip:8001>
+- **API Docs:** <http://your-mini-pc-ip:8001/docs>
 
 ---
 
@@ -269,7 +272,7 @@ docker-compose -f docker-compose.test.yml down
 
 ### Portainer Deployment
 
-1. **Open Portainer UI** (http://mini-pc-ip:9000)
+1. **Open Portainer UI** (<http://mini-pc-ip:9000>)
 2. **Navigate to Stacks**
 3. **Click "Add stack"**
 4. **Name:** `wh40k-colony-manager`
@@ -277,6 +280,7 @@ docker-compose -f docker-compose.test.yml down
 6. **Add environment variables** in Web editor
 7. **Click "Deploy the stack"**
 8. **Verify** containers are running
+
 ---
 
 ## Monitoring & Maintenance
@@ -334,11 +338,13 @@ docker image prune -f
 ### Container Won't Start
 
 **Check logs:**
+
 ```bash
 docker-compose -f docker-compose.test.yml logs backend
 ```
 
 **Common issues:**
+
 - Port already in use → Change port in docker-compose.yml
 - Permission denied → Check volume permissions
 - Out of memory → Increase Docker memory limit
@@ -360,6 +366,7 @@ docker-compose -f docker-compose.test.yml restart backend
 **Symptoms:** Frontend shows CORS errors in browser console
 
 **Solution:**
+
 1. Verify `ALLOWED_ORIGINS` includes frontend URL
 2. Check `CORS_ALLOW_CREDENTIALS=true`
 3. Ensure backend is accessible from frontend
@@ -369,6 +376,7 @@ docker-compose -f docker-compose.test.yml restart backend
 **Symptoms:** Login fails or tokens not accepted
 
 **Solution:**
+
 1. Verify `JWT_SECRET_KEY` is set correctly
 2. Check system time synchronization
 3. Clear browser cookies and retry
@@ -376,6 +384,7 @@ docker-compose -f docker-compose.test.yml restart backend
 ### Portainer Stack Deployment Fails
 
 **Check:**
+
 1. Docker socket mounted correctly
 2. Stack YAML syntax valid
 3. Environment variables configured
@@ -433,10 +442,10 @@ docker system prune -a
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:80 |
-| Backend API | http://localhost:8000 |
-| API Docs | http://localhost:8000/docs |
-| Portainer | http://mini-pc-ip:9000 |
+| Frontend | <http://localhost:80> |
+| Backend API | <http://localhost:8000> |
+| API Docs | <http://localhost:8000/docs> |
+| Portainer | <http://mini-pc-ip:9000> |
 
 ### Ports
 
@@ -459,37 +468,6 @@ docker system prune -a
 
 **Last Updated:** 2026-08-30  
 **Maintained By:** DevOps Team
-
-### GitHub Actions Deployment
-
-```bash
-# Tag for production release
-git tag v1.0.0
-git push origin v1.0.0
-
-# Or trigger manual deployment
-# Actions → CI/CD Pipeline → Run workflow → Select environment
-```
-
-### Backup Procedure
-
-```bash
-# Manual backup
-docker cp colony-backend:/data/colony_manager.sqlite ./backup-$(date +%Y%m%d).sqlite
-
-# Automated backup (included in docker-compose.test.yml)
-# Runs daily, keeps 7 days of backups
-docker-compose -f docker-compose.test.yml --profile backup up -d
-```
-
-# Copy public key to authorized_keys
-cat github-actions-key.pub >> ~/.ssh/authorized_keys
-
-# Copy private key to GitHub Secrets
-cat github-actions-key | base64 -w 0
-```
-
-### Step 3: Configure GitHub Environments
 
 1. **Settings → Environments → Add environment**
 2. **Create:** `testing` and `production`
@@ -516,6 +494,7 @@ cat github-actions-key | base64 -w 0
 ### File Structure
 
 ```
+
 WH40k_Colony_Manager/
 ├── Dockerfile                      # Backend container
 ├── docker-compose.test.yml         # Testing environment
@@ -525,6 +504,7 @@ WH40k_Colony_Manager/
 └── frontend/
     ├── Dockerfile                  # Frontend container
     └── nginx.conf                  # Nginx configuration
+
 ```
 
 ### Backend Dockerfile
@@ -532,6 +512,7 @@ WH40k_Colony_Manager/
 **Location:** `Dockerfile`
 
 Features:
+
 - Multi-stage build for minimal image size
 - Python 3.12 slim base
 - Non-root user for security
@@ -543,6 +524,7 @@ Features:
 **Location:** `frontend/Dockerfile`
 
 Features:
+
 - Multi-stage build (Node.js build → Nginx runtime)
 - Gzip compression enabled
 - Security headers configured
