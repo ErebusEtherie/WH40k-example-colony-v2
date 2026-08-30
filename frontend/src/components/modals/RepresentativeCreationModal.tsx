@@ -68,18 +68,14 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
 
   const handleTogglePersonality = (pKey: PersonalityKey) => {
     const exists = selectedPersonalities.some((p) => p.personalityKey === pKey);
-    if (exists) {
-      if (selectedPersonalities.length > 1) {
-        setSelectedPersonalities(selectedPersonalities.filter((p) => p.personalityKey !== pKey));
-      }
-    } else {
-      if (selectedPersonalities.length < 4) {
-        const newItem: RepresentativePersonalityItem = { personalityKey: pKey };
-        if (pKey === 'mad') newItem.madOrderRoll = madRoll;
-        if (pKey === 'scholarly') newItem.chosenStat = scholarlyStat;
-        if (pKey === 'ties_with') newItem.chosenStat = tiesStat;
-        setSelectedPersonalities([...selectedPersonalities, newItem]);
-      }
+    if (exists && selectedPersonalities.length > 1) {
+      setSelectedPersonalities(selectedPersonalities.filter((p) => p.personalityKey !== pKey));
+    } else if (!exists && selectedPersonalities.length < 4) {
+      const newItem: RepresentativePersonalityItem = { personalityKey: pKey };
+      if (pKey === 'mad') newItem.madOrderRoll = madRoll;
+      if (pKey === 'scholarly') newItem.chosenStat = scholarlyStat;
+      if (pKey === 'ties_with') newItem.chosenStat = tiesStat;
+      setSelectedPersonalities([...selectedPersonalities, newItem]);
     }
   };
 
@@ -139,31 +135,31 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 font-mono text-xs">
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={() => setStep(1)}
               className={`flex items-center gap-2 pb-1 border-b-2 font-bold uppercase transition-colors ${
                 step === 1 ? 'border-cyan-400 text-cyan-300' : 'border-transparent text-slate-500'
               }`}
             >
-              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">1</span>
-              Identity & Type
+              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">1</span> Identity & Type
             </button>
             <button
+              type="button"
               onClick={() => setStep(2)}
               className={`flex items-center gap-2 pb-1 border-b-2 font-bold uppercase transition-colors ${
                 step === 2 ? 'border-cyan-400 text-cyan-300' : 'border-transparent text-slate-500'
               }`}
             >
-              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">2</span>
-              Personalities (1–4)
+              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">2</span> Personalities (1–4)
             </button>
             <button
+              type="button"
               onClick={() => setStep(3)}
               className={`flex items-center gap-2 pb-1 border-b-2 font-bold uppercase transition-colors ${
                 step === 3 ? 'border-cyan-400 text-cyan-300' : 'border-transparent text-slate-500'
               }`}
             >
-              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">3</span>
-              Characteristics & Review
+              <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-[10px]">3</span> Characteristics & Review
             </button>
           </div>
         </div>
@@ -174,10 +170,11 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
         {step === 1 && (
           <div className="space-y-5 font-mono text-xs">
             <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">
+              <label htmlFor="rep-name-input" className="text-[10px] uppercase text-slate-400 block mb-1">
                 Representative Name *
               </label>
               <input
+                id="rep-name-input"
                 type="text"
                 required
                 placeholder="e.g. Magistrate Jeremiah Kroll"
@@ -188,10 +185,11 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase text-slate-400 block tracking-wider">
-                Select Representative Archetype * (Determines loss mitigation mechanic)
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <fieldset>
+                <legend className="text-[10px] uppercase text-slate-400 block tracking-wider">
+                  Select Representative Archetype * (Determines loss mitigation mechanic)
+                </legend>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {(Object.keys(REPRESENTATIVE_TYPES) as RepresentativeTypeKey[]).map((key) => {
                   const info = REPRESENTATIVE_TYPES[key];
                   const isSelected = repType === key;
@@ -222,6 +220,7 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
                   );
                 })}
               </div>
+              </fieldset>
             </div>
 
             <div className="p-3 bg-slate-950 border border-cyan-900/60 rounded-xs space-y-1">
@@ -425,9 +424,10 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
 
             {/* Skills */}
             <div className="space-y-2">
-              <label className="text-[10px] uppercase text-slate-400 block">Skills</label>
+              <label htmlFor="skill-input" className="text-[10px] uppercase text-slate-400 block">Skills</label>
               <div className="flex gap-2">
                 <input
+                  id="skill-input"
                   type="text"
                   placeholder="Add skill..."
                   value={skillInput}
@@ -463,9 +463,10 @@ export const RepresentativeCreationModal: React.FC<RepresentativeCreationModalPr
 
             {/* Talents */}
             <div className="space-y-2">
-              <label className="text-[10px] uppercase text-slate-400 block">Talents & Traits</label>
+              <label htmlFor="talent-input" className="text-[10px] uppercase text-slate-400 block">Talents & Traits</label>
               <div className="flex gap-2">
                 <input
+                  id="talent-input"
                   type="text"
                   placeholder="Add talent..."
                   value={talentInput}

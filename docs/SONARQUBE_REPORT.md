@@ -32,7 +32,7 @@
 
 ---
 
-## Issues Fixed (79 total)
+## Issues Fixed (93 total)
 
 ### Unused Icon Imports Removed (60+)
 
@@ -48,6 +48,19 @@
 - `ColonyDetailsPanel.tsx` - 7 icons
 - `ChangeRepresentativeModal.tsx` - 1 icon
 - `RepresentativeCreationModal.tsx` - 5 icons
+
+### Accessibility & Best Practice Fixes (11)
+
+**RepresentativeCreationModal.tsx:**
+
+- Added `type="button"` to 3 step navigation buttons (lines 141, 150, 159)
+- Fixed 4 form labels with `htmlFor` attribute:
+  - Line 177: "Representative Name" → `htmlFor="rep-name-input"`
+  - Line 428: "Skills" → `htmlFor="skill-input"`
+  - Line 466: "Talents & Traits" → `htmlFor="talent-input"`
+- Line 191: Changed label to `fieldset`/`legend` for radio button group
+- Line 76: Restructured nested if/else to combined conditions
+- Lines 144, 154, 164: Fixed ambiguous JSX spacing (text on same line as closing `</span>`)
 
 ### Unused Type Imports Removed
 
@@ -68,6 +81,7 @@
 - `test/mocks/handlers.ts` - Unused `params` in handler
 - `LoginScreen.tsx` - Unused catch variables (empty catch)
 - `App.tsx` - Unused `useMemo`, `isLoggingOut`, `totalDynastyProfitFactor`, `handleDeleteColony`
+- `RepresentativeCreationModal.tsx` - Restructured nested if/else to combined conditions
 
 ---
 
