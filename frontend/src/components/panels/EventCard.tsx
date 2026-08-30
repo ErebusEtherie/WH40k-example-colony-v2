@@ -1,5 +1,5 @@
 import React from 'react';
-import { Event, EventModifier } from '../../types';
+import { Event } from '../../types';
 import { 
   AlertTriangle, 
   CheckCircle2, 
@@ -9,7 +9,6 @@ import {
   Plus,
   Minus
 } from 'lucide-react';
-import { OrnamentalFrame } from '../common/OrnamentalFrame';
 
 interface EventCardProps {
   event: Event;
@@ -75,6 +74,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Actions */}
         <div className="flex items-center gap-1">
           <button
+            type="button"
             onClick={() => onToggleActive(event.id, !isActive)}
             className={`p-1 rounded-xs transition-colors ${
               isActive
@@ -86,6 +86,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             {isActive ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
           </button>
           <button
+            type="button"
             onClick={() => onEdit(event)}
             className="p-1 text-amber-400 hover:text-amber-300 rounded-xs transition-colors"
             title="Edit event"
@@ -93,6 +94,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <Edit3 className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => onDelete(event.id)}
             className="p-1 text-red-400 hover:text-red-300 rounded-xs transition-colors"
             title="Delete event"
@@ -109,14 +111,20 @@ export const EventCard: React.FC<EventCardProps> = ({
             Modifiers ({event.modifiers.length})
           </div>
           <div className="space-y-1">
-            {event.modifiers.map((mod, idx) => {
+            {event.modifiers.map((mod) => {
               const Icon = STAT_ICONS[mod.stat] || Clock;
               const isPositive = mod.value > 0;
               const isNeutral = mod.value === 0;
+              
+              // Extract color class selection to avoid nested ternary
+              const getValueColorClass = () => {
+                if (isNeutral) return 'text-slate-400';
+                return isPositive ? 'text-emerald-400' : 'text-red-400';
+              };
 
               return (
                 <div
-                  key={idx}
+                  key={`${mod.stat}-${mod.value}-${mod.description}`}
                   className="flex items-center justify-between text-xs font-mono"
                 >
                   <div className="flex items-center gap-2">
@@ -129,13 +137,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     </span>
                   </div>
                   <span
-                    className={`font-bold ${
-                      isNeutral
-                        ? 'text-slate-400'
-                        : isPositive
-                        ? 'text-emerald-400'
-                        : 'text-red-400'
-                    }`}
+                    className={`font-bold ${getValueColorClass()}`}
                   >
                     {mod.value > 0 ? '+' : ''}
                     {mod.value}

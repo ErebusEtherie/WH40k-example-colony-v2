@@ -52,7 +52,7 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
     setModifiers(modifiers.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
     onSubmit({ name, description, modifiers });
@@ -69,10 +69,11 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleClose} title={isEditing ? 'Edit Event' : 'Create Event'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-mono text-slate-300 uppercase mb-1">
+          <label htmlFor="event-name-input" className="block text-xs font-mono text-slate-300 uppercase mb-1">
             Event Name *
           </label>
           <input
+            id="event-name-input"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -83,10 +84,11 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-mono text-slate-300 uppercase mb-1">
+          <label htmlFor="event-description-input" className="block text-xs font-mono text-slate-300 uppercase mb-1">
             Description
           </label>
           <textarea
+            id="event-description-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-slate-900 border border-slate-700 rounded-xs px-3 py-2 text-sm text-slate-100 font-mono"
@@ -96,15 +98,15 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-mono text-slate-300 uppercase mb-2">
+          <span id="modifiers-section-label" className="block text-xs font-mono text-slate-300 uppercase mb-2">
             Modifiers
-          </label>
+          </span>
 
           {modifiers.length > 0 && (
-            <div className="space-y-2 mb-3">
+            <div className="space-y-2 mb-3" aria-labelledby="modifiers-section-label">
               {modifiers.map((mod, idx) => (
                 <div
-                  key={idx}
+                  key={`modifier-${mod.stat}-${mod.value}-${idx}`}
                   className="flex items-center justify-between p-2 bg-slate-900 border border-slate-700 rounded-xs"
                 >
                   <div className="flex items-center gap-2 text-xs font-mono">
@@ -129,10 +131,11 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
           <div className="p-3 bg-slate-950 border border-slate-800 rounded-xs space-y-2">
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
+                <label htmlFor="modifier-stat-select" className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
                   Stat
                 </label>
                 <select
+                  id="modifier-stat-select"
                   value={newStat}
                   onChange={(e) => setNewStat(e.target.value as ModifierStat)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2 py-1.5 text-xs text-slate-100 font-mono"
@@ -146,13 +149,14 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
+                <label htmlFor="modifier-value-input" className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
                   Value
                 </label>
                 <input
+                  id="modifier-value-input"
                   type="number"
                   value={newValue}
-                  onChange={(e) => setNewValue(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setNewValue(Number.parseInt(e.target.value) || 0)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2 py-1.5 text-xs text-slate-100 font-mono"
                   min={-10}
                   max={10}
@@ -172,10 +176,11 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
+              <label htmlFor="modifier-description-input" className="block text-[10px] font-mono text-slate-400 uppercase mb-1">
                 Description
               </label>
               <input
+                id="modifier-description-input"
                 type="text"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}

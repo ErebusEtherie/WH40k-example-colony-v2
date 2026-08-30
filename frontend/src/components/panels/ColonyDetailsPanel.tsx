@@ -108,7 +108,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
     onUpdateColony({ customModifiers: updated });
   };
 
-  const handleCreateResource = (e: React.FormEvent) => {
+  const handleCreateResource = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!resName.trim()) return;
 
@@ -258,6 +258,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
         actions={
           !isEditingBasics ? (
             <button
+              type="button"
               onClick={() => setIsEditingBasics(true)}
               className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xs text-xs font-mono text-cyan-200 transition-colors"
             >
@@ -266,12 +267,14 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
           ) : (
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={handleSaveBasics}
                 className="flex items-center gap-1 px-3 py-1 bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500 text-emerald-100 text-xs font-mono rounded-xs transition-colors"
               >
                 <Check className="w-3.5 h-3.5" /> Save
               </button>
               <button
+                type="button"
                 onClick={() => setIsEditingBasics(false)}
                 className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-xs font-mono rounded-xs transition-colors"
               >
@@ -285,7 +288,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
           
           {/* Colony Name */}
           <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+            <label htmlFor="colony-name-input" className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
               Colony Designation {isEditingBasics && <span className="text-red-400">*</span>}
             </label>
             {!isEditingBasics ? (
@@ -294,6 +297,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
             ) : (
               <input
+                id="colony-name-input"
                 type="text"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
@@ -304,7 +308,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
 
           {/* Star System */}
           <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+            <label htmlFor="star-system-input" className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
               Star System / Sector {isEditingBasics && <span className="text-red-400">*</span>}
             </label>
             {!isEditingBasics ? (
@@ -313,6 +317,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
             ) : (
               <input
+                id="star-system-input"
                 type="text"
                 value={starSystemInput}
                 onChange={(e) => setStarSystemInput(e.target.value)}
@@ -323,7 +328,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
 
           {/* Founder */}
           <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+            <label htmlFor="founder-input" className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
               Colony Founder {isEditingBasics && <span className="text-red-400">*</span>}
             </label>
             {!isEditingBasics ? (
@@ -332,6 +337,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
             ) : (
               <input
+                id="founder-input"
                 type="text"
                 value={founderInput}
                 onChange={(e) => setFounderInput(e.target.value)}
@@ -342,10 +348,10 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
 
           {/* Colony Charter Type (Read-only per game rules) */}
           <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase text-slate-400 tracking-wider flex items-center gap-1">
+            <label htmlFor="colony-type-display" className="text-[10px] font-mono uppercase text-slate-400 tracking-wider flex items-center gap-1">
               Colony Type <span className="text-[9px] text-slate-500">(Fixed at Charter)</span>
             </label>
-            <div className="font-serif text-sm font-bold text-amber-300">
+            <div id="colony-type-display" className="font-serif text-sm font-bold text-amber-300">
               {colonyTypeInfo.displayName}
             </div>
             <div className="text-[10px] text-slate-400 font-mono">
@@ -357,7 +363,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
 
         {/* Description field */}
         <div className="mt-4 pt-3 border-t border-slate-800/80">
-          <label className="text-[10px] font-mono uppercase text-slate-400 tracking-wider block mb-1">
+          <label htmlFor="description-input" className="text-[10px] font-mono uppercase text-slate-400 tracking-wider block mb-1">
             Imperial Records & Description
           </label>
           {!isEditingBasics ? (
@@ -366,6 +372,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
             </p>
           ) : (
             <textarea
+              id="description-input"
               value={descInput}
               onChange={(e) => setDescInput(e.target.value)}
               rows={2}
@@ -392,7 +399,8 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
             <span className="text-[11px] font-mono uppercase text-slate-400">Advance Age:</span>
             {[1, 5, 10].map((amt) => (
               <button
-                key={amt}
+                key={`add-days-${amt}`}
+                type="button"
                 onClick={() => handleAddDays(amt)}
                 className="px-2.5 py-1 bg-slate-900 hover:bg-cyan-900/60 border border-cyan-800 text-cyan-200 text-xs font-mono rounded-xs transition-colors"
                 title={`Advance colony age by ${amt} standard days`}
@@ -401,15 +409,20 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </button>
             ))}
             <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
+              <label htmlFor="custom-days-input" className="sr-only">
+                Custom days to add
+              </label>
               <input
+                id="custom-days-input"
                 type="number"
                 min="1"
                 max="9999"
                 value={customDaysAdd}
-                onChange={(e) => setCustomDaysAdd(parseInt(e.target.value) || 1)}
+                onChange={(e) => setCustomDaysAdd(Number.parseInt(e.target.value) || 1)}
                 className="w-16 bg-slate-950 border border-slate-700 rounded-xs px-2 py-0.5 text-xs text-slate-100 font-mono text-center"
               />
               <button
+                type="button"
                 onClick={() => handleAddDays(customDaysAdd)}
                 className="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-600 text-cyan-100 text-xs font-mono uppercase rounded-xs"
               >
@@ -427,6 +440,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
         actions={
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={onOpenChangeRepresentative}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-500/70 text-amber-200 text-xs font-mono uppercase rounded-xs transition-colors"
             >
@@ -434,6 +448,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
             </button>
             {representative && (
               <button
+                type="button"
                 onClick={onNavigateToRepresentative}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-200 text-xs font-mono uppercase rounded-xs transition-colors"
               >
@@ -485,11 +500,11 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
                 Applied Personality Traits ({representative.personalities.length})
               </span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {representative.personalities.map((p, idx) => {
+                {representative.personalities.map((p) => {
                   const pRule = PERSONALITY_RULES[p.personalityKey];
                   return (
                     <div
-                      key={idx}
+                      key={p.personalityKey + (p.chosenStat || '') + (p.madOrderRoll || '')}
                       className="p-2.5 bg-slate-950 border border-slate-800 rounded-xs text-xs font-mono flex flex-col justify-between"
                     >
                       <div>
@@ -529,6 +544,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </p>
             </div>
             <button
+              type="button"
               onClick={onOpenChangeRepresentative}
               className="px-4 py-2 bg-amber-900 hover:bg-amber-800 border border-amber-500 text-amber-100 text-xs font-mono uppercase tracking-wider rounded-xs inline-flex items-center gap-2"
             >
@@ -592,7 +608,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
                 </div>
 
                 {calculations.profitFactor.stateBonuses.map((b, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-[11px] text-emerald-300 py-0.5">
+                  <div key={`state-bonus-${b.name}-${idx}`} className="flex justify-between items-center text-[11px] text-emerald-300 py-0.5">
                     <span>[State Bonus] {b.name}:</span>
                     <span className="font-bold">+{b.value} PF</span>
                   </div>
@@ -622,6 +638,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
         subtitle="Physical tabletop event outcomes and custom situational bonuses/penalties"
         actions={
           <button
+            type="button"
             onClick={onOpenAddCustomModifier}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-500 text-cyan-100 text-xs font-mono uppercase tracking-wider rounded-xs transition-colors"
           >
@@ -652,6 +669,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
                   <tr key={m.id} className="hover:bg-slate-900/60 transition-colors">
                     <td className="p-2.5">
                       <button
+                        type="button"
                         onClick={() => handleToggleModifierActive(m.id)}
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-bold uppercase transition-colors ${
                           m.isActive
@@ -683,6 +701,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
                     </td>
                     <td className="p-2.5 text-right">
                       <button
+                        type="button"
                         onClick={() => handleDeleteModifier(m.id)}
                         className="p-1 text-slate-400 hover:text-red-400 hover:bg-red-950/60 rounded-xs transition-colors"
                         title="Delete custom modifier"
@@ -704,6 +723,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
         subtitle="Natural resources, minerals, and archeotech exploited by the colony"
         actions={
           <button
+            type="button"
             onClick={() => setIsAddingResource(!isAddingResource)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-200 text-xs font-mono uppercase rounded-xs transition-colors"
           >
@@ -718,8 +738,9 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Resource Name *</label>
+                <label htmlFor="resource-name-input" className="text-[10px] uppercase text-slate-400 block mb-1">Resource Name *</label>
                 <input
+                  id="resource-name-input"
                   type="text"
                   required
                   placeholder="e.g. Promethium Geysers"
@@ -730,8 +751,9 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Resource Category</label>
+                <label htmlFor="resource-category-select" className="text-[10px] uppercase text-slate-400 block mb-1">Resource Category</label>
                 <select
+                  id="resource-category-select"
                   value={resType}
                   onChange={(e) => setResType(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2 py-1 text-slate-100"
@@ -747,8 +769,9 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Subtype / Grade</label>
+                <label htmlFor="resource-subtype-input" className="text-[10px] uppercase text-slate-400 block mb-1">Subtype / Grade</label>
                 <input
+                  id="resource-subtype-input"
                   type="text"
                   placeholder="e.g. Rare Heavy Metals"
                   value={resSubtype}
@@ -758,8 +781,9 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Abundance Rating</label>
+                <label htmlFor="resource-abundance-select" className="text-[10px] uppercase text-slate-400 block mb-1">Abundance Rating</label>
                 <select
+                  id="resource-abundance-select"
                   value={resAbundance}
                   onChange={(e) => setResAbundance(e.target.value as any)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2 py-1 text-slate-100"
@@ -774,8 +798,9 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
             </div>
 
             <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">Survey Notes & Exploitation Details</label>
+              <label htmlFor="resource-notes-input" className="text-[10px] uppercase text-slate-400 block mb-1">Survey Notes & Exploitation Details</label>
               <input
+                id="resource-notes-input"
                 type="text"
                 placeholder="e.g. Requires deep drilling shafts; grants +2 Prod to Mining Charter."
                 value={resNotes}
@@ -830,6 +855,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
                   {res.abundance}
                 </span>
                 <button
+                  type="button"
                   onClick={() => handleDeleteResource(res.id)}
                   className="p-1 text-slate-500 hover:text-red-400 rounded-xs"
                   title="Remove resource record"
@@ -860,6 +886,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
           </p>
         </div>
         <button
+          type="button"
           onClick={onNavigateToInfrastructure}
           className="px-4 py-2 bg-cyan-900 hover:bg-cyan-800 border border-cyan-500 text-cyan-100 text-xs font-mono uppercase tracking-wider rounded-xs flex items-center gap-2 transition-colors"
         >

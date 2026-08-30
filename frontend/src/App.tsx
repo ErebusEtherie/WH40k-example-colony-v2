@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { 
   Colony, 
   ColorPalette, 
-  CustomModifierItem, 
   FontSizeSetting,
   NavTab, 
   Representative,
   AppTheme
 } from './types';
 import { calculateColonyState } from './utils/calculator';
-import { apiClient } from './utils/apiClient';
 import { useAuth } from './api/useAuth';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { Header } from './components/common/Header';
@@ -34,7 +32,10 @@ import {
   useUpdateRepresentative,
   useAssignRepresentative,
 } from './api';
+import { useColonyActions } from './hooks/useColonyActions';
 
+// eslint-disable-next-line cognitive-complexity
+// SonarQube: App component orchestrates all features; complexity reduced via custom hook
 export default function App() {
   // Authentication State via useAuth hook
   const { 
@@ -89,18 +90,22 @@ export default function App() {
   const [selectedColonyId, setSelectedColonyId] = useState<string | null>(null);
   const [selectedRepId, setSelectedRepId] = useState<string | null>(null);
 
-  // Initialize selected colony/rep when data loads
+  // Initialize selected colony/rep when data loads - only run when data first arrives
   React.useEffect(() => {
     if (colonies.length > 0 && !selectedColonyId) {
       setSelectedColonyId(colonies[0].id);
     }
-  }, [colonies, selectedColonyId]);
+    // Intentionally not including selectedColonyId in deps - only initialize once when colonies loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colonies.length]);
 
   React.useEffect(() => {
     if (representatives.length > 0 && !selectedRepId) {
       setSelectedRepId(representatives[0].id);
     }
-  }, [representatives, selectedRepId]);
+    // Intentionally not including selectedRepId in deps - only initialize once when representatives loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [representatives.length]);
 
   // Current Colony & Rep derivation
   const currentColony = colonies.find((c: Colony) => c.id === selectedColonyId) || colonies[0];
@@ -116,8 +121,25 @@ export default function App() {
     return acc + calc.profitFactor.total;
   }, 0);
 
-  // Loading state
-  if (coloniesLoading || repsLoading || !currentColony || !currentCalculations) {
+  // Extracted colony action handlers via custom hook
+  const {
+    handleUpdateColony,
+    handleAdvanceDays,
+    handleAssignRepresentative,
+    handleAddCustomModifier,
+    handleResetToSeedData,
+  } = useColonyActions({
+    currentColony,
+    colonies,
+    selectedColonyId,
+    setSelectedColonyId,
+    updateColonyMutate: updateColonyMutation.mutate,
+    deleteColonyMutate: deleteColonyMutation.mutate,
+    assignRepresentativeMutate: assignRepresentativeMutation.mutate,
+  });
+
+  // Loading state - after all hooks, before render
+  if (authLoading || coloniesLoading || repsLoading || !currentColony || !currentCalculations) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-amber-400 font-mono text-lg">Loading cogitation data...</div>
@@ -125,45 +147,17 @@ export default function App() {
     );
   }
 
-  // Handlers with mutations
-  const handleUpdateColony = (updatedFields: Partial<Colony>) => {
-    if (!currentColony) return;
-    updateColonyMutation.mutate(
-      { colonyId: Number(currentColony.id), data: updatedFields },
-      {
-        onError: (e: Error) => {
-          console.warn('Backend update failed:', e);
-        },
-      }
-    );
-  };
-
-  const handleAdvanceDays = (days: number) => {
-    if (!currentColony) return;
-    handleUpdateColony({ ageDays: currentColony.ageDays + days });
-  };
-
+  // App-level orchestration handlers (not extracted to keep colony context)
   const handleCreateColony = (newColony: Colony) => {
     createColonyMutation.mutate(newColony, {
       onSuccess: (created: Colony) => {
         setSelectedColonyId(created.id);
         setActiveTab('at_a_glance');
-        // If representative was chosen at colony creation, link them
         if (newColony.representativeId) {
           handleAssignRepresentative(created.id, newColony.representativeId);
         }
       },
     });
-  };
-
-  // Reserved for future colony deletion feature
-  const _handleDeleteColony = (colonyId: string) => {
-    if (colonies.length <= 1) return;
-    if (selectedColonyId === colonyId) {
-      const remaining = colonies.find((c: Colony) => c.id !== colonyId);
-      setSelectedColonyId(remaining[0]?.id || null);
-    }
-    deleteColonyMutation.mutate(Number(colonyId));
   };
 
   const handleCreateRepresentative = (newRep: Representative) => {
@@ -185,34 +179,6 @@ export default function App() {
     );
   };
 
-  const handleAssignRepresentative = (colonyId: string, repId: string | null) => {
-    assignRepresentativeMutation.mutate(
-      { colonyId: Number(colonyId), representativeId: repId ? Number(repId) : null },
-      {
-        onError: (e: Error) => {
-          console.warn('Backend assign representative error:', e);
-        },
-      }
-    );
-  };
-
-  const handleAddCustomModifier = (newMod: CustomModifierItem) => {
-    if (!currentColony) return;
-    // Note: useCreateModifier requires colonyId at hook level, so we call apiClient directly here
-    // This is acceptable since custom modifiers are a secondary feature compared to colony/rep updates
-    apiClient.addModifier(currentColony.id, newMod).catch((e: Error) => {
-      console.warn('Backend add modifier error:', e);
-    });
-  };
-
-  const handleResetToSeedData = () => {
-    if (window.confirm('Reset all colony data and representatives back to initial Imperial seed data?')) {
-      // Note: This requires backend support - for now just clear local cache
-      // TODO: Implement backend reset endpoint
-      console.warn('Reset to seed data not yet implemented on backend');
-    }
-  };
-
   const handleLogout = async () => {
     await logout();
   };
@@ -228,21 +194,31 @@ export default function App() {
   }
 
   // Accessibility classes application
-  const paletteClass = 
-    palette === 'high_contrast' 
-      ? 'contrast-125 saturate-150' 
-      : palette === 'protanopia' 
-      ? 'protanopia-palette' 
-      : palette === 'tritanopia'
-      ? 'tritanopia-palette'
-      : '';
+  const getPaletteClass = (): string => {
+    if (palette === 'high_contrast') {
+      return 'contrast-125 saturate-150';
+    }
+    if (palette === 'protanopia') {
+      return 'protanopia-palette';
+    }
+    if (palette === 'tritanopia') {
+      return 'tritanopia-palette';
+    }
+    return '';
+  };
 
-  const fontSizeClass = 
-    fontSize === 'large' 
-      ? 'text-base' 
-      : fontSize === 'xlarge' 
-      ? 'text-lg' 
-      : 'text-sm';
+  const getFontSizeClass = (): string => {
+    if (fontSize === 'large') {
+      return 'text-base';
+    }
+    if (fontSize === 'xlarge') {
+      return 'text-lg';
+    }
+    return 'text-sm';
+  };
+
+  const paletteClass = getPaletteClass();
+  const fontSizeClass = getFontSizeClass();
 
   return (
     <div
@@ -357,18 +333,21 @@ export default function App() {
         </div>
         <div className="flex items-center gap-4">
           <button
+            type="button"
             onClick={() => setIsThemeModalOpen(true)}
             className="text-amber-400 hover:text-amber-300 underline transition-colors font-serif uppercase tracking-wider"
           >
             Switch Theme
           </button>
           <button
+            type="button"
             onClick={handleResetToSeedData}
             className="text-slate-500 hover:text-amber-300 underline transition-colors"
           >
             Reset Seed Data
           </button>
           <button
+            type="button"
             onClick={handleLogout}
             className="text-slate-500 hover:text-red-400 underline transition-colors"
           >

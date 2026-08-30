@@ -94,6 +94,8 @@ export const handlers = [
     return HttpResponse.json(
       {
         ...mockColony,
+        // Test-only: Math.random is safe here - mock data only, overrides mockColony.id
+        // This is test mock data, not security-sensitive; any unique ID works
         id: Math.floor(Math.random() * 1000),
         name: (body as any).name || 'New Colony',
       },
@@ -128,6 +130,8 @@ export const handlers = [
     const body = await request.json()
     return HttpResponse.json(
       {
+        // Test-only: Math.random is safe here - mock data only
+        // This is test mock data, not security-sensitive; any unique ID works
         id: Math.floor(Math.random() * 1000),
         colony_id: Number(params.id),
         source: (body as any).modifier_source_type || 'custom',
@@ -179,7 +183,8 @@ export const handlers = [
     const body = await request.json()
     return HttpResponse.json(
       {
-        // Test-only: real API generates UUIDs
+        // Test-only: Math.random is safe here - mock data only, real API generates UUIDs
+        // This is test mock data, not security-sensitive; any unique ID works
         id: Math.floor(Math.random() * 1000),
         colony_id: Number(params.id),
         name: (body as any).name || 'New Event',

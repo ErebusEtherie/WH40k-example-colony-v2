@@ -3,7 +3,7 @@ import { Event, EventModifier } from '../../types';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '../../api';
 import { EventCard } from './EventCard';
 import { EventCreationModal } from '../modals/EventCreationModal';
-import { Plus, Filter, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle } from 'lucide-react';
 
 interface EventsPanelProps {
   colonyId: number;
@@ -48,6 +48,17 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({ colonyId }) => {
     setIsModalOpen(true);
   };
 
+  const getEmptyStateMessage = (filter: 'all' | 'active' | 'inactive') => {
+    switch (filter) {
+      case 'active':
+        return 'No active events. Create one to track narrative occurrences.';
+      case 'inactive':
+        return 'No inactive events.';
+      default:
+        return 'No events yet. Create one to get started.';
+    }
+  };
+
   const filteredEvents = events.filter((event) => {
     if (filter === 'active') return event.is_active;
     if (filter === 'inactive') return !event.is_active;
@@ -55,6 +66,46 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({ colonyId }) => {
   });
 
   const activeCount = events.filter((e) => e.is_active).length;
+  const emptyStateMessage = getEmptyStateMessage(filter);
+
+  // Extracted render function to avoid nested ternary complexity
+  const renderEventsContent = () => {
+    if (isLoading) {
+      return (
+        <div className="p-8 text-center text-slate-400 text-sm font-mono">
+          Loading events...
+        </div>
+      );
+    }
+    if (error) {
+      return (
+        <div className="p-4 bg-red-950/50 border border-red-800 rounded-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-400" />
+          <span className="text-sm font-mono text-red-300">Failed to load events</span>
+        </div>
+      );
+    }
+    if (filteredEvents.length === 0) {
+      return (
+        <div className="p-8 text-center text-slate-500 text-sm font-mono">
+          {emptyStateMessage}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-2">
+        {filteredEvents.map((event) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onToggleActive={handleToggleActive}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -67,6 +118,7 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({ colonyId }) => {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
           className="px-3 py-1.5 bg-cyan-900 hover:bg-cyan-800 text-cyan-100 text-xs font-mono uppercase rounded-xs transition-colors flex items-center gap-2"
         >
@@ -79,6 +131,7 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({ colonyId }) => {
         {(['all', 'active', 'inactive'] as const).map((tab) => (
           <button
             key={tab}
+            type="button"
             onClick={() => setFilter(tab)}
             className={`px-3 py-1.5 text-xs font-mono uppercase rounded-t-xs transition-colors ${
               filter === tab
@@ -92,36 +145,7 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({ colonyId }) => {
       </div>
 
       {/* Content */}
-      {isLoading ? (
-        <div className="p-8 text-center text-slate-400 text-sm font-mono">
-          Loading events...
-        </div>
-      ) : error ? (
-        <div className="p-4 bg-red-950/50 border border-red-800 rounded-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-mono text-red-300">Failed to load events</span>
-        </div>
-      ) : filteredEvents.length === 0 ? (
-        <div className="p-8 text-center text-slate-500 text-sm font-mono">
-          {filter === 'active'
-            ? 'No active events. Create one to track narrative occurrences.'
-            : filter === 'inactive'
-            ? 'No inactive events.'
-            : 'No events yet. Create one to get started.'}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onToggleActive={handleToggleActive}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
+      {renderEventsContent()}
 
       {/* Modal */}
       <EventCreationModal

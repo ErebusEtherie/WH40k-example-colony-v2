@@ -56,22 +56,21 @@ export class ApiClient {
     // Handle 401 - attempt token refresh
     if (response.status === 401 && !url.includes('/auth/refresh')) {
       // Use Promise-based approach to handle concurrent 401s
-      if (!refreshPromise) {
-        refreshPromise = this.refreshToken()
-          .then(refreshResponse => {
-            const newToken = refreshResponse.access_token;
-            this.setToken(newToken);
-            return newToken;
-          })
-          .catch((_error) => {
-            // Refresh failed - clear token
-            this.setToken(null);
-            throw new Error('Session expired');
-          })
-          .finally(() => {
-            refreshPromise = null;
-          });
-      }
+      // Note: Using ??= to ensure only one refresh happens even if multiple 401s arrive simultaneously
+      refreshPromise ??= this.refreshToken()
+        .then(refreshResponse => {
+          const newToken = refreshResponse.access_token;
+          this.setToken(newToken);
+          return newToken;
+        })
+        .catch((_error) => {
+          // Refresh failed - clear token
+          this.setToken(null);
+          throw new Error('Session expired');
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
 
       try {
         await refreshPromise;
