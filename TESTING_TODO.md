@@ -1,7 +1,10 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-29
-**Current Status:** 777 tests passing, 100% pass rate (4 skipped)
+**Last Updated:** 2026-08-30
+**Current Status:**
+
+- Backend: 777 tests passing, 100% pass rate (4 skipped)
+- Frontend: 46 tests passing, 2 skipped (6 test files)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -10,7 +13,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ## Current Test Coverage Summary
 
-### ✅ Existing Tests (52+ files, 685 tests)
+### ✅ Backend Tests (52+ files, 777 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
@@ -22,15 +25,87 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **Security** | 4 files | 40+ | ✅ Complete |
 | **Integration** | 3 files | 20+ | ✅ Complete |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **52+ files** | **685 tests** | ✅ **100% passing** |
+| **Total** | **52+ files** | **777 tests** | ✅ **100% passing** |
+
+### ✅ Frontend Tests (6 files, 46 tests)
+
+| Category | Files | Tests | Status |
+|----------|-------|-------|--------|
+| **Common Components** | 2 files | 25 tests | ✅ Header (18), StateBadge (7) |
+| **Panel Components** | 2 files | 10 tests | ✅ EventCard (7), ColonyDetailsPanel (3) |
+| **API Hooks** | 2 files | 11 tests | ✅ useColonies (7), useModifiers (4) |
+| **Total** | **6 files** | **46 tests** | ✅ **Passing** |
 
 ### Test Patterns in Use
+
+#### Backend
 
 1. **Hypothesis property-based testing** for domain rules (stat calculator, profit factor, size, state effects)
 2. **pytest fixtures** for shared test data and mock repositories
 3. **Example-based tests** for boundary conditions and specific scenarios
 4. **Round-trip tests** for persistence (save → load → verify)
 5. **API integration tests** using FastAPI TestClient with SQLite in-memory DB
+
+#### Frontend
+
+1. **Vitest** test runner with jsdom environment
+2. **React Testing Library** for component testing
+3. **MSW (Mock Service Worker)** for API mocking
+4. **user-event** for realistic user interactions
+5. **TanStack Query** testing with custom wrapper
+
+---
+
+## Frontend Testing Progress (Phase 5)
+
+**Status:** 🟡 IN PROGRESS — Initial high-priority components complete
+
+### ✅ Completed (2026-08-30)
+
+#### 1. Header Component Tests (`src/components/common/Header.test.tsx`)
+
+- **18 tests passing, 1 skipped**
+- Coverage:
+  - Colony selection workflow (dropdown, selection callback)
+  - Backend status indicators (connected, syncing, offline)
+  - User profile & logout
+  - Accessibility menu (font size, color palette, dyslexia font toggle)
+  - Theme selection dropdown
+  - Time advancement controls (+1d, +5d, +10d)
+  - Create colony button
+
+#### 2. ColonyDetailsPanel Tests (`src/components/panels/ColonyDetailsPanel.test.tsx`)
+
+- **3 tests passing, 1 skipped**
+- Coverage:
+  - Colony name and basic information rendering
+  - Colony stats display (Order, Complacency, Productivity, Piety)
+  - Representative information display
+- Skipped: Add modifier button (requires EventsPanel MSW mocking)
+
+#### 3. Existing Tests (from previous work)
+
+- **StateBadge** — 7 tests for all state types
+- **EventCard** — 7 tests for event display and actions
+- **useColonies** — 7 tests for colony API hooks
+- **useModifiers** — 4 tests for modifier API hooks
+
+### 🔧 Known Issues / Skipped Tests
+
+1. **Header dyslexia font toggle test** — Toggle structure needs investigation (complex DOM)
+2. **ColonyDetailsPanel add modifier test** — EventsPanel requires additional MSW event mocking
+
+### 📋 Next Priorities
+
+Based on risk assessment from `08-frontend-testing.md`:
+
+1. **InfrastructurePanelGroup** — Install/upgrade/remove flows (HIGH RISK)
+2. **EventCreationModal** — Form validation and API mutation wiring (HIGH RISK)
+3. **RepresentativePanel** — Characteristic display and personality selection (MEDIUM RISK)
+4. **Theme switching** — Verify data-theme attribute changes (LOW RISK)
+5. **Form validation** — Required fields, error states (MEDIUM RISK)
+
+---
 
 ---
 
