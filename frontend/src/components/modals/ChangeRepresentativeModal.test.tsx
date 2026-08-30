@@ -98,7 +98,8 @@ describe('ChangeRepresentativeModal', () => {
 
     it('shows representative stats', () => {
       render(<ChangeRepresentativeModal {...defaultProps} />)
-      expect(screen.getAllByText(/1 traits/i)).toHaveLength(2)
+      // Both representatives have 1 personality trait each
+      expect(screen.getAllByText(/1 Trait/i)).toHaveLength(2)
       expect(screen.getByText(/ws 35/i)).toBeInTheDocument()
       expect(screen.getByText(/fel 50/i)).toBeInTheDocument()
     })
@@ -114,31 +115,33 @@ describe('ChangeRepresentativeModal', () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const vacateButton = screen.getByText(/vacate post/i).closest('button')
-      await user.click(vacateButton!)
+      const vacateButton = screen.getByTestId('vacate-post-option')
+      await user.click(vacateButton)
       
-      expect(screen.getByText(/vacate post/i).closest('button')).toHaveClass('border-amber-500')
+      expect(vacateButton).toHaveAttribute('aria-pressed', 'true')
     })
 
     it('selects representative when clicked', async () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const repButton = screen.getByText('Lord Hestian').closest('button')
-      await user.click(repButton!)
+      const repButton = screen.getByTestId('rep-option-rep_1')
+      await user.click(repButton)
       
-      expect(screen.getByText('Lord Hestian').closest('button')).toHaveClass('border-cyan-400')
+      expect(repButton).toHaveAttribute('aria-pressed', 'true')
     })
 
     it('shows checkmark for selected option', async () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const repButton = screen.getByText('Lord Hestian').closest('button')
-      await user.click(repButton!)
+      const repButton = screen.getByTestId('rep-option-rep_1')
+      await user.click(repButton)
       
-      // Check that selected option has the cyan border (visual indicator)
-      expect(screen.getByText('Lord Hestian').closest('button')).toHaveClass('border-cyan-400')
+      // Check that selected option has aria-pressed set to true
+      expect(repButton).toHaveAttribute('aria-pressed', 'true')
+      // Verify the checkmark icon appears for the selected representative
+      expect(repButton.querySelector('svg')).toBeInTheDocument()
     })
   })
 
@@ -147,8 +150,8 @@ describe('ChangeRepresentativeModal', () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const repButton = screen.getByText('Lord Hestian').closest('button')
-      await user.click(repButton!)
+      const repButton = screen.getByTestId('rep-option-rep_1')
+      await user.click(repButton)
       await user.click(screen.getByRole('button', { name: /confirm appointment/i }))
       
       expect(mockOnAssignRepresentative).toHaveBeenCalledTimes(1)
@@ -159,8 +162,8 @@ describe('ChangeRepresentativeModal', () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const vacateButton = screen.getByText(/vacate post/i).closest('button')
-      await user.click(vacateButton!)
+      const vacateButton = screen.getByTestId('vacate-post-option')
+      await user.click(vacateButton)
       await user.click(screen.getByRole('button', { name: /confirm appointment/i }))
       
       expect(mockOnAssignRepresentative).toHaveBeenCalledTimes(1)
@@ -171,8 +174,8 @@ describe('ChangeRepresentativeModal', () => {
       const user = userEvent.setup()
       render(<ChangeRepresentativeModal {...defaultProps} />)
       
-      const repButton = screen.getByText('Lord Hestian').closest('button')
-      await user.click(repButton!)
+      const repButton = screen.getByTestId('rep-option-rep_1')
+      await user.click(repButton)
       await user.click(screen.getByRole('button', { name: /confirm appointment/i }))
       
       expect(mockOnClose).toHaveBeenCalledTimes(1)
@@ -203,6 +206,33 @@ describe('ChangeRepresentativeModal', () => {
     })
   })
 
+  describe('Empty State', () => {
+    it('handles empty representatives list', () => {
+      render(
+        <ChangeRepresentativeModal
+          {...defaultProps}
+          representatives={[]}
+        />
+      )
+      expect(screen.getByText(/available representatives in dynasty pool \(0\)/i)).toBeInTheDocument()
+      // Verify only "Vacate Post" option is available
+      expect(screen.getByTestId('vacate-post-option')).toBeInTheDocument()
+      expect(screen.queryByTestId('rep-option-rep_1')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Modal Visibility', () => {
+    it('does not render when isOpen is false', () => {
+      const { container } = render(
+        <ChangeRepresentativeModal
+          {...defaultProps}
+          isOpen={false}
+        />
+      )
+      expect(container.firstChild).toBeNull()
+    })
+  })
+
   describe('Colony with existing representative', () => {
     it('pre-selects current representative', () => {
       const colonyWithRep: Colony = {
@@ -217,7 +247,8 @@ describe('ChangeRepresentativeModal', () => {
         />
       )
       
-      expect(screen.getByText('Inquisitor Varr').closest('button')).toHaveClass('border-cyan-400')
+      const selectedRep = screen.getByTestId('rep-option-rep_2')
+      expect(selectedRep).toHaveAttribute('aria-pressed', 'true')
     })
   })
 })

@@ -28,7 +28,7 @@ export const ChangeRepresentativeModal: React.FC<ChangeRepresentativeModalProps>
   );
 
   const handleConfirm = () => {
-    onAssignRepresentative(colony.id, selectedRepId ? selectedRepId : null);
+    onAssignRepresentative(colony.id, selectedRepId || null);
     onClose();
   };
 
@@ -62,6 +62,7 @@ export const ChangeRepresentativeModal: React.FC<ChangeRepresentativeModalProps>
               Available Representatives in Dynasty Pool ({availableReps.length})
             </label>
             <button
+              type="button"
               onClick={() => {
                 onClose();
                 onOpenCreateRepresentative();
@@ -77,6 +78,8 @@ export const ChangeRepresentativeModal: React.FC<ChangeRepresentativeModalProps>
             <button
               type="button"
               onClick={() => setSelectedRepId('')}
+              aria-pressed={selectedRepId === ''}
+              data-testid="vacate-post-option"
               className={`w-full p-3 text-left rounded-xs border transition-all flex items-center justify-between ${
                 selectedRepId === ''
                   ? 'bg-amber-950/70 border-amber-500 text-amber-100'
@@ -97,12 +100,15 @@ export const ChangeRepresentativeModal: React.FC<ChangeRepresentativeModalProps>
             {availableReps.map((rep) => {
               const typeInfo = REPRESENTATIVE_TYPES[rep.type];
               const isSelected = selectedRepId === rep.id;
+              const traitCount = rep.personalities.length;
 
               return (
                 <button
                   key={rep.id}
                   type="button"
                   onClick={() => setSelectedRepId(rep.id)}
+                  aria-pressed={isSelected}
+                  data-testid={`rep-option-${rep.id}`}
                   className={`w-full p-3 text-left rounded-xs border transition-all flex items-center justify-between ${
                     isSelected
                       ? 'bg-cyan-950/80 border-cyan-400 text-cyan-100 shadow-xs'
@@ -117,7 +123,7 @@ export const ChangeRepresentativeModal: React.FC<ChangeRepresentativeModalProps>
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      {rep.personalities.length} Traits • WS {rep.characteristics.ws} / Fel {rep.characteristics.fel} (+{Math.floor(rep.characteristics.fel / 10)})
+                      {traitCount} {traitCount === 1 ? 'Trait' : 'Traits'} • WS {rep.characteristics.ws} / Fel {rep.characteristics.fel} (+{Math.floor(rep.characteristics.fel / 10)})
                     </div>
                     <div className="text-[10px] text-cyan-400 font-bold">
                       {typeInfo?.lossMitigationDescription}
