@@ -14,6 +14,7 @@ import {
 } from '../../data/rulesReference';
 import { formatColonyAge } from '../../utils/calculator';
 import { OrnamentalFrame } from '../common/OrnamentalFrame';
+import { EventsPanel } from './EventsPanel';
 import { 
   Building2, 
   Calendar, 
@@ -41,6 +42,7 @@ interface ColonyDetailsPanelProps {
   onOpenChangeRepresentative: () => void;
   onNavigateToRepresentative: () => void;
   onNavigateToInfrastructure: () => void;
+  colonyId: number;
 }
 
 export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
@@ -52,6 +54,7 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
   onOpenChangeRepresentative,
   onNavigateToRepresentative,
   onNavigateToInfrastructure,
+  colonyId,
 }) => {
   // Editing state for basic fields
   const [isEditingBasics, setIsEditingBasics] = useState(false);
@@ -836,6 +839,13 @@ export const ColonyDetailsPanel: React.FC<ColonyDetailsPanelProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      </OrnamentalFrame>
+
+      {/* Events Panel */}
+      <OrnamentalFrame variant="cyan">
+        <div className="p-4">
+          <EventsPanel colonyId={colonyId} />
         </div>
       </OrnamentalFrame>
 

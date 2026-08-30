@@ -32,6 +32,8 @@ export type RepresentativeTypeKey =
 
 export type ModifierCategory = 'permanent' | 'conditional' | 'custom';
 
+export type ModifierStat = 'size' | 'complacency' | 'order' | 'productivity' | 'piety';
+
 export interface ModifierItem {
   id: string;
   name: string;
@@ -263,4 +265,54 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+}
+
+// ==================== EVENTS TYPES ====================
+
+export interface EventModifier {
+  stat: ModifierStat;
+  value: number;
+  description: string;
+}
+
+export interface Event {
+  id: number;
+  colony_id: number;
+  name: string;
+  description: string;
+  created_by: number;
+  created_at: string;
+  is_active: boolean;
+  modifiers: EventModifier[];
+}
+
+export interface EventListItem {
+  id: number;
+  colony_id: number;
+  name: string;
+  description: string;
+  is_active: boolean;
+  modifier_count: number;
+}
+
+export interface EventCreate {
+  name: string;
+  description: string;
+  modifiers: EventModifier[];
+}
+
+export interface EventUpdate {
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  meta: {
+    total: number;
+    offset: number;
+    limit: number;
+    has_more: boolean;
+  };
 }

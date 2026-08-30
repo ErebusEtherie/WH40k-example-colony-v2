@@ -144,6 +144,76 @@ export const handlers = [
   http.delete('/api/v1/colonies/:colonyId/modifiers/:modifierId', () => {
     return new HttpResponse(null, { status: 204 })
   }),
+// GET /api/v1/colonies/:id/events - List events
+  http.get('/api/v1/colonies/:id/events', () => {
+    return HttpResponse.json({
+      items: [
+        {
+          id: 1,
+          colony_id: 1,
+          name: 'Warp Storm',
+          description: 'A violent warp storm has isolated the colony from nearby trade routes.',
+          is_active: true,
+          modifier_count: 2,
+        },
+        {
+          id: 2,
+          colony_id: 1,
+          name: 'Trade Embargo',
+          description: 'Neighboring systems have imposed sanctions.',
+          is_active: false,
+          modifier_count: 1,
+        },
+      ],
+      meta: {
+        total: 2,
+        offset: 0,
+        limit: 50,
+        has_more: false,
+      },
+    })
+  }),
+
+  // POST /api/v1/colonies/:id/events - Create event
+  http.post('/api/v1/colonies/:id/events', async ({ params, request }) => {
+    const body = await request.json()
+    return HttpResponse.json(
+      {
+        // Test-only: real API generates UUIDs
+        id: Math.floor(Math.random() * 1000),
+        colony_id: Number(params.id),
+        name: (body as any).name || 'New Event',
+        description: (body as any).description || '',
+        is_active: true,
+        modifiers: (body as any).modifiers || [],
+        created_by: 1,
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 }
+    )
+  }),
+
+  // PATCH /api/v1/events/:id - Update event
+  http.patch('/api/v1/events/:id', async ({ params, request }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: Number(params.id),
+      colony_id: 1,
+      name: (body as any).name || 'Updated Event',
+      description: (body as any).description || '',
+      is_active: (body as any).is_active ?? true,
+      modifiers: [
+        { stat: 'productivity', value: -2, description: 'Trade disruption' },
+      ],
+      created_by: 1,
+      created_at: new Date().toISOString(),
+    })
+  }),
+
+  // DELETE /api/v1/events/:id - Delete event
+  http.delete('/api/v1/events/:id', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
 
   // GET /api/v1/representatives - List representatives
   http.get('/api/v1/representatives', () => {

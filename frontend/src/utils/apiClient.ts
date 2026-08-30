@@ -336,6 +336,39 @@ export class ApiClient {
     return await res.json();
   }
 
+  // Events
+  async getEvents(colonyId: string | number): Promise<any[]> {
+    const res = await this.fetchWithAuth(`${API_BASE}/colonies/${colonyId}/events`);
+    if (!res.ok) throw new Error('Failed to fetch events');
+    const data = await res.json();
+    return data.items || [];
+  }
+
+  async createEvent(colonyId: string | number, eventData: { name: string; description: string; modifiers: { stat: string; value: number; description: string }[] }): Promise<any> {
+    const res = await this.fetchWithAuth(`${API_BASE}/colonies/${colonyId}/events`, {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+    if (!res.ok) throw new Error('Failed to create event');
+    return await res.json();
+  }
+
+  async updateEvent(eventId: number, eventData: { name?: string; description?: string; is_active?: boolean }): Promise<any> {
+    const res = await this.fetchWithAuth(`${API_BASE}/events/${eventId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(eventData),
+    });
+    if (!res.ok) throw new Error('Failed to update event');
+    return await res.json();
+  }
+
+  async deleteEvent(eventId: number): Promise<void> {
+    const res = await this.fetchWithAuth(`${API_BASE}/events/${eventId}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete event');
+  }
+
   // Modifiers
   async getModifiers(colonyId: string | number): Promise<ModifierItem[]> {
     const res = await this.fetchWithAuth(`${API_BASE}/colonies/${colonyId}/modifiers`);

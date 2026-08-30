@@ -4,3 +4,4 @@
 export { useColonies, useColony, useCreateColony, useUpdateColony, useDeleteColony } from './useColonies'
 export { useModifiers, useCreateModifier, useDeleteModifier } from './useModifiers'
 export { useRepresentatives, useCreateRepresentative, useUpdateRepresentative, useDeleteRepresentative, useAssignRepresentative } from './useRepresentatives'
+export { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from './useModifiers'

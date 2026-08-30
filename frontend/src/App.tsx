@@ -316,6 +316,7 @@ export default function App() {
               setActiveTab('representative');
             }}
             onNavigateToInfrastructure={() => setActiveTab('infrastructure')}
+            colonyId={Number(currentColony.id)}
           />
         )}
 
