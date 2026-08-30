@@ -16,7 +16,7 @@ conflated lock/lore-state entry are removed), and personality/upgrade counts.
 |----------|---------|-----------------|
 | [`README.md`](README.md) | **This file** — Documentation index and project overview | Everyone |
 | [`business_analysis.md`](business_analysis.md) | **Single source of truth** for business rules, entities, calculations | Everyone |
-| [`architecture_phase_1.md`](architecture_phase_1.md) | Technical architecture, stack decisions, project structure | Developers |
+| [`architecture.md`](architecture.md) | Technical architecture, stack decisions, project structure | Developers |
 | [`.clinerules/00-overview.md`](../.clinerules/00-overview.md) | Project engineering rules and agent guidelines | AI agents, developers |
 
 ### 📋 Implementation Status
@@ -34,13 +34,16 @@ requirements are in `business_analysis.md`.
 
 | Document | Purpose | Who Should Read |
 |----------|---------|-----------------|
-| [`api_guide_phase_3.md`](api_guide_phase_3.md) | Complete REST API reference with examples | Frontend developers, API users |
+| [`api_reference.md`](api_reference.md) | Complete REST API reference with examples | Frontend developers, API users |
 | [`api_future_phase_4.md`](api_future_phase_4.md) | Phase 4+ API roadmap (events, audit logs, collaboration) | Architects |
 | [`UI_DESIGN_SYSTEM.md`](UI_DESIGN_SYSTEM.md) | Cult Mechanicus design system, components, patterns | UI developers |
-| [`UI_QUICK_REFERENCE.md`](UI_QUICK_REFERENCE.md) | Quick CSS/HTML reference for Mechanicum theme | UI developers |
-| [`UI_PANEL_REQUIREMENTS.md`](UI_PANEL_REQUIREMENTS.md) | Colony Dashboard panel specifications | UI developers |
-| [`UI_VISUALIZATION_PROMPT.md`](UI_VISUALIZATION_PROMPT.md) | **Enhanced UI specification** with API mappings, wireframes, implementation checklist | UI developers, frontend architects |
 | [`API_TODO.md`](API_TODO.md) | API enhancement roadmap and minor gaps | Backend developers, architects |
+
+**Archived UI Documents:** The following documents are archived for historical reference only:
+
+- `archive/UI_QUICK_REFERENCE.md` — Quick CSS/HTML reference (superseded by UI_DESIGN_SYSTEM.md)
+- `archive/UI_PANEL_REQUIREMENTS.md` — Colony Dashboard panel specs (superseded)
+- `archive/UI_VISUALIZATION_PROMPT.md` — External mockup prompt
 
 ### 📖 Guides & Documentation
 
@@ -57,9 +60,13 @@ requirements are in `business_analysis.md`.
 | Document | Purpose | Status |
 |----------|---------|--------|
 | [`Colony_Sheet_Analysis.md`](Colony_Sheet_Analysis.md) | Analysis of reference Excel workbook (Polish) | Reference |
-| [`DEPLOYMENT.md`](DEPLOYMENT.md) | Production deployment instructions | DevOps |
-| [`MOCK_SERVER_SETUP.md`](MOCK_SERVER_SETUP.md) | Mock API server for frontend development | Frontend |
-| [`AGENT_BRIEFING.md`](AGENT_BRIEFING.md) | Quick onboarding for AI coding agents | AI agents, developers |
+| [`DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md) | Production deployment instructions | DevOps |
+| [`SECURITY_CONFIGURATION.md`](SECURITY_CONFIGURATION.md) | Security hardening guide | DevOps |
+
+**Archived Documents:** The following documents are archived for historical reference only:
+
+- `archive/AGENT_BRIEFING.md` — AI agent onboarding (superseded by `.clinerules/`)
+- `archive/MOCK_SERVER_SETUP.md` — Mock API server setup (MSW is now standard)
 
 ---
 
@@ -183,7 +190,7 @@ All game rule data lives in YAML files under `config/`. See [`configuration.md`]
 If you find inconsistencies or outdated information:
 
 1. Check [`business_analysis.md`](business_analysis.md) first — it's the source of truth for business rules
-2. Check [`architecture_phase_1.md`](architecture_phase_1.md) for technical decisions
+2. Check [`architecture.md`](architecture.md) for technical decisions
 3. Update this index if you add new documentation
 4. Don't create duplicate decision-tracking files — merge into existing phase-based docs
 5. If a fact in a secondary doc (README, UI docs, addenda) conflicts with

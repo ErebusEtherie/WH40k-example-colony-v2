@@ -205,7 +205,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 | Document | Lines | Purpose |
 |----------|-------|---------|
-| `docs/api_guide_phase_3.md` | 1,312 | Complete REST API reference with curl examples |
+| `docs/api_reference.md` | 1,312 | Complete REST API reference with curl examples |
 | `docs/configuration.md` | 267 | Configuration files reference and modification guide |
 | `CONTRIBUTING.md` | 206 | Contribution guidelines and development workflow |
 | `CODE_OF_CONDUCT.md` | 82 | Community standards and enforcement |
@@ -217,7 +217,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 |----------|---------|
 | `README.md` | Added badges, quick start, architecture diagram, API examples |
 | `docs/README.md` | Updated documentation index with new files |
-| `docs/architecture_phase_1.md` | Added 6 Mermaid diagrams (layered architecture, ER, request lifecycle, rule engine, config loading, lore states) |
+| `docs/architecture.md` | Added 6 Mermaid diagrams (layered architecture, ER, request lifecycle, rule engine, config loading, lore states) |
 
 #### Documentation Statistics
 

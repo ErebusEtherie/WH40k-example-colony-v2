@@ -197,11 +197,11 @@ Brief description of the changes
 
 - **README.md**: Project overview, quick start, and high-level documentation
 - **docs/**: Detailed documentation
-  - `api_guide_phase_3.md`: Complete API reference
-  - `architecture_phase_1.md`: System architecture
+  - `api_reference.md`: Complete API reference
+  - `architecture.md`: System architecture
   - `business_analysis.md`: Domain rules and game mechanics
-  - `DEPLOYMENT.md`: Deployment instructions
-  - `SECURITY.md`: Security policies
+  - `DEPLOYMENT_CHECKLIST.md`: Deployment instructions
+  - `SECURITY_CONFIGURATION.md`: Security policies
 
 ### Writing Documentation
 

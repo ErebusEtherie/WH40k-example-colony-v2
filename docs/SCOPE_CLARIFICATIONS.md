@@ -157,7 +157,7 @@ andom module usage for game mechanics
 - .clinerules/00-overview.md — Project overview and architecture
 - .clinerules/02-domain-modeling.md — Domain model design
 - README.md — User-facing documentation
-- docs/api_guide_phase_3.md — API reference
+- docs/api_reference.md — API reference
 
 ---
 

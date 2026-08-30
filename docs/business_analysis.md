@@ -541,7 +541,7 @@ Phase 3b with core rulebook rules. See §4.7, §4.8, and §4.9 for details.
 - Representative is independent of Colony but **1:1 relationship only** — a Representative cannot be assigned to multiple Colonies simultaneously.
 - If a Representative assigned to a Colony is deleted, the Colony's
   reference is cleared rather than blocking the delete or deleting the
-  Colony. Flagged as a default in `architecture_phase_1.md` §3.6.
+  Colony. Flagged as a default in `architecture.md` §3.6.
 - **Scholarly's trigger is "lowest stat" per rulebook**, with GM choice only
   when multiple stats are tied for lowest. The GM applies this via a Permanent
   Modifier (GM-supplied value, not the effect category) rather than automatic

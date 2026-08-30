@@ -60,13 +60,12 @@ The engine is designed for consumption by multiple frontends: REST API, web UI, 
 - **Real-time Updates**: Server-Sent Events for live notifications
 - **Security**: JWT authentication, rate limiting, password validation
 
-
-
 ### ⚠️ Scope Clarification
 
 **This application is a tracking and organization tool, NOT a game automation system.**
 
 What the application does:
+
 - ✅ Track colony stats and calculate derived values
 - ✅ Store infrastructure, upgrades, and their states
 - ✅ Record modifiers created by the GM
@@ -74,6 +73,7 @@ What the application does:
 - ✅ Provide API access for frontends
 
 What the application does NOT do:
+
 - ❌ Automate dice rolls (GM enters results manually)
 - ❌ Run automatic event cycles or time-based mechanics
 - ❌ Make gameplay decisions or resolve game mechanics
@@ -117,7 +117,7 @@ uv run uvicorn colony_manager.main:app --reload
 4. **Add infrastructure**: `POST /api/v1/colonies/{id}/infrastructure`
 5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
 
-See the [API Guide](docs/api_guide_phase_3.md) for detailed examples.
+See the [API Reference](docs/api_reference.md) for detailed examples.
 
 ---
 
@@ -166,7 +166,7 @@ src/colony_manager/
 3. **Don't abstract preemptively** — Only introduce abstractions when used in ≥2 places
 4. **Dependencies point inward** — `adapters → application → domain`
 
-See [Architecture Documentation](docs/architecture_phase_1.md) for details.
+See [Architecture Documentation](docs/architecture.md) for details.
 
 ---
 
@@ -202,20 +202,49 @@ Interactive API documentation is available at:
 - **Swagger UI**: <http://localhost:8000/docs>
 - **ReDoc**: <http://localhost:8000/redoc>
 
-Complete API reference: [API Guide](docs/api_guide_phase_3.md)
+Complete API reference: [API Reference](docs/api_reference.md)
 
 ---
 
 ## Documentation
 
+### Core Documentation
+
 | Document | Description |
 |----------|-------------|
-| [API Guide](docs/api_guide_phase_3.md) | Complete API reference with examples |
-| [Architecture](docs/architecture_phase_1.md) | System architecture and design decisions |
-| [Business Analysis](docs/business_analysis.md) | Domain rules and game mechanics |
+| [Business Analysis](docs/business_analysis.md) | Domain rules and game mechanics (single source of truth) |
+| [Architecture](docs/architecture.md) | System architecture and design decisions |
+| [API Reference](docs/api_reference.md) | Complete API reference with examples |
+| [UI Design System](docs/UI_DESIGN_SYSTEM.md) | Frontend design system and component library |
+| [Frontend Requirements](docs/FRONTEND_REQUIREMENTS.md) | Frontend integration guide |
+
+### Deployment & Operations
+
+| Document | Description |
+|----------|-------------|
+| [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment guide |
+| [Deployment Status](docs/DEPLOYMENT_STATUS.md) | Current deployment readiness |
+| [Security Configuration](docs/SECURITY_CONFIGURATION.md) | Security hardening guide |
+| [Configuration](docs/configuration.md) | Environment and app configuration |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
+
+### Project Management
+
+| Document | Description |
+|----------|-------------|
+| [Roadmap](docs/ROADMAP.md) | Project roadmap and future phases |
 | [Testing TODO](TESTING_TODO.md) | Test coverage and strategy |
-| [Deployment](docs/DEPLOYMENT.md) | Deployment guide and requirements |
-| [Security](SECURITY.md) | Security policy and procedures |
+| [API TODO](API_TODO.md) | API development tracking |
+| [Scope Clarifications](docs/SCOPE_CLARIFICATIONS.md) | Important scope boundaries |
+| [Quality Report](docs/SONARQUBE_REPORT.md) | Code quality metrics |
+
+### Archived Documents
+
+Historical documents moved to [`docs/archive/`](docs/archive/):
+
+- UI Visualization Prompt (external mockup reference)
+- Agent Briefing (AI onboarding — see `.clinerules/` for current guidelines)
+- UI Panel Requirements (superseded by UI_DESIGN_SYSTEM.md)
 
 ---
 

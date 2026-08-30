@@ -1,8 +1,24 @@
 # Production Deployment Checklist
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-08-29  
-**Related:** [PHASE_4_PLAN.md](PHASE_4_PLAN.md)
+**Document Version:** 2.0  
+**Last Updated:** 2026-08-30  
+**Related:** [ROADMAP.md](ROADMAP.md), [SECURITY_CONFIGURATION.md](SECURITY_CONFIGURATION.md)
+
+---
+
+## Overview
+
+This checklist covers the complete deployment process for the WH40k Colony Manager, including environment configuration, security hardening, infrastructure setup, and operational procedures.
+
+**Prerequisites:**
+
+- Python 3.12+
+- uv package manager
+- SQLite (built-in) or PostgreSQL for production
+- Reverse proxy (nginx, Caddy, or cloud load balancer)
+- SSL/TLS certificate
+
+---
 
 ---
 
@@ -120,6 +136,132 @@
 ## Deployment Execution
 
 ### Backend Deployment
+
+#### Reverse Proxy Configuration
+
+- [ ] **nginx Configuration** (example)
+
+  ```nginx
+  server {
+      listen 80;
+      server_name your-domain.com;
+      return 301 https://$server_name$request_uri;
+  }
+
+  server {
+      listen 443 ssl http2;
+      server_name your-domain.com;
+
+      ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+      ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+      ssl_protocols TLSv1.2 TLSv1.3;
+
+      location / {
+          proxy_pass http://127.0.0.1:8000;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-Proto $scheme;
+
+          # Security headers
+          add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+          add_header X-Content-Type-Options "nosniff" always;
+          add_header X-Frame-Options "DENY" always;
+      }
+  }
+  ```
+
+- [ ] **Firewall Configuration**
+
+  ```bash
+  sudo ufw allow 22/tcp    # SSH
+  sudo ufw allow 443/tcp   # HTTPS
+  sudo ufw enable
+  ```
+
+- [ ] **File Permissions**
+
+  ```bash
+  chown -R www-data:www-data /path/to/WH40k_Colony_Manager
+  chmod 600 /path/to/WH40k_Colony_Manager/.env
+  ```
+
+---
+
+#### Database Setup
+
+- [ ] **SQLite** (Development/Small Deployments)
+
+  ```bash
+  mkdir -p /var/lib/colony-manager
+  chown www-data:www-data /var/lib/colony-manager
+  ```
+
+- [ ] **PostgreSQL** (Production)
+
+  ```bash
+  # Install and create database
+  sudo -u postgres psql
+  CREATE DATABASE colony_manager;
+  CREATE USER colony_user WITH PASSWORD 'secure-password';
+  GRANT ALL PRIVILEGES ON DATABASE colony_manager TO colony_user;
+
+  # Install adapter
+  uv pip install psycopg2-binary
+  ```
+
+---
+
+#### Backup & Recovery
+
+- [ ] **Backup Script** (`/usr/local/bin/backup-colony-db.sh`)
+
+  ```bash
+  BACKUP_DIR="/var/backups/colony-manager"
+  DATE=$(date +%Y%m%d_%H%M%S)
+  cp /var/lib/colony-manager/colony_manager.sqlite "$BACKUP_DIR/colony_manager_$DATE.sqlite"
+  find "$BACKUP_DIR" -name "*.sqlite" -mtime +7 -delete
+  ```
+
+- [ ] **Cron Job** (daily at 2 AM)
+
+  ```bash
+  0 2 * * * /usr/local/bin/backup-colony-db.sh
+  ```
+
+- [ ] **Backup Verification**
+  - [ ] Backup directory exists and is writable
+  - [ ] Test backup restoration procedure
+  - [ ] Verify backup retention policy (7 days default)
+
+---
+
+#### Update Procedure
+
+- [ ] **Standard Update**
+
+  1. Backup database
+  2. `git pull origin main`
+  3. `uv pip install --upgrade -r requirements.txt`
+  4. `sudo systemctl restart colony-manager`
+  5. Verify: `curl http://localhost:8000/api/v1/health`
+
+- [ ] **Rollback Procedure**
+
+  ```powershell
+  # 1. Stop application
+  sudo systemctl stop colony-manager
+
+  # 2. Restore database from backup
+  cp /var/backups/colony-manager/colony_manager_YYYYMMDD_HHMMSS.sqlite /var/lib/colony-manager/colony_manager.sqlite
+
+  # 3. Restore previous code version
+  git checkout <previous-commit>
+
+  # 4. Restart application
+  sudo systemctl start colony-manager
+  ```
+
+---
 
 ```powershell
 # Navigate to project root
@@ -378,44 +520,12 @@ Deployment is considered successful when:
 
 ## Related Documents
 
-- [PHASE_4_PLAN.md](PHASE_4_PLAN.md) — Phase 4 overview and roadmap
+- [ROADMAP.md](ROADMAP.md) — Project roadmap and future phases
+- [SECURITY_CONFIGURATION.md](SECURITY_CONFIGURATION.md) — Security hardening guide
 - [.env.example](../.env.example) — Environment variable template
-- [PHASE_3_SUMMARY.md](PHASE_3_SUMMARY.md) — Authentication implementation details
-- [API Guide](api_guide_phase_3.md) — API documentation
+- [api_reference.md](api_reference.md) — API documentation
 
 ---
 
-**Last Updated:** 2026-08-29  
+**Last Updated:** 2026-08-30  
 **Next Review:** After first production deployment
-
-- [ ] **Token Refresh**
-  - [ ] Access token refreshes automatically (wait 25+ minutes or trigger)
-  - [ ] User session persists across page refreshes
-  - [ ] Multiple tabs maintain synchronized session
-
-- [ ] **Logout**
-  - [ ] Logout button works
-  - [ ] Tokens revoked on server
-  - [ ] Cookies cleared
-  - [ ] User redirected to login page
-
-- [ ] **Password Change**
-  - [ ] Password change form accessible
-  - [ ] Complexity requirements enforced
-  - [ ] Password changes successfully
-  - [ ] Old password no longer works
-
-- [ ] **CORS Configuration**
-  - [ ] Only production domains in `ALLOWED_ORIGINS`
-  - [ ] No wildcard (`*`) origins with credentials
-  - [ ] Test cross-origin requests from frontend
-
-- [ ] **Rate Limiting**
-  - [ ] Rate limiting enabled on auth endpoints
-  - [ ] `MAX_LOGIN_ATTEMPTS` configured (recommended: 5)
-  - [ ] `LOCKOUT_DURATION_MINUTES` configured (recommended: 15)
-
-- [ ] **Database Security**
-  - [ ] Database file not web-accessible
-  - [ ] Database directory has restricted permissions
-  - [ ] Regular backup schedule configured

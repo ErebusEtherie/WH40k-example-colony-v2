@@ -286,6 +286,6 @@ Returns all active modifiers affecting colony stats.
 
 **Related Files:**
 
-- `docs/UI_VISUALIZATION_PROMPT.md` — UI specification with API mappings
-- `docs/api_guide_phase_3.md` — Current API documentation
-- `docs/UI_PANEL_REQUIREMENTS.md` — Original UI requirements
+- `docs/UI_VISUALIZATION_PROMPT.md` — UI specification with API mappings (archived)
+- `docs/api_reference.md` — Current API documentation
+- `docs/UI_PANEL_REQUIREMENTS.md` — Original UI requirements (archived)
