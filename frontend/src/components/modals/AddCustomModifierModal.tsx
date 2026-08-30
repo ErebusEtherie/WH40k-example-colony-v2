@@ -57,10 +57,11 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
         
         <div>
-          <label className="text-[10px] uppercase text-slate-400 block mb-1">
+          <label htmlFor="modifier-title" className="text-[10px] uppercase text-slate-400 block mb-1">
             Modifier Title / Event Designation *
           </label>
           <input
+            id="modifier-title"
             type="text"
             required
             placeholder="e.g. Planetary Triumph Festival"
@@ -72,10 +73,11 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase text-slate-400 block mb-1">
+            <label htmlFor="target-stat" className="text-[10px] uppercase text-slate-400 block mb-1">
               Target Characteristic *
             </label>
             <select
+              id="target-stat"
               value={stat}
               onChange={(e) => setStat(e.target.value as any)}
               className="w-full bg-slate-950 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100 uppercase"

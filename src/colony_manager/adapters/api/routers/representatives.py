@@ -247,7 +247,7 @@ async def delete_representative(
     service._representative_repository.delete(rep_id)
 
 
-@router.post("/{rep_id}/assign", response_model=RepresentativeResponse)
+@router.post("/{rep_id}/assign", response_model=RepresentativeResponse, responses={404: {"description": "Representative or colony not found"}, 400: {"description": "Invalid request or assignment conflict"}})
 async def assign_to_colony(
     rep_id: int,
     colony_id: int,
@@ -285,7 +285,7 @@ async def assign_to_colony(
     )
 
 
-@router.post("/{rep_id}/unassign", response_model=RepresentativeResponse)
+@router.post("/{rep_id}/unassign", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found or not assigned"}, 400: {"description": "Invalid request"}})
 async def unassign_from_colony(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],

@@ -42,12 +42,11 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div
+    <dialog
       id={id}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/80 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/80 backdrop-blur-sm open:block"
       aria-labelledby="modal-title"
+      onClose={onClose}
     >
       <div
         className="fixed inset-0"
@@ -90,6 +89,6 @@ export const Modal: React.FC<ModalProps> = ({
           {children}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

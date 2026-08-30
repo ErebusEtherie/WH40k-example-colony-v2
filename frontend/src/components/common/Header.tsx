@@ -37,6 +37,177 @@ interface HeaderProps {
   backendStatus?: 'connected' | 'syncing' | 'offline';
 }
 
+interface BackendStatusConfig {
+  text: string;
+  dotClass: string;
+  badgeClass: string;
+}
+
+const getBackendStatusConfig = (status: 'connected' | 'syncing' | 'offline'): BackendStatusConfig => {
+  const configs: Record<'connected' | 'syncing' | 'offline', BackendStatusConfig> = {
+    connected: {
+      text: 'Cogitator Online',
+      dotClass: 'bg-emerald-400 shadow-sm shadow-emerald-400',
+      badgeClass: 'bg-emerald-950/90 border-emerald-500 text-emerald-300 shadow-emerald-950/50',
+    },
+    syncing: {
+      text: 'Syncing...',
+      dotClass: 'bg-cyan-400 shadow-sm shadow-cyan-400',
+      badgeClass: 'bg-cyan-950/90 border-cyan-500 text-cyan-300 animate-pulse shadow-cyan-950/50',
+    },
+    offline: {
+      text: 'Local Cache',
+      dotClass: 'bg-red-400',
+      badgeClass: 'bg-red-950/90 border-red-500 text-red-300 shadow-red-950/50',
+    },
+  };
+  return configs[status];
+};
+
+const FONT_SIZE_LABELS: Record<FontSizeSetting, string> = {
+  standard: '100%',
+  large: '115%',
+  xlarge: '130%',
+};
+
+const COLOR_BLIND_PALETTES = [
+  { key: 'mechanicus', label: 'Default' },
+  { key: 'high_contrast', label: 'Monochrome' },
+  { key: 'protanopia', label: 'Deuter/Prot' },
+  { key: 'tritanopia', label: 'Tritanopia' },
+] as const;
+
+const FONT_SIZE_OPTIONS = ['standard', 'large', 'xlarge'] as const;
+
+interface AccessibilityMenuProps {
+  isOpen: boolean;
+  isDyslexiaFont: boolean;
+  onToggleDyslexiaFont: () => void;
+  isHighContrast: boolean;
+  onToggleHighContrast: () => void;
+  accessibilityPalette: AccessibilityPalette;
+  onChangePalette: (palette: AccessibilityPalette) => void;
+  fontSize: FontSizeSetting;
+  onChangeFontSize: (size: FontSizeSetting) => void;
+}
+
+const AccessibilityMenu: React.FC<AccessibilityMenuProps> = ({
+  isOpen,
+  isDyslexiaFont,
+  onToggleDyslexiaFont,
+  isHighContrast,
+  onToggleHighContrast,
+  accessibilityPalette,
+  onChangePalette,
+  fontSize,
+  onChangeFontSize,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="absolute right-0 mt-2 w-72 bg-slate-900 border-2 border-cyan-700/80 rounded-sm shadow-2xl p-4 z-50 space-y-4 animate-in fade-in">
+      <div className="flex items-center justify-between border-b border-cyan-900/80 pb-2">
+        <span className="font-serif uppercase font-bold text-xs text-cyan-200 flex items-center gap-1.5">
+          <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Accessibility & Optics
+        </span>
+        <span className="text-[10px] font-mono text-slate-400">WCAG AA Compliant</span>
+      </div>
+
+      {/* Dyslexia-friendly Font */}
+      <div className="space-y-1.5">
+        <label htmlFor="toggle-dyslexia-font" className="text-xs font-medium text-slate-200 flex items-center justify-between">
+          <span>Dyslexia-Optimized Font</span>
+          <button
+            onClick={onToggleDyslexiaFont}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              isDyslexiaFont ? 'bg-cyan-500' : 'bg-slate-700'
+            }`}
+            aria-pressed={isDyslexiaFont}
+            id="toggle-dyslexia-font"
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                isDyslexiaFont ? 'translate-x-4.5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </label>
+        <p className="text-[11px] text-slate-400">
+          Switches body typography to Lexend with generous tracking.
+        </p>
+      </div>
+
+      {/* High Contrast Boost */}
+      <div className="space-y-1.5">
+        <label htmlFor="toggle-high-contrast" className="text-xs font-medium text-slate-200 flex items-center justify-between">
+          <span>High-Contrast Boost</span>
+          <button
+            onClick={onToggleHighContrast}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              isHighContrast ? 'bg-cyan-500' : 'bg-slate-700'
+            }`}
+            aria-pressed={isHighContrast}
+            id="toggle-high-contrast"
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                isHighContrast ? 'translate-x-4.5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </label>
+        <p className="text-[11px] text-slate-400">
+          Sharpens border lines and maximizes contrast ratios.
+        </p>
+      </div>
+
+      {/* Color-Blind Safe Palette */}
+      <div className="space-y-1.5">
+        <span className="text-xs font-medium text-slate-200 block">
+          Color-Blind Palette Profile
+        </span>
+        <div className="grid grid-cols-2 gap-1.5 text-xs">
+          {COLOR_BLIND_PALETTES.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => onChangePalette(p.key as AccessibilityPalette)}
+              className={`px-2 py-1 text-left rounded-xs border text-[11px] font-mono transition-colors ${
+                accessibilityPalette === p.key
+                  ? 'bg-cyan-900 border-cyan-400 text-cyan-100 font-bold'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Text Size */}
+      <div className="space-y-1.5">
+        <span className="text-xs font-medium text-slate-200 block">
+          Display Scale
+        </span>
+        <div className="flex gap-1.5">
+          {FONT_SIZE_OPTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={() => onChangeFontSize(s)}
+              className={`flex-1 py-1 text-center rounded-xs border text-xs font-mono uppercase transition-colors ${
+                fontSize === s
+                  ? 'bg-cyan-900 border-cyan-400 text-cyan-100 font-bold'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {FONT_SIZE_LABELS[s]}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Header: React.FC<HeaderProps> = ({
   colonies,
   selectedColony,
@@ -64,6 +235,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const currentThemeConfig = APP_THEMES[theme] || APP_THEMES.mechanicus_amber;
   const colonyTypeInfo = COLONY_TYPES[selectedColony.colonyType] || COLONY_TYPES.research_mission;
+  const statusConfig = getBackendStatusConfig(backendStatus);
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950/95 border-b border-amber-600/60 backdrop-blur-md shadow-md shadow-slate-950">
@@ -81,17 +253,11 @@ export const Header: React.FC<HeaderProps> = ({
             </h1>
             <div className="flex items-center gap-2">
               <span
-                className={`text-[11px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-xs border font-bold flex items-center gap-1.5 shadow-xs ${
-                  backendStatus === 'connected'
-                    ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 shadow-emerald-950/50'
-                    : backendStatus === 'syncing'
-                    ? 'bg-cyan-950/90 border-cyan-500 text-cyan-300 animate-pulse shadow-cyan-950/50'
-                    : 'bg-red-950/90 border-red-500 text-red-300 shadow-red-950/50'
-                }`}
+                className={`text-[11px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-xs border font-bold flex items-center gap-1.5 shadow-xs ${statusConfig.badgeClass}`}
                 title={`REST Cogitator Status: ${backendStatus}`}
               >
-                <span className={`w-2 h-2 rounded-full ${backendStatus === 'connected' ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : backendStatus === 'syncing' ? 'bg-cyan-400 shadow-sm shadow-cyan-400' : 'bg-red-400'}`} />
-                {backendStatus === 'connected' ? 'Cogitator Online' : backendStatus === 'syncing' ? 'Syncing...' : 'Local Cache'}
+                <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass}`} />
+                {statusConfig.text}
               </span>
             </div>
           </div>
@@ -278,113 +444,17 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden xl:inline">Legibility</span>
             </button>
 
-            {isA11yMenuOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-slate-900 border-2 border-cyan-700/80 rounded-sm shadow-2xl p-4 z-50 space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-cyan-900/80 pb-2">
-                  <span className="font-serif uppercase font-bold text-xs text-cyan-200 flex items-center gap-1.5">
-                    <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Accessibility & Optics
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">WCAG AA Compliant</span>
-                </div>
-
-                {/* Dyslexia-friendly Font */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-200 flex items-center justify-between">
-                    <span>Dyslexia-Optimized Font</span>
-                    <button
-                      onClick={onToggleDyslexiaFont}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        isDyslexiaFont ? 'bg-cyan-500' : 'bg-slate-700'
-                      }`}
-                      aria-pressed={isDyslexiaFont}
-                      id="toggle-dyslexia-font"
-                    >
-                      <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          isDyslexiaFont ? 'translate-x-4.5' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </label>
-                  <p className="text-[11px] text-slate-400">
-                    Switches body typography to Lexend with generous tracking.
-                  </p>
-                </div>
-
-                {/* High Contrast Boost */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-200 flex items-center justify-between">
-                    <span>High-Contrast Boost</span>
-                    <button
-                      onClick={onToggleHighContrast}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        isHighContrast ? 'bg-cyan-500' : 'bg-slate-700'
-                      }`}
-                      aria-pressed={isHighContrast}
-                      id="toggle-high-contrast"
-                    >
-                      <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          isHighContrast ? 'translate-x-4.5' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </label>
-                  <p className="text-[11px] text-slate-400">
-                    Sharpens border lines and maximizes contrast ratios.
-                  </p>
-                </div>
-
-                {/* Color-Blind Safe Palette */}
-                <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-200 block">
-                    Color-Blind Palette Profile
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5 text-xs">
-                    {[
-                      { key: 'mechanicus', label: 'Default' },
-                      { key: 'high_contrast', label: 'Monochrome' },
-                      { key: 'protanopia', label: 'Deuter/Prot' },
-                      { key: 'tritanopia', label: 'Tritanopia' },
-                    ].map((p) => (
-                      <button
-                        key={p.key}
-                        onClick={() => onChangePalette(p.key as AccessibilityPalette)}
-                        className={`px-2 py-1 text-left rounded-xs border text-[11px] font-mono transition-colors ${
-                          accessibilityPalette === p.key
-                            ? 'bg-cyan-900 border-cyan-400 text-cyan-100 font-bold'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Text Size */}
-                <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-200 block">
-                    Display Scale
-                  </span>
-                  <div className="flex gap-1.5">
-                    {(['standard', 'large', 'xlarge'] as FontSizeSetting[]).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => onChangeFontSize(s)}
-                        className={`flex-1 py-1 text-center rounded-xs border text-xs font-mono uppercase transition-colors ${
-                          fontSize === s
-                            ? 'bg-cyan-900 border-cyan-400 text-cyan-100 font-bold'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        {s === 'standard' ? '100%' : s === 'large' ? '115%' : '130%'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            <AccessibilityMenu
+              isOpen={isA11yMenuOpen}
+              isDyslexiaFont={isDyslexiaFont}
+              onToggleDyslexiaFont={onToggleDyslexiaFont}
+              isHighContrast={isHighContrast}
+              onToggleHighContrast={onToggleHighContrast}
+              accessibilityPalette={accessibilityPalette}
+              onChangePalette={onChangePalette}
+              fontSize={fontSize}
+              onChangeFontSize={onChangeFontSize}
+            />
           </div>
 
           {/* User Profile Badge & Logout */}

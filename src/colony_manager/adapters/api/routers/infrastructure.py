@@ -155,7 +155,7 @@ async def create_infrastructure(
     )
 
 
-@router.get("/{infrastructure_id}", response_model=InfrastructureResponse)
+@router.get("/{infrastructure_id}", response_model=InfrastructureResponse, responses={404: {"description": "Colony or infrastructure not found"}})
 async def get_infrastructure(
     colony_id: int,
     infrastructure_id: int,
@@ -192,6 +192,7 @@ async def get_infrastructure(
     response_model=InfrastructureResponse | InfrastructureValidationResponse,
     summary="Update infrastructure",
     description="Update infrastructure name, notes, or state. Use `validate_only=true` to preview effects without applying.",
+    responses={404: {"description": "Colony or infrastructure not found"}},
 )
 async def update_infrastructure(
     colony_id: int,
@@ -256,7 +257,7 @@ async def update_infrastructure(
         raise HTTPException(status_code=404, detail=f"Infrastructure {infrastructure_id} not found")
 
 
-@router.delete("/{infrastructure_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{infrastructure_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Colony or infrastructure not found"}})
 async def delete_infrastructure(
     colony_id: int,
     infrastructure_id: int,

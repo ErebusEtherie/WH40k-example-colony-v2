@@ -62,9 +62,8 @@ export const StateBadge: React.FC<StateBadgeProps> = ({
   };
 
   return (
-    <span
+    <output
       className={`inline-flex items-center rounded-sm uppercase font-mono ${sizeClasses[size]} ${getStyles()}`}
-      role="status"
       title={`${statNames[stat]}: ${label} (${type.toUpperCase()})`}
     >
       {getIcon()}
@@ -79,6 +78,6 @@ export const StateBadge: React.FC<StateBadgeProps> = ({
           CRISIS
         </span>
       )}
-    </span>
+    </output>
   );
 };
