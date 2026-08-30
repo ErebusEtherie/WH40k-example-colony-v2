@@ -92,18 +92,18 @@ This guide provides complete infrastructure setup for:
 # Create Portainer volume
 docker volume create portainer_data
 
-# Deploy Portainer
+# Deploy Portainer (using port 9090 to avoid conflict)
 docker run -d \
   --name portainer \
   --restart=unless-stopped \
-  -p 9000:9000 \
+  -p 9090:9000 \
   -p 8000:8000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v portainer_data:/data \
   portainer/portainer-ce:latest
 ```
 
-**Access:** http://your-mini-pc-ip:9000
+**Access:** http://your-mini-pc-ip:9090
 
 ### Step 2: Configure Portainer Stack
 
@@ -130,9 +130,9 @@ VITE_API_BASE_URL: http://your-mini-pc-ip:8000
 
 ### Step 5: Access Application
 
-- **Frontend:** http://your-mini-pc-ip:80
-- **Backend API:** http://your-mini-pc-ip:8000
-- **API Docs:** http://your-mini-pc-ip:8000/docs
+- **Frontend:** http://your-mini-pc-ip:8880
+- **Backend API:** http://your-mini-pc-ip:8001
+- **API Docs:** http://your-mini-pc-ip:8001/docs
 
 ---
 
@@ -197,7 +197,7 @@ MAX_LOGIN_ATTEMPTS=10
 LOCKOUT_DURATION_MINUTES=5
 
 # CORS
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:80,http://127.0.0.1:80
+ALLOWED_ORIGINS=http://localhost:8880,http://localhost:3080,http://127.0.0.1:8880
 CORS_ALLOW_CREDENTIALS=true
 
 # Cookies
@@ -228,7 +228,7 @@ MAX_LOGIN_ATTEMPTS=5
 LOCKOUT_DURATION_MINUTES=15
 
 # CORS (update with your domain)
-ALLOWED_ORIGINS=https://colony.yourdomain.com
+ALLOWED_ORIGINS=https://colony.yourdomain.com:8880
 CORS_ALLOW_CREDENTIALS=true
 
 # Cookies (requires HTTPS)

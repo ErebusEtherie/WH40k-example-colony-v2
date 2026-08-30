@@ -6,6 +6,11 @@
 #   docker-compose -f docker-compose.test.yml down
 #
 # Portainer Stack: Copy this file as stack.yml in Portainer
+#
+# PORTS USED:
+# - Backend API: 8001 (internal: 8000)
+# - Frontend: 8880 (internal: 80)
+# - Portainer: 9090 (if installed separately)
 
 version: '3.8'
 
@@ -31,7 +36,7 @@ services:
       - LOCKOUT_DURATION_MINUTES=5
       - MIN_PASSWORD_LENGTH=8
       - REQUIRE_PASSWORD_COMPLEXITY=false
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:80,http://127.0.0.1:80
+      - ALLOWED_ORIGINS=http://localhost:8880,http://localhost:3080,http://127.0.0.1:8880
       - CORS_ALLOW_CREDENTIALS=true
       - COOKIE_SECURE=false
       - COOKIE_SAME_SITE=lax
@@ -42,7 +47,7 @@ services:
     networks:
       - colony-network
     ports:
-      - "8000:8000"
+      - "8001:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
       interval: 30s
@@ -63,7 +68,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=http://localhost:8000
+        - VITE_API_BASE_URL=http://localhost:8001
     container_name: colony-frontend
     restart: unless-stopped
     depends_on:
@@ -72,7 +77,7 @@ services:
     networks:
       - colony-network
     ports:
-      - "80:80"
+      - "8880:80"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s
@@ -123,4 +128,4 @@ volumes:
 # Copy this section to .env file and customize:
 #
 # JWT_SECRET_KEY=your-super-secret-key-min-32-chars
-# VITE_API_BASE_URL=http://localhost:8000
+# VITE_API_BASE_URL=http://localhost:8001
