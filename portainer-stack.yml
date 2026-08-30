@@ -23,7 +23,7 @@ services:
   # Backend API
   # ============================================
   backend:
-    image: ghcr.io/ErebusEtherie/wh40k-colony-manager-backend:latest
+    image: ghcr.io/erebusetherie/wh40k-colony-manager-backend:latest
     # OR build from Git (slower, requires buildkit):
     # build:
     #   context: .
@@ -64,7 +64,7 @@ services:
   # Frontend Web UI
   # ============================================
   frontend:
-    image: ghcr.io/ErebusEtherie/wh40k-colony-manager-frontend:latest
+    image: ghcr.io/erebusetherie/wh40k-colony-manager-frontend:latest
     # OR build from Git (slower, requires buildkit):
     # build:
     #   context: ./frontend
