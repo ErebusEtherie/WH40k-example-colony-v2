@@ -175,9 +175,7 @@ describe('ColonyDetailsPanel', () => {
     expect(screen.getByText(/military commander/i)).toBeInTheDocument()
   })
 
-  it.skip('calls onOpenAddCustomModifier when add modifier button is clicked', async () => {
-    // TODO: Fix test - EventsPanel fetches events via API hook, requires MSW handler
-    // The button click triggers an API call that isn't mocked, causing EventCard to crash
+  it('calls onOpenAddCustomModifier when add modifier button is clicked', async () => {
     const onOpenAddCustomModifier = vi.fn()
     const user = userEvent.setup()
 

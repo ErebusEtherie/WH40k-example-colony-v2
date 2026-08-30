@@ -148,7 +148,7 @@ export const handlers = [
   http.delete('/api/v1/colonies/:colonyId/modifiers/:modifierId', () => {
     return new HttpResponse(null, { status: 204 })
   }),
-// GET /api/v1/colonies/:id/events - List events
+  // GET /api/v1/colonies/:id/events - List events
   http.get('/api/v1/colonies/:id/events', () => {
     return HttpResponse.json({
       items: [
@@ -159,6 +159,10 @@ export const handlers = [
           description: 'A violent warp storm has isolated the colony from nearby trade routes.',
           is_active: true,
           modifier_count: 2,
+          modifiers: [
+            { stat: 'productivity', value: -2, description: 'Trade disruption' },
+            { stat: 'order', value: -1, description: 'Communication delays' },
+          ],
         },
         {
           id: 2,
@@ -167,6 +171,9 @@ export const handlers = [
           description: 'Neighboring systems have imposed sanctions.',
           is_active: false,
           modifier_count: 1,
+          modifiers: [
+            { stat: 'profit_factor', value: -1, description: 'Reduced trade income' },
+          ],
         },
       ],
       meta: {
@@ -269,5 +276,85 @@ export const handlers = [
       { detail: 'Incorrect username or password', status_code: 401 },
       { status: 401 }
     )
+  }),
+
+  // GET /api/v1/auth/me - Get current user
+  http.get('/api/v1/auth/me', () => {
+    return HttpResponse.json({
+      id: 1,
+      username: 'admin',
+      email: 'admin@example.com',
+      role: 'admin',
+    })
+  }),
+
+  // POST /api/v1/auth/register - Register
+  http.post('/api/v1/auth/register', async ({ request }) => {
+    const body = await request.json()
+    const { username, email } = body as { username: string; email: string }
+    
+    return HttpResponse.json({
+      id: Math.floor(Math.random() * 1000),
+      username,
+      email,
+      role: 'user',
+    }, { status: 201 })
+  }),
+
+  // POST /api/v1/auth/revoke - Logout
+  http.post('/api/v1/auth/revoke', () => {
+    return new HttpResponse(null, { status: 200 })
+  }),
+
+  // POST /api/v1/auth/refresh - Refresh token
+  http.post('/api/v1/auth/refresh', () => {
+    return HttpResponse.json({
+      access_token: 'mock-jwt-token-refreshed-67890',
+      token_type: 'bearer',
+    })
+  }),
+
+  // POST /api/v1/auth/change-password - Change password
+  http.post('/api/v1/auth/change-password', () => {
+    return new HttpResponse(null, { status: 200 })
+  }),
+
+  // POST /api/v1/representatives - Create representative
+  http.post('/api/v1/representatives', async ({ request }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: Math.floor(Math.random() * 1000),
+      name: (body as any).name || 'New Representative',
+      type: (body as any).type || 'colonist_representative',
+      colony_id: (body as any).colony_id || null,
+      personalities: (body as any).personalities || [],
+      stats: (body as any).stats || {
+        ws: 3, bs: 3, s: 3, t: 3, ag: 3, int: 3, per: 3, wp: 3, fel: 3,
+      },
+      skills: (body as any).skills || [],
+      talents: (body as any).talents || [],
+    }, { status: 201 })
+  }),
+
+  // PUT /api/v1/representatives/:id - Update representative
+  http.put('/api/v1/representatives/:id', async ({ params, request }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: Number(params.id),
+      name: (body as any).name || 'Updated Representative',
+      type: 'colonist_representative',
+      colony_id: (body as any).colony_id || 1,
+      personalities: (body as any).personalities || [],
+      stats: (body as any).stats || {
+        ws: 3, bs: 3, s: 3, t: 3, ag: 3, int: 3, per: 3, wp: 3, fel: 3,
+      },
+      skills: (body as any).skills || [],
+      talents: (body as any).talents || [],
+    })
+  }),
+
+  // DELETE /api/v1/representatives/:id - Delete representative
+  http.delete('/api/v1/representatives/:id', () => {
+    return new HttpResponse(null, { status: 204 })
   }),
 ]

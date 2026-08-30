@@ -152,8 +152,7 @@ describe('Header', () => {
     expect(a11yButton).toBeInTheDocument()
   })
 
-  it.skip('calls onToggleDyslexiaFont when dyslexia font toggle is clicked', async () => {
-    // TODO: Fix test - dyslexia toggle structure needs investigation
+  it('calls onToggleDyslexiaFont when dyslexia font toggle is clicked', async () => {
     const onToggleDyslexiaFont = vi.fn()
     const user = userEvent.setup()
 
@@ -162,8 +161,9 @@ describe('Header', () => {
     const a11yButton = screen.getByRole('button', { name: /accessibility settings/i })
     await user.click(a11yButton)
 
-    const dyslexiaToggle = screen.getByText(/dyslexia/i)
-    await user.click(dyslexiaToggle)
+    const dyslexiaToggle = document.getElementById('toggle-dyslexia-font')
+    expect(dyslexiaToggle).toBeInTheDocument()
+    await user.click(dyslexiaToggle!)
 
     expect(onToggleDyslexiaFont).toHaveBeenCalledTimes(1)
   })

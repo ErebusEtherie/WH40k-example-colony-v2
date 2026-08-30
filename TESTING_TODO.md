@@ -4,7 +4,7 @@
 **Current Status:**
 
 - Backend: 777 tests passing, 100% pass rate (4 skipped)
-- Frontend: 46 tests passing, 2 skipped (6 test files)
+- Frontend: 87 tests passing, 0 skipped (11 test files)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
 It complements .clinerules/04-testing-strategy.md with specific implementation tasks.
@@ -27,14 +27,15 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
 | **Total** | **52+ files** | **777 tests** | ✅ **100% passing** |
 
-### ✅ Frontend Tests (6 files, 46 tests)
+### ✅ Frontend Tests (9 files, 87 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
-| **Common Components** | 2 files | 25 tests | ✅ Header (18), StateBadge (7) |
-| **Panel Components** | 2 files | 10 tests | ✅ EventCard (7), ColonyDetailsPanel (3) |
-| **API Hooks** | 2 files | 11 tests | ✅ useColonies (7), useModifiers (4) |
-| **Total** | **6 files** | **46 tests** | ✅ **Passing** |
+| **Common Components** | 2 files | 26 tests | ✅ Header (19), StateBadge (7) |
+| **Panel Components** | 3 files | 26 tests | ✅ EventCard (7), ColonyDetailsPanel (4), RepresentativePanel (12), InfrastructurePanelGroup (3) |
+| **Modals** | 1 file | 5 tests | ✅ EventCreationModal (5) |
+| **API Hooks** | 4 files | 30 tests | ✅ useColonies (7), useModifiers (4), useAuth (12), useRepresentatives (7) |
+| **Total** | **11 files** | **87 tests** | ✅ **Passing** |
 
 ### Test Patterns in Use
 
@@ -58,13 +59,13 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ## Frontend Testing Progress (Phase 5)
 
-**Status:** 🟡 IN PROGRESS — Initial high-priority components complete
+**Status:** ✅ COMPLETE — API hook tests added for useAuth and useRepresentatives
 
 ### ✅ Completed (2026-08-30)
 
 #### 1. Header Component Tests (`src/components/common/Header.test.tsx`)
 
-- **18 tests passing, 1 skipped**
+- **19 tests passing**
 - Coverage:
   - Colony selection workflow (dropdown, selection callback)
   - Backend status indicators (connected, syncing, offline)
@@ -76,34 +77,50 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 #### 2. ColonyDetailsPanel Tests (`src/components/panels/ColonyDetailsPanel.test.tsx`)
 
-- **3 tests passing, 1 skipped**
+- **4 tests passing**
 - Coverage:
   - Colony name and basic information rendering
   - Colony stats display (Order, Complacency, Productivity, Piety)
   - Representative information display
-- Skipped: Add modifier button (requires EventsPanel MSW mocking)
+  - Add modifier button (opens EventCreationModal)
 
-#### 3. Existing Tests (from previous work)
+#### 3. API Hook Tests
+
+- **useColonies** — 7 tests for colony API hooks
+- **useModifiers** — 4 tests for modifier API hooks
+- **useAuth** — 12 tests for authentication hooks:
+  - Auth state query (authenticated, unauthenticated, error states)
+  - Login mutation (success, failure)
+  - Register mutation (success, failure)
+  - Logout mutation (success, graceful failure)
+  - Change password mutation (success, failure)
+  - AUTH_QUERY_KEYS structure
+- **useRepresentatives** — 7 tests for representative API hooks:
+  - List fetch (success, error)
+  - Create mutation
+  - Update mutation
+  - Delete mutation
+  - Assign mutation (assign, unassign)
+
+#### 4. Existing Tests (from previous work)
 
 - **StateBadge** — 7 tests for all state types
 - **EventCard** — 7 tests for event display and actions
-- **useColonies** — 7 tests for colony API hooks
-- **useModifiers** — 4 tests for modifier API hooks
+- **EventCreationModal** — 5 tests for modal behavior
+- **RepresentativePanel** — 12 tests for representative management
+- **InfrastructurePanelGroup** — 3 tests for infrastructure display
 
 ### 🔧 Known Issues / Skipped Tests
 
-1. **Header dyslexia font toggle test** — Toggle structure needs investigation (complex DOM)
-2. **ColonyDetailsPanel add modifier test** — EventsPanel requires additional MSW event mocking
+None — all previously skipped tests have been fixed!
 
-### 📋 Next Priorities
+### 📋 Future Enhancements (Optional)
 
 Based on risk assessment from `08-frontend-testing.md`:
 
-1. **InfrastructurePanelGroup** — Install/upgrade/remove flows (HIGH RISK)
-2. **EventCreationModal** — Form validation and API mutation wiring (HIGH RISK)
-3. **RepresentativePanel** — Characteristic display and personality selection (MEDIUM RISK)
-4. **Theme switching** — Verify data-theme attribute changes (LOW RISK)
-5. **Form validation** — Required fields, error states (MEDIUM RISK)
+1. **InfrastructurePanelGroup** — Expand tests for install/upgrade/remove flows with MSW mocks
+2. **Theme switching** — Verify data-theme attribute changes on theme selection
+3. **Additional form validation** — More comprehensive error state testing
 
 ---
 
