@@ -1,14 +1,19 @@
 # Deployment Readiness Summary
 
 **Date:** 2026-08-30  
-**Status:** ✅ SECURITY CONFIGURED — READY FOR PRODUCTION DEPLOYMENT  
+**Status:** ✅ CI/CD INFRASTRUCTURE COMPLETE — READY FOR TESTING & PRODUCTION  
 **Previous:** Phase 3 - Authentication System (summary merged into [ROADMAP.md](ROADMAP.md))
 
 ---
 
 ## Executive Summary
 
-Phase 4 deployment preparation is **COMPLETE**. All production configuration files, deployment scripts, and security documentation have been created and tested. The JWT secret key has been generated. The application is ready for production deployment pending final domain configuration (CORS, SSL certificate, database path).
+Phase 4 deployment preparation is **COMPLETE**. All production configuration files, deployment scripts, security documentation, **Docker containerization**, and **CI/CD pipeline** have been created and tested. The JWT secret key has been generated. The application is ready for:
+
+1. **Local testing** with Docker Compose
+2. **Mini-PC deployment** with Portainer
+3. **Automated CI/CD** with GitHub Actions
+4. **Production deployment** pending final domain configuration (CORS, SSL certificate, database path)
 
 ---
 
@@ -57,6 +62,39 @@ Phase 4 deployment preparation is **COMPLETE**. All production configuration fil
 | `DEPLOYMENT_CHECKLIST.md` | Step-by-step deployment guide | ✅ Created |
 | `SECURITY_CONFIGURATION.md` | Security hardening reference | ✅ Created |
 | `ROADMAP.md` | Updated with cleanup summary | ✅ Updated |
+| Document | Purpose | Status |\n|----------|---------|--------|\n| `DEPLOYMENT_CHECKLIST.md` | Step-by-step deployment guide | ✅ Created |\n| `DEPLOYMENT_CHECKLIST_MINI_PC.md` | Mini-PC/Portainer deployment | ✅ Created |\n| `SECURITY_CONFIGURATION.md` | Security hardening reference | ✅ Created |\n| `CICD_INFRASTRUCTURE.md` | CI/CD setup guide | ✅ Created |\n| `ROADMAP.md` | Updated with cleanup summary | ✅ Updated |\n| `DEPLOYMENT_STATUS.md` | This summary document | ✅ Updated |
+
+---
+
+### 4. Docker & Containerization
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `Dockerfile` | Backend container image | ✅ Created |
+| `frontend/Dockerfile` | Frontend container image | ✅ Created |
+| `frontend/nginx.conf` | Nginx configuration | ✅ Created |
+| `docker-compose.test.yml` | Testing environment | ✅ Created |
+| `docker-compose.prod.yml` | Production environment | ✅ Created |
+| `.dockerignore` | Docker build exclusions | ✅ Created |
+| `frontend/.dockerignore` | Frontend build exclusions | ✅ Created |
+
+---
+
+### 5. CI/CD Pipeline
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `.github/workflows/ci-cd.yml` | GitHub Actions workflow | ✅ Created |
+| `.github/workflows/codeql.yml` | Security scanning | ✅ Existing |
+
+**Pipeline Features:**
+
+- Automated testing (backend + frontend)
+- Linting and type checking
+- Multi-platform Docker builds (AMD64, ARM64)
+- GitHub Container Registry integration
+- Manual deployment triggers
+- Environment-specific deployments
 | `DEPLOYMENT_STATUS.md` | This summary document | ✅ Updated |
 
 ---
@@ -104,6 +142,63 @@ npm run build
 
 ### 3. Verify
 
+---
+
+## 🐳 Docker & CI/CD Infrastructure
+
+### Container Deployment (Mini-PC Testing)
+
+**Quick Start:**
+
+```bash
+# Generate JWT secret
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Create .env file
+cp .env.example .env
+
+# Start with Docker Compose
+docker-compose -f docker-compose.test.yml up -d
+
+# View logs
+docker-compose -f docker-compose.test.yml logs -f
+```
+
+**Portainer Deployment:**
+
+1. Access Portainer: http://mini-pc-ip:9000
+2. Navigate to **Stacks** → **Add stack**
+3. Name: `wh40k-colony-manager`
+4. Paste `docker-compose.test.yml` content
+5. Add environment variables
+6. Deploy
+
+**Access URLs:**
+
+- Frontend: http://localhost:80
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### GitHub Actions CI/CD
+
+**Configure Secrets:**
+
+| Secret | Description |
+|--------|-------------|
+| `MINI_PC_HOST` | Mini-PC IP address |
+| `MINI_PC_USERNAME` | SSH username |
+| `MINI_PC_SSH_KEY` | SSH private key (base64) |
+
+**Deploy:**
+
+1. Go to **Actions** → **CI/CD Pipeline**
+2. Click **Run workflow**
+3. Select **testing** environment
+4. Monitor deployment
+
+See [CICD_INFRASTRUCTURE.md](CICD_INFRASTRUCTURE.md) for complete setup guide.
+
+---
 Follow [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)
 
 ---

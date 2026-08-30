@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests
+tests/
+*test*.py
+pytest.ini
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Development
+.env
+.env.local
+.env.*.local
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Frontend
+frontend/
+!config/
+
+# Scripts
+scripts/
+
+# Misc
+*.log
+*.sqlite-journal
+Thumbs.db
+.DS_Store

@@ -7,6 +7,8 @@
 [![Tests](https://img.shields.io/badge/tests-772%20passing-green.svg)](TESTING_TODO.md)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-black.svg)](https://github.com/astral-sh/ruff)
 [![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docs/QUICK_DEPLOYMENT.md)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-github%20actions-orange.svg)](.github/workflows/ci-cd.yml)
 
 ---
 
@@ -15,6 +17,7 @@
 - [Overview](#overview)
 - [Features](#features)
 - [Quick Start](#quick-start)
+- [Docker Deployment](#docker-deployment)
 - [Architecture](#architecture)
 - [API Usage](#api-usage)
 - [Documentation](#documentation)
@@ -118,6 +121,28 @@ uv run uvicorn colony_manager.main:app --reload
 5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
 
 See the [API Reference](docs/api_reference.md) for detailed examples.
+### Docker Deployment (Recommended for Testing)
+
+```bash
+# Clone and deploy with Docker Compose
+git clone https://github.com/yourusername/WH40k_Colony_Manager.git
+cd WH40k_Colony_Manager
+
+# Generate JWT secret and create .env
+python -c "import secrets; print(secrets.token_urlsafe(32))" > .env
+echo "DATABASE_PATH=/data/colony_manager.sqlite" >> .env
+echo "ENVIRONMENT=development" >> .env
+
+# Deploy
+docker-compose -f docker-compose.test.yml up -d --build
+
+# Access application
+# Frontend: http://localhost
+# API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+See [Quick Deployment Guide](docs/QUICK_DEPLOYMENT.md) for complete Docker and Portainer setup.
 
 ---
 
@@ -222,7 +247,10 @@ Complete API reference: [API Reference](docs/api_reference.md)
 
 | Document | Description |
 |----------|-------------|
-| [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment guide |
+| [Quick Deployment](docs/QUICK_DEPLOYMENT.md) | **START HERE** — One-page deployment reference |
+| [CI/CD Infrastructure](docs/CICD_INFRASTRUCTURE.md) | Complete Docker, Portainer, GitHub Actions guide |
+| [Mini-PC Checklist](docs/DEPLOYMENT_CHECKLIST_MINI_PC.md) | Mini-PC/Portainer deployment checklist |
+| [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md) | Traditional deployment guide |
 | [Deployment Status](docs/DEPLOYMENT_STATUS.md) | Current deployment readiness |
 | [Security Configuration](docs/SECURITY_CONFIGURATION.md) | Security hardening guide |
 | [Configuration](docs/configuration.md) | Environment and app configuration |
