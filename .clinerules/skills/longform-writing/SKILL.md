@@ -1,6 +1,9 @@
 ---
 name: longform-writing
-description: Techniques for writing, editing, and maintaining continuity in longer documents across multiple sessions or chunks
+description: >-
+  Techniques for writing, editing, and maintaining continuity in longer
+  documents across multiple sessions or chunks
+disabled: true
 ---
 
 # Long-Form Writing Skill
