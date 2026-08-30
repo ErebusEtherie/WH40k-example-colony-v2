@@ -102,6 +102,7 @@ Register a new user account. No authentication required.
 ```
 
 **Password Requirements:**
+
 - Minimum 8 characters (configurable)
 - At least one uppercase letter
 - At least one lowercase letter
@@ -175,6 +176,7 @@ Get a new access token using a refresh token.
 List all colonies the current user has access to.
 
 **Query Parameters:**
+
 - `offset` (int, default: 0) — Number of items to skip
 - `limit` (int, default: 20, max: 100) — Maximum items to return
 
@@ -268,6 +270,7 @@ Get detailed information about a specific colony.
 ```
 
 **Lore States:**
+
 - `stable` — Normal operation
 - `placated` — Complacency > Size
 - `anarchy` — Order = 0
@@ -524,6 +527,7 @@ Update a representative's details.
 List all infrastructure for a colony.
 
 **Query Parameters:**
+
 - `offset` (int, default: 0)
 - `limit` (int, default: 20, max: 100)
 
@@ -551,6 +555,7 @@ List all infrastructure for a colony.
 ```
 
 **Infrastructure States:**
+
 - `working` — Fully operational, provides full bonuses
 - `disrupted` — Partially operational, reduced/no bonuses
 - `not_working` — Broken, may provide penalties
@@ -780,6 +785,7 @@ List all planetary resources for a colony.
 ```
 
 **Abundance Levels:**
+
 - `scarce` — 1-25
 - `moderate` — 26-50
 - `abundant` — 51-75
@@ -887,6 +893,7 @@ Update a resource's abundance or notes.
 List all events for a colony.
 
 **Query Parameters:**
+
 - `active_only` (bool, default: true) — Only show active events
 
 **Response (200 OK):**
@@ -983,6 +990,7 @@ Delete (soft delete) an event. Requires `colony_manager` role or higher.
 List all development plans for a colony.
 
 **Query Parameters:**
+
 - `active_only` (bool, default: true)
 
 **Response (200 OK):**
@@ -1042,7 +1050,7 @@ Create a new development plan. Requires `colony_manager` role or higher.
 
 Get details of a specific development plan.
 
-**Response (200 OK):** Returns full plan details.
+**Response (200 OK):** Returns full plan details
 ---
 
 ## Colony Users
@@ -1588,6 +1596,7 @@ List all modifiers across all colonies. Requires admin role.
 Get a specific modifier by ID. Requires admin role.
 
 **Response (200 OK):** Returns modifier details.
+
 ### Delete Resource
 
 **DELETE** `/colonies/{colony_id}/resources/{resource_id}`
@@ -1606,6 +1615,7 @@ Remove a support upgrade from a colony. Requires admin permission.
 **Response (204 No Content)**
   "is_not_working": false
 }
+
 ```
 
 ---
@@ -1673,7 +1683,9 @@ Unassign a representative from their colony.
   "assigned_to_colony_id": null
 }
 ```
+
 }
+
 ```
 
 ---

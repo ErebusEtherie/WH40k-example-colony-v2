@@ -50,7 +50,6 @@ two-or-more-uses / real-duplication-harm / readability test from
 simpler direct version instead — don't propose the abstraction "just in
 case" and wait to be told no.
 
-
 ---
 
 ## Game Automation vs. Tracking — Critical Distinction

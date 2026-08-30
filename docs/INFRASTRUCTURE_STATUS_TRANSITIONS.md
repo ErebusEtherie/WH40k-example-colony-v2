@@ -11,6 +11,7 @@
 This document proposes rules for transitioning Hard Infrastructure and Support Upgrades between their four possible statuses. The rules reference defines what each status *does*, but not which transitions are allowed or what triggers them.
 
 **Current Statuses:**
+
 - `Working` — Fully operational, providing full bonus
 - `Not Working` — Damaged/broken, providing no bonus (may cause penalties)
 - `In Progress` — Under construction/repair, not yet functional
@@ -83,31 +84,38 @@ stateDiagram-v2
 
 **Trigger:** Player initiates development project  
 **Requirements:**
+
 - Colony has required resources (if using resource tracking)
 - Development plan exists (optional, for tracking)
 - Colony is not in Anarchy state (Order = 0)
 
 **GM Options:**
+
 - Require a specific skill test (e.g., Trade (Merchant) for Manufactorum)
 - Set construction duration (e.g., 1d5 development cycles)
 - Allow instant completion for narrative reasons
 
 **UI Implementation:**
+
 - Button: "Start Construction" on infrastructure in `Needed` state
+
 ---
 
 ### 4. Working → Not Working (Damage Event)
 
 **Trigger:** Event damage, sabotage, decay, or narrative complication  
 **Requirements:**
+
 - GM decision (typically from event resolution)
 
 **GM Options:**
+
 - Simple damage: status → `Not Working`, no additional effects
 - Damaged with penalty: status → `Not Working`, add Custom Modifier (e.g., Productivity -2)
 - Catastrophic failure: status → `Not Working`, add multiple modifiers or trigger colony state change
 
 **UI Implementation:**
+
 - No player button — GM-only action via status dropdown
 - Dialog prompts GM to confirm and optionally add custom modifiers
 - Audit log entry created with GM as changed_by
@@ -118,15 +126,18 @@ stateDiagram-v2
 
 **Trigger:** Players begin repair efforts  
 **Requirements:**
+
 - GM approval (repair may not always be possible)
 - Optionally: resource cost
 
 **GM Options:**
+
 - Quick repair: 1 development cycle
 - Major overhaul: multiple cycles
 - Beyond repair: must be replaced (→ Needed)
 
 **UI Implementation:**
+
 - Button: "Start Repair" on infrastructure in `Not Working` state
 - Opens dialog for GM to set repair duration
 - On confirm: status → `In Progress`
@@ -137,15 +148,18 @@ stateDiagram-v2
 
 **Trigger:** Repair efforts succeed  
 **Requirements:**
+
 - GM confirmation
 - Optionally: successful Tech-Use or Trade test
 
 **GM Options:**
+
 - Full repair: status → `Working`, full bonus restored
 - Patch job: status → `Working`, but add Custom Modifier for reduced effectiveness
 - Failed repair: status remains `Not Working`, may trigger additional complications
 
 **UI Implementation:**
+
 - Button: "Mark Repaired" on infrastructure in `In Progress` state (after repair started)
 - Opens confirmation dialog
 - On confirm: status → `Working`
@@ -156,10 +170,12 @@ stateDiagram-v2
 
 **Trigger:** Infrastructure abandoned or beyond repair  
 **Requirements:**
+
 - GM decision
 - Colony decision to not rebuild
 
 **UI Implementation:**
+
 - Button: "Decommission" on infrastructure in `Not Working` state
 - Confirmation dialog warns this is permanent
 - On confirm: status → `Needed`
@@ -170,10 +186,12 @@ stateDiagram-v2
 
 **Trigger:** Construction halted, resources redirected  
 **Requirements:**
+
 - GM decision
 - Colony decision to abandon project
 
 **UI Implementation:**
+
 - Button: "Abandon Construction" on infrastructure in `In Progress` state
 - Confirmation dialog warns of lost resources
 - On confirm: status → `Needed`
@@ -183,6 +201,7 @@ stateDiagram-v2
 ## Summary: Allowed Transitions
 
 ### Player-Initiated (No GM Approval Required)
+
 - `Needed` → `In Progress` (start construction)
 - `In Progress` → `Working` (mark complete)
 - `Not Working` → `In Progress` (start repair)
@@ -191,6 +210,7 @@ stateDiagram-v2
 - `In Progress` → `Needed` (abandon construction)
 
 ### GM-Only Actions
+
 - `Working` → `Not Working` (damage event)
 - `In Progress` → `Not Working` (construction failure)
 
@@ -257,15 +277,18 @@ Once GM approves the transition rules:
 
 **Trigger:** Construction complete  
 **Requirements:**
+
 - GM confirmation that construction is complete
 - Optionally: successful completion of any required tests
 
 **GM Options:**
+
 - Require final skill test (construction can fail)
 - Allow partial completion (reduced bonus)
 - Add complications (see "Construction Failure" below)
 
 **UI Implementation:**
+
 - Button: "Mark Complete" on infrastructure in `In Progress` state
 - Opens confirmation dialog
 - On confirm: status changes to `Working`, bonus becomes active
@@ -276,14 +299,17 @@ Once GM approves the transition rules:
 
 **Trigger:** Construction disaster, sabotage, or narrative complication  
 **Requirements:**
+
 - GM decision (not player-initiated)
 
 **GM Options:**
+
 - Permanent damage: requires full reconstruction (→ Needed)
 - Temporary setback: requires repair (→ Not Working, then repair to Working)
 - Partial failure: working at reduced capacity (custom modifier)
 
 **UI Implementation:**
+
 - No player button — GM-only action via status dropdown
 - Dialog prompts GM to select failure type and any custom modifiers
 - Audit log entry created with GM as changed_by

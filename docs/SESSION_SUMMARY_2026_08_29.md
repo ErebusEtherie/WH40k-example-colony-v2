@@ -11,6 +11,7 @@
 ### 1. Documentation Updates ✅
 
 **Updated Files:**
+
 - `README.md` — Updated test count badge (695 → 772)
 - `docs/API_TODO.md` — Marked Export/Import as Complete with implementation details
 - `TESTING_TODO.md` — Updated test count (768 → 772)
@@ -20,12 +21,14 @@
 **Created:** `docs/INFRASTRUCTURE_STATUS_TRANSITIONS.md`
 
 This document proposes rules for transitioning Hard Infrastructure and Support Upgrades between their four statuses:
+
 - Working
 - Not Working
 - In Progress
 - Needed
 
 **Key Features:**
+
 - Mermaid state diagram for visual reference
 - Transition matrix showing allowed state changes
 - Player-initiated vs. GM-only transitions
@@ -40,6 +43,7 @@ This document proposes rules for transitioning Hard Infrastructure and Support U
 **Enhanced:** Export/Import to support multi-user scenarios
 
 **Changes:**
+
 1. **UserService** (`src/colony_manager/application/services/user_service.py`)
    - Added `get_user_by_username()` method
 
@@ -59,6 +63,7 @@ This document proposes rules for transitioning Hard Infrastructure and Support U
    - Returns warnings for users that couldn't be added (don't exist in system)
 
 **Behavior:**
+
 - Current user is automatically added as owner (existing behavior)
 - Other users from import are looked up by username
 - If user exists: added to colony with their original role
@@ -73,16 +78,19 @@ This document proposes rules for transitioning Hard Infrastructure and Support U
 All suggestions from the code review have been addressed:
 
 ### 1. Logging for Orphaned Users (Critical → Fixed)
+
 - **File:** `src/colony_manager/adapters/io/colony_exporter.py`
 - **Change:** Added logging when user_id in colony_users doesn't exist in system
 - **Benefit:** Makes debugging orphaned database records easier
 
 ### 2. Graceful Error Handling in Import (Suggestion → Implemented)
+
 - **File:** `src/colony_manager/adapters/api/routers/export_import.py`
 - **Change:** Wrapped `add_member()` calls in try/except
 - **Benefit:** Import continues even if adding some users fails, reports all issues in warnings
 
 ### 3. State Diagram (Suggestion → Added)
+
 - **File:** `docs/INFRASTRUCTURE_STATUS_TRANSITIONS.md`
 - **Change:** Added Mermaid state diagram showing all valid transitions
 - **Benefit:** Visual reference for frontend implementation
@@ -92,6 +100,7 @@ All suggestions from the code review have been addressed:
 ## Test Results
 
 **All 772 tests passing** including:
+
 - Export/import API tests (4 tests)
 - IO unit tests (1 test)
 - All existing domain, service, and integration tests
@@ -136,6 +145,7 @@ All suggestions from the code review have been addressed:
 ## Backend Status: ✅ Complete
 
 All major backend work is now complete:
+
 - ✅ Domain models and business logic
 - ✅ Persistence layer (SQLite + repositories)
 - ✅ Application services

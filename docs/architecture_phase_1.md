@@ -437,11 +437,13 @@ stateDiagram-v2
 | `-->` | State transition or message flow |
 | `{}` | Decision point in flowchart |
 | `[]` | Process or action box |
+
     SUPPORT_UPGRADE {
         int id PK
         UpgradeType type
         int quantity
     }
+
 ```
 
 ---

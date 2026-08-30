@@ -58,6 +58,7 @@ Defines the available colony types, their base stats, and special effects.
   - `piety`: Base piety level
 - **special_effects** (array): List of special rules for this colony type
   - `name`: Internal identifier for the effect
+
 ---
 
 ## rule_tables.yaml
@@ -254,6 +255,7 @@ See `settings.py` for complete list and validation rules.
       value: 1
   affiliated_group: "military"
   limit_per_colony: null
+
 ```
 
 ### Fields

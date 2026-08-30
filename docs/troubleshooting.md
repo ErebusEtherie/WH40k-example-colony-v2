@@ -208,6 +208,7 @@ Start-Item htmlcov/index.html
 **Not a bug** — This is intended game mechanics. When Order reaches 0, the colony is in Anarchy and cannot generate Profit Factor.
 
 **Fix:** Increase Order through:
+
 - Support Upgrades (Arbites Precinct, Military Garrison)
 - Representative with high Willpower
 - Events that boost Order
@@ -355,13 +356,19 @@ Copy-Item colony_manager.db.backup colony_manager.db
 ---
 
 **The Emperor Protects** — but backups protect your data. Save often!
+
 # Check database size
+
 Get-Item colony_manager.db | Select-Object Length
 
-# For large databases, consider:
+# For large databases, consider
+
 # - Adding indexes (see migrations)
+
 # - Implementing caching
+
 # - Pagination on list endpoints
+
 ```
 
 ### Memory Issues
@@ -375,12 +382,16 @@ python -m memory_profiler -m uvicorn colony_manager.adapters.api.main:app
 
 # Restart server periodically in development
 ```
+
 # Correct: DATABASE_PATH=./colony_manager.db
+
 # Wrong: DATABASE_PATH = ./colony_manager.db
 
 # Load manually in Python
+
 from dotenv import load_dotenv
 load_dotenv()
+
 ```
 taskkill /PID <PID> /F
 

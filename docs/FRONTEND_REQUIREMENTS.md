@@ -30,6 +30,7 @@ This document provides frontend developers with all necessary information to bui
 All protected endpoints require a JWT token in the `Authorization` header.
 
 **Login Endpoint:**
+
 ```http
 POST /api/v1/auth/login
 Content-Type: application/json
@@ -41,6 +42,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -49,6 +51,7 @@ Content-Type: application/json
 ```
 
 **Using the Token:**
+
 ```http
 GET /api/v1/colonies
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -106,6 +109,7 @@ interface PaginatedResponse<T> {
 ```
 
 **Example:**
+
 ```json
 {
   "items": [
@@ -141,6 +145,7 @@ interface ErrorResponse {
 ```
 
 **Example:**
+
 ```json
 {
   "detail": "Colony not found",
@@ -326,6 +331,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | POST | `/colonies/{id}/infrastructure/{infra_id}/repair` | Repair | Yes (manager+) |
 
 **Query Parameters:**
+
 - `state`: Filter by state (`working`, `planned`, `in_progress`, `needed`, `not_working`)
 - `type`: Filter by type (`transport`, `power`, `housing`, `life_support`, `defense`, `production`)
 - `name_search`: Search by name (case-insensitive)
@@ -348,6 +354,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | DELETE | `/colonies/{id}/modifiers/{modifier_id}` | Delete | Yes (manager+) |
 
 **Query Parameters:**
+
 - `colony_id`: Filter by colony
 - `is_active`: Filter by active status
 
@@ -361,6 +368,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | DELETE | `/colonies/{id}/upgrades/{upgrade_id}` | Delete | Yes (manager+) |
 
 **Query Parameters:**
+
 - `type`: Filter by type
 - `name_search`: Search by name
 
@@ -374,6 +382,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | DELETE | `/colonies/{id}/events/{event_id}` | Delete | Yes (manager+) |
 
 **Query Parameters:**
+
 - `active_only`: Filter to active events only
 - `name_search`: Search by name
 
@@ -397,6 +406,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | POST | `/development-plans/{plan_id}/install` | Install plan | Yes (manager+) |
 
 **Query Parameters:**
+
 - `status`: Filter by status (`planned`, `in_progress`, `acquired`, `delivered`)
 - `upgrade_type`: Filter by type (`infrastructure`, `support_upgrade`)
 - `priority`: Filter by priority (1-5)
@@ -413,6 +423,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | DELETE | `/representatives/{id}` | Delete | Yes (admin) |
 
 **Query Parameters:**
+
 - `loyalty_search`: Filter by loyalty range
 - `name_search`: Search by name
 
@@ -434,6 +445,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 | GET | `/colonies/{id}/audit-logs` | List logs (paginated) | Yes |
 
 **Query Parameters:**
+
 - `entity_type`: Filter by entity type
 - `offset`: Pagination offset
 - `limit`: Pagination limit
@@ -719,6 +731,7 @@ const colonySchema = z.object({
 ## OpenAPI/Swagger Documentation
 
 Interactive API documentation is available at:
+
 - **Swagger UI:** `http://localhost:8000/docs` (when running locally)
 - **ReDoc:** `http://localhost:8000/redoc`
 - **Raw JSON:** `http://localhost:8000/openapi.json`
@@ -742,6 +755,7 @@ python -m uvicorn colony_manager.adapters.api.app:app --reload
 ### CORS Configuration
 
 The API is configured to accept requests from:
+
 - `http://localhost:3000` (React default)
 - `http://localhost:8080` (Vue default)
 - `http://localhost:4200` (Angular default)
@@ -753,6 +767,7 @@ For production, update CORS origins in `src/colony_manager/adapters/api/app.py`.
 ## Support
 
 For questions or issues:
+
 1. Check the OpenAPI documentation at `/docs`
 2. Review error response `detail` field for specific messages
 3. Contact the backend team for API-related issues

@@ -368,6 +368,7 @@ See `API_TODO.md` for detailed enhancement proposals and prioritization.
 ### Enhanced Documentation
 
 For complete UI implementation guidance including:
+
 - ASCII wireframes for all 5 panels
 - Detailed API endpoint mapping per UI element
 - Lore state descriptions with icons

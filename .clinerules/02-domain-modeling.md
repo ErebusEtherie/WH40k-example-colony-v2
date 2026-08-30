@@ -44,20 +44,22 @@ Benefits this is meant to protect:
 Modifiers come from two sources with different persistence strategies:
 
 **Stored modifiers** (persisted in colony.modifiers):
+
 - Missing infrastructure penalty (computed once, stored for efficiency)
 - GM custom modifiers (user-defined, need persistence)
 - Event effects (GM-created during play, may include expiry tracking if specified by GM)
 
 **Computed modifiers** (calculated on-the-fly from entities):
+
 - Infrastructure bonuses (derived from Infrastructure entities and their state)
 - Support upgrade bonuses (derived from SupportUpgrade entities)
 - Representative personality effects (derived from Representative traits)
 
 The ColonyStateCalculator combines both sources when calculating stats. This hybrid approach:
+
 - Avoids data duplication (infrastructure bonuses aren't stored twice)
 - Ensures bonuses automatically update when entities change
 - Keeps stored modifiers for things that can't be recomputed (GM custom, expired events)
-
 
 ## The rule engine itself
 

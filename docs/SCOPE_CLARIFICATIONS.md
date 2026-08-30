@@ -86,6 +86,7 @@ All game mechanics, dice rolls, and event resolutions happen **at the table** du
 ### For AI Assistants
 
 When suggesting features or reviewing code:
+
 - **DO NOT** propose: event automation, dice rolling, cycle simulation
 - **DO** focus on: tracking, organization, calculation, data management
 - **ALWAYS** assume the GM is the source of game mechanic decisions
@@ -93,12 +94,14 @@ When suggesting features or reviewing code:
 ### For Users
 
 The application is designed to:
+
 - Reduce bookkeeping during gameplay
 - Provide quick reference for colony state
 - Enable easy sharing and backup
 - Maintain complete audit history
 
 The application is NOT designed to:
+
 - Run the game for you
 - Replace the GM
 - Automate gameplay mechanics
@@ -129,16 +132,20 @@ The application is NOT designed to:
 ## Technical Implications
 
 ### No Background Workers
+
 - No Celery, RQ, or similar job queues for game mechanics
 - No cron jobs or scheduled tasks for cycle advancement
 - All state changes come from explicit API calls
 
 ### No Random Number Generation
-- No andom module usage for game mechanics
+
+- No
+andom module usage for game mechanics
 - Dice results come from user input, not code
 - Deterministic calculations only (no RNG)
 
 ### No Assumptions About Game State
+
 - Application doesn't know "what should happen next"
 - No validation against game rules beyond basic constraints
 - GM input is authoritative
