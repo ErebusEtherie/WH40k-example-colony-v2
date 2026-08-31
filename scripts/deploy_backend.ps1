@@ -113,7 +113,7 @@ if (-not $SkipMigrations) {
 # Run tests (optional but recommended)
 Write-Info "Running tests (recommended for production)..."
 if (-not $DryRun) {
-    $testResult = pytest tests/ -q --tb=short
+    pytest tests/ -q --tb=short
     if ($LASTEXITCODE -eq 0) {
         Write-Success "  All tests passed"
     } else {

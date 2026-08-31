@@ -34,7 +34,7 @@ def test_profit_factor_halved_when_productivity_zero():
                 modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=3,
-                description="PF bonus",
+                modifier_description="PF bonus",
                 is_active=True,
             )
         ],
@@ -59,7 +59,7 @@ def test_profit_factor_halved_rounds_down():
                 modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=2,
-                description="PF bonus",
+                modifier_description="PF bonus",
                 is_active=True,
             )
         ],
@@ -84,7 +84,7 @@ def test_profit_factor_halved_even_number():
                 modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=2,
-                description="PF bonus",
+                modifier_description="PF bonus",
                 is_active=True,
             )
         ],
@@ -108,7 +108,7 @@ def test_profit_factor_does_not_go_negative():
                 modifier_category=ModifierCategory.CUSTOM,
                 modifier_stat=ModifierStat.PROFIT_FACTOR,
                 modifier_value=-10,
-                description="PF penalty",
+                modifier_description="PF penalty",
                 is_active=True,
             )
         ],
@@ -139,7 +139,7 @@ def test_profit_factor_zero_when_order_is_zero_property(
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            description="Custom PF modifier",
+            modifier_description="Custom PF modifier",
             is_active=True,
         )
     ]
@@ -177,7 +177,7 @@ def test_profit_factor_halved_when_productivity_zero_property(
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            description="Custom PF modifier",
+            modifier_description="Custom PF modifier",
             is_active=True,
         )
     ]
@@ -216,7 +216,7 @@ def test_profit_factor_never_negative_property(
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=custom_pf_mod,
-            description="Custom PF modifier",
+            modifier_description="Custom PF modifier",
             is_active=True,
         )
     ]
@@ -253,7 +253,7 @@ def test_multiple_pf_modifiers_stack_additively(
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=value,
-            description=f"PF modifier {i}",
+            modifier_description=f"PF modifier {i}",
             is_active=True,
         )
         for i, value in enumerate(modifier_values)
@@ -291,7 +291,7 @@ def test_state_bonuses_and_modifiers_combine(base_pf, size, leadership_mod, modi
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat.PROFIT_FACTOR,
             modifier_value=value,
-            description=f"PF modifier {i}",
+            modifier_description=f"PF modifier {i}",
             is_active=True,
         )
         for i, value in enumerate(modifier_values)

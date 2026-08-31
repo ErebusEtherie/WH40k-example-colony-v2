@@ -20,10 +20,12 @@ from colony_manager.adapters.api.schemas.colony import (
 )
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.modifier import (
+    ModifierBreakdownItem,
     ModifierBreakdownResponse,
     ModifierCreate,
     ModifierResponse,
     ModifierUpdate,
+    StatModifierBreakdown,
 )
 from colony_manager.adapters.api.schemas.representative import RepresentativeResponse
 from colony_manager.application.services.colony_service import ColonyService
@@ -36,6 +38,9 @@ from colony_manager.domain.models.user import User
 router = APIRouter(prefix="/colonies", tags=["colonies"])
 
 logger = logging.getLogger(__name__)
+
+# Error message constants
+ERR_USER_NO_ID = "Authenticated user has no ID"
 
 
 def _check_colony_exists(service: ColonyService, colony_id: int) -> Colony:
@@ -439,6 +444,11 @@ async def remove_colony_modifier(
     
     # Log audit entry if audit logging is enabled
     if service._audit_log_repository is not None:
+        if current_user.id is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ERR_USER_NO_ID,
+            )
         service._log_audit(
             colony_id=colony_id,
             entity_type="modifier",
@@ -497,6 +507,11 @@ async def update_colony_modifier(
             changes.append(f"description={old_description}->{modifier_data.modifier_description}")
         
         if changes:
+            if current_user.id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=ERR_USER_NO_ID,
+                )
             service._log_audit(
                 colony_id=colony_id,
                 entity_type="modifier",
@@ -567,7 +582,36 @@ async def get_colony_modifier_breakdown(
     """
     _check_colony_exists(service, colony_id)
     breakdown = service.get_modifier_breakdown(colony_id)
-    return ModifierBreakdownResponse(**breakdown)
+    
+    # Convert TypedDict breakdown to Pydantic models
+    def _convert_stat_breakdown(stat_breakdown: dict) -> StatModifierBreakdown:
+        """Convert StatBreakdownDict to StatModifierBreakdown."""
+        modifiers = [
+            ModifierBreakdownItem(
+                source_type=item["source_type"],
+                source_id=item["source_id"],
+                source_name=item["source_name"],
+                value=item["value"],
+                description=item["description"],
+            )
+            for item in stat_breakdown["modifiers"]
+        ]
+        return StatModifierBreakdown(
+            base=stat_breakdown["base"],
+            modifiers=modifiers,
+            total_modifier=stat_breakdown["total_modifier"],
+            current=stat_breakdown["current"],
+        )
+    
+    return ModifierBreakdownResponse(
+        size=_convert_stat_breakdown(breakdown["size"]),
+        complacency=_convert_stat_breakdown(breakdown["complacency"]),
+        order=_convert_stat_breakdown(breakdown["order"]),
+        productivity=_convert_stat_breakdown(breakdown["productivity"]),
+        piety=_convert_stat_breakdown(breakdown["piety"]),
+        leadership_modifier=breakdown["leadership_modifier"],
+        profit_factor=breakdown["profit_factor"],
+    )
 
 
 @router.put("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "Colony or representative not found"}, 400: {"description": "Assignment error"}})

@@ -24,7 +24,7 @@ RUN npm run build
 # ============================================
 # Stage 2: Runtime (nginx)
 # ============================================
-FROM nginx:1.27.3-alpine3.20 AS runtime
+FROM nginx:1.27.4-alpine3.21 AS runtime
 
 # Create non-root user for security
 RUN addgroup -g 101 -S nginx-frontend && \

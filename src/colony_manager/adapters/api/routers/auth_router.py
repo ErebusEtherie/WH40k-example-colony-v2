@@ -9,9 +9,9 @@ Security Features:
 - Refresh token rotation
 """
 
-from typing import Annotated, Literal
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
