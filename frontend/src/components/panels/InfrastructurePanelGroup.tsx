@@ -397,7 +397,14 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
     } else {
       const newPlan: DevelopmentPlanItem = {
         id: `plan_${Date.now()}`,
-        ...payload,
+        name: payload.name,
+        category: payload.category,
+        type: payload.type,
+        priority: payload.priority,
+        status: payload.status as PlanStatus,
+        description: payload.description,
+        progress: payload.progress,
+        chosenStat: payload.chosenStat,
       };
       onUpdateColony({ developmentPlans: [...colony.developmentPlans, newPlan] });
       setIsAddingPlan(false);
@@ -412,7 +419,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
   const handleTogglePlanStatus = useCallback((id: string) => {
     const updated = colony.developmentPlans.map((p) =>
       p.id === id
-        ? { ...p, status: p.status === 'planning' ? 'in_progress' : 'planning' }
+        ? { ...p, status: (p.status === 'planning' ? 'in_progress' : 'planning') as PlanStatus }
         : p
     );
     onUpdateColony({ developmentPlans: updated });
