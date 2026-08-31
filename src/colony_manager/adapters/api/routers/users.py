@@ -24,6 +24,9 @@ from colony_manager.domain.models.user import User, UserRole
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+# Error message constant for admin-only endpoints
+ADMIN_ACCESS_REQUIRED = "Admin access required"
+
 
 def _user_to_response(user: User) -> UserResponse:
     """Convert domain User model to API response schema."""
@@ -59,7 +62,7 @@ async def list_users(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     users, total = user_service.list_users(limit=limit, offset=offset)
@@ -92,7 +95,7 @@ async def create_user(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     try:
@@ -133,7 +136,7 @@ async def get_user(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     user = user_service.get_user(user_id)
@@ -170,7 +173,7 @@ async def update_user(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     try:
@@ -220,7 +223,7 @@ async def delete_user(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     try:
@@ -263,7 +266,7 @@ async def reset_password(
     if user_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail=ADMIN_ACCESS_REQUIRED,
         )
 
     try:

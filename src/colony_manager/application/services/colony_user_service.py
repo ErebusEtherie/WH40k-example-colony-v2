@@ -215,9 +215,7 @@ class ColonyUserService:
 
         # Validate both users exist before making any changes
         if self._user_repository:
-            # Validate current owner first (they must exist to transfer)
             self._validate_user_exists(current_owner_id)
-            # Validate new owner exists before attempting transfer
             self._validate_user_exists(new_owner_id)
 
         # Get current owner's membership
@@ -241,50 +239,90 @@ class ColonyUserService:
             self._membership_repository.update(current_owner_membership)
 
         # Update or create new owner's membership
+        old_new_owner_role = new_owner_membership.role if new_owner_membership else None
         if new_owner_membership is None:
-            # Create new membership for new owner
-            new_owner_membership = ColonyUser(
-                colony_id=colony_id,
-                user_id=new_owner_id,
-                role=ColonyUserRole.OWNER,
-                invited_by=changed_by,
+            new_owner_membership = self._create_owner_membership(
+                colony_id, new_owner_id, changed_by
             )
-            new_owner_membership = self._membership_repository.create(new_owner_membership)
         else:
-            old_new_owner_role = new_owner_membership.role
             new_owner_membership.role = ColonyUserRole.OWNER
             new_owner_membership = self._membership_repository.update(new_owner_membership)
 
         # Log the ownership transfer
-        if self._audit_log_repository and changed_by:
-            from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
-
-            # Log current owner role change
-            if current_owner_membership.id is not None:
-                audit_log = AuditLog(
-                    entity_type="colony_membership",
-                    entity_id=current_owner_membership.id,
-                    action=AuditLogAction.UPDATE,
-                    field="role",
-                    old_value=old_owner_role.value,
-                    new_value=current_owner_membership.role.value,
-                    changed_by=changed_by,
-                    colony_id=colony_id,
-                )
-                self._audit_log_repository.create(audit_log)
-
-            # Log new owner role change
-            if new_owner_membership.id is not None:
-                audit_log = AuditLog(
-                    entity_type="colony_membership",
-                    entity_id=new_owner_membership.id,
-                    action=AuditLogAction.UPDATE,
-                    field="role",
-                    old_value=old_new_owner_role.value if new_owner_membership else "none",
-                    new_value=ColonyUserRole.OWNER.value,
-                    changed_by=changed_by,
-                    colony_id=colony_id,
-                )
-                self._audit_log_repository.create(audit_log)
+        self._log_ownership_transfer(
+            colony_id=colony_id,
+            current_owner_membership=current_owner_membership,
+            new_owner_membership=new_owner_membership,
+            old_owner_role=old_owner_role,
+            old_new_owner_role=old_new_owner_role,
+            changed_by=changed_by,
+        )
 
         return new_owner_membership, current_owner_membership if demote_current else None
+
+    def _create_owner_membership(
+        self,
+        colony_id: int,
+        user_id: int,
+        invited_by: int | None,
+    ) -> ColonyUser:
+        """Create a new owner membership for a user."""
+        membership = ColonyUser(
+            colony_id=colony_id,
+            user_id=user_id,
+            role=ColonyUserRole.OWNER,
+            invited_by=invited_by,
+        )
+        return self._membership_repository.create(membership)
+
+    def _log_ownership_transfer(
+        self,
+        colony_id: int,
+        current_owner_membership: ColonyUser,
+        new_owner_membership: ColonyUser,
+        old_owner_role: ColonyUserRole,
+        old_new_owner_role: ColonyUserRole | None,
+        changed_by: int | None,
+    ) -> None:
+        """Log the ownership transfer to the audit log.
+
+        Args:
+            colony_id: ID of the colony.
+            current_owner_membership: Membership of the previous owner.
+            new_owner_membership: Membership of the new owner.
+            old_owner_role: Previous role of the current owner.
+            old_new_owner_role: Previous role of the new owner (None if new member).
+            changed_by: User ID making the change.
+        """
+        if not self._audit_log_repository or not changed_by:
+            return
+
+        from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
+
+        # Log current owner role change
+        if current_owner_membership.id is not None:
+            audit_log = AuditLog(
+                entity_type="colony_membership",
+                entity_id=current_owner_membership.id,
+                action=AuditLogAction.UPDATE,
+                field="role",
+                old_value=old_owner_role.value,
+                new_value=current_owner_membership.role.value,
+                changed_by=changed_by,
+                colony_id=colony_id,
+            )
+            self._audit_log_repository.create(audit_log)
+
+        # Log new owner role change
+        if new_owner_membership.id is not None:
+            audit_log = AuditLog(
+                entity_type="colony_membership",
+                entity_id=new_owner_membership.id,
+                action=AuditLogAction.UPDATE,
+                field="role",
+                old_value=old_new_owner_role.value if old_new_owner_role else "none",
+                new_value=ColonyUserRole.OWNER.value,
+                changed_by=changed_by,
+                colony_id=colony_id,
+            )
+            self._audit_log_repository.create(audit_log)

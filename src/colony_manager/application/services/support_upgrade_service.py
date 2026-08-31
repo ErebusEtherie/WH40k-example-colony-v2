@@ -375,6 +375,49 @@ class SupportUpgradeService:
         """Check if a colony exists."""
         return self._colony_repository.get(colony_id) is not None
 
+    def _get_field_old_value(self, upgrade: SupportUpgrade, field: str) -> str | None:
+        """Get the old value of a field for audit logging.
+
+        Args:
+            upgrade: The support upgrade to get the value from.
+            field: The field name to get the value for.
+
+        Returns:
+            The old value as a string, or None if the field doesn't exist.
+        """
+        value = getattr(upgrade, field, None)
+        # Handle enum values (like custom_stat_choice)
+        if hasattr(value, "value"):
+            return value.value
+        return value
+
+    def _apply_field_update(
+        self,
+        upgrade: SupportUpgrade,
+        field: str,
+        update_data: dict,
+        changes_made: list[tuple[str, str | None, str | None]],
+    ) -> SupportUpgrade:
+        """Apply a single field update and track the change for audit logging.
+
+        Args:
+            upgrade: The support upgrade to update.
+            field: The field name to update.
+            update_data: Dictionary containing the new values.
+            changes_made: List to track changes for audit logging.
+
+        Returns:
+            The updated support upgrade (may be a new instance via model_copy).
+        """
+        new_value = update_data.get(field)
+        if new_value is None:
+            return upgrade
+
+        old_value = self._get_field_old_value(upgrade, field)
+        upgrade = upgrade.model_copy(update={field: new_value})
+        changes_made.append((field, old_value, new_value))
+        return upgrade
+
     def update_upgrade_batch(
         self,
         upgrade_id: int,
@@ -398,34 +441,18 @@ class SupportUpgradeService:
         upgrade = self.get_upgrade(upgrade_id)
 
         # Track changes for audit logging
-        changes_made = []
+        changes_made: list[tuple[str, str | None, str | None]] = []
 
-        # Apply updates
-        if update_data.get("name") is not None:
-            old_name = upgrade.name
-            upgrade = upgrade.model_copy(update={"name": update_data["name"]})
-            changes_made.append(("name", old_name, update_data["name"]))
-
-        if update_data.get("notes") is not None:
-            old_notes = upgrade.notes
-            upgrade = upgrade.model_copy(update={"notes": update_data["notes"]})
-            changes_made.append(("notes", old_notes, update_data["notes"]))
-
-        if update_data.get("custom_stat_choice") is not None:
-            old_value = upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
-            upgrade = upgrade.model_copy(update={"custom_stat_choice": update_data["custom_stat_choice"]})
-            new_value = upgrade.custom_stat_choice.value if upgrade.custom_stat_choice else None
-            changes_made.append(("custom_stat_choice", old_value, new_value))
-
-        if update_data.get("custom_product") is not None:
-            old_value = upgrade.custom_product
-            upgrade = upgrade.model_copy(update={"custom_product": update_data["custom_product"]})
-            changes_made.append(("custom_product", old_value, upgrade.custom_product))
-
-        if update_data.get("affiliated_group") is not None:
-            old_value = upgrade.affiliated_group
-            upgrade = upgrade.model_copy(update={"affiliated_group": update_data["affiliated_group"]})
-            changes_made.append(("affiliated_group", old_value, upgrade.affiliated_group))
+        # Apply updates for each configurable field
+        updatable_fields = [
+            "name",
+            "notes",
+            "custom_stat_choice",
+            "custom_product",
+            "affiliated_group",
+        ]
+        for field in updatable_fields:
+            upgrade = self._apply_field_update(upgrade, field, update_data, changes_made)
 
         # Persist the update
         result = self._repository.update(upgrade)
