@@ -32,6 +32,7 @@ ERR_USER_NO_ID = "Authenticated user has no ID"
     "/colonies/{colony_id}",
     response_model=DevelopmentPlanResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={404: {"description": "Colony not found"}},
 )
 def create_development_plan(
     colony_id: int,
@@ -84,7 +85,7 @@ def create_development_plan(
     )
 
 
-@router.get("/{plan_id}", response_model=DevelopmentPlanResponse)
+@router.get("/{plan_id}", response_model=DevelopmentPlanResponse, responses={404: {"description": "Plan not found"}})
 def get_development_plan(
     plan_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
@@ -248,7 +249,7 @@ def get_development_plans_by_colony(
     )
 
 
-@router.patch("/{plan_id}", response_model=DevelopmentPlanResponse)
+@router.patch("/{plan_id}", response_model=DevelopmentPlanResponse, responses={404: {"description": "Plan not found"}})
 def update_development_plan(
     plan_id: int,
     plan_data: DevelopmentPlanUpdate,
@@ -306,7 +307,7 @@ def update_development_plan(
     )
 
 
-@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Plan not found"}})
 def delete_development_plan(
     plan_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
@@ -326,7 +327,7 @@ def delete_development_plan(
     service.delete_plan(plan_id, changed_by=current_user.id)
 
 
-@router.post("/{plan_id}/install", response_model=InstallationResult)
+@router.post("/{plan_id}/install", response_model=InstallationResult, responses={400: {"description": "Plan not in DELIVERED status"}, 404: {"description": "Plan not found"}})
 def install_development_plan(
     plan_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],

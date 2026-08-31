@@ -9,7 +9,7 @@ Security Features:
 - Refresh token rotation
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
@@ -60,6 +60,7 @@ limiter = get_limiter()
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     openapi_extra={"security": []},
+    responses={},
 )
 @limiter.limit(register_rate_limit())
 def register(
@@ -134,14 +135,14 @@ def register(
     )
 
 
-@router.post("/login", response_model=TokenResponse, openapi_extra={"security": []})
+@router.post("/login", response_model=TokenResponse, openapi_extra={"security": []}, responses={401: {"description": "Invalid credentials"}})
 @limiter.limit(login_rate_limit())
 def login(
     request: Request,
     login_request: LoginRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> TokenResponse:
+) -> JSONResponse:
     """Authenticate user and return JWT tokens.
 
     This endpoint is public and does not require authentication.
@@ -251,7 +252,7 @@ def login(
         max_age=settings.access_token_expire_minutes * 60,
         httponly=settings.cookie_httponly,
         secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
+        samesite=settings.cookie_samesite,  # type: ignore[arg-type]
         path="/",
     )
     response.set_cookie(
@@ -260,20 +261,20 @@ def login(
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
         httponly=settings.cookie_httponly,
         secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
+        samesite=settings.cookie_samesite,  # type: ignore[arg-type]
         path="/",
     )
 
     return response
 
 
-@router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []})
+@router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []}, responses={401: {"description": "Invalid token"}})
 @limiter.limit(refresh_token_rate_limit())
 def refresh_token_endpoint(
     request: Request,
     refresh_request: RefreshTokenRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
-) -> TokenResponse:
+) -> JSONResponse:
     """Refresh access token using refresh token.
 
     This endpoint is public and does not require authentication.
@@ -326,7 +327,7 @@ def refresh_token_endpoint(
         max_age=settings.access_token_expire_minutes * 60,
         httponly=settings.cookie_httponly,
         secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
+        samesite=settings.cookie_samesite,  # type: ignore[arg-type]
         path="/",
     )
     response.set_cookie(
@@ -335,7 +336,7 @@ def refresh_token_endpoint(
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
         httponly=settings.cookie_httponly,
         secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
+        samesite=settings.cookie_samesite,  # type: ignore[arg-type]
         path="/",
     )
 
@@ -385,14 +386,14 @@ def change_password(
     return {"message": "Password changed successfully"}
 
 
-@router.post("/revoke", response_model=TokenRevokeResponse)
+@router.post("/revoke", response_model=TokenRevokeResponse, responses={400: {"description": "Invalid token"}})
 @limiter.limit(refresh_token_rate_limit())
 def revoke_token(
     request: Request,
     revoke_request: TokenRevokeRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> TokenRevokeResponse:
+) -> JSONResponse:
     """Revoke current access token (logout).
 
     This endpoint adds the current token to the blacklist, preventing
@@ -440,7 +441,7 @@ def revoke_token(
     return response
 
 
-@router.post("/revoke-all", response_model=TokenRevokeResponse)
+@router.post("/revoke-all", response_model=TokenRevokeResponse, responses={403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 def revoke_all_tokens(
     revoke_request: TokenRevokeAllRequest,
     current_user: Annotated[User, Depends(get_current_user)],

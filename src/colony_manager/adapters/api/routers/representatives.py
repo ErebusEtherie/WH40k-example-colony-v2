@@ -74,7 +74,7 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
     return result
 
 
-@router.get("", response_model=PaginatedResponse[RepresentativeListItem])
+@router.get("", response_model=PaginatedResponse[RepresentativeListItem], responses={})
 async def list_representatives(
     current_user: Annotated[User, Depends(get_current_user)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
@@ -158,7 +158,7 @@ async def list_representatives(
     ]
 
 
-@router.post("", response_model=RepresentativeResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=RepresentativeResponse, status_code=status.HTTP_201_CREATED, responses={})
 async def create_representative(
     rep_data: RepresentativeCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -188,7 +188,7 @@ async def create_representative(
     )
 
 
-@router.get("/{rep_id}", response_model=RepresentativeResponse)
+@router.get("/{rep_id}", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found"}})
 async def get_representative(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -209,7 +209,7 @@ async def get_representative(
     )
 
 
-@router.put("/{rep_id}", response_model=RepresentativeResponse)
+@router.put("/{rep_id}", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found"}})
 async def update_representative(
     rep_id: int,
     rep_data: RepresentativeUpdate,
@@ -236,7 +236,7 @@ async def update_representative(
     )
 
 
-@router.delete("/{rep_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{rep_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Representative not found"}})
 async def delete_representative(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],

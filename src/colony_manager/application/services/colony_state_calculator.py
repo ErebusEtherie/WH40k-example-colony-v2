@@ -108,7 +108,6 @@ class ColonyStateCalculator:
             current_complacency,
             current_order,
             current_productivity,
-            current_piety,
             current_size,
             active_modifiers,
             leadership_modifier,

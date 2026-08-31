@@ -12,7 +12,6 @@ def test_profit_factor_zero_forces_when_order_zero():
         current_complacency=10,
         current_order=0,
         current_productivity=10,
-        current_piety=10,
         actual_size=5,
         modifiers=[],
         leadership_modifier=5,
@@ -26,7 +25,6 @@ def test_profit_factor_halved_when_productivity_zero():
         current_complacency=0,
         current_order=10,
         current_productivity=0,
-        current_piety=10,
         actual_size=5,
         modifiers=[
             Modifier(
@@ -52,7 +50,6 @@ def test_profit_factor_halved_rounds_down():
         current_complacency=0,
         current_order=10,
         current_productivity=0,
-        current_piety=10,
         actual_size=5,
         modifiers=[
             Modifier(
@@ -78,7 +75,6 @@ def test_profit_factor_halved_even_number():
         current_complacency=0,
         current_order=10,
         current_productivity=0,
-        current_piety=10,
         actual_size=5,
         modifiers=[
             Modifier(
@@ -103,7 +99,6 @@ def test_profit_factor_does_not_go_negative():
         current_complacency=0,
         current_order=10,
         current_productivity=10,
-        current_piety=10,
         actual_size=5,
         modifiers=[
             Modifier(
@@ -153,7 +148,6 @@ def test_profit_factor_zero_when_order_is_zero_property(
         current_complacency=complacency,
         current_order=0,  # Order is zero
         current_productivity=productivity,
-        current_piety=piety,
         actual_size=size,
         modifiers=modifiers,
         leadership_modifier=leadership_mod,
@@ -192,7 +186,6 @@ def test_profit_factor_halved_when_productivity_zero_property(
         current_complacency=complacency,
         current_order=order,
         current_productivity=0,  # Productivity is zero
-        current_piety=piety,
         actual_size=size,
         modifiers=modifiers,
         leadership_modifier=leadership_mod,
@@ -232,7 +225,6 @@ def test_profit_factor_never_negative_property(
         current_complacency=complacency,
         current_order=order,
         current_productivity=productivity,
-        current_piety=piety,
         actual_size=size,
         modifiers=modifiers,
         leadership_modifier=leadership_mod,
@@ -272,7 +264,6 @@ def test_multiple_pf_modifiers_stack_additively(
         current_complacency=complacency,
         current_order=order,
         current_productivity=productivity,
-        current_piety=piety,
         actual_size=size,
         modifiers=modifiers,
         leadership_modifier=0,
@@ -312,7 +303,6 @@ def test_state_bonuses_and_modifiers_combine(base_pf, size, leadership_mod, modi
         current_complacency=size + 5,  # Placated
         current_order=size + 5,  # Orderly
         current_productivity=size + 5,  # Productive
-        current_piety=size + 5,
         actual_size=size,
         modifiers=modifiers,
         leadership_modifier=leadership_mod,

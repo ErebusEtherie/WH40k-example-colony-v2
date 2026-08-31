@@ -12,7 +12,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+# Using --ignore-scripts to prevent lifecycle script execution (addressing SonarQube docker:S6505)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .

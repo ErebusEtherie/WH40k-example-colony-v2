@@ -22,7 +22,6 @@ def calculate_profit_factor(
     current_complacency: int,
     current_order: int,
     current_productivity: int,
-    current_piety: int,
     actual_size: int,
     modifiers: list[Modifier],
     leadership_modifier: int,
@@ -37,7 +36,6 @@ def calculate_profit_factor(
         current_complacency: Current Complacency value.
         current_order: Current Order value.
         current_productivity: Current Productivity value.
-        current_piety: Current Piety value.
         actual_size: Current colony Size.
         modifiers: List of all active modifiers (including resource bonuses).
         leadership_modifier: Leadership bonus from Representative.

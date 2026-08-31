@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/colonies/{colony_id}/audit-logs", tags=["audit_logs"])
 
 
-@router.get("", response_model=PaginatedResponse[AuditLogListItem])
+@router.get("", response_model=PaginatedResponse[AuditLogListItem], responses={})
 def get_audit_logs_by_colony(
     colony_id: int,
     repository: Annotated[AuditLogRepository, Depends(get_audit_log_repository)],
@@ -97,7 +97,7 @@ def get_audit_log(
         raise HTTPException(status_code=404, detail="Audit log entry not found")
 
     # Validate the log belongs to the specified colony to prevent cross-colony access
-    if log.colony_id != colony_id:
+    if log.colony_id is None or log.colony_id != colony_id:
         raise HTTPException(status_code=404, detail="Audit log entry not found")
 
     if log.id is None or log.changed_at is None:

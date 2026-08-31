@@ -44,7 +44,7 @@ def _check_colony_exists(service: InfrastructureService, colony_id: int) -> None
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=PaginatedResponse[InfrastructureListItem])
+@router.get("", response_model=PaginatedResponse[InfrastructureListItem], responses={404: {"description": "Colony not found"}})
 async def list_infrastructure(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
@@ -122,7 +122,7 @@ async def list_infrastructure(
     )
 
 
-@router.post("", response_model=InfrastructureResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=InfrastructureResponse, status_code=status.HTTP_201_CREATED, responses={404: {"description": "Colony not found"}})
 async def create_infrastructure(
     colony_id: int,
     infra_data: InfrastructureCreate,

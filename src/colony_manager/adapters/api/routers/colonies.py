@@ -82,7 +82,7 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
     )
 
 
-@router.get("", response_model=PaginatedResponse[ColonyListItem])
+@router.get("", response_model=PaginatedResponse[ColonyListItem], responses={})
 async def list_colonies(
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[ColonyService, Depends(get_colony_service)],
@@ -131,7 +131,7 @@ async def list_colonies(
     )
 
 
-@router.post("", response_model=ColonyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ColonyResponse, status_code=status.HTTP_201_CREATED, responses={})
 async def create_colony(
     colony_data: ColonyCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -399,7 +399,7 @@ async def add_colony_modifier(
         modifier_category=modifier_data.modifier_category,
         modifier_stat=modifier_data.modifier_stat,
         modifier_value=modifier_data.modifier_value,
-        description=modifier_data.modifier_description,
+        modifier_description=modifier_data.modifier_description,
         is_active=modifier_data.is_active,
         expires_at=modifier_data.expires_at,
     )

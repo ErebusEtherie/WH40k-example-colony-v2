@@ -28,7 +28,7 @@ ERR_USER_NO_ID = "Authenticated user has no ID"
 
 
 @router.post(
-    "/colonies/{colony_id}", response_model=EventResponse, status_code=status.HTTP_201_CREATED
+    "/colonies/{colony_id}", response_model=EventResponse, status_code=status.HTTP_201_CREATED, responses={404: {"description": "Colony not found"}}
 )
 def create_event(
     colony_id: int,
@@ -79,7 +79,7 @@ def create_event(
     )
 
 
-@router.get("/{event_id}", response_model=EventResponse)
+@router.get("/{event_id}", response_model=EventResponse, responses={404: {"description": "Event not found"}})
 def get_event(
     event_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
@@ -125,7 +125,7 @@ def get_event(
     )
 
 
-@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[EventListItem])
+@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[EventListItem], responses={404: {"description": "Colony not found"}})
 def get_events_by_colony(
     colony_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
@@ -208,7 +208,7 @@ def get_events_by_colony(
     )
 
 
-@router.patch("/{event_id}", response_model=EventResponse)
+@router.patch("/{event_id}", response_model=EventResponse, responses={404: {"description": "Event not found"}})
 def update_event(
     event_id: int,
     event_data: EventUpdate,
@@ -255,7 +255,7 @@ def update_event(
     )
 
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Event not found"}})
 def delete_event(
     event_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],

@@ -22,7 +22,7 @@ $ErrorActionPreference = "Stop"
 
 # Colors for output
 function Write-Success { Write-Host $args[0] -ForegroundColor Green }
-function Write-Warning { Write-Host $args[0] -ForegroundColor Yellow }
+function Write-WarningMsg { Write-Host $args[0] -ForegroundColor Yellow }
 function Write-Error-Custom { Write-Host $args[0] -ForegroundColor Red }
 function Write-Info { Write-Host $args[0] -ForegroundColor Cyan }
 
@@ -52,7 +52,7 @@ if (Test-Path ".\.venv\Scripts\Activate.ps1") {
         Write-Success "  Virtual environment activated"
     }
 } else {
-    Write-Warning "  Virtual environment not found at .\.venv"
+    Write-WarningMsg "  Virtual environment not found at .\.venv"
     Write-Info "  Creating virtual environment..."
     if (-not $DryRun) {
         python -m venv .venv
@@ -69,9 +69,9 @@ if (Test-Path ".env.production") {
     # Warn about JWT secret
     $envContent = Get-Content ".env.production" -Raw
     if ($envContent -match "JWT_SECRET_KEY=CHANGE_THIS") {
-        Write-Warning "  WARNING: JWT_SECRET_KEY still has placeholder value!"
-        Write-Warning "  Please generate a secure key before deploying:"
-        Write-Warning "  python -c `"import secrets; print(secrets.token_urlsafe(32))`""
+        Write-WarningMsg "  WARNING: JWT_SECRET_KEY still has placeholder value!"
+        Write-WarningMsg "  Please generate a secure key before deploying:"
+        Write-WarningMsg "  python -c `"import secrets; print(secrets.token_urlsafe(32))`""
         if (-not $DryRun) {
             $continue = Read-Host "  Continue anyway? (y/n)"
             if ($continue -ne 'y') {
@@ -81,7 +81,7 @@ if (Test-Path ".env.production") {
         }
     }
 } elseif (Test-Path ".env") {
-    Write-Warning "  Using .env instead of .env.production"
+    Write-WarningMsg "  Using .env instead of .env.production"
 } else {
     Write-Error-Custom "ERROR: No environment file found (.env.production or .env)"
     exit 1
@@ -117,7 +117,7 @@ if (-not $DryRun) {
     if ($LASTEXITCODE -eq 0) {
         Write-Success "  All tests passed"
     } else {
-        Write-Warning "  Some tests failed. Review output above."
+        Write-WarningMsg "  Some tests failed. Review output above."
         $continue = Read-Host "  Continue deployment anyway? (y/n)"
         if ($continue -ne 'y') {
             Write-Info "Deployment cancelled"
@@ -147,7 +147,7 @@ Write-Host "  python -m uvicorn src.colony_manager.adapters.api.app:app --reload
 Write-Host ""
 
 if ($DryRun) {
-    Write-Warning "DRY RUN COMPLETE - No changes were made"
+    Write-WarningMsg "DRY RUN COMPLETE - No changes were made"
 } else {
     Write-Success "Backend deployment preparation complete!"
 }

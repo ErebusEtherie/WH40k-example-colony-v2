@@ -37,7 +37,7 @@ def _check_colony_exists(service: ResourceService, colony_id: int) -> None:
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=PaginatedResponse[ResourceListItem])
+@router.get("", response_model=PaginatedResponse[ResourceListItem], responses={404: {"description": "Colony not found"}})
 async def list_resources(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
@@ -73,7 +73,7 @@ async def list_resources(
     )
 
 
-@router.post("", response_model=ResourceResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ResourceResponse, status_code=status.HTTP_201_CREATED, responses={404: {"description": "Colony not found"}})
 async def create_resource(
     colony_id: int,
     resource_data: ResourceCreate,
@@ -106,7 +106,7 @@ async def create_resource(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/{resource_id}", response_model=ResourceResponse)
+@router.get("/{resource_id}", response_model=ResourceResponse, responses={404: {"description": "Resource not found"}})
 async def get_resource(
     colony_id: int,
     resource_id: int,
@@ -138,7 +138,7 @@ async def get_resource(
         raise HTTPException(status_code=404, detail=f"Resource {resource_id} not found")
 
 
-@router.patch("/{resource_id}", response_model=ResourceResponse)
+@router.patch("/{resource_id}", response_model=ResourceResponse, responses={404: {"description": "Resource not found"}})
 async def update_resource(
     colony_id: int,
     resource_id: int,
@@ -175,7 +175,7 @@ async def update_resource(
         raise HTTPException(status_code=404, detail=f"Resource {resource_id} not found")
 
 
-@router.delete("/{resource_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{resource_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Resource not found"}})
 async def delete_resource(
     colony_id: int,
     resource_id: int,

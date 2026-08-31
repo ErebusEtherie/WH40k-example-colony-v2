@@ -27,7 +27,7 @@ ERR_USER_NO_ID = "Authenticated user has no ID"
 router = APIRouter(prefix="/colonies/{colony_id}/members", tags=["colony_users"])
 
 
-@router.get("", response_model=PaginatedResponse[ColonyUserListItem])
+@router.get("", response_model=PaginatedResponse[ColonyUserListItem], responses={})
 def get_colony_members(
     colony_id: int,
     service: Annotated[ColonyUserService, Depends(get_colony_user_service)],
@@ -73,7 +73,7 @@ def get_colony_members(
     )
 
 
-@router.post("", response_model=ColonyUserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ColonyUserResponse, status_code=status.HTTP_201_CREATED, responses={400: {"description": "User already member"}, 404: {"description": "User not found"}})
 def add_colony_member(
     colony_id: int,
     member_data: ColonyUserCreate,
@@ -124,7 +124,7 @@ def add_colony_member(
     )
 
 
-@router.get("/{user_id}", response_model=ColonyUserResponse)
+@router.get("/{user_id}", response_model=ColonyUserResponse, responses={404: {"description": "Member not found"}})
 def get_colony_member(
     colony_id: int,
     user_id: int,
@@ -155,7 +155,7 @@ def get_colony_member(
     )
 
 
-@router.patch("/{user_id}", response_model=ColonyUserResponse)
+@router.patch("/{user_id}", response_model=ColonyUserResponse, responses={404: {"description": "Member not found"}})
 def update_colony_member_role(
     colony_id: int,
     user_id: int,
@@ -202,7 +202,7 @@ def update_colony_member_role(
     )
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Member not found"}})
 def remove_colony_member(
     colony_id: int,
     user_id: int,
@@ -229,7 +229,7 @@ def remove_colony_member(
     service.remove_member(membership.id, changed_by=current_user.id)
 
 
-@router.post("/transfer-ownership", response_model=dict)
+@router.post("/transfer-ownership", response_model=dict, responses={400: {"description": "Invalid transfer"}, 403: {"description": "Not owner"}, 404: {"description": "User not found"}})
 def transfer_colony_ownership(
     colony_id: int,
     transfer_data: ColonyOwnershipTransfer,

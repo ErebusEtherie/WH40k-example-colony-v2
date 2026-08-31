@@ -22,7 +22,7 @@ $ErrorActionPreference = "Stop"
 
 # Colors for output
 function Write-Success { Write-Host $args[0] -ForegroundColor Green }
-function Write-Warning { Write-Host $args[0] -ForegroundColor Yellow }
+function Write-WarningMsg { Write-Host $args[0] -ForegroundColor Yellow }
 function Write-Error-Custom { Write-Host $args[0] -ForegroundColor Red }
 function Write-Info { Write-Host $args[0] -ForegroundColor Cyan }
 
@@ -57,8 +57,8 @@ if (Test-Path ".env.production") {
     # Check API URL
     $envContent = Get-Content ".env.production" -Raw
     if ($envContent -match "VITE_API_BASE_URL=http://localhost") {
-        Write-Warning "  WARNING: VITE_API_BASE_URL still points to localhost!"
-        Write-Warning "  Update to production API URL before deploying"
+        Write-WarningMsg "  WARNING: VITE_API_BASE_URL still points to localhost!"
+        Write-WarningMsg "  Update to production API URL before deploying"
         if (-not $DryRun -and -not $Preview) {
             $continue = Read-Host "  Continue anyway? (y/n)"
             if ($continue -ne 'y') {
@@ -68,11 +68,11 @@ if (Test-Path ".env.production") {
         }
     }
 } elseif (Test-Path ".env.local") {
-    Write-Warning "  Using .env.local instead of .env.production"
+    Write-WarningMsg "  Using .env.local instead of .env.production"
 } elseif (Test-Path ".env") {
-    Write-Warning "  Using .env instead of .env.production"
+    Write-WarningMsg "  Using .env instead of .env.production"
 } else {
-    Write-Warning "  No environment file found - using defaults"
+    Write-WarningMsg "  No environment file found - using defaults"
 }
 
 # Install dependencies
@@ -115,7 +115,7 @@ if (-not $DryRun) {
             if ($LASTEXITCODE -eq 0) {
                 Write-Success "  All tests passed"
             } else {
-                Write-Warning "  Some tests failed. Review output above."
+                Write-WarningMsg "  Some tests failed. Review output above."
                 if (-not $Preview) {
                     $continue = Read-Host "  Continue deployment anyway? (y/n)"
                     if ($continue -ne 'y') {
@@ -190,7 +190,7 @@ if (-not $SkipBuild -and -not $DryRun) {
 }
 
 if ($DryRun) {
-    Write-Warning "DRY RUN COMPLETE - No changes were made"
+    Write-WarningMsg "DRY RUN COMPLETE - No changes were made"
 } else {
     Write-Success "Frontend deployment preparation complete!"
 }

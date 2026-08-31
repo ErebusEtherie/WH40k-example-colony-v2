@@ -41,7 +41,7 @@ def _user_to_response(user: User) -> UserResponse:
     )
 
 
-@router.get("", response_model=PaginatedResponse[UserListItem])
+@router.get("", response_model=PaginatedResponse[UserListItem], responses={403: {"description": "Forbidden - Admin only"}})
 async def list_users(
     current_user: Annotated[User, Depends(require_admin)],
     user_service: Annotated[UserService, Depends(get_user_service)],
@@ -73,7 +73,7 @@ async def list_users(
     )
 
 
-@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED, responses={400: {"description": "Username/email exists"}, 403: {"description": "Forbidden - Admin only"}})
 async def create_user(
     current_user: Annotated[User, Depends(require_admin)],
     user_service: Annotated[UserService, Depends(get_user_service)],
@@ -115,7 +115,7 @@ async def create_user(
         )
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse, responses={403: {"description": "Forbidden - Admin only"}, 404: {"description": "User not found"}})
 async def get_user(
     user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
@@ -149,7 +149,7 @@ async def get_user(
     return _user_to_response(user)
 
 
-@router.patch("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse, responses={400: {"description": "Validation error"}, 403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 async def update_user(
     user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
@@ -201,7 +201,7 @@ async def update_user(
         )
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, responses={403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 async def delete_user(
     user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
@@ -243,7 +243,7 @@ async def delete_user(
         )
 
 
-@router.post("/{user_id}/reset-password", response_model=UserResponse)
+@router.post("/{user_id}/reset-password", response_model=UserResponse, responses={400: {"description": "Validation error"}, 403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 async def reset_password(
     user_id: int,
     current_user: Annotated[User, Depends(require_admin)],

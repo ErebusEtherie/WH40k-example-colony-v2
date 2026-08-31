@@ -44,7 +44,7 @@ def _check_colony_exists(service: SupportUpgradeService, colony_id: int) -> None
         raise HTTPException(status_code=404, detail=f"Colony {colony_id} not found")
 
 
-@router.get("", response_model=PaginatedResponse[SupportUpgradeListItem])
+@router.get("", response_model=PaginatedResponse[SupportUpgradeListItem], responses={404: {"description": "Colony not found"}})
 async def list_upgrades(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
@@ -122,7 +122,7 @@ async def list_upgrades(
     )
 
 
-@router.post("", response_model=SupportUpgradeResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=SupportUpgradeResponse, status_code=status.HTTP_201_CREATED, responses={404: {"description": "Colony not found"}})
 async def create_upgrade(
     colony_id: int,
     upgrade_data: SupportUpgradeCreate,
@@ -157,7 +157,7 @@ async def create_upgrade(
     )
 
 
-@router.get("/{upgrade_id}", response_model=SupportUpgradeResponse)
+@router.get("/{upgrade_id}", response_model=SupportUpgradeResponse, responses={404: {"description": "Colony or support upgrade not found"}})
 async def get_upgrade(
     colony_id: int,
     upgrade_id: int,
@@ -194,6 +194,7 @@ async def get_upgrade(
     response_model=SupportUpgradeResponse | SupportUpgradeValidationResponse,
     summary="Update support upgrade",
     description="Update support upgrade name, notes, or type-specific fields. Use `validate_only=true` to preview effects without applying.",
+    responses={404: {"description": "Colony or support upgrade not found"}},
 )
 async def update_upgrade(
     colony_id: int,
@@ -269,7 +270,7 @@ async def update_upgrade(
         raise HTTPException(status_code=404, detail=f"SupportUpgrade {upgrade_id} not found")
 
 
-@router.delete("/{upgrade_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{upgrade_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Colony or support upgrade not found"}})
 async def delete_upgrade(
     colony_id: int,
     upgrade_id: int,

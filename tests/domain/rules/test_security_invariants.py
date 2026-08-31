@@ -109,7 +109,6 @@ class TestProfitFactorSecurityInvariants:
             current_complacency=complacency,
             current_order=1,
             current_productivity=productivity,
-            current_piety=piety,
             actual_size=size,
             modifiers=modifiers,
             leadership_modifier=leadership_mod,
@@ -152,7 +151,6 @@ class TestProfitFactorSecurityInvariants:
             current_complacency=complacency,
             current_order=0,
             current_productivity=productivity,
-            current_piety=piety,
             actual_size=size,
             modifiers=modifiers,
             leadership_modifier=leadership_mod,
@@ -178,7 +176,6 @@ class TestProfitFactorSecurityInvariants:
                 current_complacency=10,
                 current_order=10,
                 current_productivity=0,
-                current_piety=10,
                 actual_size=5,
                 modifiers=[],
                 leadership_modifier=0,
@@ -195,7 +192,6 @@ class TestProfitFactorSecurityInvariants:
             current_complacency=100,
             current_order=0,
             current_productivity=100,
-            current_piety=100,
             actual_size=5,
             modifiers=[
                 Modifier(

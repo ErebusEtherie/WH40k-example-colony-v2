@@ -77,7 +77,7 @@ async def list_all_modifiers(
     )
 
 
-@router.get("/{modifier_id}", response_model=ModifierResponse)
+@router.get("/{modifier_id}", response_model=ModifierResponse, responses={404: {"description": "Modifier not found"}})
 async def get_modifier(
     modifier_id: int,
     current_user: Annotated[User, Depends(require_role("admin"))],

@@ -10,7 +10,7 @@ from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 router = APIRouter(prefix="/config", tags=["config"])
 
 
-@router.get("/colony-types")
+@router.get("/colony-types", responses={})
 def get_colony_types(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> list[dict[str, str]]:
@@ -24,7 +24,7 @@ def get_colony_types(
     ]
 
 
-@router.get("/representative-types")
+@router.get("/representative-types", responses={})
 def get_representative_types(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> list[dict[str, str]]:
@@ -38,7 +38,7 @@ def get_representative_types(
     ]
 
 
-@router.get("/infrastructure-types")
+@router.get("/infrastructure-types", responses={})
 def get_infrastructure_types(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> list[dict[str, Any]]:
@@ -72,7 +72,7 @@ def get_infrastructure_types(
     return result
 
 
-@router.get("/support-upgrades")
+@router.get("/support-upgrades", responses={})
 def get_support_upgrades(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> list[dict[str, Any]]:
@@ -101,7 +101,7 @@ def get_support_upgrades(
     return result
 
 
-@router.get("/profit-factor-table")
+@router.get("/profit-factor-table", responses={})
 def get_profit_factor_table(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> dict[str, int]:
@@ -112,7 +112,7 @@ def get_profit_factor_table(
     return provider.get_profit_factor_table()
 
 
-@router.get("/thresholds")
+@router.get("/thresholds", responses={})
 def get_thresholds(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> dict[str, object]:
@@ -123,7 +123,7 @@ def get_thresholds(
     return provider.get_lore_thresholds()
 
 
-@router.get("/growth-decay")
+@router.get("/growth-decay", responses={})
 def get_growth_decay(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
 ) -> dict[str, int]:
