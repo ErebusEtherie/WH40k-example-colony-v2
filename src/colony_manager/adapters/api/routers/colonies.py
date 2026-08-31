@@ -85,7 +85,7 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
 @router.get("", response_model=PaginatedResponse[ColonyListItem])
 async def list_colonies(
     current_user: Annotated[User, Depends(get_current_user)],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[ColonyListItem]:
@@ -135,7 +135,7 @@ async def list_colonies(
 async def create_colony(
     colony_data: ColonyCreate,
     current_user: Annotated[User, Depends(get_current_user)],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
     """Create a new colony."""
     from datetime import date
@@ -185,13 +185,17 @@ async def create_colony(
     )
 
 
-@router.get("/{colony_id}", response_model=ColonyResponse)
+@router.get("/{colony_id}", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}})
 async def get_colony(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
-    """Get a colony by ID."""
+    """Get a colony by ID.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     colony = _check_colony_exists(service, colony_id)
     state = service.get_state(colony_id)
     return ColonyResponse(
@@ -218,14 +222,18 @@ async def get_colony(
     )
 
 
-@router.put("/{colony_id}", response_model=ColonyResponse)
+@router.put("/{colony_id}", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}})
 async def update_colony(
     colony_id: int,
     colony_data: ColonyUpdate,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
-    """Update a colony (partial update)."""
+    """Update a colony (partial update).
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     _check_colony_exists(service, colony_id)
     update_data = colony_data.model_dump(exclude_unset=True)
     updated = service.update_colony(colony_id, changed_by=current_user.id, **update_data)
@@ -254,37 +262,49 @@ async def update_colony(
     )
 
 
-@router.delete("/{colony_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{colony_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Colony not found"}})
 async def delete_colony(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("admin"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> None:
-    """Delete a colony."""
+    """Delete a colony.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     _check_colony_exists(service, colony_id)
     service._colony_repository.delete(colony_id)
 
 
-@router.get("/{colony_id}/state", response_model=ColonyStateNested)
+@router.get("/{colony_id}/state", response_model=ColonyStateNested, responses={404: {"description": "Colony not found"}})
 async def get_colony_state(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyStateNested:
-    """Get computed state for a colony."""
+    """Get computed state for a colony.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     _check_colony_exists(service, colony_id)
     state = service.get_state(colony_id)
     return _build_state_nested(state)
 
 
-@router.post("/{colony_id}/age", response_model=ColonyResponse)
+@router.post("/{colony_id}/age", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}})
 async def advance_colony_age(
     colony_id: int,
     age_days: int,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
-    """Advance colony age."""
+    """Advance colony age.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     _check_colony_exists(service, colony_id)
     try:
         updated = service.update_age(colony_id, age_days)
@@ -315,15 +335,19 @@ async def advance_colony_age(
     )
 
 
-@router.get("/{colony_id}/modifiers", response_model=PaginatedResponse[ModifierResponse])
+@router.get("/{colony_id}/modifiers", response_model=PaginatedResponse[ModifierResponse], responses={404: {"description": "Colony not found"}})
 async def list_colony_modifiers(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
 ) -> PaginatedResponse[ModifierResponse]:
-    """List all modifiers for a colony with pagination."""
+    """List all modifiers for a colony with pagination.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     colony = _check_colony_exists(service, colony_id)
     
     # Apply pagination
@@ -355,15 +379,19 @@ async def list_colony_modifiers(
 
 
 @router.post(
-    "/{colony_id}/modifiers", response_model=ModifierResponse, status_code=status.HTTP_201_CREATED
+    "/{colony_id}/modifiers", response_model=ModifierResponse, status_code=status.HTTP_201_CREATED, responses={404: {"description": "Colony not found"}}
 )
 async def add_colony_modifier(
     colony_id: int,
     modifier_data: ModifierCreate,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ModifierResponse:
-    """Add a modifier to a colony."""
+    """Add a modifier to a colony.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
+    """
     _check_colony_exists(service, colony_id)
     modifier = Modifier(
         colony_id=colony_id,
@@ -390,14 +418,18 @@ async def add_colony_modifier(
     )
 
 
-@router.delete("/{colony_id}/modifiers/{modifier_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{colony_id}/modifiers/{modifier_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Modifier not found"}})
 async def remove_colony_modifier(
     colony_id: int,
     modifier_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> None:
-    """Remove a modifier from a colony."""
+    """Remove a modifier from a colony.
+    
+    Raises:
+        HTTPException: 404 if modifier not found.
+    """
     colony = _check_colony_exists(service, colony_id)
     modifier_to_remove = next((mod for mod in colony.modifiers if mod.id == modifier_id), None)
     if modifier_to_remove is None:
@@ -419,17 +451,20 @@ async def remove_colony_modifier(
         )
 
 
-@router.patch("/{colony_id}/modifiers/{modifier_id}", response_model=ModifierResponse)
+@router.patch("/{colony_id}/modifiers/{modifier_id}", response_model=ModifierResponse, responses={404: {"description": "Modifier not found"}, 500: {"description": "Failed to update modifier"}})
 async def update_colony_modifier(
     colony_id: int,
     modifier_id: int,
     modifier_data: ModifierUpdate,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ModifierResponse:
     """Update a modifier (partial update).
     
     Typically used to toggle is_active status without deleting and re-adding.
+    
+    Raises:
+        HTTPException: 404 if modifier not found, 500 if update fails.
     """
     colony = _check_colony_exists(service, colony_id)
     modifier_to_update = next((mod for mod in colony.modifiers if mod.id == modifier_id), None)
@@ -486,28 +521,31 @@ async def update_colony_modifier(
     )
 
 
-@router.get("/{colony_id}/roll-status", response_model=ColonyRollStatus)
+@router.get("/{colony_id}/roll-status", response_model=ColonyRollStatus, responses={404: {"description": "Colony not found"}})
 async def get_colony_roll_status(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyRollStatus:
     """
     Get the roll status for a colony.
 
     Returns information about when the next event and development rolls are due.
     Event rolls occur every 60 days, development rolls every 90 days.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
     """
     _check_colony_exists(service, colony_id)
     roll_status = service.get_roll_status(colony_id)
     return ColonyRollStatus(**roll_status)
 
 
-@router.get("/{colony_id}/modifier-breakdown", response_model=ModifierBreakdownResponse)
+@router.get("/{colony_id}/modifier-breakdown", response_model=ModifierBreakdownResponse, responses={404: {"description": "Colony not found"}})
 async def get_colony_modifier_breakdown(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("view"))],
-    service: ColonyService = Depends(get_colony_service),
+    service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ModifierBreakdownResponse:
     """
     Get detailed modifier breakdown grouped by stat for a colony.
@@ -523,19 +561,22 @@ async def get_colony_modifier_breakdown(
 
     This is useful for UI panels that need to display exactly how each stat
     is calculated and what modifiers are contributing to it.
+    
+    Raises:
+        HTTPException: 404 if colony not found.
     """
     _check_colony_exists(service, colony_id)
     breakdown = service.get_modifier_breakdown(colony_id)
     return ModifierBreakdownResponse(**breakdown)
 
 
-@router.put("/{colony_id}/representative", response_model=RepresentativeResponse)
+@router.put("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "Colony or representative not found"}, 400: {"description": "Assignment error"}})
 async def assign_representative_to_colony(
     colony_id: int,
     representative_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    colony_service: ColonyService = Depends(get_colony_service),
-    representative_service: dependencies.RepresentativeService = Depends(get_representative_service),
+    colony_service: Annotated[ColonyService, Depends(get_colony_service)],
+    representative_service: Annotated[dependencies.RepresentativeService, Depends(get_representative_service)],
 ) -> RepresentativeResponse:
     """Assign a representative to a colony.
     
@@ -596,11 +637,11 @@ async def assign_representative_to_colony(
     )
 
 
-@router.delete("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "No representative assigned"}})
+@router.delete("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "No representative assigned"}, 400: {"description": "Unassignment error"}})
 async def unassign_representative_from_colony(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    representative_service: dependencies.RepresentativeService = Depends(get_representative_service),
+    representative_service: Annotated[dependencies.RepresentativeService, Depends(get_representative_service)],
 ) -> RepresentativeResponse:
     """Unassign the current representative from a colony.
     
@@ -616,7 +657,7 @@ async def unassign_representative_from_colony(
         RepresentativeResponse with the unassigned representative and change tracking info.
     
     Raises:
-        HTTPException: 404 if no representative is assigned to the colony.
+        HTTPException: 404 if no representative is assigned to the colony, 400 for unassignment errors.
     """
     from colony_manager.adapters.api.schemas.representative import (
         AssignmentChangeInfo,

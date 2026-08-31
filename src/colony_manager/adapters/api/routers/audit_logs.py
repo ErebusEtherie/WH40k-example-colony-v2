@@ -78,7 +78,7 @@ def get_audit_logs_by_colony(
     )
 
 
-@router.get("/{log_id}", response_model=AuditLogResponse)
+@router.get("/{log_id}", response_model=AuditLogResponse, responses={404: {"description": "Audit log entry not found"}})
 def get_audit_log(
     log_id: int,
     colony_id: int,
@@ -88,6 +88,9 @@ def get_audit_log(
     """Get a specific audit log entry by ID.
 
     Requires colony owner role.
+    
+    Raises:
+        HTTPException: 404 if audit log entry not found or belongs to different colony.
     """
     log = repository.get_by_id(log_id)
     if log is None:
