@@ -18,6 +18,10 @@ down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+# Foreign key reference constants
+COLONIES_ID_FK = ["colonies.id"]
+USERS_ID_FK = ["users.id"]
+
 
 def upgrade() -> None:
     """Upgrade schema."""
@@ -73,7 +77,7 @@ def upgrade() -> None:
         sa.Column("assigned_to_colony_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["assigned_to_colony_id"],
-            ["colonies.id"],
+            COLONIES_ID_FK,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -83,7 +87,7 @@ def upgrade() -> None:
         sa.Column("colony_id", sa.Integer(), nullable=False),
         sa.Column("infrastructure_type", sa.String(length=255), nullable=False),
         sa.Column("state", sa.String(length=255), nullable=False),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -96,7 +100,7 @@ def upgrade() -> None:
         sa.Column("modifier_description", sa.Text(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("expires_at", sa.Date(), nullable=True),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -108,7 +112,7 @@ def upgrade() -> None:
         sa.Column("abundance", sa.Integer(), nullable=False),
         sa.Column("notes", sa.Text(), nullable=False),
         sa.Column("discovered_date", sa.Date(), nullable=False),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -119,7 +123,7 @@ def upgrade() -> None:
         sa.Column("custom_stat_choice", sa.String(length=255), nullable=True),
         sa.Column("custom_product", sa.String(length=255), nullable=True),
         sa.Column("affiliated_group", sa.String(length=255), nullable=True),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -135,7 +139,7 @@ def upgrade() -> None:
         sa.Column("managed_colony_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["managed_colony_id"],
-            ["colonies.id"],
+            COLONIES_ID_FK,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -155,9 +159,9 @@ def upgrade() -> None:
         sa.Column("colony_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["changed_by"],
-            ["users.id"],
+            USERS_ID_FK,
         ),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -168,12 +172,12 @@ def upgrade() -> None:
         sa.Column("role", sa.String(length=50), nullable=False),
         sa.Column("joined_at", sa.DateTime(), nullable=True),
         sa.Column("invited_by", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["invited_by"],
-            ["users.id"],
+            USERS_ID_FK,
         ),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["user_id"], USERS_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -190,10 +194,10 @@ def upgrade() -> None:
         sa.Column("created_by", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["created_by"],
-            ["users.id"],
+            USERS_ID_FK,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -206,10 +210,10 @@ def upgrade() -> None:
         sa.Column("created_by", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.ForeignKeyConstraint(["colony_id"], ["colonies.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["colony_id"], COLONIES_ID_FK, ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["created_by"],
-            ["users.id"],
+            USERS_ID_FK,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -221,7 +225,7 @@ def upgrade() -> None:
         sa.Column("expires_at", sa.DateTime(), nullable=False),
         sa.Column("revoked_at", sa.DateTime(), nullable=False),
         sa.Column("reason", sa.String(length=100), nullable=True),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["user_id"], USERS_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -241,7 +245,7 @@ def upgrade() -> None:
         sa.Column("revoked_at", sa.DateTime(), nullable=True),
         sa.Column("ip_address", sa.String(length=45), nullable=True),
         sa.Column("user_agent", sa.String(length=500), nullable=True),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["user_id"], USERS_ID_FK, ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

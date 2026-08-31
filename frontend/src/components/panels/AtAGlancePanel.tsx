@@ -2,7 +2,8 @@ import React from 'react';
 import { 
   Colony, 
   ColonyCalculations, 
-  Representative 
+  Representative,
+  StatName
 } from '../../types';
 import { 
   COLONY_TYPES, 
@@ -23,6 +24,74 @@ import {
   Crosshair, 
   Flame
 } from 'lucide-react';
+
+/**
+ * Determines the accent CSS classes based on stat state.
+ * Returns crisis (red), positive (emerald), or stable (slate) styling.
+ */
+function getStatAccent(
+  isCrisis: boolean,
+  isPositive: boolean,
+  defaultAccent: string
+): string {
+  if (isCrisis) {
+    return 'border-red-500 text-red-300 bg-red-950/40';
+  }
+  if (isPositive) {
+    return 'border-emerald-500 text-emerald-300 bg-emerald-950/40';
+  }
+  return defaultAccent;
+}
+
+/**
+ * Determines the badge type based on stat state.
+ */
+function getBadgeType(isCrisis: boolean, isPositive: boolean): 'crisis' | 'positive' | 'stable' {
+  if (isCrisis) {
+    return 'crisis';
+  }
+  if (isPositive) {
+    return 'positive';
+  }
+  return 'stable';
+}
+
+/**
+ * Creates a StateBadge component for a given stat.
+ */
+function createStatBadge(
+  stat: StatName,
+  loreState: string,
+  loreLabel: string,
+  isCrisis: boolean,
+  isPositive: boolean
+): React.ReactElement {
+  return (
+    <StateBadge
+      stat={stat}
+      state={loreState}
+      label={loreLabel}
+      type={getBadgeType(isCrisis, isPositive)}
+      size="sm"
+    />
+  );
+}
+
+/**
+ * Returns CSS classes for infrastructure status badge.
+ */
+function getInfrastructureStatusClasses(status: string): string {
+  switch (status) {
+    case 'working':
+      return 'bg-emerald-950 text-emerald-300 border border-emerald-800';
+    case 'not_working':
+      return 'bg-red-950 text-red-300 border border-red-800';
+    case 'needed':
+      return 'bg-amber-950 text-amber-300 border border-amber-800';
+    default:
+      return 'bg-slate-900 text-slate-400 border border-slate-800';
+  }
+}
 
 interface AtAGlancePanelProps {
   colony: Colony;
@@ -61,25 +130,17 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
       value: calculations.complacency.finalValue,
       label: calculations.complacency.loreLabel,
       subtext: 'Target: > Size for Placated (+1 PF)',
-      accent: calculations.complacency.isCrisis
-        ? 'border-red-500 text-red-300 bg-red-950/40'
-        : calculations.complacency.isPositive
-        ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
-        : 'border-slate-700 text-slate-300 bg-slate-900/60',
-      badge: (
-        <StateBadge
-          stat="complacency"
-          state={calculations.complacency.loreState}
-          label={calculations.complacency.loreLabel}
-          type={
-            calculations.complacency.isCrisis
-              ? 'crisis'
-              : calculations.complacency.isPositive
-              ? 'positive'
-              : 'stable'
-          }
-          size="sm"
-        />
+      accent: getStatAccent(
+        calculations.complacency.isCrisis,
+        calculations.complacency.isPositive,
+        'border-slate-700 text-slate-300 bg-slate-900/60'
+      ),
+      badge: createStatBadge(
+        'complacency',
+        calculations.complacency.loreState,
+        calculations.complacency.loreLabel,
+        calculations.complacency.isCrisis,
+        calculations.complacency.isPositive
       ),
       icon: <Sparkles className="w-5 h-5" />,
     },
@@ -89,25 +150,17 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
       value: calculations.order.finalValue,
       label: calculations.order.loreLabel,
       subtext: 'Target: > Size for Orderly (+2 PF)',
-      accent: calculations.order.isCrisis
-        ? 'border-red-500 text-red-300 bg-red-950/40'
-        : calculations.order.isPositive
-        ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
-        : 'border-slate-700 text-slate-300 bg-slate-900/60',
-      badge: (
-        <StateBadge
-          stat="order"
-          state={calculations.order.loreState}
-          label={calculations.order.loreLabel}
-          type={
-            calculations.order.isCrisis
-              ? 'crisis'
-              : calculations.order.isPositive
-              ? 'positive'
-              : 'stable'
-          }
-          size="sm"
-        />
+      accent: getStatAccent(
+        calculations.order.isCrisis,
+        calculations.order.isPositive,
+        'border-slate-700 text-slate-300 bg-slate-900/60'
+      ),
+      badge: createStatBadge(
+        'order',
+        calculations.order.loreState,
+        calculations.order.loreLabel,
+        calculations.order.isCrisis,
+        calculations.order.isPositive
       ),
       icon: <Crosshair className="w-5 h-5" />,
     },
@@ -117,25 +170,17 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
       value: calculations.productivity.finalValue,
       label: calculations.productivity.loreLabel,
       subtext: 'Target: > Size for Productive (+2 PF)',
-      accent: calculations.productivity.isCrisis
-        ? 'border-red-500 text-red-300 bg-red-950/40'
-        : calculations.productivity.isPositive
-        ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
-        : 'border-slate-700 text-slate-300 bg-slate-900/60',
-      badge: (
-        <StateBadge
-          stat="productivity"
-          state={calculations.productivity.loreState}
-          label={calculations.productivity.loreLabel}
-          type={
-            calculations.productivity.isCrisis
-              ? 'crisis'
-              : calculations.productivity.isPositive
-              ? 'positive'
-              : 'stable'
-          }
-          size="sm"
-        />
+      accent: getStatAccent(
+        calculations.productivity.isCrisis,
+        calculations.productivity.isPositive,
+        'border-slate-700 text-slate-300 bg-slate-900/60'
+      ),
+      badge: createStatBadge(
+        'productivity',
+        calculations.productivity.loreState,
+        calculations.productivity.loreLabel,
+        calculations.productivity.isCrisis,
+        calculations.productivity.isPositive
       ),
       icon: <Coins className="w-5 h-5" />,
     },
@@ -145,25 +190,17 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
       value: calculations.piety.finalValue,
       label: calculations.piety.loreLabel,
       subtext: 'Target: > Size for Pious (Holy Favor)',
-      accent: calculations.piety.isCrisis
-        ? 'border-red-500 text-red-300 bg-red-950/40'
-        : calculations.piety.isPositive
-        ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
-        : 'border-slate-700 text-slate-300 bg-slate-900/60',
-      badge: (
-        <StateBadge
-          stat="piety"
-          state={calculations.piety.loreState}
-          label={calculations.piety.loreLabel}
-          type={
-            calculations.piety.isCrisis
-              ? 'crisis'
-              : calculations.piety.isPositive
-              ? 'positive'
-              : 'stable'
-          }
-          size="sm"
-        />
+      accent: getStatAccent(
+        calculations.piety.isCrisis,
+        calculations.piety.isPositive,
+        'border-slate-700 text-slate-300 bg-slate-900/60'
+      ),
+      badge: createStatBadge(
+        'piety',
+        calculations.piety.loreState,
+        calculations.piety.loreLabel,
+        calculations.piety.isCrisis,
+        calculations.piety.isPositive
       ),
       icon: <Flame className="w-5 h-5" />,
     },
@@ -178,6 +215,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
         subtitle="Imperial Registry Data-Slate • Colony Overview"
         actions={
           <button
+            type="button"
             onClick={onNavigateToDetails}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-500/60 rounded-xs text-xs font-mono text-cyan-100 uppercase tracking-wider transition-colors"
           >
@@ -239,6 +277,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
             </div>
             {representative ? (
               <button
+                type="button"
                 onClick={onNavigateToRepresentative}
                 className="text-[11px] font-mono text-cyan-400 hover:text-cyan-200 flex items-center gap-1 self-start underline decoration-cyan-700 underline-offset-2"
               >
@@ -246,6 +285,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={onNavigateToDetails}
                 className="text-[11px] font-mono text-amber-400 hover:text-amber-200 flex items-center gap-1 self-start"
               >
@@ -359,6 +399,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
           subtitle={`${colony.hardInfrastructure.length} Hard Systems • ${colony.supportUpgrades.length} Support Upgrades`}
           actions={
             <button
+              type="button"
               onClick={onNavigateToInfrastructure}
               className="text-xs font-mono text-cyan-400 hover:text-cyan-200 flex items-center gap-1"
             >
@@ -383,15 +424,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
                         {rule?.displayName || h.type}
                       </span>
                       <span
-                        className={`text-[10px] uppercase px-1.5 py-0.5 rounded-xs font-bold ${
-                          h.status === 'working'
-                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                            : h.status === 'not_working'
-                            ? 'bg-red-950 text-red-300 border border-red-800'
-                            : h.status === 'needed'
-                            ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                            : 'bg-slate-900 text-slate-400 border border-slate-800'
-                        }`}
+                        className={`text-[10px] uppercase px-1.5 py-0.5 rounded-xs font-bold ${getInfrastructureStatusClasses(h.status)}`}
                       >
                         {h.status.replace('_', ' ')}
                       </span>
@@ -434,6 +467,7 @@ export const AtAGlancePanel: React.FC<AtAGlancePanelProps> = ({
           subtitle={`${colony.planetaryResources.length} Surveyed Resource Deposits`}
           actions={
             <button
+              type="button"
               onClick={onNavigateToDetails}
               className="text-xs font-mono text-cyan-400 hover:text-cyan-200 flex items-center gap-1"
             >

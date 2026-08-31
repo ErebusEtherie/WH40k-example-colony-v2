@@ -134,7 +134,16 @@ def create_app() -> FastAPI:
 
     app.openapi = custom_openapi  # type: ignore[method-assign]
 
-    # CORS middleware - configurable via ALLOWED_ORIGINS environment variable
+    # Rate limiting middleware
+    limiter = get_limiter()
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())  # type: ignore[arg-type]
+
+    # Security headers middleware
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    # CORS middleware - MUST be last in the chain to properly handle CORS headers
+    # after all other middleware have processed the request/response
     allowed_origins = get_allowed_origins()
     app.add_middleware(
         CORSMiddleware,
@@ -144,14 +153,6 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
         expose_headers=["X-Request-ID"],  # For debugging/tracing
     )
-
-    # Rate limiting middleware
-    limiter = get_limiter()
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())  # type: ignore[arg-type]
-
-    # Security headers middleware
-    app.add_middleware(SecurityHeadersMiddleware)
 
     # Include routers
     app.include_router(auth_router, prefix=API_V1_PREFIX)
