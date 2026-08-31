@@ -26,10 +26,6 @@ RUN npm run build
 # ============================================
 FROM nginx:alpine-slim AS runtime
 
-# Create non-root user for security
-RUN addgroup -g 101 -S nginx-frontend && \
-    adduser -S -D -H -u 101 -h /var/www -s /sbin/nologin -G nginx-frontend nginx-frontend
-
 WORKDIR /usr/share/nginx/html
 
 # Copy custom nginx config
@@ -38,10 +34,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets from builder stage
 COPY --from=builder /app/dist .
 
-# Change ownership
-RUN chown -R nginx-frontend:nginx-frontend /usr/share/nginx/html
+# Change ownership to existing nginx user (UID/GID 101 in Alpine)
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
-USER nginx-frontend
+USER nginx
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
