@@ -64,11 +64,12 @@ services:
   # Frontend Web UI
   # ============================================
   frontend:
-    image: ghcr.io/erebusetherie/wh40k-colony-manager-frontend:latest
-    # OR build from Git (slower, requires buildkit):
-    # build:
-    #   context: ./frontend
-    #   dockerfile: frontend/Dockerfile
+    # Build from Git repository (for Portainer Git-based deployment)
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # OR use pre-built image (faster, requires image to exist in registry):
+    # image: ghcr.io/erebusetherie/wh40k-colony-manager-frontend:latest
     container_name: colony-frontend
     restart: unless-stopped
     depends_on:

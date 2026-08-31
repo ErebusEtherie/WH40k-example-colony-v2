@@ -29,7 +29,6 @@ coverage/
 Dockerfile
 docker-compose*.yml
 .dockerignore
-nginx.conf
 
 # Misc
 npm-debug.log*

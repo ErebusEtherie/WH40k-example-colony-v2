@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Build
 # ============================================
-FROM node:bookworm-slim AS builder
+FROM node:alpine AS builder
 
 WORKDIR /app
 
