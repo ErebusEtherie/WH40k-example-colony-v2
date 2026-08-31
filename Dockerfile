@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Dependencies
 # ============================================
-FROM python:3.12-slim AS builder
+FROM python:3.12.8-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN uv venv /app/.venv && \
 # ============================================
 # Stage 2: Runtime
 # ============================================
-FROM python:3.12-slim AS runtime
+FROM python:3.12.8-slim-bookworm AS runtime
 
 # Create non-root user for security
 RUN groupadd -r colony && useradd -r -g colony colony
@@ -46,11 +46,11 @@ COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
 # Set environment variables
-ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONPATH="/app:$PYTHONPATH" \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    ENVIRONMENT=production
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV ENVIRONMENT=production
 
 # Change ownership to non-root user
 RUN chown -R colony:colony /app
