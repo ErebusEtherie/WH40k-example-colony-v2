@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Colony, 
   ColonyCalculations, 
@@ -25,6 +25,242 @@ import {
   X, 
   ArrowUpRight
 } from 'lucide-react';
+
+/**
+ * Returns CSS classes for support upgrade status button.
+ */
+function getUpgradeStatusButtonClasses(
+  currentStatus: SupportUpgradeStatus,
+  buttonStatus: SupportUpgradeStatus
+): string {
+  const baseClasses = 'px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs transition-colors';
+  
+  const activeClasses: Record<SupportUpgradeStatus, string> = {
+    working: 'bg-emerald-900 text-emerald-100 font-bold',
+    not_working: 'bg-red-900 text-red-100 font-bold',
+    in_progress: 'bg-slate-700 text-slate-100 font-bold',
+  };
+  
+  if (currentStatus === buttonStatus) {
+    return `${baseClasses} ${activeClasses[buttonStatus]}`;
+  }
+  
+  return `${baseClasses} text-slate-400 hover:text-slate-200`;
+}
+
+/**
+ * Returns CSS classes for hard infrastructure status button.
+ */
+function getHardInfraStatusButtonClasses(
+  currentStatus: HardInfrastructureStatus,
+  buttonStatus: HardInfrastructureStatus
+): string {
+  const baseClasses = 'px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs transition-colors';
+  
+  const activeClasses: Record<HardInfrastructureStatus, string> = {
+    working: 'bg-emerald-900 text-emerald-100 font-bold',
+    not_working: 'bg-red-900 text-red-100 font-bold',
+    in_progress: 'bg-slate-700 text-slate-100 font-bold',
+    needed: 'bg-amber-900 text-amber-100 font-bold',
+  };
+  
+  if (currentStatus === buttonStatus) {
+    return `${baseClasses} ${activeClasses[buttonStatus]}`;
+  }
+  
+  return `${baseClasses} text-slate-400 hover:text-slate-200`;
+}
+
+/**
+ * Returns CSS classes for hard infrastructure container based on status.
+ */
+function getHardInfraContainerClasses(status: HardInfrastructureStatus): string {
+  const baseClasses = 'p-3.5 bg-slate-950 rounded-xs border transition-colors flex flex-wrap items-center justify-between gap-4';
+  
+  const statusClasses: Record<HardInfrastructureStatus, string> = {
+    working: `${baseClasses} border-emerald-900/60`,
+    not_working: `${baseClasses} border-red-900/80 bg-red-950/10`,
+    needed: `${baseClasses} border-amber-900/80 bg-amber-950/10`,
+    in_progress: `${baseClasses} border-slate-800`,
+  };
+  
+  return statusClasses[status];
+}
+
+/**
+ * Renders the active modifiers preview for a hard infrastructure item.
+ */
+function renderHardInfraModifiers(
+  infra: HardInfrastructureItem,
+  rule: typeof HARD_INFRASTRUCTURE_RULES[HardInfrastructureTypeKey]
+): React.ReactNode {
+  const modifierBaseClasses = 'text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-xs border';
+  
+  if (infra.status === 'working' && rule?.workingModifiers) {
+    return rule.workingModifiers.map((m, idx) => (
+      <span key={`${infra.id}-working-mod-${idx}-${m.stat}`} className={`${modifierBaseClasses} text-emerald-400 bg-emerald-950 border-emerald-800`}>
+        +{m.value} {m.stat.toUpperCase()}
+      </span>
+    ));
+  }
+  
+  if (infra.status === 'not_working' && rule?.notWorkingModifiers) {
+    return rule.notWorkingModifiers.map((m, idx) => (
+      <span key={`${infra.id}-notworking-mod-${idx}-${m.stat}`} className={`${modifierBaseClasses} text-red-400 bg-red-950 border-red-800`}>
+        {m.value} {m.stat.toUpperCase()}
+      </span>
+    ));
+  }
+  
+  if (infra.status === 'needed') {
+    return (
+      <span className={`${modifierBaseClasses} text-amber-400 bg-amber-950 border-amber-800`}>
+        -1 COMPLACENCY (Missing Penalty)
+      </span>
+    );
+  }
+  
+  return (
+    <span className="text-[10px] font-mono text-slate-400 italic">
+      In Progress (No active effects)
+    </span>
+  );
+}
+// ============================================================================
+// Hard Infrastructure Form Component
+// ============================================================================
+
+interface HardInfrastructureFormProps {
+  editingId: string | null;
+  initialName: string;
+  initialType: HardInfrastructureTypeKey;
+  initialStatus: HardInfrastructureStatus;
+  initialNotes: string;
+  onSave: (payload: { name: string; type: HardInfrastructureTypeKey; status: HardInfrastructureStatus; notes: string }) => void;
+  onCancel: () => void;
+}
+
+const HardInfrastructureForm: React.FC<HardInfrastructureFormProps> = ({
+  editingId,
+  initialName,
+  initialType,
+  initialStatus,
+  initialNotes,
+  onSave,
+  onCancel,
+}) => {
+  const [name, setName] = useState(initialName);
+  const [type, setType] = useState<HardInfrastructureTypeKey>(initialType);
+  const [status, setStatus] = useState<HardInfrastructureStatus>(initialStatus);
+  const [notes, setNotes] = useState(initialNotes);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const rule = HARD_INFRASTRUCTURE_RULES[type];
+    const finalName = name.trim() || rule.displayName;
+    
+    onSave({
+      name: finalName,
+      type,
+      status,
+      notes: notes.trim(),
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 bg-slate-950 border border-cyan-700/80 rounded-xs mb-4 space-y-4 animate-in fade-in"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h4 className="font-serif font-bold text-xs uppercase text-cyan-200">
+          {editingId ? 'Edit Hard Infrastructure Entry' : 'Commission Hard Infrastructure'}
+        </h4>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-slate-400 hover:text-slate-200"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+        <div>
+          <label htmlFor="hi-name" className="text-[10px] uppercase text-slate-400 block mb-1">System Custom Name</label>
+          <input
+            id="hi-name"
+            type="text"
+            placeholder="e.g. Mag-Rail Expressway"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="hi-type" className="text-[10px] uppercase text-slate-400 block mb-1">Infrastructure Type (5 Confirmed)</label>
+          <select
+            id="hi-type"
+            value={type}
+            onChange={(e) => setType(e.target.value as HardInfrastructureTypeKey)}
+            disabled={!!editingId}
+            className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
+          >
+            <option value="transport">Transport (Prod +1, Comp +1 / -2, -2)</option>
+            <option value="power">Power (Prod +2 / Prod -3, Comp -1)</option>
+            <option value="water">Water (Order +1, Comp +1 / -2, -2)</option>
+            <option value="food_production">Food Production (Prod +1, Comp +1 / -2, -2)</option>
+            <option value="communications">Communications (Prod +1, Order +1 / -2, -2)</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="hi-status" className="text-[10px] uppercase text-slate-400 block mb-1">Operational Status (4 States)</label>
+          <select
+            id="hi-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as HardInfrastructureStatus)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
+          >
+            <option value="working">Working (Bonuses active)</option>
+            <option value="not_working">Not Working (Severe penalties active)</option>
+            <option value="in_progress">In Progress (No modifiers)</option>
+            <option value="needed">Needed (Missing Penalty: Complacency -1)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="hi-notes" className="text-[10px] uppercase text-slate-400 block mb-1">Technical Notes & Deployment Context</label>
+        <input
+          id="hi-notes"
+          type="text"
+          placeholder="e.g. Connects sub-crustal boreholes to orbital relay..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-xs text-slate-100 font-mono"
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-mono rounded-xs"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-1 bg-cyan-900 hover:bg-cyan-800 border border-cyan-500 text-cyan-100 text-xs font-mono uppercase rounded-xs"
+        >
+          {editingId ? 'Save Changes' : 'Confirm System Commission'}
+        </button>
+      </div>
+    </form>
+  );
+};
 
 interface InfrastructurePanelGroupProps {
   colony: Colony;
@@ -77,191 +313,123 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
   const isGlobalUpgradeCapReached = currentUpgradeCount >= currentSize;
 
   // Check specific upgrade limits
-  const isSingleLimitReached = (typeKey: SupportUpgradeTypeKey) => {
+  const isSingleLimitReached = useCallback((typeKey: SupportUpgradeTypeKey): boolean => {
     const existing = colony.supportUpgrades.filter((u) => u.type === typeKey);
     const rule = SUPPORT_UPGRADE_RULES[typeKey];
-    if (rule.limitRule === 'single' && existing.length >= 1) return true;
-    return false;
-  };
+    return rule.limitRule === 'single' && existing.length >= 1;
+  }, [colony.supportUpgrades]);
 
-  // Hard Infrastructure Handlers
-  const handleSaveHardInfra = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rule = HARD_INFRASTRUCTURE_RULES[hiType];
-    const finalName = hiName.trim() || rule.displayName;
-
-    if (editingHardInfraId) {
-      const updated = colony.hardInfrastructure.map((h) => {
-        if (h.id === editingHardInfraId) {
-          return {
-            ...h,
-            name: finalName,
-            status: hiStatus,
-            notes: hiNotes.trim(),
-          };
-        }
-        return h;
-      });
-      onUpdateColony({ hardInfrastructure: updated });
-      setEditingHardInfraId(null);
-    } else {
-      const newItem: HardInfrastructureItem = {
-        id: `hi_${Date.now()}`,
-        name: finalName,
-        type: hiType,
-        status: hiStatus,
-        notes: hiNotes.trim(),
-      };
-      onUpdateColony({ hardInfrastructure: [...colony.hardInfrastructure, newItem] });
-      setIsAddingHardInfra(false);
-    }
-
-    setHiName('');
-    setHiNotes('');
-    setHiStatus('working');
-  };
-
-  const handleQuickChangeHardStatus = (id: string, newStatus: HardInfrastructureStatus) => {
-    const updated = colony.hardInfrastructure.map((h) => {
-      if (h.id === id) return { ...h, status: newStatus };
-      return h;
-    });
+  const handleQuickChangeHardStatus = useCallback((id: string, newStatus: HardInfrastructureStatus) => {
+    const updated = colony.hardInfrastructure.map((h) =>
+      h.id === id ? { ...h, status: newStatus } : h
+    );
     onUpdateColony({ hardInfrastructure: updated });
-  };
+  }, [colony.hardInfrastructure, onUpdateColony]);
 
-  const handleDeleteHardInfra = (id: string) => {
+  const handleDeleteHardInfra = useCallback((id: string) => {
     onUpdateColony({
       hardInfrastructure: colony.hardInfrastructure.filter((h) => h.id !== id),
     });
-  };
+  }, [colony.hardInfrastructure, onUpdateColony]);
 
   // Support Upgrade Handlers
-  const handleSaveUpgrade = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rule = SUPPORT_UPGRADE_RULES[suType];
-    const finalName = suName.trim() || rule.displayName;
-
+  const handleSaveUpgrade = useCallback((payload: {
+    name: string;
+    type: SupportUpgradeTypeKey;
+    status: SupportUpgradeStatus;
+    notes: string;
+    chosenStat?: StatName;
+    contactCount?: number;
+    contactDetails?: string;
+  }) => {
     if (editingUpgradeId) {
-      const updated = colony.supportUpgrades.map((u) => {
-        if (u.id === editingUpgradeId) {
-          return {
-            ...u,
-            name: finalName,
-            status: suStatus,
-            notes: suNotes.trim(),
-            chosenStat: suType === 'cultural_improvement' ? suChosenStat : undefined,
-            contactCount: suType === 'contacts' ? suContactCount : undefined,
-            contactDetails: suType === 'contacts' ? suContactDetails.trim() : undefined,
-          };
-        }
-        return u;
-      });
+      const updated = colony.supportUpgrades.map((u) =>
+        u.id === editingUpgradeId ? { ...u, ...payload } : u
+      );
       onUpdateColony({ supportUpgrades: updated });
       setEditingUpgradeId(null);
     } else {
       const newItem: SupportUpgradeItem = {
         id: `su_${Date.now()}`,
-        name: finalName,
-        type: suType,
-        status: suStatus,
-        notes: suNotes.trim(),
-        chosenStat: suType === 'cultural_improvement' ? suChosenStat : undefined,
-        contactCount: suType === 'contacts' ? suContactCount : undefined,
-        contactDetails: suType === 'contacts' ? suContactDetails.trim() : undefined,
+        ...payload,
       };
       onUpdateColony({ supportUpgrades: [...colony.supportUpgrades, newItem] });
       setIsAddingUpgrade(false);
     }
-
     setSuName('');
     setSuNotes('');
     setSuStatus('working');
     setSuContactDetails('');
-  };
+  }, [editingUpgradeId, colony.supportUpgrades, onUpdateColony]);
 
-  const handleQuickChangeUpgradeStatus = (id: string, newStatus: SupportUpgradeStatus) => {
-    const updated = colony.supportUpgrades.map((u) => {
-      if (u.id === id) return { ...u, status: newStatus };
-      return u;
-    });
+  const handleQuickChangeUpgradeStatus = useCallback((id: string, newStatus: SupportUpgradeStatus) => {
+    const updated = colony.supportUpgrades.map((u) =>
+      u.id === id ? { ...u, status: newStatus } : u
+    );
     onUpdateColony({ supportUpgrades: updated });
-  };
+  }, [colony.supportUpgrades, onUpdateColony]);
 
-  const handleDeleteUpgrade = (id: string) => {
+  const handleDeleteUpgrade = useCallback((id: string) => {
     onUpdateColony({
       supportUpgrades: colony.supportUpgrades.filter((u) => u.id !== id),
     });
-  };
+  }, [colony.supportUpgrades, onUpdateColony]);
 
   // Development Plan Handlers
-  const handleSavePlan = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!dpName.trim()) return;
+  const handleSavePlan = useCallback((payload: {
+    name: string;
+    category: 'hard_infrastructure' | 'support_upgrade';
+    type: HardInfrastructureTypeKey | SupportUpgradeTypeKey;
+    priority: number;
+    status: PlanStatus;
+    description: string;
+    progress: string;
+    chosenStat?: StatName;
+  }) => {
+    if (!payload.name.trim()) return;
 
     if (editingPlanId) {
-      const updated = colony.developmentPlans.map((p) => {
-        if (p.id === editingPlanId) {
-          return {
-            ...p,
-            name: dpName.trim(),
-            category: dpCategory,
-            type: dpType,
-            priority: Math.max(1, Math.min(10, dpPriority)),
-            status: dpStatus,
-            description: dpDesc.trim(),
-            progress: dpProgress.trim(),
-            chosenStat: dpCategory === 'support_upgrade' && dpType === 'cultural_improvement' ? dpChosenStat : undefined,
-          };
-        }
-        return p;
-      });
+      const updated = colony.developmentPlans.map((p) =>
+        p.id === editingPlanId ? { ...p, ...payload } : p
+      );
       onUpdateColony({ developmentPlans: updated });
       setEditingPlanId(null);
     } else {
       const newPlan: DevelopmentPlanItem = {
         id: `plan_${Date.now()}`,
-        name: dpName.trim(),
-        category: dpCategory,
-        type: dpType,
-        priority: Math.max(1, Math.min(10, dpPriority)),
-        status: dpStatus,
-        description: dpDesc.trim(),
-        progress: dpProgress.trim(),
-        chosenStat: dpCategory === 'support_upgrade' && dpType === 'cultural_improvement' ? dpChosenStat : undefined,
+        ...payload,
       };
       onUpdateColony({ developmentPlans: [...colony.developmentPlans, newPlan] });
       setIsAddingPlan(false);
     }
-
     setDpName('');
     setDpDesc('');
     setDpProgress('');
     setDpPriority(5);
     setDpStatus('planning');
-  };
+  }, [editingPlanId, colony.developmentPlans, onUpdateColony]);
 
-  const handleTogglePlanStatus = (id: string) => {
-    const updated = colony.developmentPlans.map((p) => {
-      if (p.id === id) {
-        return {
-          ...p,
-          status: p.status === 'planning' ? ('in_progress' as PlanStatus) : ('planning' as PlanStatus),
-        };
-      }
-      return p;
-    });
+  const handleTogglePlanStatus = useCallback((id: string) => {
+    const updated = colony.developmentPlans.map((p) =>
+      p.id === id
+        ? { ...p, status: p.status === 'planning' ? 'in_progress' : 'planning' }
+        : p
+    );
     onUpdateColony({ developmentPlans: updated });
-  };
+  }, [colony.developmentPlans, onUpdateColony]);
 
-  const handleDeletePlan = (id: string) => {
+  const handleDeletePlan = useCallback((id: string) => {
     onUpdateColony({
       developmentPlans: colony.developmentPlans.filter((p) => p.id !== id),
     });
-  };
+  }, [colony.developmentPlans, onUpdateColony]);
 
   // Promotion execution
-  const handleExecutePromotion = (_archive: boolean) => {
+  const handleExecutePromotion = useCallback((_archive: boolean) => {
     if (!promotingPlan) return;
+
+    const promotionNote = `Promoted from Development Plan: "${promotingPlan.name}". ${promotingPlan.description}`;
+    const remainingPlans = colony.developmentPlans.filter((p) => p.id !== promotingPlan.id);
 
     if (promotingPlan.category === 'hard_infrastructure') {
       const newHard: HardInfrastructureItem = {
@@ -269,11 +437,11 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         name: promotingPlan.name,
         type: promotingPlan.type as HardInfrastructureTypeKey,
         status: 'working',
-        notes: `Promoted from Development Plan: "${promotingPlan.name}". ${promotingPlan.description}`,
+        notes: promotionNote,
       };
       onUpdateColony({
         hardInfrastructure: [...colony.hardInfrastructure, newHard],
-        developmentPlans: colony.developmentPlans.filter((p) => p.id !== promotingPlan.id),
+        developmentPlans: remainingPlans,
       });
     } else {
       const newUpg: SupportUpgradeItem = {
@@ -281,17 +449,17 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         name: promotingPlan.name,
         type: promotingPlan.type as SupportUpgradeTypeKey,
         status: 'working',
-        notes: `Promoted from Development Plan: "${promotingPlan.name}". ${promotingPlan.description}`,
+        notes: promotionNote,
         chosenStat: promotingPlan.chosenStat,
       };
       onUpdateColony({
         supportUpgrades: [...colony.supportUpgrades, newUpg],
-        developmentPlans: colony.developmentPlans.filter((p) => p.id !== promotingPlan.id),
+        developmentPlans: remainingPlans,
       });
     }
 
     setPromotingPlan(null);
-  };
+  }, [promotingPlan, colony.hardInfrastructure, colony.supportUpgrades, colony.developmentPlans, onUpdateColony]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -304,6 +472,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         subtitle="5 Essential Imperial Systems (Transport, Power, Water, Food Production, Communications)"
         actions={
           <button
+            type="button"
             onClick={() => {
               setHiName('');
               setHiNotes('');
@@ -318,99 +487,36 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
       >
         {/* Form Modal/Section for Adding/Editing Hard Infrastructure */}
         {(isAddingHardInfra || editingHardInfraId) && (
-          <form
-            onSubmit={handleSaveHardInfra}
-            className="p-4 bg-slate-950 border border-cyan-700/80 rounded-xs mb-4 space-y-4 animate-in fade-in"
-          >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h4 className="font-serif font-bold text-xs uppercase text-cyan-200">
-                {editingHardInfraId ? 'Edit Hard Infrastructure Entry' : 'Commission Hard Infrastructure'}
-              </h4>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingHardInfra(false);
-                  setEditingHardInfraId(null);
-                }}
-                className="text-slate-400 hover:text-slate-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-              <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">System Custom Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Mag-Rail Expressway"
-                  value={hiName}
-                  onChange={(e) => setHiName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Infrastructure Type (5 Confirmed)</label>
-                <select
-                  value={hiType}
-                  onChange={(e) => setHiType(e.target.value as HardInfrastructureTypeKey)}
-                  disabled={!!editingHardInfraId}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
-                >
-                  <option value="transport">Transport (Prod +1, Comp +1 / -2, -2)</option>
-                  <option value="power">Power (Prod +2 / Prod -3, Comp -1)</option>
-                  <option value="water">Water (Order +1, Comp +1 / -2, -2)</option>
-                  <option value="food_production">Food Production (Prod +1, Comp +1 / -2, -2)</option>
-                  <option value="communications">Communications (Prod +1, Order +1 / -2, -2)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Operational Status (4 States)</label>
-                <select
-                  value={hiStatus}
-                  onChange={(e) => setHiStatus(e.target.value as HardInfrastructureStatus)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
-                >
-                  <option value="working">Working (Bonuses active)</option>
-                  <option value="not_working">Not Working (Severe penalties active)</option>
-                  <option value="in_progress">In Progress (No modifiers)</option>
-                  <option value="needed">Needed (Missing Penalty: Complacency -1)</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">Technical Notes & Deployment Context</label>
-              <input
-                type="text"
-                placeholder="e.g. Connects sub-crustal boreholes to orbital relay..."
-                value={hiNotes}
-                onChange={(e) => setHiNotes(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-xs text-slate-100 font-mono"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingHardInfra(false);
-                  setEditingHardInfraId(null);
-                }}
-                className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-mono rounded-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-1 bg-cyan-900 hover:bg-cyan-800 border border-cyan-500 text-cyan-100 text-xs font-mono uppercase rounded-xs"
-              >
-                {editingHardInfraId ? 'Save Changes' : 'Confirm System Commission'}
-              </button>
-            </div>
-          </form>
+          <HardInfrastructureForm
+            editingId={editingHardInfraId}
+            initialName={hiName}
+            initialType={hiType}
+            initialStatus={hiStatus}
+            initialNotes={hiNotes}
+            onSave={(payload) => {
+              if (editingHardInfraId) {
+                const updated = colony.hardInfrastructure.map((h) =>
+                  h.id === editingHardInfraId ? { ...h, ...payload } : h
+                );
+                onUpdateColony({ hardInfrastructure: updated });
+                setEditingHardInfraId(null);
+              } else {
+                const newItem: HardInfrastructureItem = {
+                  id: `hi_${Date.now()}`,
+                  ...payload,
+                };
+                onUpdateColony({ hardInfrastructure: [...colony.hardInfrastructure, newItem] });
+                setIsAddingHardInfra(false);
+              }
+              setHiName('');
+              setHiNotes('');
+              setHiStatus('working');
+            }}
+            onCancel={() => {
+              setIsAddingHardInfra(false);
+              setEditingHardInfraId(null);
+            }}
+          />
         )}
 
         {/* Hard Infrastructure List */}
@@ -420,15 +526,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
             return (
               <div
                 key={infra.id}
-                className={`p-3.5 bg-slate-950 rounded-xs border transition-colors flex flex-wrap items-center justify-between gap-4 ${
-                  infra.status === 'working'
-                    ? 'border-emerald-900/60'
-                    : infra.status === 'not_working'
-                    ? 'border-red-900/80 bg-red-950/10'
-                    : infra.status === 'needed'
-                    ? 'border-amber-900/80 bg-amber-950/10'
-                    : 'border-slate-800'
-                }`}
+                className={getHardInfraContainerClasses(infra.status)}
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
@@ -446,27 +544,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                   {/* System-derived active modifiers preview */}
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <span className="text-[10px] font-mono text-slate-500 uppercase">Active Effects:</span>
-                    {infra.status === 'working' ? (
-                      rule?.workingModifiers.map((m, idx) => (
-                        <span key={idx} className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950 px-1.5 py-0.5 rounded-xs border border-emerald-800">
-                          +{m.value} {m.stat.toUpperCase()}
-                        </span>
-                      ))
-                    ) : infra.status === 'not_working' ? (
-                      rule?.notWorkingModifiers.map((m, idx) => (
-                        <span key={idx} className="text-[10px] font-mono text-red-400 font-bold bg-red-950 px-1.5 py-0.5 rounded-xs border border-red-800">
-                          {m.value} {m.stat.toUpperCase()}
-                        </span>
-                      ))
-                    ) : infra.status === 'needed' ? (
-                      <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-950 px-1.5 py-0.5 rounded-xs border border-amber-800">
-                        -1 COMPLACENCY (Missing Penalty)
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-mono text-slate-400 italic">
-                        In Progress (No active effects)
-                      </span>
-                    )}
+                    {renderHardInfraModifiers(infra, rule)}
                   </div>
                 </div>
 
@@ -475,19 +553,10 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                   <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 p-1 rounded-xs">
                     {(['working', 'not_working', 'in_progress', 'needed'] as HardInfrastructureStatus[]).map((st) => (
                       <button
-                        key={st}
+                        key={`${infra.id}-status-${st}`}
+                        type="button"
                         onClick={() => handleQuickChangeHardStatus(infra.id, st)}
-                        className={`px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs transition-colors ${
-                          infra.status === st
-                            ? st === 'working'
-                              ? 'bg-emerald-900 text-emerald-100 font-bold'
-                              : st === 'not_working'
-                              ? 'bg-red-900 text-red-100 font-bold'
-                              : st === 'needed'
-                              ? 'bg-amber-900 text-amber-100 font-bold'
-                              : 'bg-slate-700 text-slate-100 font-bold'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
+                        className={getHardInfraStatusButtonClasses(infra.status, st)}
                       >
                         {st.replace('_', ' ')}
                       </button>
@@ -496,6 +565,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
                   <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingHardInfraId(infra.id);
                         setHiName(infra.name);
@@ -509,6 +579,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDeleteHardInfra(infra.id)}
                       className="p-1.5 text-slate-400 hover:text-red-400 rounded-xs"
                       title="Decommission system"
@@ -538,6 +609,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         }
         actions={
           <button
+            type="button"
             onClick={() => {
               setSuName('');
               setSuNotes('');
@@ -559,7 +631,20 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         {/* Support Upgrade Form */}
         {(isAddingUpgrade || editingUpgradeId) && (
           <form
-            onSubmit={handleSaveUpgrade}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const rule = SUPPORT_UPGRADE_RULES[suType];
+              const finalName = suName.trim() || rule.displayName;
+              handleSaveUpgrade({
+                name: finalName,
+                type: suType,
+                status: suStatus,
+                notes: suNotes.trim(),
+                chosenStat: suType === 'cultural_improvement' ? suChosenStat : undefined,
+                contactCount: suType === 'contacts' ? suContactCount : undefined,
+                contactDetails: suType === 'contacts' ? suContactDetails.trim() : undefined,
+              });
+            }}
             className="p-4 bg-slate-950 border border-cyan-700/80 rounded-xs mb-4 space-y-4 animate-in fade-in"
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -580,8 +665,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Upgrade Name</label>
+                <label htmlFor="su-name" className="text-[10px] uppercase text-slate-400 block mb-1">Upgrade Name</label>
                 <input
+                  id="su-name"
                   type="text"
                   placeholder="e.g. High Altar Cathedral"
                   value={suName}
@@ -591,8 +677,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Upgrade Type (10 Confirmed)</label>
+                <label htmlFor="su-type" className="text-[10px] uppercase text-slate-400 block mb-1">Upgrade Type (10 Confirmed)</label>
                 <select
+                  id="su-type"
                   value={suType}
                   onChange={(e) => setSuType(e.target.value as SupportUpgradeTypeKey)}
                   disabled={!!editingUpgradeId}
@@ -620,8 +707,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Status (3 States)</label>
+                <label htmlFor="su-status" className="text-[10px] uppercase text-slate-400 block mb-1">Status (3 States)</label>
                 <select
+                  id="su-status"
                   value={suStatus}
                   onChange={(e) => setSuStatus(e.target.value as SupportUpgradeStatus)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
@@ -636,10 +724,11 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
             {/* Cultural Improvement Chosen Stat */}
             {suType === 'cultural_improvement' && (
               <div className="p-3 bg-slate-900 border border-cyan-800/60 rounded-xs space-y-1">
-                <label className="text-[10px] font-mono uppercase text-cyan-300 block">
+                <label htmlFor="su-chosen-stat" className="text-[10px] font-mono uppercase text-cyan-300 block">
                   Chosen Colony Characteristic (+1 Bonus)
                 </label>
                 <select
+                  id="su-chosen-stat"
                   value={suChosenStat}
                   onChange={(e) => setSuChosenStat(e.target.value as StatName)}
                   className="bg-slate-950 border border-cyan-700 rounded-xs px-2 py-1 text-xs text-slate-100 font-mono"
@@ -659,10 +748,11 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
             {suType === 'contacts' && (
               <div className="p-3 bg-slate-900 border border-cyan-800/60 rounded-xs grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-cyan-300 block mb-1">
+                  <label htmlFor="su-contact-count" className="text-[10px] font-mono uppercase text-cyan-300 block mb-1">
                     Contact Count (Result of 1d5, rolled physically: 1–5) *
                   </label>
                   <input
+                    id="su-contact-count"
                     type="number"
                     min="1"
                     max="5"
@@ -672,10 +762,11 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-cyan-300 block mb-1">
+                  <label htmlFor="su-contact-details" className="text-[10px] font-mono uppercase text-cyan-300 block mb-1">
                     Contact Details & Affiliated Group *
                   </label>
                   <input
+                    id="su-contact-details"
                     type="text"
                     placeholder="e.g. Guild of Chartist Scribes, Kasballica Broker"
                     value={suContactDetails}
@@ -687,8 +778,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
             )}
 
             <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">Notes & Mechanical Context</label>
+              <label htmlFor="su-notes" className="text-[10px] uppercase text-slate-400 block mb-1">Notes & Mechanical Context</label>
               <input
+                id="su-notes"
                 type="text"
                 placeholder="e.g. Enforces tithes; produces specialized void ammunition..."
                 value={suNotes}
@@ -762,16 +854,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                     {(['working', 'not_working', 'in_progress'] as SupportUpgradeStatus[]).map((st) => (
                       <button
                         key={st}
+                        type="button"
                         onClick={() => handleQuickChangeUpgradeStatus(upg.id, st)}
-                        className={`px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs transition-colors ${
-                          upg.status === st
-                            ? st === 'working'
-                              ? 'bg-emerald-900 text-emerald-100 font-bold'
-                              : st === 'not_working'
-                              ? 'bg-red-900 text-red-100 font-bold'
-                              : 'bg-slate-700 text-slate-100 font-bold'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
+                        className={getUpgradeStatusButtonClasses(upg.status, st)}
                       >
                         {st.replace('_', ' ')}
                       </button>
@@ -780,6 +865,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
                   <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingUpgradeId(upg.id);
                         setSuName(upg.name);
@@ -796,6 +882,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDeleteUpgrade(upg.id)}
                       className="p-1.5 text-slate-400 hover:text-red-400 rounded-xs"
                       title="Dismantle upgrade"
@@ -824,6 +911,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         subtitle="Long-term construction blueprints, priority schedule (1–10), and promotion to active domain"
         actions={
           <button
+            type="button"
             onClick={() => {
               setDpName('');
               setDpDesc('');
@@ -841,7 +929,20 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
         {/* Development Plan Form */}
         {(isAddingPlan || editingPlanId) && (
           <form
-            onSubmit={handleSavePlan}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const isCulturalImprovement = dpCategory === 'support_upgrade' && dpType === 'cultural_improvement';
+              handleSavePlan({
+                name: dpName.trim(),
+                category: dpCategory,
+                type: dpType,
+                priority: Math.max(1, Math.min(10, dpPriority)),
+                status: dpStatus,
+                description: dpDesc.trim(),
+                progress: dpProgress.trim(),
+                chosenStat: isCulturalImprovement ? dpChosenStat : undefined,
+              });
+            }}
             className="p-4 bg-slate-950 border border-cyan-700/80 rounded-xs mb-4 space-y-4 animate-in fade-in"
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -862,8 +963,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Blueprint Project Name *</label>
+                <label htmlFor="dp-name" className="text-[10px] uppercase text-slate-400 block mb-1">Blueprint Project Name *</label>
                 <input
+                  id="dp-name"
                   type="text"
                   required
                   placeholder="e.g. Spire Observation Dome"
@@ -874,8 +976,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Target Category</label>
+                <label htmlFor="dp-category" className="text-[10px] uppercase text-slate-400 block mb-1">Target Category</label>
                 <select
+                  id="dp-category"
                   value={dpCategory}
                   onChange={(e) => {
                     const newCat = e.target.value as 'hard_infrastructure' | 'support_upgrade';
@@ -890,9 +993,10 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Specific Type</label>
+                <label htmlFor="dp-type" className="text-[10px] uppercase text-slate-400 block mb-1">Specific Type</label>
                 {dpCategory === 'hard_infrastructure' ? (
                   <select
+                    id="dp-type"
                     value={dpType}
                     onChange={(e) => setDpType(e.target.value as any)}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
@@ -905,6 +1009,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                   </select>
                 ) : (
                   <select
+                    id="dp-type-select"
                     value={dpType}
                     onChange={(e) => setDpType(e.target.value as any)}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xs px-2.5 py-1.5 text-slate-100"
@@ -924,16 +1029,17 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">
+                <label htmlFor="dp-priority" className="text-[10px] uppercase text-slate-400 block mb-1">
                   Priority Rank (1–10: {dpPriority})
                 </label>
                 <div className="flex items-center gap-2">
                   <input
+                    id="dp-priority"
                     type="range"
                     min="1"
                     max="10"
                     value={dpPriority}
-                    onChange={(e) => setDpPriority(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setDpPriority(Number.parseInt(e.target.value) || 1)}
                     className="w-full accent-cyan-400"
                   />
                   <span className="font-bold text-cyan-300 w-6 text-center">{dpPriority}</span>
@@ -943,8 +1049,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Description & Strategic Intent</label>
+                <label htmlFor="dp-desc" className="text-[10px] uppercase text-slate-400 block mb-1">Description & Strategic Intent</label>
                 <textarea
+                  id="dp-desc"
                   rows={2}
                   placeholder="Architectural specs and expected benefits..."
                   value={dpDesc}
@@ -954,8 +1061,9 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
               </div>
 
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">Current Construction Progress</label>
+                <label htmlFor="dp-progress" className="text-[10px] uppercase text-slate-400 block mb-1">Current Construction Progress</label>
                 <textarea
+                  id="dp-progress"
                   rows={2}
                   placeholder="Stage 2 of 4: Prefab foundations poured..."
                   value={dpProgress}
@@ -1052,6 +1160,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                 {/* Plan Status Toggle & Actions */}
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => handleTogglePlanStatus(plan.id)}
                     className={`px-3 py-1 text-xs font-mono uppercase rounded-xs border transition-colors ${
                       plan.status === 'in_progress'
@@ -1065,6 +1174,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
                   {/* Promote Action */}
                   <button
+                    type="button"
                     onClick={() => setPromotingPlan(plan)}
                     className="flex items-center gap-1 px-3 py-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600 text-emerald-200 text-xs font-mono uppercase rounded-xs transition-colors"
                     title="Promote plan into real operational system"
@@ -1074,6 +1184,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
                   <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingPlanId(plan.id);
                         setDpName(plan.name);
@@ -1091,6 +1202,7 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDeletePlan(plan.id)}
                       className="p-1.5 text-slate-400 hover:text-red-400 rounded-xs"
                       title="Cancel blueprint"
@@ -1146,12 +1258,14 @@ export const InfrastructurePanelGroup: React.FC<InfrastructurePanelGroupProps> =
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => setPromotingPlan(null)}
                 className="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-mono rounded-xs"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => handleExecutePromotion(true)}
                 className="px-4 py-1.5 bg-emerald-900 hover:bg-emerald-800 border border-emerald-500 text-emerald-100 text-xs font-mono uppercase font-bold rounded-xs flex items-center gap-2"
               >
