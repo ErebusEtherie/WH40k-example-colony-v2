@@ -23,8 +23,10 @@ COPY pyproject.toml uv.lock* README.md ./
 # Install dependencies to a virtual environment
 # Note: --frozen uses locked versions from uv.lock (addressing SonarQube docker:S8544)
 # Using --no-build-isolation to prevent setup script execution (addressing docker:S8541)
+# Using --no-install-project to only install dependencies, not the project itself
+# (source code isn't copied until the runtime stage)
 RUN uv venv /app/.venv && \
-    UV_PROJECT_ENVIRONMENT=/app/.venv uv sync --frozen --no-dev --no-build-isolation
+    UV_PROJECT_ENVIRONMENT=/app/.venv uv sync --frozen --no-dev --no-build-isolation --no-install-project
 
 # ============================================
 # Stage 2: Runtime
