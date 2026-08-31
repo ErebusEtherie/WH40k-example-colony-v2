@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Build
 # ============================================
-FROM node:20.18.1-alpine3.20 AS builder
+FROM node:bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN npm run build
 # ============================================
 # Stage 2: Runtime (nginx)
 # ============================================
-FROM nginx:1.27.4-alpine3.21 AS runtime
+FROM nginx:alpine-slim AS runtime
 
 # Create non-root user for security
 RUN addgroup -g 101 -S nginx-frontend && \

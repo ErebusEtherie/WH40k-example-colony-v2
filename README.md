@@ -102,7 +102,7 @@ git clone https://github.com/yourusername/WH40k_Colony_Manager.git
 cd WH40k_Colony_Manager
 
 # Install dependencies
-uv sync --extra dev
+uv sync --no-build --extra dev
 
 # Run the API server
 uv run uvicorn colony_manager.main:app --reload
@@ -324,7 +324,7 @@ cd WH40k_Colony_Manager
 ### 2. Set Up Development Environment
 
 ```bash
-uv sync --extra dev
+uv sync --no-build --extra dev
 ```
 
 ### 3. Create a Branch

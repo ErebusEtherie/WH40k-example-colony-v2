@@ -36,7 +36,7 @@ Thank you for your interest in contributing to the WH40k Colony Manager! This do
 3. **Install dependencies**:
 
    ```bash
-   uv sync --extra dev
+   uv sync --no-build --extra dev
    ```
 
 4. **Set up pre-commit hooks** (optional but recommended):

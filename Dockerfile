@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Dependencies
 # ============================================
-FROM python:3.12.8-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN uv venv /app/.venv && \
 # ============================================
 # Stage 2: Runtime
 # ============================================
-FROM python:3.12.8-slim-bookworm AS runtime
+FROM python:3.12-slim-bookworm AS runtime
 
 # Create non-root user for security
 RUN groupadd -r colony && useradd -r -g colony colony
