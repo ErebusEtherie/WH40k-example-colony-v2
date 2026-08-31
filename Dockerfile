@@ -40,7 +40,7 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy application code
-COPY colony_manager/ ./colony_manager/
+COPY src/colony_manager/ ./colony_manager/
 COPY config/ ./config/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
