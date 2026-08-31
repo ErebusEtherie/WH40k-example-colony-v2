@@ -5,7 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from colony_manager.adapters.api.dependencies import get_colony_service
+from colony_manager.adapters.api import dependencies
+from colony_manager.adapters.api.dependencies import get_colony_service, get_representative_service
 from colony_manager.adapters.api.middleware.auth import get_current_user
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.colony import (
@@ -24,8 +25,9 @@ from colony_manager.adapters.api.schemas.modifier import (
     ModifierResponse,
     ModifierUpdate,
 )
+from colony_manager.adapters.api.schemas.representative import RepresentativeResponse
 from colony_manager.application.services.colony_service import ColonyService
-from colony_manager.domain.errors import NotFoundError
+from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 from colony_manager.domain.models.audit_log import AuditLogAction
 from colony_manager.domain.models.colony import Colony
 from colony_manager.domain.models.modifier import Modifier
@@ -525,3 +527,141 @@ async def get_colony_modifier_breakdown(
     _check_colony_exists(service, colony_id)
     breakdown = service.get_modifier_breakdown(colony_id)
     return ModifierBreakdownResponse(**breakdown)
+
+
+@router.put("/{colony_id}/representative", response_model=RepresentativeResponse)
+async def assign_representative_to_colony(
+    colony_id: int,
+    representative_id: int,
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    colony_service: ColonyService = Depends(get_colony_service),
+    representative_service: dependencies.RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
+    """Assign a representative to a colony.
+    
+    This endpoint atomically updates both the colony's representative_id and
+    the representative's assigned_to_colony_id. If the colony already has a
+    representative, they are automatically unassigned.
+    
+    Args:
+        colony_id: ID of the colony to assign to.
+        representative_id: ID of the representative to assign.
+        current_user: Authenticated user with edit permission.
+        colony_service: Colony service for colony operations.
+        representative_service: Representative service for assignment.
+    
+    Returns:
+        RepresentativeResponse with the updated representative and change tracking info.
+    
+    Raises:
+        HTTPException: 404 if colony or representative not found, 400 for assignment errors.
+    """
+    from colony_manager.adapters.api.schemas.representative import (
+        AssignmentChangeInfo,
+        RepresentativeStatsCreate,
+    )
+    from colony_manager.domain.errors import ColonyManagerError
+    
+    try:
+        result = representative_service.assign_to_colony(
+            colony_id=colony_id,
+            representative_id=representative_id,
+            changed_by=current_user.id,
+        )
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ColonyManagerError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    
+    updated = result.representative
+    
+    return RepresentativeResponse(
+        id=updated.id,
+        name=updated.name,
+        type=updated.type,
+        personalities=updated.personalities,
+        stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
+        skills=updated.skills,
+        talents=updated.talents,
+        leadership_modifier=result.new_leadership,
+        assigned_to_colony_id=updated.assigned_to_colony_id,
+        assignment_change=AssignmentChangeInfo(
+            representative_changed=True,
+            previous_representative_id=result.previous_representative_id,
+            new_representative_id=result.new_representative_id,
+            leadership_modifier_changed=result.leadership_modifier_changed,
+            previous_leadership=result.previous_leadership,
+            new_leadership=result.new_leadership,
+        ),
+    )
+
+
+@router.delete("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "No representative assigned"}})
+async def unassign_representative_from_colony(
+    colony_id: int,
+    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
+    representative_service: dependencies.RepresentativeService = Depends(get_representative_service),
+) -> RepresentativeResponse:
+    """Unassign the current representative from a colony.
+    
+    This endpoint atomically clears both the colony's representative_id and
+    the representative's assigned_to_colony_id.
+    
+    Args:
+        colony_id: ID of the colony to unassign from.
+        current_user: Authenticated user with edit permission.
+        representative_service: Representative service for unassignment.
+    
+    Returns:
+        RepresentativeResponse with the unassigned representative and change tracking info.
+    
+    Raises:
+        HTTPException: 404 if no representative is assigned to the colony.
+    """
+    from colony_manager.adapters.api.schemas.representative import (
+        AssignmentChangeInfo,
+        RepresentativeStatsCreate,
+    )
+    from colony_manager.domain.errors import NotFoundError
+    
+    # Find the representative assigned to this colony
+    all_reps = representative_service.list_representatives()
+    assigned_rep = next((r for r in all_reps if r.assigned_to_colony_id == colony_id), None)
+    
+    if assigned_rep is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No representative assigned to colony {colony_id}",
+        )
+    
+    try:
+        result = representative_service.unassign_from_colony(
+            representative_id=assigned_rep.id,
+            changed_by=current_user.id,
+        )
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ColonyManagerError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    
+    updated = result.representative
+    
+    return RepresentativeResponse(
+        id=updated.id,
+        name=updated.name,
+        type=updated.type,
+        personalities=updated.personalities,
+        stats=RepresentativeStatsCreate(**updated.stats.model_dump(by_alias=True)),
+        skills=updated.skills,
+        talents=updated.talents,
+        leadership_modifier=result.new_leadership,
+        assigned_to_colony_id=updated.assigned_to_colony_id,
+        assignment_change=AssignmentChangeInfo(
+            representative_changed=True,
+            previous_representative_id=result.previous_representative_id,
+            new_representative_id=result.new_representative_id,
+            leadership_modifier_changed=result.leadership_modifier_changed,
+            previous_leadership=result.previous_leadership,
+            new_leadership=result.new_leadership,
+        ),
+    )

@@ -247,6 +247,24 @@ class TestRepresentativeAssignment:
         data = assign_response.json()
         assert data["assigned_to_colony_id"] == colony_id
 
+    def test_unassign_representative_not_found(self, auth_client: TestClient) -> None:
+        """Test unassigning representative when none is assigned to colony returns 404."""
+        # Create colony without assigning a representative
+        colony_response = auth_client.post(
+            "/api/v1/colonies",
+            json={
+                "name": "Test Colony No Rep",
+                "founder_name": "Test Owner",
+                "colony_type": "mining_and_industry",
+            },
+        )
+        colony_id = colony_response.json()["id"]
+
+        # Try to unassign representative from colony with no representative
+        unassign_response = auth_client.delete(f"/api/v1/colonies/{colony_id}/representative")
+        assert unassign_response.status_code == status.HTTP_404_NOT_FOUND
+        assert "No representative assigned" in unassign_response.json()["detail"]
+
     @pytest.mark.skip(reason="Requires colony_users table migration - tracked separately")
     def test_unassign_representative_from_colony(self, auth_client: TestClient) -> None:
         """Test unassigning a representative from their colony."""

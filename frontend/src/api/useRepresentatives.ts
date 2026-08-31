@@ -60,26 +60,19 @@ export function useDeleteRepresentative() {
 
 /**
  * Assign a representative to a colony (or unassign)
- * This updates both the colony's representativeId and the representative's assignedColonyId
+ * Uses atomic backend endpoints to avoid race conditions
  */
 export function useAssignRepresentative() {
   const queryClient = useQueryClient()
   
   return useMutation({
     mutationFn: async ({ colonyId, representativeId }: { colonyId: number, representativeId: number | null }) => {
-      // Update colony's representativeId (convert number to string)
-      await apiClient.updateColony(colonyId, { representativeId: representativeId === null ? undefined : String(representativeId) })
-      
-      // Update representative's assignedColonyId (convert number to string)
       if (representativeId !== null) {
-        await apiClient.updateRepresentative(representativeId, { assignedColonyId: String(colonyId) })
+        // Use new atomic assign endpoint
+        return await apiClient.assignRepresentativeToColony(colonyId, representativeId)
       } else {
-        // Find and unassign the representative that was previously assigned to this colony
-        const reps = await apiClient.getRepresentatives()
-        const repToUnassign = reps.find(r => r.assignedColonyId === String(colonyId))
-        if (repToUnassign) {
-          await apiClient.updateRepresentative(repToUnassign.id, { assignedColonyId: null })
-        }
+        // Use new atomic unassign endpoint
+        return await apiClient.unassignRepresentativeFromColony(colonyId)
       }
     },
     onSuccess: () => {

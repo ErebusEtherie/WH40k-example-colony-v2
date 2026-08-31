@@ -187,9 +187,13 @@ export interface ThemeConfig {
 }
 
 export type AccessibilityPalette = 'mechanicus' | 'high_contrast' | 'protanopia' | 'tritanopia';
-export type ColorPalette = AccessibilityPalette;
 export type FontSizeSetting = 'standard' | 'large' | 'xlarge';
 export type NavTab = 'at_a_glance' | 'colony_details' | 'representative' | 'infrastructure';
+
+/**
+ * Backend connection status for UI display
+ */
+export type BackendStatus = 'connected' | 'syncing' | 'offline';
 
 export type CustomModifierItem = ModifierItem;
 export type RepresentativePersonalityItem = RepresentativePersonalitySelection;

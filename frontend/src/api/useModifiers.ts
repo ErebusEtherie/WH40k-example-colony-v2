@@ -21,13 +21,26 @@ export function useCreateModifier(colonyId: number) {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (data: ModifierCreate) => apiClient.addModifier(colonyId, {
-      source: data.source || 'custom',
-      category: data.category || 'custom',
-      stat: data.stat,
-      value: data.value,
-      name: data.name,
-    }),
+    mutationFn: (data: ModifierCreate) => {
+      // Validation: required fields
+      if (!data.stat) {
+        throw new Error('Stat is required')
+      }
+      if (data.value === undefined || data.value === null) {
+        throw new Error('Value is required')
+      }
+      if (!data.name) {
+        throw new Error('Description/name is required')
+      }
+      
+      return apiClient.addModifier(colonyId, {
+        source: data.source || 'custom',
+        category: data.category || 'custom',
+        stat: data.stat,
+        value: data.value,
+        name: data.name,
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['colony', colonyId, 'modifiers'] })
       queryClient.invalidateQueries({ queryKey: ['colony', colonyId] })

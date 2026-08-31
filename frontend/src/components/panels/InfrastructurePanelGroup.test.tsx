@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { InfrastructurePanelGroup } from './InfrastructurePanelGroup'
 import type { Colony, ColonyCalculations } from '../../types'
 import { renderWithProviders } from '../../test/utils'

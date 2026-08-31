@@ -12,6 +12,8 @@ vi.mock('../utils/apiClient', () => ({
     updateRepresentative: vi.fn(),
     deleteRepresentative: vi.fn(),
     updateColony: vi.fn(),
+    assignRepresentativeToColony: vi.fn(),
+    unassignRepresentativeFromColony: vi.fn(),
   },
 }))
 
@@ -19,7 +21,6 @@ const mockRepresentatives: Representative[] = [
   { id: '1', name: 'Inquisitor Malchus', type: 'dynasty_member', assignedColonyId: '1', personalities: [{ personalityKey: 'judicious' }], characteristics: { ws: 3, bs: 4, s: 3, t: 4, ag: 3, int: 5, per: 4, wp: 5, fel: 3 }, skills: ['Awareness'], talents: ['Air of Authority'] },
   { id: '2', name: 'Magos Quintus', type: 'colonist_representative', assignedColonyId: null, personalities: [{ personalityKey: 'administrative_expert' }], characteristics: { ws: 2, bs: 3, s: 3, t: 3, ag: 3, int: 5, per: 3, wp: 4, fel: 3 }, skills: ['Administration'], talents: [] },
 ]
-const mockRepresentative = mockRepresentatives[0]
 
 describe('useRepresentatives', () => {
   beforeEach(() => { vi.clearAllMocks() })
@@ -84,24 +85,25 @@ describe('useAssignRepresentative', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it('assigns a representative to a colony', async () => {
-    vi.mocked(apiClient.updateColony).mockResolvedValue({ id: '1', name: 'Hive Tarsus' })
-    vi.mocked(apiClient.updateRepresentative).mockResolvedValue(mockRepresentative)
+    vi.mocked(apiClient.assignRepresentativeToColony).mockResolvedValue({ id: '1', assigned_to_colony_id: '1' })
     const { result } = renderHookWithProviders(() => useAssignRepresentative())
     result.current.mutate({ colonyId: 1, representativeId: 1 })
     await waitFor(() => expect(result.current.isPending).toBe(false))
     expect(result.current.isSuccess).toBe(true)
-    expect(apiClient.updateColony).toHaveBeenCalledWith(1, { representativeId: '1' })
-    expect(apiClient.updateRepresentative).toHaveBeenCalledWith(1, { assignedColonyId: '1' })
+    expect(apiClient.assignRepresentativeToColony).toHaveBeenCalledWith(1, 1)
   })
 
   it('unassigns a representative from a colony', async () => {
-    vi.mocked(apiClient.updateColony).mockResolvedValue({ id: '1', name: 'Hive Tarsus' })
-    vi.mocked(apiClient.getRepresentatives).mockResolvedValue(mockRepresentatives)
-    vi.mocked(apiClient.updateRepresentative).mockResolvedValue(mockRepresentative)
+    vi.mocked(apiClient.unassignRepresentativeFromColony).mockResolvedValue({ id: '1', assigned_to_colony_id: null })
     const { result } = renderHookWithProviders(() => useAssignRepresentative())
     result.current.mutate({ colonyId: 1, representativeId: null })
     await waitFor(() => expect(result.current.isPending).toBe(false))
     expect(result.current.isSuccess).toBe(true)
-    expect(apiClient.updateColony).toHaveBeenCalledWith(1, { representativeId: undefined })
+    expect(apiClient.unassignRepresentativeFromColony).toHaveBeenCalledWith(1)
   })
 })
+
+
+
+
+

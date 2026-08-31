@@ -18,28 +18,43 @@ const STAT_OPTIONS: { value: ModifierStat; label: string }[] = [
   { value: 'piety', label: 'Piety' },
 ];
 
+/**
+ * Get initial form state from existing event or defaults
+ */
+function getInitialFormState(existingEvent?: Event | null) {
+  return {
+    name: existingEvent?.name || '',
+    description: existingEvent?.description || '',
+    modifiers: existingEvent?.modifiers || [],
+  };
+}
+
 export const EventCreationModal: React.FC<EventCreationModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   existingEvent,
 }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [modifiers, setModifiers] = useState<EventModifier[]>([]);
+  // Initialize state from existing event or defaults
+  const initialState = getInitialFormState(existingEvent);
+  
+  const [name, setName] = useState(initialState.name);
+  const [description, setDescription] = useState(initialState.description);
+  const [modifiers, setModifiers] = useState<EventModifier[]>(initialState.modifiers);
 
   const [newStat, setNewStat] = useState<ModifierStat>('order');
   const [newValue, setNewValue] = useState<number>(0);
   const [newDescription, setNewDescription] = useState('');
 
-  // Reset form when modal opens with different event
+  // Reset form when switching between create/edit mode or different events
+  // This is a valid use case: syncing component state with external prop changes
+  // oxlint-ignore-next-line react/set-state-in-effect
   useEffect(() => {
-    if (isOpen) {
-      setName(existingEvent?.name || '');
-      setDescription(existingEvent?.description || '');
-      setModifiers(existingEvent?.modifiers || []);
-    }
-  }, [isOpen, existingEvent]);
+    const state = getInitialFormState(existingEvent);
+    setName(state.name);
+    setDescription(state.description);
+    setModifiers(state.modifiers);
+  }, [existingEvent]);
 
   const handleAddModifier = () => {
     if (!newDescription.trim() || newValue === 0) return;

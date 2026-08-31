@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Colony, 
-  ColorPalette, 
+  AccessibilityPalette, 
   FontSizeSetting,
   NavTab, 
   Representative,
@@ -22,6 +22,7 @@ import { AddCustomModifierModal } from './components/modals/AddCustomModifierMod
 import { ChangeRepresentativeModal } from './components/modals/ChangeRepresentativeModal';
 import { ThemeSelectorModal } from './components/modals/ThemeSelectorModal';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import {
   useColonies,
   useCreateColony,
@@ -58,8 +59,8 @@ export default function App() {
   const [isHighContrast, setIsHighContrast] = useState<boolean>(() => {
     return localStorage.getItem('rt_high_contrast') === 'true';
   });
-  const [palette, setPalette] = useState<ColorPalette>(() => {
-    return (localStorage.getItem('rt_palette') as ColorPalette) || 'mechanicus';
+  const [palette, setPalette] = useState<AccessibilityPalette>(() => {
+    return (localStorage.getItem('rt_palette') as AccessibilityPalette) || 'mechanicus';
   });
 
   // Navigation State
@@ -127,7 +128,6 @@ export default function App() {
     handleAdvanceDays,
     handleAssignRepresentative,
     handleAddCustomModifier,
-    handleResetToSeedData,
   } = useColonyActions({
     currentColony,
     colonies,
@@ -221,11 +221,12 @@ export default function App() {
   const fontSizeClass = getFontSizeClass();
 
   return (
-    <div
-      className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950 theme-${theme} ${
-        isDyslexicFont ? 'font-dyslexic' : 'font-sans'
-      } ${isHighContrast ? 'border-2 border-amber-400' : ''} ${paletteClass} ${fontSizeClass}`}
-    >
+    <ErrorBoundary>
+      <div
+        className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950 theme-${theme} ${
+          isDyslexicFont ? 'font-dyslexic' : 'font-sans'
+        } ${isHighContrast ? 'border-2 border-amber-400' : ''} ${paletteClass} ${fontSizeClass}`}
+      >
       
       {/* Top Global Navigation Bar & Accessibility Controls */}
       <Header
@@ -326,7 +327,7 @@ export default function App() {
 
       </main>
 
-      {/* Footer info & Data Reset Action */}
+      {/* Footer info */}
       <footer className="border-t border-slate-900 bg-slate-950 p-4 text-center font-mono text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-4 max-w-7xl w-full mx-auto">
         <div>
           <span>Rogue Trader Colony Cogitation Engine, by Magos Theta Ryzer Sabrador. 2026</span>
@@ -338,13 +339,6 @@ export default function App() {
             className="text-amber-400 hover:text-amber-300 underline transition-colors font-serif uppercase tracking-wider"
           >
             Switch Theme
-          </button>
-          <button
-            type="button"
-            onClick={handleResetToSeedData}
-            className="text-slate-500 hover:text-amber-300 underline transition-colors"
-          >
-            Reset Seed Data
           </button>
           <button
             type="button"
@@ -400,5 +394,6 @@ export default function App() {
       />
 
     </div>
+    </ErrorBoundary>
   );
 }

@@ -398,6 +398,25 @@ export class ApiClient {
     if (!res.ok) throw new Error('Failed to delete modifier');
   }
 
+  // Representative Assignment (Atomic Endpoints)
+  async assignRepresentativeToColony(colonyId: number, representativeId: number): Promise<any> {
+    // Backend expects query param: ?representative_id={id}
+    const urlWithParams = `${API_BASE}/colonies/${colonyId}/representative?representative_id=${representativeId}`;
+    const res = await this.fetchWithAuth(urlWithParams, {
+      method: 'PUT',
+    });
+    if (!res.ok) throw new Error('Failed to assign representative');
+    return await res.json();
+  }
+
+  async unassignRepresentativeFromColony(colonyId: number): Promise<any> {
+    const res = await this.fetchWithAuth(`${API_BASE}/colonies/${colonyId}/representative`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to unassign representative');
+    return await res.json();
+  }
+
   // Development Plans
   async createDevelopmentPlan(colonyId: string | number, plan: Partial<DevelopmentPlanItem>): Promise<any> {
     const res = await this.fetchWithAuth(`${API_BASE}/development-plans`, {
