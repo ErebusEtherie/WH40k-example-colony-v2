@@ -19,8 +19,8 @@ from colony_manager.adapters.persistence.support_upgrade_repository_impl import 
     SqlAlchemySupportUpgradeRepository,
 )
 from colony_manager.application.services.support_upgrade_service import SupportUpgradeService
+from colony_manager.domain.enums import SupportUpgradeType
 from colony_manager.domain.errors import NotFoundError
-from colony_manager.domain.enums import ModifierStat, SupportUpgradeType
 from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies/{colony_id}/upgrades", tags=["support_upgrades"])

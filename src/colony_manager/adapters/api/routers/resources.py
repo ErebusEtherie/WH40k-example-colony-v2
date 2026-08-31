@@ -4,9 +4,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from colony_manager.adapters.api.dependencies import get_db_path, build_database_url
-from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
+from colony_manager.adapters.api.dependencies import build_database_url, get_db_path
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
+from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.resource import (
     ResourceCreate,
     ResourceListItem,

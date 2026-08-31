@@ -19,8 +19,8 @@ from colony_manager.adapters.persistence.infrastructure_repository_impl import (
     SqlAlchemyInfrastructureRepository,
 )
 from colony_manager.application.services.infrastructure_service import InfrastructureService
-from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.enums import InfrastructureState, InfrastructureType
+from colony_manager.domain.errors import NotFoundError
 from colony_manager.domain.models.user import User
 
 router = APIRouter(prefix="/colonies/{colony_id}/infrastructure", tags=["infrastructure"])

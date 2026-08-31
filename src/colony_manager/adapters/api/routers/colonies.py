@@ -28,7 +28,7 @@ from colony_manager.adapters.api.schemas.modifier import (
     StatModifierBreakdown,
 )
 from colony_manager.adapters.api.schemas.representative import RepresentativeResponse
-from colony_manager.application.services.colony_service import ColonyService
+from colony_manager.application.services.colony_service import ColonyService, StatBreakdownDict
 from colony_manager.domain.errors import ColonyManagerError, NotFoundError
 from colony_manager.domain.models.audit_log import AuditLogAction
 from colony_manager.domain.models.colony import Colony
@@ -49,6 +49,51 @@ def _check_colony_exists(service: ColonyService, colony_id: int) -> Colony:
         return service.get_colony(colony_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+def _build_modifier_changes(
+    modifier_data: ModifierUpdate,
+    old_is_active: bool,
+    old_description: str | None,
+) -> list[str]:
+    """Build list of change descriptions for audit logging."""
+    changes = []
+    if modifier_data.is_active is not None and modifier_data.is_active != old_is_active:
+        changes.append(f"is_active={old_is_active}->{modifier_data.is_active}")
+    if modifier_data.modifier_description is not None and modifier_data.modifier_description != old_description:
+        changes.append(f"description={old_description}->{modifier_data.modifier_description}")
+    return changes
+
+
+def _log_modifier_audit(
+    service: ColonyService,
+    colony_id: int,
+    modifier_id: int,
+    changes: list[str],
+    current_user: User,
+    action: AuditLogAction,
+    old_value: str | None = None,
+) -> None:
+    """Log audit entry for modifier changes if audit logging is enabled."""
+    if service._audit_log_repository is None:
+        return
+    
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ERR_USER_NO_ID,
+        )
+    
+    service._log_audit(
+        colony_id=colony_id,
+        entity_type="modifier",
+        entity_id=modifier_id,
+        action=action,
+        field=None,
+        old_value=old_value,
+        new_value=", ".join(changes) if changes else None,
+        changed_by=current_user.id,
+    )
 
 
 def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
@@ -442,23 +487,17 @@ async def remove_colony_modifier(
     colony.modifiers.remove(modifier_to_remove)
     service._colony_repository.update(colony)
     
-    # Log audit entry if audit logging is enabled
-    if service._audit_log_repository is not None:
-        if current_user.id is None:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=ERR_USER_NO_ID,
-            )
-        service._log_audit(
-            colony_id=colony_id,
-            entity_type="modifier",
-            entity_id=modifier_id,
-            action=AuditLogAction.DELETE,
-            field=None,
-            old_value=f"modifier_stat={modifier_to_remove.modifier_stat.value}, modifier_value={modifier_to_remove.modifier_value}, is_active={modifier_to_remove.is_active}",
-            new_value=None,
-            changed_by=current_user.id,
-        )
+    # Log audit entry
+    old_value = f"modifier_stat={modifier_to_remove.modifier_stat.value}, modifier_value={modifier_to_remove.modifier_value}, is_active={modifier_to_remove.is_active}"
+    _log_modifier_audit(
+        service=service,
+        colony_id=colony_id,
+        modifier_id=modifier_id,
+        changes=[],
+        current_user=current_user,
+        action=AuditLogAction.DELETE,
+        old_value=old_value,
+    )
 
 
 @router.patch("/{colony_id}/modifiers/{modifier_id}", response_model=ModifierResponse, responses={404: {"description": "Modifier not found"}, 500: {"description": "Failed to update modifier"}})
@@ -498,30 +537,17 @@ async def update_colony_modifier(
         logger.exception("Failed to update modifier %s for colony %s", modifier_id, colony_id)
         raise HTTPException(status_code=500, detail="Failed to update modifier") from e
     
-    # Log audit entry if audit logging is enabled
-    if service._audit_log_repository is not None:
-        changes = []
-        if modifier_data.is_active is not None and modifier_data.is_active != old_is_active:
-            changes.append(f"is_active={old_is_active}->{modifier_data.is_active}")
-        if modifier_data.modifier_description is not None and modifier_data.modifier_description != old_description:
-            changes.append(f"description={old_description}->{modifier_data.modifier_description}")
-        
-        if changes:
-            if current_user.id is None:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=ERR_USER_NO_ID,
-                )
-            service._log_audit(
-                colony_id=colony_id,
-                entity_type="modifier",
-                entity_id=modifier_id,
-                action=AuditLogAction.UPDATE,
-                field=None,
-                old_value=None,
-                new_value=", ".join(changes),
-                changed_by=current_user.id,
-            )
+    # Log audit entry if there are changes
+    changes = _build_modifier_changes(modifier_data, old_is_active, old_description)
+    if changes:
+        _log_modifier_audit(
+            service=service,
+            colony_id=colony_id,
+            modifier_id=modifier_id,
+            changes=changes,
+            current_user=current_user,
+            action=AuditLogAction.UPDATE,
+        )
     
     return ModifierResponse(
         id=modifier_to_update.id,
@@ -584,11 +610,13 @@ async def get_colony_modifier_breakdown(
     breakdown = service.get_modifier_breakdown(colony_id)
     
     # Convert TypedDict breakdown to Pydantic models
-    def _convert_stat_breakdown(stat_breakdown: dict) -> StatModifierBreakdown:
+    def _convert_stat_breakdown(stat_breakdown: StatBreakdownDict) -> StatModifierBreakdown:
         """Convert StatBreakdownDict to StatModifierBreakdown."""
+        from colony_manager.domain.enums import ModifierSourceType
+
         modifiers = [
             ModifierBreakdownItem(
-                source_type=item["source_type"],
+                source_type=ModifierSourceType(item["source_type"]),
                 source_id=item["source_id"],
                 source_name=item["source_name"],
                 value=item["value"],
@@ -717,6 +745,12 @@ async def unassign_representative_from_colony(
         raise HTTPException(
             status_code=404,
             detail=f"No representative assigned to colony {colony_id}",
+        )
+    
+    if assigned_rep.id is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Representative has no ID - database inconsistency",
         )
     
     try:
