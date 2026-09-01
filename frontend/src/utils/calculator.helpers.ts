@@ -1,6 +1,4 @@
-import { ModifierItem, StatName } from '../types';
-// eslint-disable-next-line no-unused-vars -- Used by exported helper functions
-import { COLONY_TYPES, HARD_INFRASTRUCTURE_RULES, SUPPORT_UPGRADE_RULES } from '../data/rulesReference';
+import { ModifierItem, StatName, HardInfrastructureStatus } from '../types';
 
 /**
  * Get modifiers for a specific personality
@@ -161,8 +159,26 @@ export function getDynastyModifiers(dynastyOutcomeKey: string, representative: {
   } else if (dynastyOutcomeKey === 'heroics') {
     return [{
       id: 'rep_dynasty',
-      name: 'One For The Heroics (+1 Order)',
+      name: 'Thrilling Heroics (+1 Piety)',
+      stat: 'piety',
+      value: 1,
+      source,
+      category: 'permanent',
+    }];
+  } else if (dynastyOutcomeKey === 'grox') {
+    return [{
+      id: 'rep_dynasty',
+      name: "Come On, It's Just a Grox! (+1 Order)",
       stat: 'order',
+      value: 1,
+      source,
+      category: 'permanent',
+    }];
+  } else if (dynastyOutcomeKey === 'volcano') {
+    return [{
+      id: 'rep_dynasty',
+      name: 'You Built the Palace on a Volcano?! (+1 Complacency)',
+      stat: 'complacency',
       value: 1,
       source,
       category: 'permanent',
@@ -221,14 +237,28 @@ export function getColonyTypeModifiers(colony: { colonyType: string; planetaryRe
   }
 
   if (colony.colonyType === 'ecclesiastical') {
-    const colonyWithStat = colony as { colonyType: string; planetaryResources: Array<{ type: string; name: string }>; culturalImprovementStat?: string };
+    const colonyWithStat = colony as { colonyType: string; planetaryResources: Array<{ type: string; name: string }>; culturalImprovementStat?: StatName };
     if (colonyWithStat.culturalImprovementStat) {
+      mods.push({
+        id: 'spec_ecclesiastical_' + colonyWithStat.culturalImprovementStat,
+        name: 'Cultural Improvement (' + colonyWithStat.culturalImprovementStat.toUpperCase() + ')',
+        stat: colonyWithStat.culturalImprovementStat,
+        value: 1,
+        source: 'Colony Specialty (Ecclesiastical)',
+        category: 'permanent',
+      });
+    }
+  }
+
+  return mods;
+}
+
 /**
  * Get hard infrastructure modifiers
  */
 // eslint-disable-next-line no-unused-vars -- Exported for use in calculator.ts
 export function getInfrastructureModifiers(
-  infra: { id: string; type: string; name?: string; status: 'working' | 'not_working' | 'needed' },
+  infra: { id: string; type: string; name?: string; status: HardInfrastructureStatus },
   rules: Record<string, { displayName: string; workingModifiers: Array<{ stat: string; value: number }>; notWorkingModifiers: Array<{ stat: string; value: number }> }>
 ): ModifierItem[] {
   const mods: ModifierItem[] = [];
@@ -240,7 +270,7 @@ export function getInfrastructureModifiers(
       mods.push({
         id: 'infra_' + infra.id + '_' + idx,
         name: (infra.name || rule.displayName) + ' (Working)',
-        stat: m.stat,
+        stat: m.stat as StatName,
         value: m.value,
         source: 'Hard Infrastructure: ' + rule.displayName,
         category: 'permanent',
@@ -251,7 +281,7 @@ export function getInfrastructureModifiers(
       mods.push({
         id: 'infra_' + infra.id + '_' + idx,
         name: (infra.name || rule.displayName) + ' (Not Working)',
-        stat: m.stat,
+        stat: m.stat as StatName,
         value: m.value,
         source: 'Hard Infrastructure: ' + rule.displayName,
         category: 'permanent',
@@ -266,12 +296,17 @@ export function getInfrastructureModifiers(
       source: 'Hard Infrastructure: ' + rule.displayName,
       category: 'permanent',
     });
+  }
+
+  return mods;
+}
+
 /**
  * Get support upgrade modifiers
  */
 // eslint-disable-next-line no-unused-vars -- Exported for use in calculator.ts
 export function getSupportUpgradeModifiers(
-  upg: { id: string; type: string; name?: string; status: string; chosenStat?: string },
+  upg: { id: string; type: string; name?: string; status: string; chosenStat?: StatName },
   colonyType: string,
   rules: Record<string, { displayName: string; statEffects: Array<{ stat: string; value: number }> }>
 ): ModifierItem[] {
@@ -315,7 +350,7 @@ export function getSupportUpgradeModifiers(
           mods.push({
             id: 'upg_' + upg.id + '_' + idx,
             name: upg.name || rule.displayName,
-            stat: eff.stat,
+            stat: eff.stat as StatName,
             value: eff.value,
             source: 'Support Upgrade: ' + rule.displayName,
             category: 'permanent',

@@ -7,6 +7,7 @@ import {
   getSupportUpgradeModifiers
 } from './calculator.helpers';
 import { HARD_INFRASTRUCTURE_RULES, SUPPORT_UPGRADE_RULES } from '../data/rulesReference';
+import type { StatName } from '../types';
 
 describe('getPersonalityModifiers', () => {
   it('should return beloved modifier', () => {
@@ -48,38 +49,32 @@ describe('getPersonalityModifiers', () => {
     const mods = getPersonalityModifiers('unknown', {}, 0, 'Test Rep');
     expect(mods).toHaveLength(0);
   });
+});
+
 describe('getDynastyModifiers', () => {
-  const rep = { name: 'Test Rep', personalities: [{ chosenStat: 'order' }] };
+  const rep = { name: 'Test Rep', personalities: [{ chosenStat: 'order' as StatName }] };
 
-  it('should return potential modifier', () => {
-    const mods = getDynastyModifiers('potential', rep);
+  it.each([
+    { outcome: 'potential', expectedStat: 'order', expectedValue: 1 },
+    { outcome: 'eye_on', expectedStat: 'productivity', expectedValue: undefined },
+    { outcome: 'heroics', expectedStat: 'piety', expectedValue: undefined },
+    { outcome: 'grox', expectedStat: 'order', expectedValue: undefined },
+    { outcome: 'volcano', expectedStat: 'complacency', expectedValue: undefined },
+  ])('should return $outcome modifier', ({ outcome, expectedStat, expectedValue }) => {
+    const mods = getDynastyModifiers(outcome, rep);
     expect(mods).toHaveLength(1);
-    expect(mods[0].stat).toBe('order');
-    expect(mods[0].value).toBe(1);
+    expect(mods[0].stat).toBe(expectedStat);
+    if (expectedValue !== undefined) {
+      expect(mods[0].value).toBe(expectedValue);
+    }
   });
 
-  it('should return eye_on modifier', () => {
-    const mods = getDynastyModifiers('eye_on', rep);
-    expect(mods).toHaveLength(1);
-    expect(mods[0].stat).toBe('productivity');
+  it('should return empty array for unknown outcome', () => {
+    const mods = getDynastyModifiers('unknown', rep);
+    expect(mods).toHaveLength(0);
   });
+});
 
-  it('should return heroics modifier', () => {
-    const mods = getDynastyModifiers('heroics', rep);
-    expect(mods).toHaveLength(1);
-    expect(mods[0].stat).toBe('piety');
-  });
-
-  it('should return grox modifier', () => {
-    const mods = getDynastyModifiers('grox', rep);
-    expect(mods).toHaveLength(1);
-    expect(mods[0].stat).toBe('order');
-  });
-
-  it('should return volcano modifier', () => {
-    const mods = getDynastyModifiers('volcano', rep);
-    expect(mods).toHaveLength(1);
-    expect(mods[0].stat).toBe('complacency');
 describe('getColonyTypeModifiers', () => {
   it('should return mining bonus for mining_and_industry with minerals', () => {
     const colony = {
@@ -109,23 +104,27 @@ describe('getColonyTypeModifiers', () => {
       planetaryResources: [{ type: 'organic', name: 'Exotic Plants' }]
     };
     const mods = getColonyTypeModifiers(colony);
+    expect(mods).toHaveLength(0);
+  });
+});
+
 describe('getInfrastructureModifiers', () => {
   it('should return working modifiers', () => {
-    const infra = { id: '1', type: 'agri_dome', name: 'Dome 1', status: 'working' as const };
+    const infra = { id: '1', type: 'food_production', name: 'Agri-Dome 1', status: 'working' as const };
     const mods = getInfrastructureModifiers(infra, HARD_INFRASTRUCTURE_RULES);
     expect(mods.length).toBeGreaterThan(0);
     expect(mods[0].source).toContain('Hard Infrastructure');
   });
 
   it('should return not_working modifiers', () => {
-    const infra = { id: '1', type: 'agri_dome', name: 'Dome 1', status: 'not_working' as const };
+    const infra = { id: '1', type: 'food_production', name: 'Agri-Dome 1', status: 'not_working' as const };
     const mods = getInfrastructureModifiers(infra, HARD_INFRASTRUCTURE_RULES);
     expect(mods.length).toBeGreaterThan(0);
     expect(mods[0].name).toContain('Not Working');
   });
 
   it('should return needed penalty', () => {
-    const infra = { id: '1', type: 'agri_dome', name: 'Dome 1', status: 'needed' as const };
+    const infra = { id: '1', type: 'food_production', name: 'Agri-Dome 1', status: 'needed' as const };
     const mods = getInfrastructureModifiers(infra, HARD_INFRASTRUCTURE_RULES);
     expect(mods).toHaveLength(1);
     expect(mods[0].stat).toBe('complacency');
@@ -138,11 +137,10 @@ describe('getInfrastructureModifiers', () => {
     expect(mods).toHaveLength(0);
   });
 });
-    expect(mods).toHaveLength(0);
-  });
+
 describe('getSupportUpgradeModifiers', () => {
   it('should return cultural improvement modifier', () => {
-    const upg = { id: '1', type: 'cultural_improvement', name: 'Cultural', status: 'working', chosenStat: 'piety' };
+    const upg = { id: '1', type: 'cultural_improvement', name: 'Cultural', status: 'working', chosenStat: 'piety' as StatName };
     const mods = getSupportUpgradeModifiers(upg, 'frontier_world', SUPPORT_UPGRADE_RULES);
     expect(mods).toHaveLength(1);
     expect(mods[0].stat).toBe('piety');
@@ -158,17 +156,8 @@ describe('getSupportUpgradeModifiers', () => {
   });
 
   it('should return empty array for not_working upgrade', () => {
-    const upg = { id: '1', type: 'cultural_improvement', name: 'Cultural', status: 'not_working', chosenStat: 'piety' };
+    const upg = { id: '1', type: 'cultural_improvement', name: 'Cultural', status: 'not_working', chosenStat: 'piety' as StatName };
     const mods = getSupportUpgradeModifiers(upg, 'frontier_world', SUPPORT_UPGRADE_RULES);
     expect(mods).toHaveLength(0);
   });
-});
-});
-  });
-
-  it('should return empty array for unknown outcome', () => {
-    const mods = getDynastyModifiers('unknown', rep);
-    expect(mods).toHaveLength(0);
-  });
-});
 });
