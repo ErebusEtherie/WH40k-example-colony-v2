@@ -1,15 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../utils/apiClient'
 import type { ColonyCreate, ColonyUpdate } from '../types'
+import { useAuth } from './useAuth'
 
 /**
  * Fetch all colonies with pagination
+ * Only fetches when user is authenticated
  */
 export function useColonies(offset = 0, limit = 20) {
+  const { isAuthenticated } = useAuth()
+  
   return useQuery({
     queryKey: ['colonies', offset, limit],
     queryFn: () => apiClient.getColonies(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isAuthenticated, // Only fetch when authenticated
   })
 }
 

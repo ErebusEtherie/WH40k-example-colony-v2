@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../api/useAuth';
 import { OrnamentalFrame } from '../common/OrnamentalFrame';
 import { 
@@ -17,7 +16,6 @@ interface LoginScreenProps {
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = () => {
-  const navigate = useNavigate();
   const { login, register, isLoggingIn, isRegistering, loginError, registerError } = useAuth();
   
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -48,14 +46,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
     try {
       if (mode === 'login') {
         await login({ username, password });
-        navigate('/');
+        // Navigation handled automatically by App.tsx auth state gate
       } else {
         // Register first, then login
         await register({ username, email, password, role: 'viewer' });
         // Registration succeeded - now attempt login
         try {
           await login({ username, password });
-          navigate('/');
+          // Navigation handled automatically by App.tsx auth state gate
         } catch {
           // Login failed after successful registration
           setError('Registration successful, but login failed. Please try logging in manually.');
@@ -209,7 +207,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
                 onClick={async () => {
                   try {
                     await login({ username: 'admin', password: 'admin123' });
-                    navigate('/');
+                    // Navigation handled automatically by App.tsx auth state gate
                   } catch {
                     setError('Demo account not available. Please register.');
                   }
@@ -225,7 +223,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
                 onClick={async () => {
                   try {
                     await login({ username: 'user', password: 'user123' });
-                    navigate('/');
+                    // Navigation handled automatically by App.tsx auth state gate
                   } catch {
                     setError('Demo account not available. Please register.');
                   }

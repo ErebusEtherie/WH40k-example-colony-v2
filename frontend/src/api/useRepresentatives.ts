@@ -1,15 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../utils/apiClient'
 import type { Representative, RepresentativeCreate } from '../types'
+import { useAuth } from './useAuth'
 
 /**
  * Fetch all representatives
+ * Only fetches when user is authenticated
  */
 export function useRepresentatives() {
+  const { isAuthenticated } = useAuth()
+  
   return useQuery({
     queryKey: ['representatives'],
     queryFn: () => apiClient.getRepresentatives(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isAuthenticated, // Only fetch when authenticated
   })
 }
 

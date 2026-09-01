@@ -10,6 +10,7 @@ import {
 import { calculateColonyState } from './utils/calculator';
 import { useAuth } from './api/useAuth';
 import { LoadingScreen } from './components/ui/LoadingScreen';
+import { LoginScreen } from './components/auth/LoginScreen';
 import { Header } from './components/common/Header';
 import { TabNavigation } from './components/common/TabNavigation';
 import { AtAGlancePanel } from './components/panels/AtAGlancePanel';
@@ -21,7 +22,6 @@ import { RepresentativeCreationModal } from './components/modals/RepresentativeC
 import { AddCustomModifierModal } from './components/modals/AddCustomModifierModal';
 import { ChangeRepresentativeModal } from './components/modals/ChangeRepresentativeModal';
 import { ThemeSelectorModal } from './components/modals/ThemeSelectorModal';
-import { LoginScreen } from './components/auth/LoginScreen';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import {
   useColonies,
@@ -45,6 +45,16 @@ export default function App() {
     user,
     logout
   } = useAuth();
+
+  // Show loading screen while checking authentication status
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   // Theme State
   const [theme, setTheme] = useState<AppTheme>(() => {
