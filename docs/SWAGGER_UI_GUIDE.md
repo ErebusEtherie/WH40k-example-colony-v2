@@ -1,7 +1,7 @@
 # Swagger UI Authentication Guide
 
 **Date:** 2026-09-01  
-**API URL:** http://localhost:8001/docs  
+**API URL:** <http://localhost:8001/docs>  
 **Status:** ✅ READY FOR USE
 
 ---
@@ -10,7 +10,7 @@
 
 ### Step 1: Access Swagger UI
 
-Open your browser and navigate to: **http://localhost:8001/docs**
+Open your browser and navigate to: **<http://localhost:8001/docs>**
 
 You'll see the Swagger UI interface with all available API endpoints.
 
@@ -22,6 +22,7 @@ You'll see the Swagger UI interface with all available API endpoints.
 2. Click on **POST /api/v1/auth/register**
 3. Click **"Try it out"**
 4. Fill in the request body:
+
    ```json
    {
      "username": "your_username",
@@ -30,10 +31,12 @@ You'll see the Swagger UI interface with all available API endpoints.
      "role": "viewer"
    }
    ```
+
 5. Click **"Execute"**
 6. You should receive a `201 Created` response with your user details
 
 **Password Requirements:**
+
 - Minimum 8 characters
 - At least one uppercase letter
 - At least one lowercase letter
@@ -47,14 +50,17 @@ You'll see the Swagger UI interface with all available API endpoints.
 1. Click on **POST /api/v1/auth/login**
 2. Click **"Try it out"**
 3. Fill in your credentials:
+
    ```json
    {
      "username": "your_username",
      "password": "SecureP@ss123"
    }
    ```
+
 4. Click **"Execute"**
 5. You'll receive a response like:
+
    ```json
    {
      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -63,6 +69,7 @@ You'll see the Swagger UI interface with all available API endpoints.
      "expires_in": 3600
    }
    ```
+
 6. **Copy the `access_token` value**
 
 ---
@@ -71,15 +78,18 @@ You'll see the Swagger UI interface with all available API endpoints.
 
 1. Click the **"Authorize"** button at the top-right of the page
 2. In the **Value** field, paste your access token (just the token, no "Bearer" prefix)
+
    ```
    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
+
 3. Click **"Authorize"**
 4. Click **"Close"**
 
 ✅ **Done!** All protected endpoints are now accessible with your token.
 
 **Verification:** After authorizing, you can verify the token is being sent correctly:
+
 1. Click on **GET /api/v1/auth/me**
 2. Click **"Try it out"** then **"Execute"**
 3. You should see your user info (not a 401 error)
@@ -97,12 +107,14 @@ Once authorized, you can use any protected endpoint:
 2. Click **POST /api/v1/colonies**
 3. Click **"Try it out"**
 4. Enter colony data:
+
    ```json
    {
      "name": "New Terra",
      "size": 50
    }
    ```
+
 5. Click **"Execute"**
 6. You'll see the created colony with all stats
 
@@ -137,11 +149,13 @@ Before your access token expires:
 1. Go to **POST /api/v1/auth/refresh**
 2. Click **"Try it out"**
 3. Enter your refresh token:
+
    ```json
    {
      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
    }
    ```
+
 4. Click **"Execute"**
 5. Copy the new access token
 6. Re-authorize with the new token
@@ -153,11 +167,13 @@ To logout and revoke your current token:
 1. Go to **POST /api/v1/auth/revoke**
 2. Click **"Try it out"**
 3. (Optional) Add a reason:
+
    ```json
    {
      "reason": "logging out for the day"
    }
    ```
+
 4. Click **"Execute"**
 5. Your token is now blacklisted
 
@@ -175,6 +191,7 @@ To logout from all devices/sessions:
 ## Available Endpoints
 
 ### Authentication (Public)
+
 - `POST /api/v1/auth/register` - Create new account
 - `POST /api/v1/auth/login` - Login and get tokens
 - `POST /api/v1/auth/refresh` - Refresh access token
@@ -182,6 +199,7 @@ To logout from all devices/sessions:
 - `POST /api/v1/auth/revoke-all` - Revoke all sessions
 
 ### Protected Endpoints (Require Authorization)
+
 - **Colonies** - Manage colony stats and state
 - **Infrastructure** - Add/remove colony infrastructure
 - **Support Upgrades** - Manage support upgrades
@@ -203,6 +221,7 @@ To logout from all devices/sessions:
 **Cause:** Token is missing, expired, or invalid
 
 **Solution:**
+
 1. Check if you're logged in (click "Authorize" button - should show "Logout")
 2. If token expired, use refresh endpoint to get a new one
 3. Re-authorize with the new token
@@ -213,6 +232,7 @@ To logout from all devices/sessions:
 **Cause:** Insufficient permissions for the operation
 
 **Solution:**
+
 - Some endpoints require specific roles (e.g., `admin`, `colony_manager`)
 - Check the endpoint documentation for required roles
 - Contact an administrator to upgrade your role
@@ -222,6 +242,7 @@ To logout from all devices/sessions:
 **Cause:** Account locked due to too many failed login attempts
 
 **Solution:**
+
 - Wait 15 minutes before trying again
 - Contact an administrator to unlock your account
 
@@ -240,9 +261,10 @@ To logout from all devices/sessions:
 ## API Documentation
 
 Full API documentation is available at:
-- **Swagger UI:** http://localhost:8001/docs
-- **ReDoc:** http://localhost:8001/redoc
-- **OpenAPI JSON:** http://localhost:8001/openapi.json
+
+- **Swagger UI:** <http://localhost:8001/docs>
+- **ReDoc:** <http://localhost:8001/redoc>
+- **OpenAPI JSON:** <http://localhost:8001/openapi.json>
 
 ---
 

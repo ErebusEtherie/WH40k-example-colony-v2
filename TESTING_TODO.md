@@ -1,9 +1,9 @@
 # Testing ToDo List
 
-**Last Updated:** 2026-08-30
+**Last Updated:** 2026-09-01
 **Current Status:**
 
-- Backend: 777 tests passing, 100% pass rate (4 skipped)
+- Backend: 803 tests passing, 100% pass rate (4 skipped)
 - Frontend: 87 tests passing, 0 skipped (11 test files)
 
 This document tracks testing priorities and progress for the WH40k Colony Manager project.
@@ -13,7 +13,7 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 
 ## Current Test Coverage Summary
 
-### ✅ Backend Tests (52+ files, 777 tests)
+### ✅ Backend Tests (52+ files, 803 tests)
 
 | Category | Files | Tests | Status |
 |----------|-------|-------|--------|
@@ -23,9 +23,9 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 | **Persistence Repositories** | 9 files | 60+ | ✅ Complete |
 | **API Routers** | 14 files | 200+ | ✅ Complete |
 | **Security** | 4 files | 40+ | ✅ Complete |
-| **Integration** | 3 files | 20+ | ✅ Complete |
+| **Integration** | 3 files | 26+ | ✅ Complete (Phase 3 added 6 permission tests) |
 | **CLI/Config/IO** | 4 files | 30+ | ✅ Complete |
-| **Total** | **52+ files** | **777 tests** | ✅ **100% passing** |
+| **Total** | **52+ files** | **803 tests** | ✅ **100% passing** |
 
 ### Test Patterns in Use
 
@@ -36,3 +36,70 @@ It complements .clinerules/04-testing-strategy.md with specific implementation t
 3. **Example-based tests** for boundary conditions and specific scenarios
 4. **Round-trip tests** for persistence (save → load → verify)
 5. **API integration tests** using FastAPI TestClient with SQLite in-memory DB
+6. **Permission/authorization tests** for role-based access control (Phase 3)
+7. **Cross-feature workflow tests** using `auth_client` fixture (Phase 3)
+
+---
+
+## Phase 3 Implementation Summary (2026-09-01)
+
+### Completed Tasks
+
+#### 1. Permission/Authorization Tests (6 tests) ✅
+
+**File:** `tests/integration/test_auth_flow.py::TestAuthorizationPermissions`
+
+Tests added:
+
+- `test_viewer_cannot_edit_colony` - Verifies VIEWER role cannot edit colonies
+- `test_editor_can_edit_colony` - Verifies EDITOR role can edit colonies
+- `test_admin_can_access_any_colony` - Verifies ADMIN bypass for colony access
+- `test_user_cannot_access_unowned_colony` - Verifies non-members cannot access colonies
+- `test_colony_manager_cannot_delete_users` - Verifies colony_manager cannot access admin endpoints
+- `test_admin_can_delete_users` - Verifies ADMIN can access admin-only endpoints
+
+**Key patterns:**
+
+- Uses `integration_client` fixture with proper auth header management
+- Tests both colony-level permissions (viewer/editor/owner) and global roles (admin/colony_manager/viewer)
+- Verifies 403 responses with appropriate error messages
+
+#### 2. Hypothesis Tests for Rule Engine ✅
+
+**Files:** `tests/domain/rules/test_security_invariants.py`, `tests/domain/rules/test_state_effects_hypothesis.py`
+
+Existing hypothesis tests cover:
+
+- Stats never go negative regardless of modifier combinations
+- Order == 0 always forces Profit Factor to 0 (Anarchy rule)
+- Locked stats ignore positive modifiers
+- Profit Factor never goes negative
+- State effect properties (Orderly, Pious, Anarchy decay, etc.)
+
+#### 3. Service Workflow Tests ✅
+
+**File:** `tests/integration/test_cross_feature_workflows.py`
+
+Existing workflow tests cover:
+
+- Colony lifecycle with infrastructure, modifiers, and age advancement
+- Representative assignment and stat changes
+- Infrastructure state transitions (working/not_working)
+- Modifier stacking from all sources
+- Colony state transitions (Anarchy, Placated, etc.)
+- Error handling and transaction rollback
+
+### Test Count Summary
+
+| Phase | Tests Added | Files Modified/Created |
+|-------|-------------|------------------------|
+| Phase 1 | ~777 | 52+ files |
+| Phase 3 | 6 | 1 file (test_auth_flow.py) |
+| **Total** | **803** | **52+ files** |
+
+### Notes
+
+- All tests pass (803 passed, 4 skipped)
+- Permission tests use the existing `integration_client` fixture (not a new `auth_client` fixture) per architectural decision
+- Hypothesis tests and workflow tests were already complete from Phase 1
+- Phase 3 focused on filling the permission/authorization gap identified in the Phase 3 plan

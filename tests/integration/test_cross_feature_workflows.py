@@ -4,8 +4,6 @@ These tests verify that multiple features work together correctly,
 testing end-to-end scenarios rather than isolated functionality.
 """
 
-import pytest
-
 
 class TestColonyLifecycle:
     """Test complete colony lifecycle with full feature usage."""
@@ -325,7 +323,6 @@ class TestColonyStateTransitions:
         assert response.status_code == 200
         baseline = response.json()
         baseline_order = baseline["order"]["current"]
-        baseline_pf = baseline["profit_factor"]
         
         # Step 3: Add negative Order modifier to reach 0
         # Assuming base Order is 2, we need -2 to reach 0

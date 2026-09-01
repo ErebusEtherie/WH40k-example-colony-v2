@@ -256,9 +256,11 @@ endpoints will automatically use your token.
         """Serve custom Swagger UI with proper JWT Bearer authentication support."""
         from fastapi.responses import HTMLResponse
 
+        # openapi_url is set by FastAPI after app creation, default is "/openapi.json"
+        openapi_url = app.openapi_url or "/openapi.json"
         return HTMLResponse(
             get_swagger_ui_html(
-                openapi_url=app.openapi_url,
+                openapi_url=openapi_url,
                 title=f"{app.title} - Swagger UI",
             )
         )

@@ -8,12 +8,14 @@
 ## What Was Done
 
 ### 1. Enhanced Swagger UI Documentation
+
 - Updated API description with comprehensive guide
 - Added Quick Start instructions directly in Swagger UI
 - Documented all authentication endpoints
 - Added field descriptions and examples to all auth schemas
 
 ### 2. Fixed JWT Bearer Authentication in Swagger UI
+
 - **Issue:** Swagger UI showed "Authorized" but didn't send `Authorization: Bearer <token>` header
 - **Root Cause:** FastAPI's default Swagger UI doesn't properly inject the Authorization header for HTTP Bearer auth
 - **Fix:** Implemented custom Swagger UI HTML with:
@@ -22,12 +24,14 @@
 - All protected endpoints now correctly receive the JWT token
 
 ### 3. Improved Authentication UX
+
 - Clear instructions for using the Authorize button
 - Login endpoint shows example response
 - Register endpoint shows example response
 - All protected endpoints automatically use the authenticated token
 
 ### 4. Test Account Created
+
 A test admin account is ready for use:
 
 | Credential | Value |
@@ -42,7 +46,8 @@ A test admin account is ready for use:
 ## How to Use
 
 ### Access Swagger UI
-Open your browser: **http://localhost:8001/docs**
+
+Open your browser: **<http://localhost:8001/docs>**
 
 ### Quick Authentication Flow
 
@@ -79,6 +84,7 @@ Open your browser: **http://localhost:8001/docs**
 ## Available Endpoints
 
 ### Authentication (No Auth Required)
+
 - `POST /api/v1/auth/register` - Create account
 - `POST /api/v1/auth/login` - Login
 - `POST /api/v1/auth/refresh` - Refresh token
@@ -86,6 +92,7 @@ Open your browser: **http://localhost:8001/docs**
 - `POST /api/v1/auth/revoke-all` - Revoke all sessions
 
 ### Protected Endpoints (Require Auth)
+
 - `GET/POST /api/v1/colonies` - Colony management
 - `GET/POST/PUT/DELETE /api/v1/colonies/{id}` - Individual colony
 - `GET/POST /api/v1/infrastructure` - Infrastructure management
@@ -104,11 +111,13 @@ Open your browser: **http://localhost:8001/docs**
 ## Files Modified
 
 ### Source Code
+
 - `src/colony_manager/adapters/api/app.py` - Custom Swagger UI with Bearer token interceptor
 - `src/colony_manager/adapters/api/routers/auth_router.py` - Added response examples and better docs
 - `src/colony_manager/adapters/api/schemas/auth.py` - Added field descriptions and examples
 
 ### Documentation
+
 - `docs/SWAGGER_UI_GUIDE.md` - Comprehensive Swagger UI user guide (updated with verification steps)
 - `SWAGGER_UI_SETUP_COMPLETE.md` - This summary (updated with fix details)
 
@@ -116,7 +125,7 @@ Open your browser: **http://localhost:8001/docs**
 
 ## Next Steps
 
-1. **Open Swagger UI:** http://localhost:8001/docs
+1. **Open Swagger UI:** <http://localhost:8001/docs>
 2. **Login** using the test account
 3. **Test endpoints** manually through the UI
 4. **Create your own account** when ready
@@ -134,5 +143,5 @@ Open your browser: **http://localhost:8001/docs**
 ---
 
 **Backend Status:** ✅ Running and Healthy  
-**Swagger UI:** ✅ Accessible at http://localhost:8001/docs  
+**Swagger UI:** ✅ Accessible at <http://localhost:8001/docs>  
 **Test Account:** ✅ Created and ready to use
