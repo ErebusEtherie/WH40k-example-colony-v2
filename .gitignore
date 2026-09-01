@@ -300,6 +300,7 @@ extract_*.txt
 migrate_*.py
 import_*.py
 export_*.py
+!src/colony_manager/adapters/api/routers/export_import.py
 
 # Build artifacts
 dist/
