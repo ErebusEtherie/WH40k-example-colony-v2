@@ -5,11 +5,14 @@ This middleware adds security-focused HTTP headers to all responses:
 - X-Content-Type-Options: nosniff
 - X-Frame-Options: DENY
 - X-XSS-Protection: 1; mode=block
-- Content-Security-Policy: default-src 'self'
+- Content-Security-Policy: default-src 'self' (with CDN exceptions for /docs and /redoc)
 - Referrer-Policy: strict-origin-when-cross-origin
 
 HSTS is disabled in development mode to avoid interfering with local development
 and testing tools that use HTTP.
+
+Note: Swagger UI (/docs and /redoc) requires CDN resources from cdn.jsdelivr.net
+and fastapi.tiangolo.com, so CSP is relaxed for those paths.
 """
 
 import os
@@ -42,8 +45,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # CSP: Relax for Swagger UI docs which need CDN resources
+        # Swagger UI loads JS/CSS from cdn.jsdelivr.net and favicon from fastapi.tiangolo.com
+        path = request.url.path
+        if path in ("/docs", "/docs/", "/redoc", "/redoc/"):
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "img-src 'self' https://fastapi.tiangolo.com data:; "
+                "font-src 'self' https://cdn.jsdelivr.net;"
+            )
+        else:
+            response.headers["Content-Security-Policy"] = "default-src 'self'"
 
         # HSTS only in production/staging
         if self.hsts_enabled:
