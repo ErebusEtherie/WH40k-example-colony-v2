@@ -44,7 +44,6 @@ services:
       - COOKIE_HTTPONLY=true
     volumes:
       - backend-data:/data
-      - ./config:/app/config
     networks:
       - colony-network
     ports:
