@@ -32,6 +32,35 @@ def colony_service(mock_repositories):
 class TestColonyServiceRollStatus:
     """Tests for colony roll status queries."""
 
+    def test_roll_status_at_creation_age_zero(self, colony_service, mock_repositories):
+        """At colony creation (age 0), no rolls are due yet."""
+        colony_repo, _, _, _ = mock_repositories
+
+        # Colony at age 0 (just created)
+        colony = Colony(
+            name="Test Colony",
+            founder_name="Test Founder",
+            colony_type=ColonyType.MINING_AND_INDUSTRY,
+            age_days=0,
+            age_last_updated=date.today(),
+            base_complacency=10,
+            base_order=10,
+            base_productivity=10,
+            base_piety=10,
+            base_size=3,
+        )
+        colony_repo.get.return_value = colony
+
+        status = colony_service.get_roll_status(1)
+
+        # At age 0, no rolls are due yet
+        assert status["event_roll_due"] is False
+        assert status["development_roll_due"] is False
+        assert status["days_since_event_roll"] == 0
+        assert status["days_since_development_roll"] == 0
+        assert status["days_until_event_roll"] == 60
+        assert status["days_until_development_roll"] == 90
+
     def test_roll_status_at_interval_boundary(self, colony_service, mock_repositories):
         """At exact interval boundary, roll is due."""
         colony_repo, _, _, _ = mock_repositories

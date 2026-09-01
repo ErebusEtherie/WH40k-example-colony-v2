@@ -366,7 +366,7 @@ class TestColonyGetCycleInfo:
         assert info["days_until_development_roll"] == 0
 
     def test_new_colony_zero_age(self):
-        """New colony (age 0) shows 0 days since, full interval until."""
+        """New colony (age 0) shows 0 days since, full interval until first roll."""
         colony = Colony(
             name="New",
             founder_name="Test Founder",
@@ -381,6 +381,6 @@ class TestColonyGetCycleInfo:
         )
         info = colony.get_cycle_info(event_interval=60, development_interval=90)
         assert info["days_since_event_roll"] == 0
-        assert info["days_until_event_roll"] == 0
+        assert info["days_until_event_roll"] == 60  # First event roll at day 60
         assert info["days_since_development_roll"] == 0
-        assert info["days_until_development_roll"] == 0
+        assert info["days_until_development_roll"] == 90  # First dev roll at day 90

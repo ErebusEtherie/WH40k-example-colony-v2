@@ -468,9 +468,10 @@ class ColonyService:
         # Calculate roll timing
         cycle_info = colony.get_cycle_info(event_interval, development_interval)
 
-        # A roll is "due" when days_since is 0 (i.e., we're exactly on the interval)
-        event_roll_due = cycle_info["days_since_event_roll"] == 0
-        development_roll_due = cycle_info["days_since_development_roll"] == 0
+        # A roll is "due" when days_since is 0 AND the colony is older than 0 days
+        # (at age 0, no rolls are due yet - first rolls happen at interval milestones)
+        event_roll_due = colony.age_days > 0 and cycle_info["days_since_event_roll"] == 0
+        development_roll_due = colony.age_days > 0 and cycle_info["days_since_development_roll"] == 0
 
         return {
             "event_roll_due": event_roll_due,
