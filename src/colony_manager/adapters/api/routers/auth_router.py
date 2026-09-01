@@ -60,7 +60,31 @@ limiter = get_limiter()
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     openapi_extra={"security": []},
-    responses={},
+    responses={
+        201: {
+            "description": "User registered successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "username": "rogue_trader",
+                        "email": "trader@voidship.com",
+                        "role": "viewer",
+                        "is_active": True,
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Invalid input (username/email exists, weak password)",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Username already exists"}
+                }
+            },
+        },
+    },
+    tags=["authentication"],
 )
 @limiter.limit(register_rate_limit())
 def register(
@@ -135,7 +159,29 @@ def register(
     )
 
 
-@router.post("/login", response_model=TokenResponse, openapi_extra={"security": []}, responses={401: {"description": "Invalid credentials"}})
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    openapi_extra={"security": []},
+    responses={
+        200: {
+            "description": "Login successful",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "token_type": "bearer",
+                        "expires_in": 1800,
+                    }
+                }
+            },
+        },
+        401: {"description": "Invalid credentials"},
+        423: {"description": "Account locked due to too many failed attempts"},
+    },
+    tags=["authentication"],
+)
 @limiter.limit(login_rate_limit())
 def login(
     request: Request,

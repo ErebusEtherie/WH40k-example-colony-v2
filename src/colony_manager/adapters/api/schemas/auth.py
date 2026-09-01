@@ -6,26 +6,36 @@ from pydantic import BaseModel, EmailStr, Field
 class LoginRequest(BaseModel):
     """Request schema for user login."""
 
-    username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=8, max_length=128)
+    username: str = Field(..., min_length=3, max_length=50, description="Your username", examples=["rogue_trader"])
+    password: str = Field(..., min_length=8, max_length=128, description="Your password", examples=["SecureP@ss123"])
 
 
 class RegisterRequest(BaseModel):
     """Request schema for user registration."""
 
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128)
-    role: str | None = None  # Optional role for testing (defaults to VIEWER)
+    username: str = Field(..., min_length=3, max_length=50, description="Desired username", examples=["rogue_trader"])
+    email: EmailStr = Field(..., description="Your email address", examples=["trader@voidship.com"])
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Password (min 8 chars, must contain uppercase, lowercase, number, and special char)",
+        examples=["SecureP@ss123"],
+    )
+    role: str | None = Field(
+        None,
+        description="Optional role for testing (defaults to VIEWER). Options: viewer, colony_manager, admin",
+        examples=["viewer"],
+    )
 
 
 class TokenResponse(BaseModel):
     """Response schema for token endpoints."""
 
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int = 1800  # seconds (30 minutes)
+    access_token: str = Field(..., description="JWT access token for authenticated requests")
+    refresh_token: str = Field(..., description="JWT refresh token for obtaining new access tokens")
+    token_type: str = Field(default="bearer", description="Token type (always 'bearer')")
+    expires_in: int = Field(default=1800, description="Token expiration time in seconds (default: 1800 = 30 minutes)")
 
 
 class RefreshTokenRequest(BaseModel):

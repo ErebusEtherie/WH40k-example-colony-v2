@@ -46,11 +46,55 @@ logger = logging.getLogger(__name__)
 API_V1_PREFIX = "/api/v1"
 
 # Security scheme for JWT Bearer token authentication
+# Note: auto_error=False allows us to handle missing/invalid tokens gracefully
 security = HTTPBearer(
     scheme_name="JWT",
-    description="Enter your JWT token in the format: Bearer <token>",
+    description="Enter your JWT access token. Do not include 'Bearer' prefix.",
     auto_error=False,
 )
+
+
+def get_swagger_ui_html(*, openapi_url: str, title: str) -> str:
+    """Custom Swagger UI HTML with proper Bearer token handling.
+    
+    This ensures the Authorization header is sent with requests.
+    """
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>{title}</title>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+        <style>
+            .swagger-ui .topbar {{ background-color: #1a1a2e; }}
+            .swagger-ui .info .title {{ color: #f0a60a; }}
+        </style>
+    </head>
+    <body>
+        <div id="swagger-ui"></div>
+        <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+        <script>
+            window.onload = function() {{
+                const ui = SwaggerUIBundle({{
+                    url: "{openapi_url}",
+                    dom_id: '#swagger-ui',
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIBundle.SwaggerUIStandalonePreset
+                    ],
+                    layout: "BaseLayout",
+                    deepLinking: true,
+                    showExtensions: true,
+                    showCommonExtensions: true,
+                    // Critical: Persist authorization to cookies for all requests
+                    persistAuthorization: true
+                }});
+                window.ui = ui;
+            }};
+        </script>
+    </body>
+    </html>
+    """
 
 
 def get_allowed_origins() -> list[str]:
@@ -101,10 +145,42 @@ def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
         title="WH40k Colony Manager API",
-        description="REST API for managing Warhammer 40k Rogue Trader colonies",
+        description="""
+## REST API for Warhammer 40k Rogue Trader Colony Manager
+
+This API provides complete management of your Rogue Trader colony, including:
+
+* **Colony Management** - Track colony stats, infrastructure, and upgrades
+* **Authentication** - JWT-based user authentication with role-based access control
+* **Events & Modifiers** - Manage game events and custom modifiers
+* **Representatives** - Assign and manage colony representatives
+* **Resources** - Track colony resources and abundance
+* **Audit Logs** - Full audit trail of all changes
+
+## Authentication
+
+Click the **Authorize** button in Swagger UI to login with your credentials.
+The system uses JWT tokens for authentication. After logging in, all protected
+endpoints will automatically use your token.
+
+### Quick Start
+1. Click **Authorize** button
+2. Enter your username and password
+3. Click **Login** to get your token
+4. Click **Authorize** again to confirm
+5. All protected endpoints are now accessible!
+
+### Token Endpoints
+* **POST /api/v1/auth/login** - Login to get access token
+* **POST /api/v1/auth/register** - Register a new user account
+* **POST /api/v1/auth/refresh** - Refresh your access token
+* **POST /api/v1/auth/revoke** - Logout (revoke current token)
+        """,
         version="0.1.0",
         lifespan=lifespan,
         openapi_tags=[],
+        docs_url=None,  # Disable default docs, we add custom route below
+        redoc_url="/redoc",
     )
 
     # Store original openapi method
@@ -119,17 +195,17 @@ def create_app() -> FastAPI:
 
         # Add JWT Bearer security scheme
         openapi_schema["components"]["securitySchemes"] = {
-            "BearerAuth": {
+            "HTTPBearer": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
-                "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)",
+                "description": "Enter your JWT access token (obtained from /auth/login endpoint). Do not include 'Bearer' prefix.",
             }
         }
 
         # Apply security requirement globally (can be overridden per-endpoint)
         # Note: Auth endpoints don't require auth, so they override this
-        openapi_schema["security"] = [{"BearerAuth": []}]
+        openapi_schema["security"] = [{"HTTPBearer": []}]
 
         app.openapi_schema = openapi_schema
         return openapi_schema
@@ -173,6 +249,19 @@ def create_app() -> FastAPI:
     app.include_router(support_upgrades_router, prefix=API_V1_PREFIX)
     app.include_router(users_router, prefix=API_V1_PREFIX)
     app.include_router(config_router, prefix=API_V1_PREFIX)
+
+    # Custom Swagger UI route with proper Bearer token handling
+    @app.get("/docs", include_in_schema=False)
+    async def custom_swagger_ui_html():
+        """Serve custom Swagger UI with proper JWT Bearer authentication support."""
+        from fastapi.responses import HTMLResponse
+
+        return HTMLResponse(
+            get_swagger_ui_html(
+                openapi_url=app.openapi_url,
+                title=f"{app.title} - Swagger UI",
+            )
+        )
 
     # Exception handlers
     @app.exception_handler(NotFoundError)

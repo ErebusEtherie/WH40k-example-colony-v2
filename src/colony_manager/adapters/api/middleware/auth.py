@@ -23,7 +23,8 @@ from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.token import TokenError, verify_token
 
 # Security scheme for Bearer token
-security = HTTPBearer(auto_error=False)
+# scheme_name must match the OpenAPI security scheme name for Swagger UI to work correctly
+security = HTTPBearer(scheme_name="HTTPBearer", auto_error=False)
 
 
 def get_jwt_secret_key() -> str:
