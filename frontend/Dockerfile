@@ -35,7 +35,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist .
 
 # Change ownership to existing nginx user (UID/GID 101 in Alpine)
-RUN chown -R nginx:nginx /usr/share/nginx/html
+# Also create cache directories with proper permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp && \
+    chown -R nginx:nginx /var/cache/nginx
 
 USER nginx
 
