@@ -363,9 +363,9 @@ class TestOpenAPISecurity:
         assert "securitySchemes" in openapi_schema["components"]
 
         security_schemes = openapi_schema["components"]["securitySchemes"]
-        assert "BearerAuth" in security_schemes
+        assert "HTTPBearer" in security_schemes
 
-        bearer_auth = security_schemes["BearerAuth"]
+        bearer_auth = security_schemes["HTTPBearer"]
         assert bearer_auth["type"] == "http"
         assert bearer_auth["scheme"] == "bearer"
         assert bearer_auth["bearerFormat"] == "JWT"
@@ -377,7 +377,7 @@ class TestOpenAPISecurity:
 
         openapi_schema = response.json()
         assert "security" in openapi_schema
-        assert {"BearerAuth": []} in openapi_schema["security"]
+        assert {"HTTPBearer": []} in openapi_schema["security"]
 
     def test_auth_endpoints_no_security_requirement(self, test_client_with_auth):
         """Test that auth endpoints don't require authentication in OpenAPI."""
