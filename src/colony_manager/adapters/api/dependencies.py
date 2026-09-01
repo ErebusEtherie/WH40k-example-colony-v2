@@ -78,7 +78,13 @@ def get_config_dir() -> Path:
 
 
 def get_db_path() -> Path:
-    """Get the database file path."""
+    """Get the database file path.
+    
+    Checks DATABASE_PATH environment variable first, then falls back to default.
+    """
+    # Allow override via environment variable
+    if db_path := os.getenv("DATABASE_PATH"):
+        return Path(db_path)
     return DEFAULT_DB_PATH
 
 
