@@ -78,7 +78,7 @@ def get_audit_logs_by_colony(
     )
 
 
-@router.get("/{log_id}", response_model=AuditLogResponse, responses={404: {"description": "Audit log entry not found"}})
+@router.get("/{log_id}", response_model=AuditLogResponse, responses={404: {"description": "Audit log entry not found"}, 500: {"description": "Internal server error - Audit log data is incomplete"}})
 def get_audit_log(
     log_id: int,
     colony_id: int,

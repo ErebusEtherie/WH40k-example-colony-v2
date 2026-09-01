@@ -441,7 +441,7 @@ def revoke_token(
     return response
 
 
-@router.post("/revoke-all", response_model=TokenRevokeResponse, responses={403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
+@router.post("/revoke-all", responses={403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 def revoke_all_tokens(
     revoke_request: TokenRevokeAllRequest,
     current_user: Annotated[User, Depends(get_current_user)],

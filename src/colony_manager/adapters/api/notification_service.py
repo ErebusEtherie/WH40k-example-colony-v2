@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any
 
 
-class NotificationType(str, Enum):
+class NotificationType(str, Enum):  # type: ignore[misc]
     """Types of notifications that can be sent."""
 
     COLONY_CHANGED = "colony_changed"

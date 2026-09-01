@@ -70,9 +70,10 @@ def get_allowed_origins() -> list[str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize database and load configuration on startup."""
+    import os
+
     from colony_manager.adapters.api.dependencies import init_rule_config_provider
     from colony_manager.config.settings import get_security_settings
-    import os
 
     # Security warning for production deployments
     settings = get_security_settings()

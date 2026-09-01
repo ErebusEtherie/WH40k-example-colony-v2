@@ -125,7 +125,7 @@ def get_event(
     )
 
 
-@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[EventListItem], responses={404: {"description": "Colony not found"}})
+@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[EventListItem], responses={403: {"description": "Forbidden - User not a member of colony"}, 404: {"description": "Colony not found"}})
 def get_events_by_colony(
     colony_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],

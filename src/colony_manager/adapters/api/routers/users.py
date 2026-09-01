@@ -40,7 +40,7 @@ def _user_to_response(user: User) -> UserResponse:
     )
 
 
-@router.get("", response_model=PaginatedResponse[UserResponse], responses={403: {"description": "Forbidden - Admin only"}})
+@router.get("", responses={403: {"description": "Forbidden - Admin only"}})
 async def list_users(
     current_user: Annotated[User, Depends(require_admin)],
     user_service: Annotated[UserService, Depends(get_user_service)],

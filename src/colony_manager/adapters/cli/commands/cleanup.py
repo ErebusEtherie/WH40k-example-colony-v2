@@ -13,13 +13,19 @@ from colony_manager.adapters.persistence.repositories.token_issuance_repository_
     SqlAlchemyTokenIssuanceRepository,
 )
 
+# Common option defaults to avoid string literal duplication
+_DEFAULT_DB_PATH = "colony_manager.sqlite"
+_DEFAULT_DRY_RUN = False
+_DB_PATH_HELP = "Path to SQLite DB"
+_DRY_RUN_HELP = "Show what would be deleted"
+
 cleanup_app = typer.Typer(help="Cleanup and maintenance commands")
 
 
 @cleanup_app.command("token-blacklist")
 def cleanup_token_blacklist(
-    db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
+    db_path: str = typer.Option(_DEFAULT_DB_PATH, "--db-path", help=_DB_PATH_HELP),
+    dry_run: bool = typer.Option(_DEFAULT_DRY_RUN, "--dry-run", help=_DRY_RUN_HELP),
 ) -> None:
     """Remove expired entries from the token blacklist."""
     from datetime import UTC, datetime
@@ -45,9 +51,9 @@ def cleanup_token_blacklist(
 
 @cleanup_app.command("login-attempts")
 def cleanup_login_attempts(
-    db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
+    db_path: str = typer.Option(_DEFAULT_DB_PATH, "--db-path", help=_DB_PATH_HELP),
     days: int = typer.Option(30, "--days", help="Days to keep login attempt records"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
+    dry_run: bool = typer.Option(_DEFAULT_DRY_RUN, "--dry-run", help=_DRY_RUN_HELP),
 ) -> None:
     """Remove old login attempt records."""
     from datetime import UTC, datetime, timedelta
@@ -74,9 +80,9 @@ def cleanup_login_attempts(
 
 @cleanup_app.command("token-issuance")
 def cleanup_token_issuance(
-    db_path: str = typer.Option("colony_manager.sqlite", "--db-path", help="Path to SQLite DB"),
+    db_path: str = typer.Option(_DEFAULT_DB_PATH, "--db-path", help=_DB_PATH_HELP),
     days: int = typer.Option(90, "--days", help="Days to keep token issuance records"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deleted"),
+    dry_run: bool = typer.Option(_DEFAULT_DRY_RUN, "--dry-run", help=_DRY_RUN_HELP),
 ) -> None:
     """Remove old token issuance records."""
     from datetime import UTC, datetime, timedelta

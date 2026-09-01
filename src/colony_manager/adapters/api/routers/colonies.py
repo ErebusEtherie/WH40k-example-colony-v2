@@ -132,7 +132,7 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
     )
 
 
-@router.get("", response_model=PaginatedResponse[ColonyListItem], responses={})
+@router.get("", responses={})
 async def list_colonies(
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[ColonyService, Depends(get_colony_service)],
@@ -709,7 +709,7 @@ async def assign_representative_to_colony(
     )
 
 
-@router.delete("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "No representative assigned"}, 400: {"description": "Unassignment error"}})
+@router.delete("/{colony_id}/representative", response_model=RepresentativeResponse, responses={404: {"description": "No representative assigned"}, 400: {"description": "Unassignment error"}, 500: {"description": "Internal server error - Representative has no ID"}})
 async def unassign_representative_from_colony(
     colony_id: int,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],

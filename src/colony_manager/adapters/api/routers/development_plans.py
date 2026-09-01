@@ -135,7 +135,7 @@ def get_development_plan(
     )
 
 
-@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[DevelopmentPlanResponse])
+@router.get("/colonies/{colony_id}", response_model=PaginatedResponse[DevelopmentPlanResponse], responses={403: {"description": "Forbidden - User not a member of colony"}})
 def get_development_plans_by_colony(
     colony_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],

@@ -285,7 +285,7 @@ async def assign_to_colony(
     )
 
 
-@router.post("/{rep_id}/unassign", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found or not assigned"}, 400: {"description": "Invalid request"}})
+@router.post("/{rep_id}/unassign", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found or not assigned"}, 400: {"description": "Invalid request"}, 403: {"description": "Forbidden - User not a member of colony"}, 500: {"description": "Internal server error - Authenticated user has no ID"}})
 async def unassign_from_colony(
     rep_id: int,
     current_user: Annotated[User, Depends(get_current_user)],

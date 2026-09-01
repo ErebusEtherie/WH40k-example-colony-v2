@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from colony_manager.domain.enums import RepresentativeType
 from colony_manager.domain.models.personality import Personality, PersonalityEffect
-from colony_manager.domain.models.representative import Representative, Skill, Talent
+from colony_manager.domain.models.representative import Skill, Talent
 
 
 class RepresentativeStatsCreate(BaseModel):
@@ -83,10 +83,11 @@ class RepresentativeCreate(BaseModel):
 
         count = len(self.personalities)
         
-        # Check for Quite a Character position using domain model's helper
+        # Check for Quite a Character position by name
+        # (Both PersonalityCreate and Personality use 'quite_a_character' as the name)
         quite_a_character_index = None
         for i, personality in enumerate(self.personalities):
-            if Representative._is_quite_a_character(personality):
+            if personality.name == "quite_a_character":
                 quite_a_character_index = i
                 break
 
@@ -150,7 +151,7 @@ class RepresentativeResponse(BaseModel):
     talents: list[Talent]
     leadership_modifier: int
     assigned_to_colony_id: int | None
-    assignment_change: AssignmentChangeInfo | None = Field(
+    assignment_change: "AssignmentChangeInfo | None" = Field(
         default=None,
         description="Change tracking information for assignment/unassign operations (None for other endpoints)",
     )
