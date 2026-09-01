@@ -29,7 +29,14 @@ class FileRuleConfigProvider(RuleConfigProvider):
             self.config_dir = Path(__file__).resolve().parents[4] / "config"
         else:
             self.config_dir = Path(config_dir)
-        self.config_dir.mkdir(parents=True, exist_ok=True)
+        # Handle read-only mounts gracefully - config dir may be mounted read-only
+        # which is fine as long as it already exists with the required files
+        try:
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError):
+            # Config directory may be mounted read-only, which is acceptable
+            # if it already exists and contains the required configuration files
+            pass
         self._colony_types = self._load_colony_types()
         self._personalities = self._load_personalities()
         self._rule_tables = self._load_rule_tables()

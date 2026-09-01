@@ -28,6 +28,7 @@ services:
       - ENVIRONMENT=development
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key-change-in-production}
       - DATABASE_PATH=/data/colony_manager.sqlite
+      - CONFIG_DIR=/app/config
       - LOG_LEVEL=INFO
       - ACCESS_TOKEN_EXPIRE_MINUTES=60
       - REFRESH_TOKEN_EXPIRE_DAYS=7
@@ -43,7 +44,7 @@ services:
       - COOKIE_HTTPONLY=true
     volumes:
       - backend-data:/data
-      - ./config:/app/config:ro
+      - ./config:/app/config
     networks:
       - colony-network
     ports:

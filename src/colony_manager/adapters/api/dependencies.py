@@ -1,5 +1,6 @@
 """Dependency injection for the API."""
 
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -66,7 +67,13 @@ DEFAULT_DB_PATH = DEFAULT_CONFIG_DIR.parent / "colony_manager.sqlite"
 
 
 def get_config_dir() -> Path:
-    """Get the config directory path."""
+    """Get the config directory path.
+    
+    Checks CONFIG_DIR environment variable first, then falls back to default.
+    """
+    # Allow override via environment variable
+    if config_dir := os.getenv("CONFIG_DIR"):
+        return Path(config_dir)
     return DEFAULT_CONFIG_DIR
 
 
