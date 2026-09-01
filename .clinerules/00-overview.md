@@ -22,9 +22,8 @@ All game mechanics (dice rolls, event resolution, cycle advancement) happen at
 the table during the actual gameplay session. The GM manually enters results
 and modifiers into the system — the application does not automate gameplay.
 
-The core engine must be consumable from multiple front ends: a REST API, a
-web frontend, and (eventually) a desktop frontend. **The engine itself must
-never depend on any of these.**
+The core engine is exposed via a REST API. **The engine itself must never
+depend on any frontend implementation.**
 
 ## Project stage
 
@@ -44,8 +43,6 @@ simultaneously — they are not alternatives.
 | `04-testing-strategy.md` | pytest + hypothesis, what to test and how much |
 | `05-code-style-and-documentation.md` | Type hints, docstrings, linting/formatting |
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |
-| `07-frontend-architecture.md` | React/TS/Vite layering, TanStack Query state split, Tailwind + Mechanicum styling, oxlint |
-| `08-frontend-testing.md` | Vitest + RTL + MSW, frontend-specific risk prioritization |
 
 ## Cline execution environment — hard constraints
 

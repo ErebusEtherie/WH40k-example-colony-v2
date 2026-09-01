@@ -47,7 +47,7 @@ This checklist covers the complete deployment process for the WH40k Colony Manag
 
 - [ ] **Configure CORS**
   - [ ] Set `ALLOWED_ORIGINS` to production domain(s)
-  - [ ] Example: `https://colony.yourdomain.com,https://admin.yourdomain.com`
+  - [ ] Example: `https://colony.yourdomain.com`
   - [ ] Verify `CORS_ALLOW_CREDENTIALS=True`
 
 - [ ] **Configure Database**
@@ -60,18 +60,6 @@ This checklist covers the complete deployment process for the WH40k Colony Manag
   - [ ] Set `LOG_LEVEL=INFO` (or `WARNING` for production)
   - [ ] Verify log directory exists
   - [ ] Configure log rotation (if using external logging)
-
-#### Frontend (frontend/.env.production)
-
-- [ ] **Configure API URL**
-  - [ ] Set `VITE_API_BASE_URL` to production backend URL
-  - [ ] Example: `https://api.yourdomain.com`
-  - [ ] Verify URL uses HTTPS
-
-- [ ] **Configure Application Settings**
-  - [ ] Set `VITE_APP_TITLE` (optional)
-  - [ ] Remove any debug flags (`VITE_DEBUG_MODE=false`)
-  - [ ] Verify `VITE_USE_MOCK_API=false`
 
 ---
 
@@ -443,14 +431,6 @@ git checkout <previous-commit>
 # (Depends on process manager)
 ```
 
-### Frontend Rollback
-
-```powershell
-# 1. Restore previous build from backup
-# 2. Deploy to web server
-# 3. Verify functionality
-```
-
 ---
 
 ## Troubleshooting
@@ -459,36 +439,14 @@ git checkout <previous-commit>
 
 #### CORS Errors
 
-**Symptom:** Frontend shows CORS errors in console
+**Symptom:** API clients show CORS errors
 
 **Solution:**
 
-1. Verify `ALLOWED_ORIGINS` includes frontend URL
+1. Verify `ALLOWED_ORIGINS` includes client URL
 2. Ensure `CORS_ALLOW_CREDENTIALS=True`
 3. Check backend is running and accessible
 4. Verify no proxy/load balancer stripping headers
-
-#### Cookie Not Set
-
-**Symptom:** Login succeeds but cookies not set
-
-**Solution:**
-
-1. Verify HTTPS is enabled (required for `COOKIE_SECURE=True`)
-2. Check `COOKIE_SAME_SITE` setting
-3. Verify domain matches cookie domain
-4. Check browser DevTools for cookie warnings
-
-#### Token Refresh Fails
-
-**Symptom:** Session expires unexpectedly
-
-**Solution:**
-
-1. Verify refresh token expiry setting
-2. Check token refresh endpoint is accessible
-3. Verify clock synchronization between client/server
-4. Check for token blacklisting issues
 
 #### Database Migration Fails
 

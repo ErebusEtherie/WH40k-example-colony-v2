@@ -36,13 +36,13 @@ Concretely for this project:
   (e.g. 1d10 rolls for events) — so tests can inject a deterministic
   fake instead of mocking `random`.
 
-## Web/desktop/API relationship
+## API relationship
 
-The API is the only thing that talks to the domain/application layers
-directly. The web frontend and desktop frontend talk to the API — they do
-not import Python domain code. This keeps the "multiple front ends" promise
-honest: if a frontend needed direct access to domain internals, that's a
-sign the API is missing a capability, not a reason to bypass it.
+The API is the primary consumer of the domain/application layers. Any future
+frontends (web, desktop, CLI) interact with the system through the API — they
+do not import Python domain code directly. This keeps the architecture clean:
+if direct access to domain internals is needed, that's a sign the API is
+missing a capability, not a reason to bypass it.
 
 ## When to introduce an abstraction
 

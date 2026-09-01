@@ -94,7 +94,7 @@ We aim to respond within 48 hours and release patches for critical vulnerabiliti
 
 - [ ] Set `JWT_SECRET_KEY` to a cryptographically secure random value (min 32 characters)
 - [ ] Set `ENVIRONMENT=production`
-- [ ] Configure `ALLOWED_ORIGINS` to your frontend domain(s) only
+- [ ] Configure `ALLOWED_ORIGINS` to your API client domain(s) only
 - [ ] Enable HTTPS/TLS termination
 - [ ] Set `LOG_LEVEL=WARNING` or higher
 - [ ] Review and adjust rate limiting settings
@@ -114,7 +114,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 # Required
 JWT_SECRET_KEY=<generated-secret>
 ENVIRONMENT=production
-ALLOWED_ORIGINS=https://your-frontend-domain.com
+ALLOWED_ORIGINS=https://api.yourdomain.com
 
 # Recommended
 LOG_LEVEL=WARNING

@@ -2,7 +2,7 @@
 
 **WH40k Colony Manager — Mini-PC Testing Environment**  
 **Version:** 1.0 | **Date:** 2026-08-30  
-**PORTS:** Frontend: 8880 | Backend: 8001 | Portainer: 9090
+**PORTS:** Backend: 8001 | Portainer: 9090
 
 ---
 
@@ -15,10 +15,9 @@ cd WH40k_Colony_Manager
 
 # Generate JWT secret and create .env
 python -c "import secrets; print(secrets.token_urlsafe(32))" > .env
-echo "VITE_API_BASE_URL=http://localhost:8001" >> .env
 echo "DATABASE_PATH=/data/colony_manager.sqlite" >> .env
 echo "ENVIRONMENT=development" >> .env
-echo "ALLOWED_ORIGINS=http://localhost:8880,http://localhost:3080" >> .env
+echo "ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080" >> .env
 
 # Deploy
 docker-compose -f docker-compose.test.yml up -d --build
@@ -27,7 +26,6 @@ docker-compose -f docker-compose.test.yml up -d --build
 curl http://localhost:8001/api/v1/health
 
 # Access:
-# Frontend: http://localhost:8880
 # API Docs: http://localhost:8001/docs
 ```
 
@@ -50,9 +48,8 @@ docker run -d --name portainer --restart=unless-stopped \
 
 ```bash
 JWT_SECRET_KEY=your-secret-key-min-32-chars
-VITE_API_BASE_URL=http://localhost:8001
 DATABASE_PATH=/data/colony_manager.sqlite
-ALLOWED_ORIGINS=http://localhost:8880,http://localhost:3080
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
 ```
 
 ---
@@ -77,7 +74,6 @@ docker cp colony-backend:/data/colony_manager.sqlite ./backup.sqlite
 
 | Service | URL |
 |---------|-----|
-| Frontend | <http://localhost:8880> |
 | Backend API | <http://localhost:8001> |
 | API Docs | <http://localhost:8001/docs> |
 | Portainer | <http://localhost:9090> |
@@ -88,7 +84,7 @@ docker cp colony-backend:/data/colony_manager.sqlite ./backup.sqlite
 
 ```bash
 # Check what's using a port
-netstat -ano | findstr ":8880 "
+netstat -ano | findstr ":8001 "
 
 # View logs
 docker logs colony-backend

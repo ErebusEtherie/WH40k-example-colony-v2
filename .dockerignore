@@ -44,10 +44,6 @@ Dockerfile
 docker-compose*.yml
 .dockerignore
 
-# Frontend
-frontend/
-!config/
-
 # Scripts
 scripts/
 

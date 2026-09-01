@@ -29,8 +29,6 @@
 
 - [ ] Verify all Docker files present:
   - [ ] `Dockerfile` (backend)
-  - [ ] `frontend/Dockerfile`
-  - [ ] `frontend/nginx.conf`
   - [ ] `docker-compose.test.yml`
   - [ ] `.env.example`
 
@@ -54,8 +52,7 @@
 
 - [ ] Update `.env` file with:
   - [ ] `JWT_SECRET_KEY=<generated-key>`
-  - [ ] `VITE_API_BASE_URL=http://<mini-pc-ip>:8000`
-  - [ ] `ALLOWED_ORIGINS=http://<mini-pc-ip>,http://localhost`
+  - [ ] `ALLOWED_ORIGINS=http://<mini-pc-ip>:3000,http://localhost:3000`
   - [ ] `DATABASE_PATH=/data/colony_manager.sqlite`
 
 ### Port Configuration
@@ -111,10 +108,9 @@
 - [ ] Paste contents of `docker-compose.test.yml`
 - [ ] Add environment variables in editor:
   - [ ] `JWT_SECRET_KEY`
-  - [ ] `VITE_API_BASE_URL`
 - [ ] Click **"Deploy the stack"**
 - [ ] Wait for deployment (2-3 minutes)
-- [ ] Verify all containers show **"Running"** status
+- [ ] Verify container shows **"Running"** status
 
 ---
 
@@ -122,10 +118,10 @@
 
 ### Container Health
 
-- [ ] All containers running
+- [ ] Container running
 
   ```bash
-  docker ps --filter "name=colony"
+  docker ps --filter "name=colony-backend"
   ```
 
 - [ ] Backend health check passes
@@ -135,22 +131,13 @@
   # Expected: {"status": "healthy", ...}
   ```
 
-- [ ] Frontend responds
-
-  ```bash
-  curl -I http://localhost:80
-  # Expected: HTTP/1.1 200 OK
-  ```
-
 ### Application Testing
 
-- [ ] Access frontend: http://<mini-pc-ip>
-- [ ] Login page loads correctly
 - [ ] Access API docs: http://<mini-pc-ip>:8000/docs
 - [ ] Swagger UI loads
 - [ ] Create test user account
 - [ ] Create test colony
-- [ ] Verify data persists after page refresh
+- [ ] Verify data persists correctly
 
 ### Log Verification
 
@@ -158,12 +145,6 @@
 
   ```bash
   docker logs colony-backend --tail 50
-  ```
-
-- [ ] Check frontend logs for errors
-
-  ```bash
-  docker logs colony-frontend --tail 50
   ```
 
 - [ ] No ERROR or CRITICAL messages in logs
@@ -268,14 +249,12 @@
 - [ ] Check container resource usage
 
   ```bash
-  docker stats colony-backend colony-frontend --no-stream
+  docker stats colony-backend --no-stream
   ```
 
 - [ ] Document baseline resource usage:
   - [ ] Backend CPU: _____%
   - [ ] Backend Memory: _____ MB
-  - [ ] Frontend CPU: _____%
-  - [ ] Frontend Memory: _____ MB
 
 ### Log Rotation
 
@@ -343,10 +322,9 @@ If deployment fails:
 
 Deployment is successful when:
 
-- [ ] All containers running and healthy
-- [ ] Frontend accessible at http://<mini-pc-ip>
+- [ ] Container running and healthy
 - [ ] Backend API accessible at http://<mini-pc-ip>:8000
-- [ ] User can create account and login
+- [ ] User can create account and login via API
 - [ ] Colony data persists correctly
 - [ ] No errors in container logs
 - [ ] Backup system operational

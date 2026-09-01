@@ -1,7 +1,7 @@
 # CI/CD Infrastructure - Quick Summary
 
 **Date:** 2026-08-30 | **Status:** ✅ COMPLETE  
-**PORTS:** Frontend: 8880 | Backend: 8001 | Portainer: 9090
+**PORTS:** Backend: 8001 | Portainer: 9090
 
 ---
 
@@ -13,9 +13,8 @@ cd WH40k_Colony_Manager
 
 # Create .env
 python -c "import secrets; print(secrets.token_urlsafe(32))" > .env
-echo "VITE_API_BASE_URL=http://localhost:8001" >> .env
 echo "DATABASE_PATH=/data/colony_manager.sqlite" >> .env
-echo "ALLOWED_ORIGINS=http://localhost:8880,http://localhost:3080" >> .env
+echo "ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080" >> .env
 
 # Deploy
 docker-compose -f docker-compose.test.yml up -d --build
@@ -23,17 +22,15 @@ docker-compose -f docker-compose.test.yml up -d --build
 
 **Access:**
 
-- Frontend: <http://localhost:8880>
 - API Docs: <http://localhost:8001/docs>
 
 ---
 
 ## 📦 What Was Created
 
-**Docker (7 files):**
+**Docker (5 files):**
 
 - `Dockerfile` - Backend (Python 3.12)
-- `frontend/Dockerfile` - Frontend (Nginx)
 - `docker-compose.test.yml` - Testing stack
 - `docker-compose.prod.yml` - Production stack
 - `.dockerignore` files
@@ -69,8 +66,7 @@ docker run -d --name portainer --restart=unless-stopped \
 
 1. ✅ Test locally: `docker-compose -f docker-compose.test.yml up -d`
 2. ✅ Verify: `curl http://localhost:8001/api/v1/health`
-3. ✅ Access: <http://localhost:8880>
-4. 📖 Read: `docs/QUICK_DEPLOYMENT.md` for details
+3. 📖 Read: `docs/QUICK_DEPLOYMENT.md` for details
 
 ---
 

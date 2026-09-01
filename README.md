@@ -36,7 +36,7 @@ The **WH40k Colony Manager** is a comprehensive Python engine designed to replac
 - **State transitions**: Threshold-based events (Anarchy, Placated, Productive, etc.)
 - **Modifier tracking**: Record GM-created modifiers, dice roll results, and event effects
 
-The engine is designed for consumption by multiple frontends: REST API, web UI, and (future) desktop app.
+The engine exposes a REST API for consumption by external frontends (web UI, desktop app, etc.).
 
 ---
 
@@ -272,7 +272,6 @@ Historical documents moved to [`docs/archive/`](docs/archive/):
 
 - UI Visualization Prompt (external mockup reference)
 - Agent Briefing (AI onboarding — see `.clinerules/` for current guidelines)
-- UI Panel Requirements (superseded by UI_DESIGN_SYSTEM.md)
 
 ---
 
