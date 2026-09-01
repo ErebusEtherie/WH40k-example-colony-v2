@@ -33,7 +33,7 @@ class FileRuleConfigProvider(RuleConfigProvider):
         # which is fine as long as it already exists with the required files
         try:
             self.config_dir.mkdir(parents=True, exist_ok=True)
-        except (PermissionError, OSError):
+        except OSError:
             # Config directory may be mounted read-only, which is acceptable
             # if it already exists and contains the required configuration files
             pass
