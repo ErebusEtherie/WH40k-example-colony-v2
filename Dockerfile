@@ -54,8 +54,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=production
 
-# Change ownership to non-root user
-RUN chown -R colony:colony /app
+# Create data directory for SQLite database and set ownership
+RUN mkdir -p /data && chown -R colony:colony /app /data
 
 USER colony
 
