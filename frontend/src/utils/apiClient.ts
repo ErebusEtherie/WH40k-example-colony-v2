@@ -75,9 +75,8 @@ export class ApiClient {
       try {
         await refreshPromise;
       } catch {
-        // Refresh failed - redirect to login using relative path
-        // Use relative path to work with any base URL deployment
-        window.location.href = 'login';
+        // Refresh failed - clear session and let the app handle navigation
+        // The useAuth hook will detect this and render LoginScreen
         throw new Error('Session expired');
       }
 

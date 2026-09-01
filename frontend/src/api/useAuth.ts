@@ -36,7 +36,13 @@ export function useAuth() {
       } catch (err) {
         // Only return null for auth errors (expected when not logged in)
         const errorMessage = err instanceof Error ? err.message : String(err);
-        if (errorMessage.includes('401') || errorMessage.includes('403')) {
+        // Check for auth-related errors: HTTP status codes or session expired
+        if (
+          errorMessage.includes('401') || 
+          errorMessage.includes('403') || 
+          errorMessage.includes('Session expired') ||
+          errorMessage.includes('refresh failed')
+        ) {
           return null;
         }
         // Log unexpected errors for debugging
