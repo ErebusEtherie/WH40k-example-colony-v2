@@ -20,13 +20,16 @@ export function useColonies(offset = 0, limit = 20) {
 
 /**
  * Fetch a single colony by ID
+ * Only fetches when user is authenticated
  */
 export function useColony(colonyId: number) {
+  const { isAuthenticated } = useAuth()
+  
   return useQuery({
     queryKey: ['colony', colonyId],
     queryFn: () => apiClient.getColony(colonyId),
     staleTime: 2 * 60 * 1000, // 2 minutes
-    enabled: !!colonyId,
+    enabled: !!colonyId && isAuthenticated, // Only fetch when authenticated and colonyId exists
   })
 }
 

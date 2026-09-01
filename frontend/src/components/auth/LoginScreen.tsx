@@ -34,7 +34,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
     }
     
     if (mode === 'register' && !email.trim()) {
-      setError('Astropathic contact frequency (email) is required.');
+      setError('Astropathic contact channel (email) is required.');
       return;
     }
     
@@ -49,6 +49,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
         // Navigation handled automatically by App.tsx auth state gate
       } else {
         // Register first, then login
+        // Default to 'viewer' role - escalate via admin panel if needed
         await register({ username, email, password, role: 'viewer' });
         // Registration succeeded - now attempt login
         try {
@@ -65,6 +66,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
     }
   };
 
+  // Helper for demo login - auto-registers if user doesn't exist
+  const handleDemoLogin = async (demoUsername: string, demoPassword: string) => {
+    try {
+      await login({ username: demoUsername, password: demoPassword });
+    } catch {
+      // User doesn't exist, register them first
+      try {
+        await register({ 
+          username: demoUsername, 
+          email: `${demoUsername}@imperium.gov`, 
+          password: demoPassword, 
+          role: demoUsername === 'admin' ? 'admin' : 'viewer' 
+        });
+        await login({ username: demoUsername, password: demoPassword });
+      } catch {
+        setError('Demo account setup failed. Please register manually.');
+      }
+    }
+  };
+
   const displayError = error || loginError || registerError;
 
   return (
@@ -75,11 +96,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
       <div className="absolute inset-0 bg-radial from-transparent via-slate-950/80 to-slate-950 pointer-events-none" />
 
       {/* Main Login Card */}
-      <div className="w-full max-w-md relative z-10 space-y-6">
+      <div className="w-full max-w-md relative z-10 space-y-10">
         
         {/* Thematic Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex p-3 rounded-sm bg-slate-900 border-2 border-cyan-500/80 shadow-lg shadow-cyan-950/80 mb-2">
+        <div className="text-center space-y-4">
+          <div className="inline-flex p-4 rounded-sm bg-slate-900 border-2 border-cyan-500/80 shadow-lg shadow-cyan-950/80 mb-4">
             <Compass className="w-8 h-8 text-cyan-400 animate-pulse" />
           </div>
           <h1 className="font-serif text-2xl sm:text-3xl font-black uppercase tracking-widest text-slate-100 drop-shadow-md">
@@ -90,9 +111,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
             <span>Colony Manager</span>
           </div>
-          <p className="text-[11px] font-mono text-slate-400 max-w-xs mx-auto pt-1">
-            Warrant of Trade Administrative Terminal • Koronus Expanse Domain Registry
-          </p>
+          <div className="text-[11px] font-mono text-slate-400 max-w-xs mx-auto pt-2 flex flex-col items-center gap-2">
+            <span>Warrant of Trade Administrative Terminal</span>
+            <span className="text-cyan-500 text-lg leading-none">•</span>
+            <span>Koronus Expanse Domain Registry</span>
+          </div>
         </div>
 
         {/* Themed Form Frame */}
@@ -101,49 +124,49 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
           subtitle={mode === 'login' ? "Enter credentials to initialize Cogitator link" : "Request access to the Imperial database"}
         >
           {displayError && (
-            <div className="mb-4 p-3 bg-red-950/80 border border-red-700 text-red-200 text-xs font-mono rounded-xs flex items-center gap-2">
+            <div className="mb-5 p-3 bg-red-950/80 border border-red-700 text-red-200 text-sm font-mono rounded-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
               <span>{displayError}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+          <form onSubmit={handleSubmit} className="space-y-8 font-mono text-sm">
             {mode === 'register' && (
               <div>
-                <label className="text-[10px] uppercase text-slate-400 block mb-1">
-                  Astropathic Contact Frequency (Email)
+                <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
+                  Astropathic Contact Channel / Email
                 </label>
                 <div className="relative">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-cyan-800 rounded-xs px-3 py-2 pl-9 text-slate-100 font-mono focus:outline-hidden focus:ring-1 focus:ring-cyan-400"
+                    className="w-full bg-slate-950 border-2 border-cyan-700 rounded-sm px-3 py-2.5 pl-11 text-slate-100 font-mono text-sm focus:outline-hidden focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     placeholder="name@imperium.gov"
                   />
-                  <Compass className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Compass className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
             )}
             <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">
-                Dynasty Cipher / Scribe ID
+              <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
+                Dynasty Cipher / User ID
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-slate-950 border border-cyan-800 rounded-xs px-3 py-2 pl-9 text-slate-100 font-mono focus:outline-hidden focus:ring-1 focus:ring-cyan-400"
+                  className="w-full bg-slate-950 border-2 border-cyan-700 rounded-sm px-3 py-2.5 pl-11 text-slate-100 font-mono text-sm focus:outline-hidden focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   placeholder="Enter User ID..."
                   autoComplete="username"
                 />
-                <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase text-slate-400 block mb-1">
+              <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
                 Inquisitorial Seal / Password
               </label>
               <div className="relative">
@@ -151,18 +174,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-cyan-800 rounded-xs px-3 py-2 pl-9 text-slate-100 font-mono focus:outline-hidden focus:ring-1 focus:ring-cyan-400"
+                  className="w-full bg-slate-950 border-2 border-cyan-700 rounded-sm px-3 py-2.5 pl-11 text-slate-100 font-mono text-sm focus:outline-hidden focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   placeholder="Enter Password..."
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoggingIn || isRegistering}
-              className="w-full py-2.5 bg-cyan-900 hover:bg-cyan-800 disabled:bg-cyan-950 disabled:cursor-not-allowed border border-cyan-500 text-cyan-100 font-mono text-xs uppercase font-bold tracking-wider rounded-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-950/60 mt-2"
+              className="w-full py-3 bg-cyan-900 hover:bg-cyan-800 disabled:bg-cyan-950 disabled:cursor-not-allowed border-2 border-cyan-500 text-cyan-100 font-mono text-sm uppercase font-bold tracking-wider rounded-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-950/60 mt-6"
             >
               {isLoggingIn || isRegistering ? (
                 <>
@@ -181,14 +204,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
           </form>
 
           {/* Toggle between login and register */}
-          <div className="mt-4 text-center">
+          <div className="mt-8 text-center">
             <button
               type="button"
               onClick={() => {
                 setMode(mode === 'login' ? 'register' : 'login');
                 setError(null);
               }}
-              className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
             >
               {mode === 'login' 
                 ? "Request new access credentials" 
@@ -197,48 +220,34 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
           </div>
 
           {/* Quick Access Roles for Testing */}
-          <div className="mt-5 pt-4 border-t border-slate-800">
-            <span className="text-[10px] uppercase font-mono text-slate-500 block mb-2 text-center tracking-wider">
+          <div className="mt-12 pt-10 border-t border-slate-700">
+            <span className="text-xs uppercase font-mono text-slate-400 block mb-5 text-center tracking-wider font-semibold">
               — Direct Clearance Bypass (Prototype Sandbox) —
             </span>
-            <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+            <div className="grid grid-cols-2 gap-6 font-mono text-sm">
               <button
                 type="button"
-                onClick={async () => {
-                  try {
-                    await login({ username: 'admin', password: 'admin123' });
-                    // Navigation handled automatically by App.tsx auth state gate
-                  } catch {
-                    setError('Demo account not available. Please register.');
-                  }
-                }}
-                className="p-2 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-600 rounded-xs text-left text-slate-300 transition-colors"
+                onClick={() => handleDemoLogin('admin', 'Admin123!')}
+                className="p-5 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-500 rounded-sm text-center text-slate-200 transition-all shadow-md"
               >
-                <div className="font-serif font-bold text-cyan-300">Arch Magos</div>
-                <div className="text-[10px] text-slate-500">Full System Access</div>
+                <div className="font-serif font-bold text-cyan-300 text-base">Arch Magos</div>
+                <div className="text-xs text-slate-400 mt-2">Full System Access</div>
               </button>
 
               <button
                 type="button"
-                onClick={async () => {
-                  try {
-                    await login({ username: 'user', password: 'user123' });
-                    // Navigation handled automatically by App.tsx auth state gate
-                  } catch {
-                    setError('Demo account not available. Please register.');
-                  }
-                }}
-                className="p-2 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-amber-600 rounded-xs text-left text-slate-300 transition-colors"
+                onClick={() => handleDemoLogin('user', 'User123!')}
+                className="p-5 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-amber-500 rounded-sm text-center text-slate-200 transition-all shadow-md"
               >
-                <div className="font-serif font-bold text-amber-300">Magos</div>
-                <div className="text-[10px] text-slate-500">Standard Access</div>
+                <div className="font-serif font-bold text-amber-300 text-base">Magos</div>
+                <div className="text-xs text-slate-400 mt-2">Standard Access</div>
               </button>
             </div>
           </div>
         </OrnamentalFrame>
 
         {/* Footer */}
-        <div className="text-center font-mono text-[10px] text-slate-600">
+        <div className="text-center font-mono text-xs text-slate-600 mt-8">
           "The Emperor Protects, but the Warrant of Trade Provides."
         </div>
 

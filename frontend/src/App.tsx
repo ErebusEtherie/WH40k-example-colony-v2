@@ -86,8 +86,8 @@ export default function App() {
   const [fontSize, setFontSize] = useState<FontSizeSetting>('standard');
 
   // React Query hooks for server state
-  const { data: colonies = [], isLoading: coloniesLoading } = useColonies();
-  const { data: representatives = [], isLoading: repsLoading } = useRepresentatives();
+  const { data: colonies = [] } = useColonies();
+  const { data: representatives = [] } = useRepresentatives();
 
   // Mutations
   const createColonyMutation = useCreateColony();
@@ -149,7 +149,7 @@ export default function App() {
   });
 
   // Loading state - after all hooks, before render
-  if (authLoading || coloniesLoading || repsLoading || !currentColony || !currentCalculations) {
+  if (authLoading || !currentColony || !currentCalculations) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-amber-400 font-mono text-lg">Loading cogitation data...</div>
