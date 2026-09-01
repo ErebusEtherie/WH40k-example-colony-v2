@@ -8,6 +8,7 @@ from colony_manager.adapters.api.routers.config import router as config_router
 from colony_manager.adapters.api.routers.development_plans import router as development_plans_router
 from colony_manager.adapters.api.routers.events import router as events_router
 from colony_manager.adapters.api.routers.export_import import router as export_import_router
+from colony_manager.adapters.api.routers.health import router as health_router
 from colony_manager.adapters.api.routers.infrastructure import router as infrastructure_router
 from colony_manager.adapters.api.routers.modifiers import router as modifiers_router
 from colony_manager.adapters.api.routers.notifications import router as notifications_router
@@ -25,6 +26,7 @@ __all__ = [
     "development_plans_router",
     "events_router",
     "export_import_router",
+    "health_router",
     "infrastructure_router",
     "modifiers_router",
     "notifications_router",

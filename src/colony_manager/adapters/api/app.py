@@ -27,6 +27,7 @@ from colony_manager.adapters.api.routers import (
     development_plans_router,
     events_router,
     export_import_router,
+    health_router,
     infrastructure_router,
     modifiers_router,
     notifications_router,
@@ -156,6 +157,7 @@ def create_app() -> FastAPI:
     )
 
     # Include routers
+    app.include_router(health_router, prefix=API_V1_PREFIX)
     app.include_router(auth_router, prefix=API_V1_PREFIX)
     app.include_router(colonies_router, prefix=API_V1_PREFIX)
     app.include_router(events_router, prefix=API_V1_PREFIX)
