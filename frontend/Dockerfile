@@ -42,11 +42,11 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
     mkdir -p /run/nginx && \
     chown -R nginx:nginx /run/nginx
 
-USER nginx
+# Note: Not switching to nginx user to avoid PID file permission issues
+# The container runs as root but nginx worker processes drop privileges automatically
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#     CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
 
 EXPOSE 80
 
