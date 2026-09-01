@@ -88,6 +88,29 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
 
   const displayError = error || loginError || registerError;
 
+  // Extract button content logic for clarity
+  const getButtonContent = () => {
+    if (isLoggingIn || isRegistering) {
+      return (
+        <>
+          <Sparkles className="w-4 h-4 animate-spin" /> Authenticating...
+        </>
+      );
+    }
+    if (mode === 'login') {
+      return (
+        <>
+          <KeyRound className="w-4 h-4" /> Authenticate Warrant
+        </>
+      );
+    }
+    return (
+      <>
+        <UserPlus className="w-4 h-4" /> Register New Account
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden text-slate-100">
       
@@ -133,11 +156,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
           <form onSubmit={handleSubmit} className="space-y-8 font-mono text-sm">
             {mode === 'register' && (
               <div>
-                <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
+                <label 
+                  htmlFor="email"
+                  className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide"
+                >
                   Astropathic Contact Channel / Email
                 </label>
                 <div className="relative">
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -149,11 +176,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
               </div>
             )}
             <div>
-              <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
+              <label 
+                htmlFor="username"
+                className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide"
+              >
                 Dynasty Cipher / User ID
               </label>
               <div className="relative">
                 <input
+                  id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -166,11 +197,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
             </div>
 
             <div>
-              <label className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide">
+              <label 
+                htmlFor="password"
+                className="text-xs uppercase text-slate-400 block mb-3 font-semibold tracking-wide"
+              >
                 Inquisitorial Seal / Password
               </label>
               <div className="relative">
                 <input
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -187,19 +222,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = () => {
               disabled={isLoggingIn || isRegistering}
               className="w-full py-3 bg-cyan-900 hover:bg-cyan-800 disabled:bg-cyan-950 disabled:cursor-not-allowed border-2 border-cyan-500 text-cyan-100 font-mono text-sm uppercase font-bold tracking-wider rounded-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-950/60 mt-6"
             >
-              {isLoggingIn || isRegistering ? (
-                <>
-                  <Sparkles className="w-4 h-4 animate-spin" /> Authenticating...
-                </>
-              ) : mode === 'login' ? (
-                <>
-                  <KeyRound className="w-4 h-4" /> Authenticate Warrant
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" /> Register New Account
-                </>
-              )}
+              {getButtonContent()}
             </button>
           </form>
 
