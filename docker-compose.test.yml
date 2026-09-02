@@ -1,0 +1,128 @@
+# WH40k Colony Manager - Docker Compose for Testing Environment
+# Full-Stack deployment for mini-PC with Portainer
+# 
+# Usage:
+#   docker-compose -f docker-compose.test.yml up -d --build
+#   docker-compose -f docker-compose.test.yml down
+#
+# Portainer Stack: Copy this file as stack.yml in Portainer
+#
+# PORTS USED:
+# - Frontend Web: 3000 (internal: 80)
+# - Backend API: 8001 (internal: 8000)
+# - Portainer: 9090 (if installed separately)
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Frontend Application (React SPA + NGINX)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: colony-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - colony-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.colony-frontend.rule=Host(`colony.localhost`)"
+      - "traefik.http.routers.colony-frontend.entrypoints=web"
+      - "traefik.http.services.colony-frontend.loadbalancer.server.port=80"
+
+  # ============================================
+  # Backend API
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: colony-backend
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=development
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key-change-in-production}
+      - DATABASE_PATH=/data/colony_manager.sqlite
+      - CONFIG_DIR=/app/config
+      - LOG_LEVEL=INFO
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - RATE_LIMIT_ENABLED=true
+      - MAX_LOGIN_ATTEMPTS=10
+      - LOCKOUT_DURATION_MINUTES=5
+      - MIN_PASSWORD_LENGTH=8
+      - REQUIRE_PASSWORD_COMPLEXITY=false
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      - CORS_ALLOW_CREDENTIALS=true
+      - COOKIE_SECURE=false
+      - COOKIE_SAME_SITE=lax
+      - COOKIE_HTTPONLY=true
+    volumes:
+      - backend-data:/data
+    networks:
+      - colony-network
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.colony-backend.rule=Host(`colony-api.localhost`)"
+      - "traefik.http.routers.colony-backend.entrypoints=web"
+      - "traefik.http.services.colony-backend.loadbalancer.server.port=8000"
+
+  # ============================================
+  # Database Backup Service (Optional)
+  # ============================================
+  backup:
+    image: alpine:latest
+    container_name: colony-backup
+    restart: unless-stopped
+    volumes:
+      - backend-data:/data:ro
+      - ./backups:/backups
+    entrypoint: >
+      sh -c "
+        while true; do
+          sleep 86400;
+          cp /data/colony_manager.sqlite /backups/colony_manager_backup-$$(date +\%Y\%m\%d).sqlite;
+          find /backups -name '*.sqlite' -mtime +7 -delete;
+        done
+      "
+    profiles:
+      - backup
+
+networks:
+  colony-network:
+    driver: bridge
+    name: colony-network
+
+volumes:
+  backend-data:
+    name: colony-backend-data
+  backups:
+    name: colony-backups
+
+# ============================================
+# Environment Variables Template
+# ============================================
+# Copy this section to .env file and customize:
+#
+# JWT_SECRET_KEY=your-super-secret-key-min-32-chars

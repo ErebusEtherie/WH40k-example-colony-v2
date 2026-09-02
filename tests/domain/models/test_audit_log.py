@@ -1,0 +1,132 @@
+"""Tests for the AuditLog domain model."""
+
+from datetime import UTC, datetime
+
+import pytest
+from pydantic import ValidationError
+
+from colony_manager.domain.models.audit_log import AuditLog, AuditLogAction
+
+
+class TestAuditLogValidators:
+    """Tests for AuditLog model field validators."""
+
+    def test_changed_at_required(self):
+        """changed_at is required (defaults to UTC now)."""
+        # Should work without explicit changed_at - uses default
+        log = AuditLog(
+            entity_type="colony",
+            entity_id=1,
+            action=AuditLogAction.UPDATE,
+            changed_by=2,
+            colony_id=1,
+            changed_at=datetime.now(UTC),
+        )
+        assert log.changed_at is not None
+        assert log.changed_at.tzinfo is not None
+
+    def test_changed_at_uses_utc_timezone(self):
+        """changed_at defaults to UTC timezone."""
+        log = AuditLog(
+            entity_type="colony",
+            entity_id=1,
+            action=AuditLogAction.UPDATE,
+            changed_by=2,
+            colony_id=1,
+            changed_at=datetime.now(UTC),
+        )
+        # UTC has offset of 0
+        offset = log.changed_at.utcoffset()
+        assert offset is not None
+        assert offset.total_seconds() == 0
+
+    def test_changed_at_converts_naive_to_utc(self):
+        """Naive datetime for changed_at is converted to UTC."""
+        naive_dt = datetime(2025, 1, 1, 12, 0, 0)  # noqa: DTZ001 - testing naive datetime conversion
+        log = AuditLog(
+            entity_type="colony",
+            entity_id=1,
+            action=AuditLogAction.UPDATE,
+            changed_by=2,
+            colony_id=1,
+            changed_at=naive_dt,
+        )
+        assert log.changed_at.tzinfo is not None
+        assert log.changed_at == naive_dt.replace(tzinfo=UTC)
+
+    def test_entity_type_required(self):
+        """entity_type is required and cannot be empty."""
+        with pytest.raises(ValidationError) as exc_info:
+            AuditLog(
+                entity_type="",
+                entity_id=1,
+                action=AuditLogAction.UPDATE,
+                changed_by=2,
+                colony_id=1,
+                changed_at=datetime.now(UTC),
+            )
+        assert "entity_type" in str(exc_info.value)
+
+    def test_entity_id_required(self):
+        """entity_id is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AuditLog.model_validate(
+                {
+                    "entity_type": "colony",
+                    "action": "update",
+                    "changed_by": 2,
+                    "colony_id": 1,
+                    "changed_at": datetime.now(UTC),
+                }
+            )
+        assert "entity_id" in str(exc_info.value)
+
+    def test_changed_by_required(self):
+        """changed_by is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AuditLog.model_validate(
+                {
+                    "entity_type": "colony",
+                    "entity_id": 1,
+                    "action": "update",
+                    "colony_id": 1,
+                    "changed_at": datetime.now(UTC),
+                }
+            )
+        assert "changed_by" in str(exc_info.value)
+
+    def test_colony_id_optional(self):
+        """colony_id is optional for non-colony entities like users."""
+        # Should succeed without colony_id
+        audit_log = AuditLog.model_validate(
+            {
+                "entity_type": "user",
+                "entity_id": 1,
+                "action": "create",
+                "changed_by": 2,
+                "changed_at": datetime.now(UTC),
+            }
+        )
+        assert audit_log.colony_id is None
+        assert audit_log.entity_type == "user"
+
+    def test_valid_audit_log(self):
+        """Valid AuditLog with all required fields."""
+        log = AuditLog(
+            entity_type="colony",
+            entity_id=1,
+            action=AuditLogAction.UPDATE,
+            field="name",
+            old_value='"Old Name"',
+            new_value='"New Name"',
+            changed_by=2,
+            colony_id=1,
+        )
+        assert log.entity_type == "colony"
+        assert log.entity_id == 1
+        assert log.action == AuditLogAction.UPDATE
+        assert log.field == "name"
+        assert log.old_value == '"Old Name"'
+        assert log.new_value == '"New Name"'
+        assert log.changed_by == 2
+        assert log.colony_id == 1

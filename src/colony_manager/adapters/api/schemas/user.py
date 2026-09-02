@@ -1,0 +1,64 @@
+"""API schemas for user management endpoints."""
+
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class UserListItem(BaseModel):
+    """Lightweight schema for user list items (excludes timestamps)."""
+
+    id: int
+    username: str
+    email: str
+    role: str
+    is_active: bool
+
+    model_config = {"from_attributes": True}
+
+
+class UserResponse(BaseModel):
+    """Response schema for user information (excludes sensitive data)."""
+
+    id: int
+    username: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class UserCreate(BaseModel):
+    """Request schema for creating a new user (admin only)."""
+
+    username: str = Field(
+        ..., min_length=3, max_length=50, description="Username (immutable after creation)"
+    )
+    email: EmailStr = Field(..., description="Email address (immutable after creation)")
+    password: str = Field(..., min_length=8, max_length=128, description="Initial password")
+    role: str = Field(default="viewer", description="User role: viewer, colony_manager, or admin")
+    is_active: bool = Field(default=True, description="Whether the user account is active")
+
+
+class UserUpdate(BaseModel):
+    """Request schema for updating a user (admin only).
+
+    Note: username and email are immutable. Only role and is_active can be updated.
+    Colony membership is managed separately via the /colonies/{colony_id}/members endpoints.
+    """
+
+    role: str | None = Field(
+        default=None, description="User role: viewer, colony_manager, or admin"
+    )
+    is_active: bool | None = Field(default=None, description="Whether the user account is active")
+
+
+class UserPasswordReset(BaseModel):
+    """Request schema for admin password reset."""
+
+    temporary_password: str = Field(
+        ..., min_length=8, max_length=128, description="Temporary password to set"
+    )

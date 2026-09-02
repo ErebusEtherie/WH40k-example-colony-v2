@@ -1,0 +1,137 @@
+"""Configuration API router - exposes rule tables and type definitions."""
+
+from typing import Any
+
+from fastapi import APIRouter, Depends
+
+from colony_manager.adapters.api.dependencies import get_rule_config_provider
+from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
+
+router = APIRouter(prefix="/config", tags=["config"])
+
+
+@router.get("/colony-types", responses={})
+def get_colony_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, str]]:
+    """Get list of available colony types.
+
+    Returns data suitable for populating dropdown menus in the frontend.
+    """
+    return [
+        {"id": ct.name, "name": ct.display_name, "description": ct.description}
+        for ct in provider.colony_types
+    ]
+
+
+@router.get("/representative-types", responses={})
+def get_representative_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, str]]:
+    """Get list of available representative types.
+
+    Returns data suitable for populating dropdown menus in the frontend.
+    """
+    return [
+        {"id": rt.name, "name": rt.display_name, "description": rt.description}
+        for rt in provider.representative_types
+    ]
+
+
+@router.get("/infrastructure-types", responses={})
+def get_infrastructure_types(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, Any]]:
+    """Get list of infrastructure types with bonuses and costs.
+
+    Returns data for dropdown menus and displaying bonus information.
+    """
+    result = []
+    for infra in provider.infrastructure_types:
+        # Transform states into working/faulty bonus format for API compatibility
+        working_bonuses = {}
+        faulty_bonuses = {}
+        for state_name, state_config in infra.states.items():
+            bonuses = {mod.stat: mod.value for mod in state_config.modifiers}
+            if state_name.lower() in ("working", "operational"):
+                working_bonuses = bonuses
+            elif state_name.lower() in ("faulty", "broken", "not_working"):
+                faulty_bonuses = bonuses
+
+        result.append(
+            {
+                "id": infra.name,
+                "name": infra.display_name,
+                "description": infra.description,
+                "bonuses": {
+                    "working": working_bonuses,
+                    "faulty": faulty_bonuses,
+                },
+            }
+        )
+    return result
+
+
+@router.get("/support-upgrades", responses={})
+def get_support_upgrades(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> list[dict[str, Any]]:
+    """Get list of support upgrades with bonuses and costs.
+
+    Returns data for dropdown menus and displaying bonus information.
+    """
+    result = []
+    for su in provider.support_upgrades:
+        # Extract primary stat effect for API compatibility
+        bonus_stat = None
+        bonus_value = None
+        if su.stat_effects:
+            bonus_stat = su.stat_effects[0].stat
+            bonus_value = su.stat_effects[0].value
+
+        result.append(
+            {
+                "id": su.name,
+                "name": su.display_name,
+                "description": su.description,
+                "bonus_stat": bonus_stat,
+                "bonus_value": bonus_value,
+            }
+        )
+    return result
+
+
+@router.get("/profit-factor-table", responses={})
+def get_profit_factor_table(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, int]:
+    """Get colony size to profit factor lookup table.
+
+    Returns a mapping of colony size to base profit factor value.
+    """
+    return provider.get_profit_factor_table()
+
+
+@router.get("/thresholds", responses={})
+def get_thresholds(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, object]:
+    """Get threshold values for state transitions.
+
+    Returns thresholds for Anarchy, Placated, Productive, Halted, Pious, Heretical states.
+    """
+    return provider.get_lore_thresholds()
+
+
+@router.get("/growth-decay", responses={})
+def get_growth_decay(
+    provider: RuleConfigProvider = Depends(get_rule_config_provider),
+) -> dict[str, int]:
+    """Get growth and decay rule configuration.
+
+    Returns interval days for event and development rolls.
+    """
+    return {
+        "event_roll_interval_days": provider.get_event_roll_interval_days(),
+        "development_roll_interval_days": provider.get_development_roll_interval_days(),
+    }

@@ -1,0 +1,93 @@
+# WH40k Colony Manager - Full-Stack Docker Compose
+# Runs both Frontend (React + NGINX) and Backend (FastAPI + SQLite)
+#
+# Usage:
+#   docker compose up -d --build
+#   docker compose down
+#
+# Access:
+#   Frontend Application: http://localhost:3000
+#   Backend Direct API:   http://localhost:8001
+#   API Documentation:    http://localhost:8001/docs (or http://localhost:3000/docs)
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Frontend Application (React SPA + NGINX)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: colony-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - colony-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # ============================================
+  # Backend API (FastAPI)
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: colony-backend
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-omnissiah-blessed-secret-key-change-in-prod}
+      - DATABASE_PATH=/data/colony_manager.sqlite
+      - CONFIG_DIR=/app/config
+      - LOG_LEVEL=INFO
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      - CORS_ALLOW_CREDENTIALS=true
+    volumes:
+      - backend-data:/data
+      - ./config:/app/config:ro
+    networks:
+      - colony-network
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+networks:
+  colony-network:
+    driver: bridge
+    name: colony-network
+
+volumes:
+  backend-data:
+    name: colony-backend-data

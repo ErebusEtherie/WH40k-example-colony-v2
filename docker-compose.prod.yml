@@ -1,0 +1,85 @@
+# WH40k Colony Manager - Docker Compose for Production
+# Full-Stack Deployment (Frontend SPA + Backend API)
+#
+# Usage:
+#   docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Frontend Application (React SPA + NGINX)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: colony-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - colony-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # ============================================
+  # Backend API
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    container_name: colony-backend-prod
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_PATH=/data/colony_manager.sqlite
+    volumes:
+      - backend-data:/data
+      - ./config:/app/config:ro
+    networks:
+      - colony-network
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+networks:
+  colony-network:
+    driver: bridge
+    name: colony-network-prod
+
+volumes:
+  backend-data:
+    name: colony-backend-data-prod

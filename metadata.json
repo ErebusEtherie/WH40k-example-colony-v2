@@ -1,0 +1,6 @@
+{
+  "name": "WH40k Colony Manager",
+  "description": "A management and tracking engine for Warhammer 40k Rogue Trader colonies with stats calculation, infrastructure, representatives, and state mechanics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

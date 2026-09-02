@@ -1,0 +1,121 @@
+# Representative Types for WH40k Colony Manager
+# Source: Rogue Trader Colony Rules
+# Each type provides loss mitigation for a specific stat
+
+# =============================================================================
+# Satrap
+# =============================================================================
+- name: "satrap"
+  display_name: "Satrap"
+  description: "An administrator with strong organizational skills and experience in high-stakes negotiation."
+  loss_mitigation: null
+  special_effects:
+    - name: "profit_factor_bonus"
+      description: "Provides a +5 bonus to Profit Factor for purchasing goods on their particular Colony."
+      pf_purchase_bonus: 5
+  themes:
+    - "Choose one other than Criminal"
+
+# =============================================================================
+# Judge
+# =============================================================================
+- name: "judge"
+  display_name: "Judge"
+  description: "Focuses on maintaining law and order at any cost, keeping the colony tightly controlled."
+  loss_mitigation:
+    stat: "order"
+    reduction: 1
+    minimum: 1
+  special_effects: []
+  themes:
+    - "Choose one other than Criminal"
+
+# =============================================================================
+# Cardinal
+# =============================================================================
+- name: "cardinal"
+  display_name: "Cardinal"
+  description: "A spiritual leader who attracts pilgrims and inspires locals to maintain devotion to the God-Emperor."
+  loss_mitigation:
+    stat: "piety"
+    reduction: 1
+    minimum: 1
+  special_effects: []
+  themes:
+    - "Creed"
+
+# =============================================================================
+# Colonist Representative
+# =============================================================================
+- name: "colonist_representative"
+  display_name: "Colonist Representative"
+  description: "A local elevated to governance, making colonists more compliant as they feel their complaints are addressed by one of their own."
+  loss_mitigation:
+    stat: "complacency"
+    reduction: 1
+    minimum: 1
+  special_effects: []
+  themes:
+    - "Exploration"
+    - "Trade"
+    - "Criminal"
+
+# =============================================================================
+# Military Commander
+# =============================================================================
+- name: "military_commander"
+  display_name: "Military Commander"
+  description: "Necessary for safeguarding a colony, often running it like a well-oiled machine under martial law."
+  loss_mitigation:
+    stat: "productivity"
+    reduction: 1
+    minimum: 1
+  special_effects: []
+  themes:
+    - "Military"
+
+# =============================================================================
+# Dynasty Member
+# =============================================================================
+- name: "dynasty_member"
+  display_name: "Dynasty Member"
+  description: "A relative of the Rogue Trader assigned to judge their fitness for inheriting a Warrant of Trade."
+  loss_mitigation: null
+  special_effects:
+    - name: "consequences_of_nepotism"
+      description: "Roll on Table 3-5: Consequences of Nepotism. Player/GM chooses outcome."
+      outcomes:
+        - name: "that_one_has_potential"
+          display_name: "That One Has Potential!"
+          stat_effect:
+            stat: "custom_choice"
+            value: 1
+            choices: ["complacency", "order", "productivity", "piety"]
+            condition: "chosen_upon_appointment"
+          calamitous_modifier: 0
+        - name: "one_to_keep_an_eye_on"
+          display_name: "One To Keep An Eye On"
+          stat_effect:
+            stat: "productivity"
+            value: 1
+          calamitous_modifier: 2
+        - name: "thrilling_heroics"
+          display_name: "Thrilling Heroics"
+          stat_effect:
+            stat: "piety"
+            value: 1
+          calamitous_modifier: 3
+        - name: "come_on_its_just_a_grox"
+          display_name: "Come On, It's Just a Grox!"
+          stat_effect:
+            stat: "order"
+            value: 1
+          calamitous_modifier: 4
+        - name: "you_built_the_palace_on_a_volcano"
+          display_name: "You Built the Palace on a Volcano?!"
+          stat_effect:
+            stat: "complacency"
+            value: 1
+          calamitous_modifier: 5
+  themes:
+    - "Choose any one"
