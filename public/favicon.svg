@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="skullGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b6f2e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" fill="#0b0c10"/>
+  <g fill="url(#skullGradient)" stroke="#b87333" stroke-width="2">
+    <circle cx="50" cy="35" r="20"/>
+    <rect x="35" y="50" width="30" height="35" rx="5"/>
+    <circle cx="42" cy="32" r="5" fill="#0b0c10"/>
+    <circle cx="58" cy="32" r="5" fill="#0b0c10"/>
+    <rect x="47" y="55" width="6" height="15" rx="2" fill="#0b0c10"/>
+    <circle cx="45" cy="65" r="3" fill="#0b0c10"/>
+    <circle cx="55" cy="65" r="3" fill="#0b0c10"/>
+  </g>
+</svg>
