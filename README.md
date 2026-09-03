@@ -89,26 +89,62 @@ manually enters results, modifiers, and outcomes into the system.
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: Docker (Recommended)
 
-- Python 3.12 or higher
-- uv package manager (recommended) or pip
-
-### Installation
+The easiest way to run the application is with Docker Compose:
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/WH40k_Colony_Manager.git
 cd WH40k_Colony_Manager
 
-# Install dependencies
+# Build and start both frontend and backend
+docker compose up -d --build
+
+# Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8001
+# API Documentation: http://localhost:8001/docs
+```
+
+For detailed Docker deployment instructions, see [DOCKER_GUIDE.md](DOCKER_GUIDE.md).
+
+### Option 2: Local Development
+
+#### Prerequisites
+
+- Python 3.12 or higher
+- uv package manager (recommended) or pip
+- Node.js 20+ (for frontend development)
+
+#### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/WH40k_Colony_Manager.git
+cd WH40k_Colony_Manager
+
+# Install backend dependencies
 uv sync --no-build --extra dev
 
 # Run the API server
-uv run uvicorn colony_manager.main:app --reload
+uv run uvicorn colony_manager.adapters.api.app:create_app --factory --reload
 
 # Access the API documentation
 # Open http://localhost:8000/docs in your browser
+```
+
+#### Frontend Development
+
+```bash
+# Install frontend dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Access the frontend
+# Open http://localhost:5173 in your browser
 ```
 
 ### First Steps
@@ -120,29 +156,6 @@ uv run uvicorn colony_manager.main:app --reload
 5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
 
 See the [API Reference](docs/api_reference.md) for detailed examples.
-
-### Docker Deployment (Recommended for Testing)
-
-```bash
-# Clone and deploy with Docker Compose
-git clone https://github.com/yourusername/WH40k_Colony_Manager.git
-cd WH40k_Colony_Manager
-
-# Generate JWT secret and create .env
-python -c "import secrets; print(secrets.token_urlsafe(32))" > .env
-echo "DATABASE_PATH=/data/colony_manager.sqlite" >> .env
-echo "ENVIRONMENT=development" >> .env
-
-# Deploy
-docker-compose -f docker-compose.test.yml up -d --build
-
-# Access application
-# Frontend: http://localhost
-# API: http://localhost:8000
-# API Docs: http://localhost:8000/docs
-```
-
-See [Quick Deployment Guide](docs/QUICK_DEPLOYMENT.md) for complete Docker and Portainer setup.
 
 ---
 
