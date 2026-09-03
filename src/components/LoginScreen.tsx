@@ -17,8 +17,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     setError(null);
     setLoading(true);
     try {
-      const user = await loginApi(uname, pword);
-      onLogin(user);
+      const session = await loginApi(uname, pword);
+      // Pass the user from the session to the parent component
+      if (session.user) {
+        onLogin(session.user);
+      } else {
+        throw new Error("Login successful but no user data returned");
+      }
     } catch (err: any) {
       setError(err.message || "Failed to authenticate cipher credentials");
     } finally {

@@ -10,7 +10,7 @@ import {
   OpticsSettings,
   User,
 } from "./types/colony";
-import { authStorage, getCurrentUserApi, logoutApi, apiFetch } from "./lib/api";
+import { authStorage, useCurrentUser, useLogin, useLogout, apiFetch } from "./lib/api";
 import {
   INITIAL_COLONIES,
   INITIAL_REPRESENTATIVES,
@@ -41,6 +41,13 @@ import { LogResourceDepositModal } from "./components/modals/LogResourceDepositM
 import { EditCharterModal } from "./components/modals/EditCharterModal";
 
 export function App() {
+  // Use TanStack Query for authentication state
+  const { data: currentUser, isLoading: authLoading } = useCurrentUser();
+  const loginMutation = useLogin();
+  const logoutMutation = useLogout();
+  
+  const isLoggedIn = !!currentUser;
+  
   // Global App States
   const [colonies, setColonies] = useState<Colony[]>(INITIAL_COLONIES);
   const [selectedColonyId, setSelectedColonyId] = useState<string>(
@@ -83,32 +90,6 @@ export function App() {
     crt_flicker: true,
     audio_chimes: true,
   });
-
-  // Auth state
-  const [currentUser, setCurrentUser] = useState<User | null>(() => authStorage.getUser());
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(authStorage.getAccessToken()));
-
-  // Validate session on mount and handle expiration
-  useEffect(() => {
-    if (authStorage.getAccessToken()) {
-      getCurrentUserApi().then((user) => {
-        if (user) {
-          setCurrentUser(user);
-          setIsLoggedIn(true);
-        } else {
-          setIsLoggedIn(false);
-          setCurrentUser(null);
-        }
-      });
-    }
-
-    const onAuthExpired = () => {
-      setIsLoggedIn(false);
-      setCurrentUser(null);
-    };
-    window.addEventListener("colony_auth_expired", onAuthExpired);
-    return () => window.removeEventListener("colony_auth_expired", onAuthExpired);
-  }, []);
 
   // Modals state
   const [isNewColonyOpen, setIsNewColonyOpen] = useState(false);
@@ -224,10 +205,10 @@ export function App() {
   // Real-time calculation breakdown
   const colonyStats = calculateColonyStats(
     currentColony,
+    currentRep ? [currentRep] : [],
     colonyInfrastructures,
     colonyUpgrades,
-    colonyModifiers,
-    currentRep
+    colonyModifiers
   );
 
   // Turn Advance Handler
@@ -823,22 +804,32 @@ export function App() {
     }
   };
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#04060b] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#f59e0b]/30 border-t-[#f59e0b] rounded-full animate-spin mx-auto" />
+          <p className="text-[#f59e0b] font-mono-slate text-sm tracking-wider">AUTHENTICATING...</p>
+        </div>
+      </div>
+    );
+  }
+
   // If not logged in, display login screen
   if (!isLoggedIn) {
     return (
       <LoginScreen
         onLogin={(user) => {
-          setCurrentUser(user);
-          setIsLoggedIn(true);
+          // TanStack Query will automatically refetch currentUser on successful login
+          // because loginMutation invalidates the auth queries
         }}
       />
     );
   }
 
   const handleLogout = async () => {
-    await logoutApi();
-    setIsLoggedIn(false);
-    setCurrentUser(null);
+    logoutMutation.mutate();
   };
 
   // Accessibility classes applied to the root container
