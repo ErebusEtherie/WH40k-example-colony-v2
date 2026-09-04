@@ -69,6 +69,25 @@ class ColonyUpdate(BaseModel):
     current_event: str | None = None
 
 
+class ColonyAgeAdvance(BaseModel):
+    """Schema for advancing colony age.
+    
+    Accepts either 'days' or 'quarters' (1 quarter = 90 days).
+    If both are provided, 'days' takes precedence.
+    """
+
+    days: int | None = Field(None, ge=1, description="Number of days to advance")
+    quarters: int | None = Field(None, ge=1, description="Number of quarters to advance (1 quarter = 90 days)")
+    
+    def get_days(self) -> int:
+        """Get the number of days to advance, converting from quarters if needed."""
+        if self.days is not None:
+            return self.days
+        if self.quarters is not None:
+            return self.quarters * 90
+        raise ValueError("Either 'days' or 'quarters' must be provided")
+
+
 class ColonyListItem(BaseModel):
     """Summary information for colony list."""
 
