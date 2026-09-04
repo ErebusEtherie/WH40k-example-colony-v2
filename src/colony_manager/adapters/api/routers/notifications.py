@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie
 from colony_manager.adapters.api.notification_service import (
     NotificationService,
     get_notification_service,
@@ -35,7 +35,7 @@ async def event_generator(
 
 @router.get("/stream")
 async def notification_stream(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     notification_service: Annotated[NotificationService, Depends(get_notification_service)],
 ) -> StreamingResponse:
     """Stream real-time notifications via Server-Sent Events.

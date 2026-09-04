@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Terminal, Play, CheckCircle2, AlertCircle, Shield, Key } from "lucide-react";
-import { apiFetch, authStorage } from "../lib/api";
+import { apiFetch } from "../lib/api";
 
 export const ApiExplorer: React.FC = () => {
   const [method, setMethod] = useState<"GET" | "POST" | "PUT" | "DELETE">("GET");
@@ -9,9 +9,8 @@ export const ApiExplorer: React.FC = () => {
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [responseJson, setResponseJson] = useState<string>("// Send request to view response data slate");
   const [loading, setLoading] = useState(false);
-  const [useBearerToken, setUseBearerToken] = useState(true);
 
-  const activeToken = authStorage.getAccessToken();
+  // Cookie-based auth: tokens sent automatically, no manual token retrieval needed
 
   const presets = [
     { label: "Check Identity (/me)", method: "GET", path: "/api/v1/auth/me", body: "" },
@@ -49,20 +48,20 @@ export const ApiExplorer: React.FC = () => {
         "Content-Type": "application/json",
       };
 
-      if (useBearerToken && activeToken) {
-        headers["Authorization"] = `Bearer ${activeToken}`;
-      }
+      // Cookie-based auth: tokens sent automatically via credentials: 'include'
+      // CSRF token added automatically by apiFetch for state-changing requests
 
       const options: RequestInit = {
         method,
         headers,
+        credentials: 'include', // Send cookies automatically
       };
 
       if (["POST", "PUT"].includes(method) && requestBody.trim()) {
         options.body = requestBody;
       }
 
-      const res = await (useBearerToken ? apiFetch(endpoint, options) : fetch(endpoint, options));
+      const res = await apiFetch(endpoint, options);
       setResponseStatus(res.status);
       const data = await res.json().catch(() => ({ status: res.status, statusText: res.statusText }));
       setResponseJson(JSON.stringify(data, null, 2));
@@ -85,20 +84,7 @@ export const ApiExplorer: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs font-mono-slate">
-            <label className="flex items-center space-x-1.5 cursor-pointer text-[#cbd5e1] hover:text-[#fef08a]">
-              <input
-                type="checkbox"
-                checked={useBearerToken}
-                onChange={(e) => setUseBearerToken(e.target.checked)}
-                className="accent-[#f59e0b] rounded"
-              />
-              <span className="flex items-center space-x-1">
-                <Key className="w-3.5 h-3.5 text-[#f59e0b]" />
-                <span>Attach JWT Bearer</span>
-              </span>
-            </label>
-          </div>
+          {/* Cookie-based auth: tokens sent automatically, no manual Bearer token attachment needed */}
         </div>
         <p className="text-xs text-[#94a3b8] mt-1">
           Direct interactive cogitator interface for querying and testing WH40K Colony Manager REST & Authentication endpoints.

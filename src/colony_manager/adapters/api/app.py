@@ -18,6 +18,7 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
 from colony_manager.adapters.api.middleware.security_headers import (
     SecurityHeadersMiddleware,
 )
+from colony_manager.adapters.api.middleware.csrf import CSRFProtectionMiddleware
 from colony_manager.adapters.api.routers import (
     audit_logs_router,
     auth_router,
@@ -219,6 +220,9 @@ endpoints will automatically use your token.
 
     # Security headers middleware
     app.add_middleware(SecurityHeadersMiddleware)
+
+    # CSRF protection middleware (must be after security headers, before CORS)
+    app.add_middleware(CSRFProtectionMiddleware)
 
     # CORS middleware - MUST be last in the chain to properly handle CORS headers
     # after all other middleware have processed the request/response

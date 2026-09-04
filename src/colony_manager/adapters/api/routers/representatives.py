@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.dependencies import get_colony_user_repository, get_db_path
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.representative import (
@@ -76,7 +76,7 @@ def _convert_personalities(personalities_create: list[PersonalityCreate]) -> lis
 
 @router.get("", response_model=PaginatedResponse[RepresentativeListItem], responses={})
 async def list_representatives(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
     available_only: bool = Query(default=False, description="Only show unassigned representatives"),
     type_filter: RepresentativeType | None = Query(
@@ -161,7 +161,7 @@ async def list_representatives(
 @router.post("", response_model=RepresentativeResponse, status_code=status.HTTP_201_CREATED, responses={})
 async def create_representative(
     rep_data: RepresentativeCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Create a new representative."""
@@ -191,7 +191,7 @@ async def create_representative(
 @router.get("/{rep_id}", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found"}})
 async def get_representative(
     rep_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Get a representative by ID."""
@@ -213,7 +213,7 @@ async def get_representative(
 async def update_representative(
     rep_id: int,
     rep_data: RepresentativeUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Update a representative (partial update)."""
@@ -239,7 +239,7 @@ async def update_representative(
 @router.delete("/{rep_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Representative not found"}})
 async def delete_representative(
     rep_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> None:
     """Delete a representative."""
@@ -288,7 +288,7 @@ async def assign_to_colony(
 @router.post("/{rep_id}/unassign", response_model=RepresentativeResponse, responses={404: {"description": "Representative not found or not assigned"}, 400: {"description": "Invalid request"}, 403: {"description": "Forbidden - User not a member of colony"}, 500: {"description": "Internal server error - Authenticated user has no ID"}})
 async def unassign_from_colony(
     rep_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: RepresentativeService = Depends(dependencies.get_representative_service),
 ) -> RepresentativeResponse:
     """Unassign a representative from their colony."""

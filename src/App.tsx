@@ -10,7 +10,7 @@ import {
   OpticsSettings,
   User,
 } from "./types/colony";
-import { authStorage, useCurrentUser, useLogin, useLogout, apiFetch } from "./lib/api";
+import { useCurrentUser, useLogin, useLogout, apiFetch } from "./lib/api";
 import {
   INITIAL_COLONIES,
   INITIAL_REPRESENTATIVES,
@@ -102,8 +102,13 @@ export function App() {
   const [isLogResourceOpen, setIsLogResourceOpen] = useState(false);
   const [isEditCharterOpen, setIsEditCharterOpen] = useState(false);
 
-  // Sync Data with Backend on initial load
+  // Sync Data with Backend on initial load (only when logged in)
   useEffect(() => {
+    // Only fetch data if user is authenticated
+    if (!isLoggedIn) {
+      return;
+    }
+
     apiFetch("/api/v1/colonies")
       .then((res) => (res.ok ? res.json() : null))
       .then((coloniesList) => {
@@ -164,7 +169,7 @@ export function App() {
         }
       })
       .catch((err) => console.log("Fetch reps error:", err));
-  }, []);
+  }, [isLoggedIn]);
 
   // Chronometer timer
   useEffect(() => {

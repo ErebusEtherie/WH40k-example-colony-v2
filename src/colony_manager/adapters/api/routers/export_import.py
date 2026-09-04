@@ -14,7 +14,7 @@ from colony_manager.adapters.api.dependencies import (
     get_representative_service,
     get_user_service,
 )
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.io.colony_exporter import ColonyExporter
 from colony_manager.adapters.io.colony_importer import ColonyImporter
@@ -101,7 +101,7 @@ async def export_colony(
 @router.post("/import", status_code=status.HTTP_201_CREATED, responses={400: {"description": "Invalid import data"}, 404: {"description": "Referenced resources not found"}})
 async def import_colony(
     file_content: dict[str, Any],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     colony_service: Annotated[ColonyService, Depends(get_colony_service)],
     representative_service: Annotated[RepresentativeService, Depends(get_representative_service)],
     event_service: Annotated[EventService, Depends(get_event_service)],

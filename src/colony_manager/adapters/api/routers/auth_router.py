@@ -10,12 +10,13 @@ Security Features:
 """
 
 from typing import Annotated
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user, get_jwt_secret_key
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie, get_jwt_secret_key
 from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
     login_rate_limit,
@@ -314,26 +315,65 @@ def login(
     return response
 
 
+@router.get("/csrf-token", openapi_extra={"security": []})
+async def get_csrf_token(request: Request) -> JSONResponse:
+    """Generate and return a CSRF token for the current session.
+    
+    The CSRF token is stored in a non-HttpOnly cookie so JavaScript can read it
+    and include it in the X-CSRF-Token header for state-changing requests.
+    
+    This endpoint is public and does not require authentication.
+    """
+    csrf_token = secrets.token_urlsafe(32)
+    
+    response = JSONResponse(content={"csrf_token": csrf_token})
+    
+    # Set CSRF token in a non-HttpOnly cookie (JavaScript needs to read it)
+    settings = get_security_settings()
+    response.set_cookie(
+        key="csrf_token",
+        value=csrf_token,
+        max_age=60 * 60,  # 1 hour
+        httponly=False,  # Must be readable by JavaScript
+        secure=settings.cookie_secure,
+        samesite="strict",
+        path="/",
+    )
+    
+    return response
+
+
 @router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []}, responses={401: {"description": "Invalid token"}})
 @limiter.limit(refresh_token_rate_limit())
 def refresh_token_endpoint(
     request: Request,
-    refresh_request: RefreshTokenRequest,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> JSONResponse:
-    """Refresh access token using refresh token.
-
+    """Refresh access token using refresh token from cookie.
+    
+    The refresh token is automatically sent via HttpOnly cookie.
+    Returns new access/refresh tokens as HttpOnly cookies.
+    
     This endpoint is public and does not require authentication.
-
+    
     Security: Implements refresh token rotation - old refresh token is
     invalidated when a new one is issued. If an old token is reused,
     all sessions for that user should be invalidated (future enhancement).
     """
     settings = get_security_settings()
     secret_key = get_jwt_secret_key()
-
+    
+    # Get refresh token from cookie
+    refresh_token = request.cookies.get(settings.cookie_refresh_token_name)
+    
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found. Please log in again.",
+        )
+    
     try:
-        payload = verify_token(refresh_request.refresh_token, secret_key, token_type="refresh")
+        payload = verify_token(refresh_token, secret_key, token_type="refresh")
         user_id = int(payload["sub"])
     except TokenError as e:
         raise HTTPException(
@@ -341,21 +381,21 @@ def refresh_token_endpoint(
             detail=f"Invalid or expired refresh token: {e}",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
-
+    
     user = user_repository.get_by_id(user_id)
-
+    
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or deactivated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    
     # Token rotation: issue new refresh token along with new access token
     # This provides security by invalidating old refresh tokens after use
     new_access_token = create_access_token(user, secret_key)
     new_refresh_token = create_refresh_token(user, secret_key)
-
+    
     # Create response with new tokens
     response = JSONResponse(
         content={
@@ -365,7 +405,7 @@ def refresh_token_endpoint(
             "expires_in": settings.access_token_expire_minutes * 60,
         }
     )
-
+    
     # Set httpOnly cookies for secure token storage (token rotation)
     response.set_cookie(
         key=settings.cookie_access_token_name,
@@ -385,13 +425,13 @@ def refresh_token_endpoint(
         samesite=settings.cookie_samesite,  # type: ignore[arg-type]
         path="/",
     )
-
+    
     return response
 
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
 ) -> UserResponse:
     """Get current authenticated user information."""
     return UserResponse(
@@ -408,7 +448,7 @@ def get_current_user_info(
 def change_password(
     request: Request,
     password_change_request: ChangePasswordRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> dict[str, str]:
     """Change password for current user."""
@@ -437,7 +477,7 @@ def change_password(
 def revoke_token(
     request: Request,
     revoke_request: TokenRevokeRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> JSONResponse:
     """Revoke current access token (logout).
@@ -490,7 +530,7 @@ def revoke_token(
 @router.post("/revoke-all", responses={403: {"description": "Forbidden"}, 404: {"description": "User not found"}})
 def revoke_all_tokens(
     revoke_request: TokenRevokeAllRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> TokenRevokeResponse:
     """Revoke all tokens for a user.

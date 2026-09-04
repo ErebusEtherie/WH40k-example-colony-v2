@@ -10,7 +10,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 
 from colony_manager.adapters.api.dependencies import get_colony_user_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie
 from colony_manager.domain.models.colony_user import ColonyUserRole
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.colony_user_repository import ColonyUserRepository
@@ -57,7 +57,7 @@ def require_colony_role(required_role: ColonyUserRole) -> Callable[..., User]:
 
     def check_colony_role(
         colony_id: int,
-        current_user: Annotated[User, Depends(get_current_user)],
+        current_user: Annotated[User, Depends(get_current_user_from_cookie)],
         colony_user_repository: Annotated[
             ColonyUserRepository, Depends(get_colony_user_repository)
         ],
@@ -109,7 +109,7 @@ def require_colony_permission(permission: str) -> Callable[..., User]:
 
     def check_permission(
         colony_id: int,
-        current_user: Annotated[User, Depends(get_current_user)],
+        current_user: Annotated[User, Depends(get_current_user_from_cookie)],
         colony_user_repository: Annotated[
             ColonyUserRepository, Depends(get_colony_user_repository)
         ],
@@ -151,7 +151,7 @@ def require_colony_permission(permission: str) -> Callable[..., User]:
     return check_permission
 
 
-def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+def require_admin(current_user: Annotated[User, Depends(get_current_user_from_cookie)]) -> User:
     """Require admin role for endpoint access.
 
     This dependency checks that the authenticated user has the ADMIN role.

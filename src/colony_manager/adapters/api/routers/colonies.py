@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
 from colony_manager.adapters.api.dependencies import get_colony_service, get_representative_service
-from colony_manager.adapters.api.middleware.auth import get_current_user
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie
 from colony_manager.adapters.api.middleware.permissions import require_colony_permission
 from colony_manager.adapters.api.schemas.colony import (
     ColonyCreate,
@@ -134,7 +134,7 @@ def _build_state_nested(state: dict[str, object]) -> ColonyStateNested:
 
 @router.get("", responses={})
 async def list_colonies(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: Annotated[ColonyService, Depends(get_colony_service)],
     offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of items to return"),
@@ -184,7 +184,7 @@ async def list_colonies(
 @router.post("", response_model=ColonyResponse, status_code=status.HTTP_201_CREATED, responses={})
 async def create_colony(
     colony_data: ColonyCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
     """Create a new colony."""

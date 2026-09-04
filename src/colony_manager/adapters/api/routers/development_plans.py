@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
-from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie, require_role
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.development_plan import (
     DevelopmentPlanCreate,
@@ -88,7 +88,7 @@ def create_development_plan(
 def get_development_plan(
     plan_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],
@@ -139,7 +139,7 @@ def get_development_plan(
 def get_development_plans_by_colony(
     colony_id: int,
     service: Annotated[DevelopmentPlanService, Depends(dependencies.get_development_plan_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],

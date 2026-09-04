@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from colony_manager.adapters.api import dependencies
-from colony_manager.adapters.api.middleware.auth import get_current_user, require_role
+from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie, require_role
 from colony_manager.adapters.api.schemas.common import PaginatedResponse, PaginationMeta
 from colony_manager.adapters.api.schemas.event import (
     EventCreate,
@@ -83,7 +83,7 @@ def create_event(
 def get_event(
     event_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],
@@ -129,7 +129,7 @@ def get_event(
 def get_events_by_colony(
     colony_id: int,
     service: Annotated[EventService, Depends(dependencies.get_event_service)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     colony_user_repo: Annotated[
         ColonyUserRepository, Depends(dependencies.get_colony_user_repository)
     ],
