@@ -33,6 +33,12 @@ indirectly through the API in unit tests," applied one layer further out.
   `mad_order_roll`-equivalent inputs required only when the applicable
   personality is present) — the FE-side validation gating, not the rule
   behind it.
+- Error-path rendering per the error contract in
+  `07-frontend-architecture.md` (422 → inline field error, 409/domain
+  rejection → inline action message, 500 → generic toast). Test that each
+  status code maps to the right UI treatment through the shared
+  error-normalizing function, not that every feature independently gets it
+  right.
 
 **Medium risk — standard RTL, a handful of cases:**
 
@@ -55,6 +61,31 @@ the real query/cache/error-handling code paths instead of bypassing them,
 mirroring the backend's "don't mock the domain layer, mock at the real
 boundary" stance.
 
+## Contract drift between MSW handlers and the real API
+
+A known MSW pitfall: hand-written mock handlers quietly go stale relative
+to the actual FastAPI schema (a field gets renamed or removed on the
+backend, the mock still returns the old shape), and component tests keep
+passing while the real integration is broken. This defeats the purpose of
+testing against "realistic" responses.
+
+Mitigation, per the type-generation approach in
+`07-frontend-architecture.md`:
+
+- MSW handler response bodies should be typed against the same generated
+  API types (`frontend/src/types/api.d.ts`) used by the `api/` hooks, so a
+  backend schema change that regenerates those types breaks the mock
+  handler at type-check time rather than failing silently.
+- This is a type-level safeguard, not a full contract-test suite (e.g. no
+  live schema-validation step against a running backend) — that's a
+  heavier addition and not yet justified. If drift issues show up in
+  practice despite the type-level check, revisit whether a real contract
+  test (e.g. validating MSW fixtures against the live OpenAPI schema in
+  CI) is warranted.
+- Until type generation is in place, treat this as a known residual risk:
+  MSW fixtures are trusted to reflect the API's actual current shape, and
+  that assumption is not independently verified.
+
 ## What NOT to do
 
 - Don't write a frontend test that re-verifies a game rule/threshold value
@@ -66,10 +97,17 @@ boundary" stance.
   `04-testing-strategy.md`).
 - Don't use `waitFor`/arbitrary timeouts as a substitute for MSW resolving
   or an actual loading-state assertion.
+- Don't let MSW handler shapes diverge from the generated API types without
+  it being visible at type-check time.
 
-## Open item — end-to-end testing
+## Open items
 
-Not yet decided: whether E2E (Playwright or similar) is in scope for this
-project, and if so, what it covers that component tests + backend tests
-don't already. Flagging rather than assuming a tool/scope — needs a
-decision before this section can be filled in.
+- **End-to-end testing.** Not yet decided: whether E2E (Playwright or
+  similar) is in scope for this project, and if so, what it covers that
+  component tests + backend tests don't already. Flagging rather than
+  assuming a tool/scope — needs a decision before this section can be
+  filled in.
+- **Full contract testing.** Not yet decided: whether a live
+  schema-validation step (MSW fixtures vs. running backend's OpenAPI
+  schema, in CI) is worth adding beyond the type-level safeguard above.
+  Revisit if type-level checking proves insufficient in practice.

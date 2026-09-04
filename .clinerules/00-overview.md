@@ -3,8 +3,8 @@
 ## What this project is
 
 A Python engine for organizing and tracking a **Warhammer 40k Rogue Trader
-Colony** (tabletop RPG). It replaces a manually-maintained Excel sheet that
-tracks:
+Colony** (tabletop RPG), used by one or more GMs/players collaborating on
+shared colonies. It replaces a manually-maintained Excel sheet that tracks:
 
 - Core colony stats: Size, Complacency, Order, Productivity, Piety, and a
   derived Profit Factor.
@@ -16,11 +16,40 @@ tracks:
   Complacency exceeding Size → "Placated").
 - GM-created modifiers (including manual dice roll results and event effects
   entered by the GM during play).
+- Development plans for staged/planned infrastructure or upgrade
+  installation, tracked separately from installed state.
 
 **Important: This is a tracking/organization tool, not a game automation system.**
 All game mechanics (dice rolls, event resolution, cycle advancement) happen at
 the table during the actual gameplay session. The GM manually enters results
 and modifiers into the system — the application does not automate gameplay.
+
+**Also in scope — and previously undocumented in this rule set —
+the system is multi-user, not single-user:**
+
+- **Authentication & authorization.** JWT-based auth (cookie-based, see
+  `07-frontend-architecture.md`); a global system-role hierarchy (`viewer`
+  < `colony_manager` < `admin`); and a separate, per-colony membership role
+  (`owner` / `editor` / `viewer`) governing who can view or change a given
+  colony. These are two distinct authorization dimensions — see
+  `02-domain-modeling.md`.
+- **Colony collaboration.** A colony has members beyond its owner (invited
+  users with a colony-scoped role); ownership itself can be transferred.
+- **Audit logging.** Changes to a colony are recorded and independently
+  retrievable — this is a real feature, not incidental logging, and has its
+  own testing/risk profile (see `04-testing-strategy.md`).
+- **Import/export.** Colonies can be exported to and imported from a
+  portable file format (see `03-persistence-and-io.md`'s
+  Importer/Exporter split).
+- **Real-time notifications.** A server-sent-events stream pushes colony,
+  event, development-plan, and colony-membership changes to connected
+  clients — relevant to how the frontend decides between polling and
+  push-driven cache invalidation (see `07-frontend-architecture.md`).
+
+None of this changes the core stance that game mechanics are GM-driven, not
+automated — it only means the *tracking* system itself has more surface
+area (who can see/change what, and how changes propagate to other
+connected clients) than a single-user tool would.
 
 The core engine is exposed via a REST API. **The engine itself must never
 depend on any frontend implementation.**
@@ -38,11 +67,19 @@ simultaneously — they are not alternatives.
 | File | Covers |
 | --- | --- |
 | `01-architecture.md` | Layering, dependency direction, where things live |
-| `02-domain-modeling.md` | Domain models vs. API schemas vs. persistence models, rule engine design |
+| `02-domain-modeling.md` | Domain models vs. API schemas vs. persistence models, rule engine design, auth/authorization domain (User, ColonyUser, Role) |
 | `03-persistence-and-io.md` | Repository pattern, SQLite, JSON/YAML import/export |
-| `04-testing-strategy.md` | pytest + hypothesis, what to test and how much |
+| `04-testing-strategy.md` | pytest + hypothesis, what to test and how much, including auth/security risk |
 | `05-code-style-and-documentation.md` | Type hints, docstrings, linting/formatting |
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |
+| `07-frontend-architecture.md` | React/TanStack Query stack, API contract & types, data fetching, cookie-based auth |
+| `08-frontend-testing.md` | Vitest/RTL/MSW strategy, contract-drift risk |
+
+Files `01`–`06` describe the backend engine; `07`–`08` describe the
+frontend. Both sets are binding simultaneously for their respective code —
+frontend files build on domain concepts defined in `02`, they don't
+redefine them (e.g. the system-role/colony-role distinction is defined once
+in `02-domain-modeling.md` and referenced, not restated, in `07`).
 
 ## Cline execution environment — hard constraints
 

@@ -29,6 +29,38 @@ of input, e.g.:
 - Adding a working infrastructure item never decreases the stat it's
   documented to increase.
 
+**High risk, different failure mode — auth & authorization:**
+
+Colony-math bugs produce a wrong number, visible on inspection. Auth bugs
+produce a security hole that may not be visible at all until exploited —
+they deserve at least the same testing investment as the rule engine, for
+a different reason.
+
+- Token validation: expired tokens rejected, malformed tokens rejected,
+  tokens signed with the wrong key rejected.
+- Token blacklist/revocation: a revoked token is rejected on every
+  subsequent use, not just the first check after revocation; revoke-all
+  actually invalidates all outstanding sessions for that user, not just
+  the current one.
+- Role-hierarchy comparisons: explicit example-based tests for every
+  boundary (a `viewer` cannot do what `colony_manager` can; `colony_manager`
+  cannot do what `admin` can) — don't rely on one happy-path test per role
+  and assume the ordering generalizes.
+- System role vs. colony role: a test that only has *colony* `editor`
+  access but no elevated *system* role cannot perform a system-level
+  action, and vice versa — these two dimensions should be tested as
+  independent, not assumed to imply each other.
+- Deactivated user: an otherwise-valid token for a deactivated user is
+  rejected, regardless of role.
+- Ownership transfer: after transfer, the old owner's authority reflects
+  their new (non-owner) role immediately — no stale-owner window.
+
+As with colony math, use hypothesis for the role-ordering comparison logic
+if it has a genuine invariant to check (e.g. "a higher role can always do
+everything a lower role can, never less") — but don't force
+property-based testing onto token validation itself, where the cases are
+naturally enumerable rather than a numeric space.
+
 **Medium risk — standard pytest, a handful of cases:**
 
 - Use cases/application services (e.g. "install upgrade", "advance cycle")

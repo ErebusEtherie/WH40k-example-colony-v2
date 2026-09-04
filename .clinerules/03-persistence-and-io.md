@@ -10,6 +10,17 @@ behind the same abstraction:
      `save`, `list`, `delete`).
    - Implemented in `adapters/persistence` against SQLite (SQLModel or
      SQLAlchemy recommended for migrations and querying).
+   - The same pattern applies to auth-related persistence, already in use:
+     `UserRepository` (user lookup/CRUD, backing login and user management)
+     and `TokenBlacklistRepository` (revoked-token lookups, backing logout
+     and token revocation). Both are domain-defined interfaces implemented
+     in `adapters/persistence`, exactly like `ColonyRepository` — there is
+     no separate pattern for "auth persistence" vs. "colony persistence."
+   - `TokenBlacklistRepository` entries are naturally short-lived (a
+     blacklisted token only matters until its own expiry). If this needs
+     TTL/cleanup behavior, that's a persistence-adapter concern (e.g. a
+     scheduled cleanup or a TTL-capable store), not something that changes
+     the domain-facing interface shape.
 2. **Importer/Exporter** — a separate service in `adapters/io` for
    JSON/YAML. This is how a user saves a portable colony file, shares it, or
    backs it up. It is *not* a second Repository backend.

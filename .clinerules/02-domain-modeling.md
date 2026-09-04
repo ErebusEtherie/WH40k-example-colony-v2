@@ -72,6 +72,41 @@ The ColonyStateCalculator combines both sources when calculating stats. This hyb
   and Complacency) should be modeled as an explicit list of modifiers
   applied in a defined order, not as nested conditionals per stat.
 
+## Auth & authorization domain
+
+Per `00-overview.md`, this system is multi-user with two distinct
+authorization dimensions. Both are domain concepts and belong here, not
+scattered across adapter code:
+
+1. **System role** — a global hierarchy on `User`: `viewer` <
+   `colony_manager` < `admin`. This ordering is business logic (it decides
+   who can do what) and must live in `domain` (e.g. a `Role` enum with a
+   defined ordering/comparison, or an explicit `AuthorizationService` in
+   `application` that consumes it) — not hardcoded as a dict literal inside
+   an `adapters/api` dependency function. If you find a role-hierarchy
+   mapping inside `adapters/api/auth.py` or similar, that's a violation of
+   `01-architecture.md`'s dependency-direction rule and should be flagged
+   and moved, not extended in place.
+2. **Colony role** — a separate, per-colony membership level on
+   `ColonyUser` (the join between `User` and `Colony`): `owner` / `editor`
+   / `viewer`. This is scoped to one colony and answers a different
+   question than system role ("can this user edit *this* colony" vs. "what
+   can this user do at the system level"). Model it as its own enum; don't
+   reuse or overload the system-role enum for it even though some level
+   names look superficially similar ("viewer" appears in both — they are
+   not the same value space).
+
+Domain invariants worth encoding explicitly (confirm exact behavior with
+the user before assuming — per `06-collaboration-and-uncertainty.md`):
+
+- A colony has exactly one `owner` at a time; ownership transfer is an
+  explicit operation (not just editing a membership role) and should read
+  as one in the domain/application layer, not as a generic "update member"
+  call that happens to change the role to `owner`.
+- Deactivated users (`is_active = False`) should not be treated as
+  authorized for anything regardless of their role — this check belongs
+  next to the role-ordering logic, not duplicated ad hoc at each call site.
+
 ## Do not invent game rules
 
 If a calculation, threshold, or interaction isn't clearly present in the
