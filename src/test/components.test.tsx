@@ -100,9 +100,9 @@ describe("Frontend Component Suite", () => {
       const handleLogin = vi.fn();
       render(<LoginScreen onLogin={handleLogin} />);
 
-      expect(screen.getByText(/IMPERIAL DATA-SLATE • COLONY MANAGER/i)).toBeInTheDocument();
+      expect(screen.getByText(/Administrative Terminal • Rogue Trader Colony Manager/i)).toBeInTheDocument();
       expect(screen.getByDisplayValue("LordCaptain")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("WarrantOfTrade")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("TestP@ss123")).toBeInTheDocument();
 
       // Quick roles buttons
       expect(screen.getByText("Lord Captain")).toBeInTheDocument();

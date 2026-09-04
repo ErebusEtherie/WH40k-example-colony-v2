@@ -35,7 +35,7 @@ RUN npx vite build
 # ============================================
 # Stage 2: Runtime Environment (NGINX)
 # ============================================
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.31.5-alpine-slim AS runtime
 
 # Install curl for health checks
 RUN apk add --no-cache curl

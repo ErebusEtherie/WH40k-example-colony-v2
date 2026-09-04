@@ -11,8 +11,6 @@
 # - Backend API: 8001 (internal: 8000)
 # - Portainer: 9090 (if installed separately)
 
-version: '3.8'
-
 services:
   # ============================================
   # Backend API

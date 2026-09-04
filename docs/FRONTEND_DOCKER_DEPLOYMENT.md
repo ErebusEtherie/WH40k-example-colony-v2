@@ -108,6 +108,7 @@ CMD ["nginx", "-g", "daemon off;"]
 Highlights of the production NGINX configuration:
 
 - **Reverse Proxy**:
+
   ```nginx
   location /api/ {
       proxy_pass http://backend:8000/api/;
@@ -121,12 +122,15 @@ Highlights of the production NGINX configuration:
       proxy_set_header X-Forwarded-Proto $scheme;
   }
   ```
+
 - **SPA Fallback**:
+
   ```nginx
   location / {
       try_files $uri $uri/ /index.html;
   }
   ```
+
 - **Security Headers**:
   - `X-Frame-Options: SAMEORIGIN`
   - `X-Content-Type-Options: nosniff`
@@ -142,7 +146,6 @@ Highlights of the production NGINX configuration:
 Used for local development, review environments, and standard single-host setups:
 
 ```yaml
-version: '3.8'
 
 services:
   frontend:
@@ -209,6 +212,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 ### 3. `docker-compose.test.yml` (Mini-PC / Portainer / Traefik)
 
 Includes reverse-proxy Traefik routing labels:
+
 - `traefik.http.routers.colony-frontend.rule=Host('colony.localhost')`
 - `traefik.http.routers.colony-backend.rule=Host('colony-api.localhost')`
 
@@ -219,17 +223,20 @@ Includes reverse-proxy Traefik routing labels:
 When hosting the Colony Manager on a Mini-PC or homelab server managed via Portainer:
 
 ### Step 1: Open Portainer
+
 1. Navigate to your Portainer dashboard (typically `http://<mini-pc-ip>:9000` or `9090`).
 2. Select your environment (e.g. **local**).
 3. Navigate to **Stacks** $\rightarrow$ Click **+ Add stack**.
 
 ### Step 2: Configure Stack
+
 1. **Name**: `colony-manager`
-2. **Build method**: 
+2. **Build method**:
    - **Option A (Web editor)**: Copy and paste the contents of `docker-compose.yml` (or `docker-compose.test.yml`).
    - **Option B (Repository)**: Connect your Git repository URL, specify repository reference (e.g. `refs/heads/main`), and set the Compose path to `docker-compose.yml`.
 
 ### Step 3: Set Environment Variables
+
 In the **Environment variables** section, define:
 
 | Variable | Example Value | Description |
@@ -239,6 +246,7 @@ In the **Environment variables** section, define:
 | `ALLOWED_ORIGINS` | `http://<mini-pc-ip>:3000,http://localhost:3000` | Whitelisted browser origins. |
 
 ### Step 4: Deploy & Verify
+
 1. Click **Deploy the stack**.
 2. Portainer will pull images, execute the multi-stage build, and start both containers.
 3. Verify both `colony-frontend` and `colony-backend` show a green **healthy** status badge.
@@ -251,11 +259,13 @@ In the **Environment variables** section, define:
 If you wish to build or run the frontend container independently:
 
 ### Build Standalone Image
+
 ```bash
 docker build -t wh40k-colony-frontend -f Dockerfile.frontend .
 ```
 
 ### Run Standalone Container
+
 ```bash
 # If running alongside an existing backend container on colony-network:
 docker run -d \
@@ -267,7 +277,9 @@ docker run -d \
 ```
 
 ### Custom API Host at Build Time
+
 If you host the backend on a different domain or CDN without NGINX proxying:
+
 ```bash
 docker build \
   --build-arg VITE_API_BASE_URL="https://api.colony.example.com" \

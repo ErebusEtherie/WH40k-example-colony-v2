@@ -116,8 +116,8 @@ const db: AppDataStore = {
   ],
 };
 
-// Seed default password hash (password: "WarrantOfTrade" or "TestP@ss123")
-const defaultHash = bcrypt.hashSync("WarrantOfTrade", 10);
+// Seed default password hash (password: "TestP@ss123" or "TestP@ss123")
+const defaultHash = bcrypt.hashSync("TestP@ss123", 10);
 db.userPasswords.set("usr-admin-1", defaultHash);
 db.userPasswords.set("usr-manager-1", defaultHash);
 db.userPasswords.set("usr-viewer-1", defaultHash);
@@ -279,7 +279,7 @@ async function startAppServer() {
     const storedHash = db.userPasswords.get(user.id);
     const isValidPass =
       (storedHash && bcrypt.compareSync(password, storedHash)) ||
-      password === "WarrantOfTrade" ||
+      password === "TestP@ss123" ||
       password === "TestP@ss123";
 
     if (!isValidPass) {

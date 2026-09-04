@@ -10,8 +10,6 @@
 #   Backend Direct API:   http://localhost:8001
 #   API Documentation:    http://localhost:8001/docs (or http://localhost:3000/docs)
 
-version: '3.8'
-
 services:
   # ============================================
   # Frontend Application (React SPA + NGINX)

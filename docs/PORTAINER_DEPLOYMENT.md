@@ -48,8 +48,6 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 4. **Paste this stack:**
 
 ```yaml
-version: '3.8'
-
 services:
   backend:
     image: ghcr.io/yourusername/wh40k-colony-manager-backend:latest
@@ -114,8 +112,6 @@ WH40k_Colony_Manager/
 ### Stack File for Git (portainer-stack.yml)
 
 ```yaml
-version: '3.8'
-
 services:
   backend:
     build:

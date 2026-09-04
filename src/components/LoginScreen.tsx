@@ -9,7 +9,7 @@ interface LoginScreenProps {
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [username, setUsername] = useState("LordCaptain");
-  const [password, setPassword] = useState("WarrantOfTrade");
+  const [password, setPassword] = useState("TestP@ss123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,11 +60,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             ROGUE TRADER
           </h1>
           <div className="text-xs font-mono-slate text-[#38bdf8] tracking-widest uppercase">
-            IMPERIAL DATA-SLATE • COLONY MANAGER
+            Administrative Terminal • Rogue Trader Colony Manager
           </div>
-          <p className="text-xs text-[#94a3b8] font-mono-slate">
-            Warrant of Trade Administrative Terminal • Koronus Expanse Domain Registry
-          </p>
         </div>
 
         {/* Login Gothic Box */}
@@ -77,13 +74,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               <h2 className="font-gothic font-bold text-sm tracking-wider text-[#f59e0b] uppercase">
                 SECURITY CLEARANCE & IDENTITY CIPHER
               </h2>
-              <p className="text-xs text-[#94a3b8] font-mono-slate mt-0.5">
-                Acquire JWT Bearer clearance for Colony Cogitator access
-              </p>
-            </div>
-            <div className="flex items-center space-x-1 px-2 py-0.5 rounded bg-[#10b981]/10 border border-[#10b981]/30 text-[10px] font-mono-slate text-[#34d399]">
-              <ShieldCheck className="w-3 h-3 text-[#34d399]" />
-              <span>RBAC SECURED</span>
             </div>
           </div>
 
@@ -157,8 +147,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 disabled={loading}
                 onClick={() => {
                   setUsername("ArchMagos");
-                  setPassword("WarrantOfTrade");
-                  performLogin("ArchMagos", "WarrantOfTrade");
+                  setPassword("TestP@ss123");
+                  performLogin("ArchMagos", "TestP@ss123");
                 }}
                 className="p-2 bg-[#121828] hover:bg-[#1a233a] border border-[#252f44] hover:border-[#f59e0b]/50 rounded text-left transition disabled:opacity-50 cursor-pointer"
               >
@@ -170,9 +160,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     Admin
                   </span>
                 </div>
-                <span className="text-[10px] text-[#94a3b8] font-mono-slate block mt-0.5">
-                  High Tech-Priest
-                </span>
               </button>
 
               <button
@@ -181,8 +168,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 disabled={loading}
                 onClick={() => {
                   setUsername("LordCaptain");
-                  setPassword("WarrantOfTrade");
-                  performLogin("LordCaptain", "WarrantOfTrade");
+                  setPassword("TestP@ss123");
+                  performLogin("LordCaptain", "TestP@ss123");
                 }}
                 className="p-2 bg-[#121828] hover:bg-[#1a233a] border border-[#252f44] hover:border-[#38bdf8]/50 rounded text-left transition disabled:opacity-50 cursor-pointer"
               >
@@ -194,9 +181,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     Colony Manager
                   </span>
                 </div>
-                <span className="text-[10px] text-[#94a3b8] font-mono-slate block mt-0.5">
-                  Alexis Valancius
-                </span>
               </button>
 
               <button
@@ -205,8 +189,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 disabled={loading}
                 onClick={() => {
                   setUsername("Servitor");
-                  setPassword("WarrantOfTrade");
-                  performLogin("Servitor", "WarrantOfTrade");
+                  setPassword("TestP@ss123");
+                  performLogin("Servitor", "TestP@ss123");
                 }}
                 className="p-2 bg-[#121828] hover:bg-[#1a233a] border border-[#252f44] hover:border-[#94a3b8]/50 rounded text-left transition disabled:opacity-50 cursor-pointer"
               >
@@ -218,10 +202,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     Viewer
                   </span>
                 </div>
-                <span className="text-[10px] text-[#94a3b8] font-mono-slate block mt-0.5 flex items-center space-x-1">
-                  <Eye className="w-2.5 h-2.5" />
-                  <span>Read-Only</span>
-                </span>
               </button>
             </div>
           </div>
