@@ -85,7 +85,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
+              <label htmlFor="login-username" className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
                 Dynasty Cipher / Cogitator ID
               </label>
               <input
@@ -100,7 +100,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
+              <label htmlFor="login-password" className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
                 Inquisitorial Seal / Password
               </label>
               <input
