@@ -485,23 +485,23 @@ def revoke_token(
     This endpoint adds the current token to the blacklist, preventing
     further use even if the token hasn't expired yet.
 
-    Note: The client should discard the token after calling this endpoint.
-    The token used to make this request will still be valid for this request
-    but will be blacklisted for future requests.
+    Uses cookie-based authentication for frontend compatibility.
+    The client should discard the token after calling this endpoint.
     """
-    # Get token from request header
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    # Get token from cookie (cookie-based auth for frontend)
+    settings = get_security_settings()
+    access_token = request.cookies.get(settings.cookie_access_token_name)
+    
+    if not access_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Authorization header with Bearer token required",
+            detail="Access token cookie not found",
         )
-
-    token = auth_header[7:]  # Remove "Bearer " prefix
+    
     secret_key = get_jwt_secret_key()
 
     try:
-        auth_service.revoke_token(token, secret_key, reason=revoke_request.reason or "logout")
+        auth_service.revoke_token(access_token, secret_key, reason=revoke_request.reason or "logout")
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
