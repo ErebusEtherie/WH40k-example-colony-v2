@@ -980,7 +980,20 @@ export function useRepresentativeTypes() {
 
 export const apiFetch = async (url: string, options?: RequestInit): Promise<Response> => {
   // Determine if this is a full URL or just a path
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url.startsWith('/api') ? url : '/api/v1' + url}`;
+  // API_BASE_URL already includes '/api/v1', so we need to avoid duplicating it
+  let normalizedUrl = url;
+  
+  // Remove leading '/api/v1' if present, since API_BASE_URL already includes it
+  if (normalizedUrl.startsWith('/api/v1')) {
+    normalizedUrl = normalizedUrl.substring(8); // Remove '/api/v1'
+  }
+  
+  // Ensure the path starts with '/'
+  if (!normalizedUrl.startsWith('/')) {
+    normalizedUrl = '/' + normalizedUrl;
+  }
+  
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${normalizedUrl}`;
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(options?.headers as HeadersInit),
