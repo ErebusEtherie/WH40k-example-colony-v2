@@ -29,9 +29,12 @@ happening.
 
 The infrastructure/upgrade bonus tables, colony-size-to-PF mapping, and
 similar lookup tables (see the "Data" sheet in the reference spreadsheet)
-belong in `config/` as JSON or YAML, loaded at startup into typed structures
+belong in `config/` as **YAML** (confirmed — see `config/colony_types.yaml`
+as the reference example), loaded at startup into typed structures
 (Pydantic models validating the config shape). Do not encode them as
-if/elif chains or scattered numeric literals in the rule engine.
+if/elif chains or scattered numeric literals in the rule engine, and don't
+introduce JSON for new rule tables — YAML is the one format for this
+purpose, for consistency with the existing config files.
 
 Benefits this is meant to protect:
 

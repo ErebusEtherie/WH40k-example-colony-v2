@@ -208,12 +208,32 @@ layer instead.
 
 ## Auth & Session
 
-**Confirmed: cookie-based authentication (HttpOnly cookies), Bearer-header
-auth is being phased out.** The backend currently exposes both (see
-`get_current_user`, `get_current_user_from_cookie`, and the migration-
-compat `get_current_user_unified` in `auth.py`) — the frontend targets the
-cookie flow only and must not be built around Bearer tokens, even though
-the backend hasn't fully removed that path yet.
+**Confirmed: cookie-based authentication (HttpOnly cookies) only. Bearer
+auth is being removed entirely, not gradually phased out.** Do not write
+any FE code that reads, stores, or attaches a Bearer token — no
+`Authorization: Bearer ...` header anywhere in the frontend, including in
+one-off scripts, debug tooling, or Swagger-style manual testing helpers
+committed to the repo.
+
+**Backend follow-up this depends on, flagged for whoever owns `auth.py`
+and the OpenAPI schema (not something the frontend rules can enforce on
+their own):** as of the last reviewed `openapi.json`, protected endpoints
+still declare a global `HTTPBearer` security requirement, and `auth.py`
+still defines `get_current_user` (Bearer-only) and `get_current_user_unified`
+(Bearer-or-cookie fallback) alongside the cookie-only path. For "Bearer
+removed" to actually be true rather than aspirational:
+- `get_current_user` and `get_current_user_unified` should be deleted, not
+  just unused — a live Bearer-accepting code path is a live attack surface
+  even if nothing currently calls it intentionally.
+- The `HTTPBearer` security scheme and the global `security: [{"HTTPBearer": []}]`
+  requirement should come out of the OpenAPI schema once no route actually
+  depends on it, so the documented contract matches reality.
+- Confirm (this is currently unverified) whether `/auth/login` and
+  `/auth/refresh` still return `access_token`/`refresh_token` in the JSON
+  response body in addition to setting cookies. If they do, that's a
+  residual Bearer-shaped attack surface even after the header path is
+  removed — anything in the body is JS-reachable the instant the FE reads
+  the response, regardless of what the FE chooses to do with it.
 
 ### Why cookie-based is the safer choice here
 
@@ -269,32 +289,31 @@ workspace applies to this project too — ignore if not relevant here.)
   everywhere"), then invalidates the session query — don't just clear FE
   state and assume the server-side session is gone.
 
-### CSRF — required because cookies auto-attach
+### CSRF — required because cookies auto-attach, and now implemented
 
 Moving to cookies reintroduces CSRF, which Bearer-in-header doesn't have
 (a forged cross-site request can't set a custom header, but it can trigger
-a cookie-bearing request). Defense, layered:
+a cookie-bearing request). The backend now exposes
+`GET /api/v1/auth/csrf-token`, confirmed to implement the double-submit
+pattern: it sets a non-HttpOnly, JS-readable cookie containing the CSRF
+token. Frontend rule:
 
-1. **`SameSite=Lax` or `Strict`, `Secure`, `HttpOnly`** on both the access
-   and refresh cookies — backend-side, but the FE should confirm this is
-   actually set (check `Set-Cookie` in a login response) rather than
-   assume it.
-2. **Explicit non-wildcard CORS origin + `allow_credentials=True`** on the
-   backend — this is already required per "Environment & Configuration"
-   below, and is a hard requirement once cookies are in play: browsers
-   reject credentialed requests against a wildcard origin outright.
-3. **Require a custom header on all mutating requests** (e.g. sending
-   `Content-Type: application/json`, which already forces a CORS preflight
-   for real cross-site requests) as a cheap extra layer — a forged
-   cross-site form submission can't add custom headers or trigger a
-   preflight the way a legitimate same-origin `fetch` call does.
-4. **Open item for backend, not FE:** whether a double-submit CSRF token
-   (a second, JS-readable cookie whose value the FE echoes back as a
-   header on mutating requests, validated server-side) is added on top of
-   1–3. Layers 1–3 already cover the realistic threat model for this app;
-   a double-submit token is stronger defense-in-depth but is the backend's
-   call to add, not something to build FE-side speculatively. Flag it as a
-   question for whoever owns `auth.py`, don't implement it preemptively.
+1. On session start (or before the first mutating request if no session
+   exists yet), call `/auth/csrf-token` once so the CSRF cookie is set.
+2. Read the CSRF cookie's value and echo it as an `X-CSRF-Token` header on
+   every state-changing request (`POST`/`PUT`/`PATCH`/`DELETE`) — this
+   should live in the same shared request layer that already attaches
+   `credentials: 'include'`, not be added per-feature.
+3. `SameSite=Lax` or `Strict`, `Secure`, `HttpOnly` on the actual
+   session/refresh cookies, and explicit non-wildcard CORS with
+   `allow_credentials=True` (per "Environment & Configuration" below),
+   remain required alongside this — the CSRF token is one layer, not a
+   replacement for the others.
+4. If a mutating request 403s specifically due to a missing/invalid CSRF
+   token (should be distinguishable from a plain 401), the shared error
+   handler should re-fetch `/auth/csrf-token` once and retry, the same
+   pattern as the 401-refresh flow — don't require every feature to
+   reimplement this.
 
 ### Two separate role concepts — don't conflate them
 
@@ -405,11 +424,12 @@ isn't earning its abstraction yet.
 
 ## Do not invent UI/UX behavior
 
-If a screen's behavior isn't specified in `UI_VISUALIZATION_PROMPT_v3.md`
-(or explicitly stated by the GM/Erebus), don't guess a plausible-looking
-interaction, validation rule, or copy string — this is the same principle
-as `02-domain-modeling.md`'s "do not invent game rules," applied to the UI
-layer. Ask, or flag the gap explicitly, rather than filling it in silently.
+If a screen's behavior isn't explicitly specified by the GM/Erebus (in a
+shared spec, a prior conversation, or an existing reference screen), don't
+guess a plausible-looking interaction, validation rule, or copy string —
+this is the same principle as `02-domain-modeling.md`'s "do not invent
+game rules," applied to the UI layer. Ask, or flag the gap explicitly,
+rather than filling it in silently.
 
 ## What NOT to do
 

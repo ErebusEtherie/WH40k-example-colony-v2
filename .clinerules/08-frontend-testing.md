@@ -100,13 +100,73 @@ Mitigation, per the type-generation approach in
 - Don't let MSW handler shapes diverge from the generated API types without
   it being visible at type-check time.
 
+## End-to-end testing — confirmed: Playwright
+
+**Confirmed: Playwright is in scope**, specifically for what component
+tests (RTL + MSW) and backend tests structurally cannot cover: real
+browser behavior against the real backend, particularly around cookies,
+CORS, and CSRF — none of which MSW's mocked network layer exercises
+meaningfully, since MSW intercepts before a real cookie/CORS negotiation
+ever happens.
+
+### What belongs in E2E vs. component tests
+
+The same risk-based principle as everywhere else in this rule set: E2E is
+expensive to write and run, so it's reserved for what actually needs a
+real browser + real backend, not used as a second, slower copy of the
+component test suite.
+
+**High priority for E2E — auth/security flows, given the project's safety
+priority:**
+
+- Full login → authenticated request → logout round-trip against the real
+  backend, confirming the session cookie is actually set `HttpOnly`,
+  `Secure`, and with the expected `SameSite` value (inspectable via
+  Playwright's cookie APIs, not achievable through a mocked request).
+- CSRF: a mutating request without a valid `X-CSRF-Token` is rejected by
+  the real backend; a request with a valid one succeeds. MSW can't
+  validate this because MSW doesn't run the backend's actual CSRF check —
+  this is the one test in the whole suite that can catch a real
+  CSRF-protection regression before it reaches production.
+- Session expiry and the 401-triggers-one-refresh flow (per "Auth &
+  Session" in `07-frontend-architecture.md`), including the concurrent-401
+  case, against real token expiry timing — not just the FE's own retry
+  logic in isolation.
+- Logout/revoke actually invalidates the session server-side (a second
+  request after logout, using the same browser context, is rejected).
+- Cross-origin/CORS behavior in a real browser, if the deployed frontend
+  and backend are ever on different origins — this is exactly the kind of
+  thing that "works in dev, breaks in prod" if only unit/component-tested.
+
+**Medium priority — critical user flows, not exhaustive coverage:**
+
+- One or two representative "GM does a full session's worth of colony
+  updates" happy-path flows, covering the most-used screens end to end.
+- Not every CRUD screen — that's what component + backend tests already
+  cover; E2E here is about catching integration wiring mistakes, not
+  re-verifying business logic already tested elsewhere.
+
+**Not E2E's job:**
+
+- Don't re-verify game rule correctness end-to-end — that's the backend's
+  job (`04-testing-strategy.md`) and, one layer up, the component tests'
+  job to confirm the FE renders what the API returns correctly (the risk
+  table above). E2E confirms the whole stack is wired together correctly,
+  not that the math is right.
+- Don't use E2E as a substitute for fixing a flaky/ambiguous component
+  test — if a component test needs `waitFor`/timeouts to pass reliably,
+  fix that test, don't route around it with a slower E2E equivalent.
+
+### Where E2E tests live and run
+
+Not yet decided: exact directory structure, CI trigger (every PR vs.
+nightly, given Playwright suites are slower than component tests), and
+whether they run against a fully seeded test database or an ephemeral one
+per run. Flag this explicitly and confirm before scaffolding the first E2E
+test rather than picking a structure silently.
+
 ## Open items
 
-- **End-to-end testing.** Not yet decided: whether E2E (Playwright or
-  similar) is in scope for this project, and if so, what it covers that
-  component tests + backend tests don't already. Flagging rather than
-  assuming a tool/scope — needs a decision before this section can be
-  filled in.
 - **Full contract testing.** Not yet decided: whether a live
   schema-validation step (MSW fixtures vs. running backend's OpenAPI
   schema, in CI) is worth adding beyond the type-level safeguard above.

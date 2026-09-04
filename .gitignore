@@ -255,6 +255,11 @@ build/
 coverage/
 .vitest/
 
+# E2E Testing - Playwright
+e2e/.auth/
+playwright-report/
+test-results/
+
 # Frontend - Environment files (Vite convention)
 .env.local
 .env.*.local
