@@ -4,10 +4,9 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
 from slowapi.errors import RateLimitExceeded
 
 from colony_manager.adapters.api import dependencies
@@ -46,19 +45,11 @@ logger = logging.getLogger(__name__)
 # API version prefix constant
 API_V1_PREFIX = "/api/v1"
 
-# Security scheme for JWT Bearer token authentication
-# Note: auto_error=False allows us to handle missing/invalid tokens gracefully
-security = HTTPBearer(
-    scheme_name="JWT",
-    description="Enter your JWT access token. Do not include 'Bearer' prefix.",
-    auto_error=False,
-)
-
 
 def get_swagger_ui_html(*, openapi_url: str, title: str) -> str:
-    """Custom Swagger UI HTML with proper Bearer token handling.
+    """Custom Swagger UI HTML with cookie-based authentication support.
     
-    This ensures the Authorization header is sent with requests.
+    The UI uses persistAuthorization to maintain auth state across requests.
     """
     return f"""
     <!DOCTYPE html>
@@ -188,25 +179,18 @@ endpoints will automatically use your token.
     original_openapi = app.openapi
 
     def custom_openapi() -> dict[str, object]:
-        """Customize OpenAPI schema with JWT security scheme."""
+        """Customize OpenAPI schema for cookie-based authentication.
+
+        Note: Cookie-based auth doesn't require OpenAPI security schemes
+        since cookies are automatically sent by the browser.
+        """
         if app.openapi_schema:
             return app.openapi_schema
 
         openapi_schema = original_openapi()
 
-        # Add JWT Bearer security scheme
-        openapi_schema["components"]["securitySchemes"] = {
-            "HTTPBearer": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT",
-                "description": "Enter your JWT access token (obtained from /auth/login endpoint). Do not include 'Bearer' prefix.",
-            }
-        }
-
-        # Apply security requirement globally (can be overridden per-endpoint)
-        # Note: Auth endpoints don't require auth, so they override this
-        openapi_schema["security"] = [{"HTTPBearer": []}]
+        # No security schemes needed for cookie-based auth
+        # Cookies are automatically sent by browsers
 
         app.openapi_schema = openapi_schema
         return openapi_schema
@@ -254,7 +238,7 @@ endpoints will automatically use your token.
     app.include_router(users_router, prefix=API_V1_PREFIX)
     app.include_router(config_router, prefix=API_V1_PREFIX)
 
-    # Custom Swagger UI route with proper Bearer token handling
+    # Custom Swagger UI route with cookie-based auth support
     @app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
         """Serve custom Swagger UI with proper JWT Bearer authentication support."""
@@ -270,6 +254,14 @@ endpoints will automatically use your token.
         )
 
     # Exception handlers
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+        """Handle HTTP exceptions from middleware and routes."""
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail, "path": request.url.path},
+        )
+
     @app.exception_handler(NotFoundError)
     async def not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
         return JSONResponse(

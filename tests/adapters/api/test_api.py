@@ -80,7 +80,7 @@ def test_advance_colony_age(auth_client):
     response = auth_client.post("/api/v1/colonies", json=create_data)
     colony_id = response.json()["id"]
 
-    response = auth_client.post(f"/api/v1/colonies/{colony_id}/age", params={"age_days": 30})
+    response = auth_client.post(f"/api/v1/colonies/{colony_id}/age", json={"add": 30})
     assert response.status_code == 200
     assert response.json()["age_days"] == 30
 

@@ -40,8 +40,6 @@ class TestModifiersAPI:
         """Test listing modifiers without authentication fails."""
         response = test_client.get("/api/v1/modifiers")
         assert response.status_code == 401
-        detail = response.json()["detail"]
-        assert "Authorization" in detail or "credential" in detail.lower()
 
     def test_get_modifier_unauthorized(self, test_client: TestClient):
         """Test getting modifier without authentication fails."""

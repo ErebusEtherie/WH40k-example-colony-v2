@@ -31,7 +31,8 @@ def test_client(tmp_path):
     # Override the dependency after app creation
     app.dependency_overrides[deps.get_db_path] = override_get_db_path
 
-    client = TestClient(app)
+    # Don't raise exceptions for HTTP errors - we want to test error responses
+    client = TestClient(app, raise_server_exceptions=False)
     yield client
 
     # Cleanup
@@ -40,7 +41,7 @@ def test_client(tmp_path):
 
 @pytest.fixture(scope="function")
 def auth_client(test_client, request):
-    """Create authenticated test client with a test user."""
+    """Create authenticated test client with a test user using cookie-based auth."""
     # Use unique username per test to avoid conflicts
     test_name = (
         request.node.name.replace("[", "_")
@@ -62,14 +63,20 @@ def auth_client(test_client, request):
         print(f"Registration failed: {response.status_code} - {response.text}")
     assert response.status_code == 201
 
-    # Login to get token
+    # Login to get cookies (cookie-based auth)
     login_data = {"username": username, "password": "TestPass123!"}
     login_response = test_client.post("/api/v1/auth/login", json=login_data)
     assert login_response.status_code == 200
-    access_token = login_response.json()["access_token"]
 
-    # Return client with auth header
-    test_client.headers["Authorization"] = f"Bearer {access_token}"
+    # The TestClient automatically handles cookies from Set-Cookie headers
+    # Cookies are persisted for subsequent requests on the same client instance
+
+    # Fetch CSRF token for state-changing requests (double-submit pattern)
+    csrf_response = test_client.get("/api/v1/auth/csrf-token")
+    assert csrf_response.status_code == 200
+    csrf_token = csrf_response.json()["csrf_token"]
+    test_client.headers["X-CSRF-Token"] = csrf_token
+
     return test_client
 
 

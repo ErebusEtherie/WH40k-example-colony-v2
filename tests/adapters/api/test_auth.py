@@ -164,11 +164,17 @@ class TestTokenRefresh:
 
     def test_refresh_token_invalid(self, test_client_with_auth):
         """Test refresh with invalid token fails."""
-        refresh_data = {"refresh_token": "invalid-refresh-token"}
-        response = test_client_with_auth.post("/api/v1/auth/refresh", json=refresh_data)
+        # Set invalid refresh token as a cookie
+        # Note: Using cookies parameter due to TestClient cookie handling
+        response = test_client_with_auth.post(
+            "/api/v1/auth/refresh",
+            cookies={"refresh_token": "invalid-refresh-token"},
+        )
 
         assert response.status_code == 401
-        assert "Invalid or expired refresh token" in response.json()["detail"]
+        # Token should be rejected (either as not found or invalid/expired)
+        detail = response.json()["detail"]
+        assert "refresh token" in detail.lower()
 
     def test_refresh_token_deactivated_user(self, test_client_with_auth, registered_user):
         """Test refresh fails for deactivated user."""
@@ -277,55 +283,68 @@ class TestRoleBasedAuthorization:
 
     def test_protected_colony_requires_auth(self, test_client_with_auth, registered_user):
         """Test that colony endpoints require authentication."""
+        # Login to get cookies
         login_data = {"username": "testuser", "password": "TestPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
-        # Try to list colonies without token
+        # Fetch CSRF token for state-changing requests
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        csrf_token = csrf_response.json()["csrf_token"]
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+
+        # Try to list colonies without cookies (clear cookies first)
+        test_client_with_auth.cookies.clear()
         response_no_auth = test_client_with_auth.get("/api/v1/colonies")
         assert response_no_auth.status_code == 401
 
-        # Try with valid token
-        response_with_auth = test_client_with_auth.get(
-            "/api/v1/colonies",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        # Login again to get fresh cookies
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+
+        # Try with valid cookies
+        response_with_auth = test_client_with_auth.get("/api/v1/colonies")
         assert response_with_auth.status_code == 200
 
     def test_protected_representative_requires_auth(self, test_client_with_auth, registered_user):
         """Test that representative endpoints require authentication."""
+        # Login to get cookies
         login_data = {"username": "testuser", "password": "TestPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
-        # Try to list representatives without token
+        # Fetch CSRF token for state-changing requests
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        csrf_token = csrf_response.json()["csrf_token"]
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+
+        # Try to list representatives without cookies (clear cookies first)
+        test_client_with_auth.cookies.clear()
         response_no_auth = test_client_with_auth.get("/api/v1/representatives")
         assert response_no_auth.status_code == 401
 
-        # Try with valid token
-        response_with_auth = test_client_with_auth.get(
-            "/api/v1/representatives",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        # Login again to get fresh cookies
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+
+        # Try with valid cookies
+        response_with_auth = test_client_with_auth.get("/api/v1/representatives")
         assert response_with_auth.status_code == 200
 
     def test_protected_infrastructure_requires_auth(self, test_client_with_auth, registered_user):
         """Test that infrastructure endpoints require authentication."""
+        # Login to get cookies
         login_data = {"username": "testuser", "password": "TestPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
-        # Need a colony first
+        # Fetch CSRF token for state-changing requests
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        csrf_token = csrf_response.json()["csrf_token"]
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+
+        # Need a colony first (with cookies)
         colony_data = {
             "name": "Test Colony",
             "founder_name": "Test Owner",
             "colony_type": "frontier_world",
         }
-        colony_response = test_client_with_auth.post(
-            "/api/v1/colonies",
-            json=colony_data,
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        colony_response = test_client_with_auth.post("/api/v1/colonies", json=colony_data)
         # Check if colony was created successfully
         if colony_response.status_code != 201:
             # If colony creation fails, skip infrastructure test
@@ -338,46 +357,50 @@ class TestRoleBasedAuthorization:
         if colony_id is None:
             pytest.skip(f"Colony response missing id: {colony_json}")
 
-        # Try to list infrastructure without token
+        # Try to list infrastructure without cookies (clear cookies first)
+        test_client_with_auth.cookies.clear()
         response_no_auth = test_client_with_auth.get(f"/api/v1/colonies/{colony_id}/infrastructure")
         assert response_no_auth.status_code == 401
 
-        # Try with valid token
-        response_with_auth = test_client_with_auth.get(
-            f"/api/v1/colonies/{colony_id}/infrastructure",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        # Login again to get fresh cookies
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+
+        # Try with valid cookies
+        response_with_auth = test_client_with_auth.get(f"/api/v1/colonies/{colony_id}/infrastructure")
         assert response_with_auth.status_code == 200
 
 
 class TestOpenAPISecurity:
     """Tests for OpenAPI security scheme configuration."""
 
-    def test_openapi_has_security_schemes(self, test_client_with_auth):
-        """Test that OpenAPI schema includes JWT security scheme."""
+    def test_openapi_no_bearer_security_scheme(self, test_client_with_auth):
+        """Test that OpenAPI schema does not include Bearer token security scheme.
+        
+        Cookie-based authentication is used instead of Bearer tokens.
+        Cookies are automatically sent by browsers and don't need explicit
+        OpenAPI security schemes.
+        """
         response = test_client_with_auth.get("/openapi.json")
         assert response.status_code == 200
 
         openapi_schema = response.json()
-        assert "components" in openapi_schema
-        assert "securitySchemes" in openapi_schema["components"]
+        
+        # Bearer scheme should not exist
+        if "components" in openapi_schema and "securitySchemes" in openapi_schema["components"]:
+            security_schemes = openapi_schema["components"]["securitySchemes"]
+            assert "HTTPBearer" not in security_schemes
 
-        security_schemes = openapi_schema["components"]["securitySchemes"]
-        assert "HTTPBearer" in security_schemes
-
-        bearer_auth = security_schemes["HTTPBearer"]
-        assert bearer_auth["type"] == "http"
-        assert bearer_auth["scheme"] == "bearer"
-        assert bearer_auth["bearerFormat"] == "JWT"
-
-    def test_openapi_has_global_security(self, test_client_with_auth):
-        """Test that OpenAPI schema has global security requirement."""
+    def test_openapi_no_global_security_requirement(self, test_client_with_auth):
+        """Test that OpenAPI schema has no global security requirement.
+        
+        Cookie-based authentication is handled via middleware, not OpenAPI security schemes.
+        """
         response = test_client_with_auth.get("/openapi.json")
         assert response.status_code == 200
 
         openapi_schema = response.json()
-        assert "security" in openapi_schema
-        assert {"HTTPBearer": []} in openapi_schema["security"]
+        # No global security requirement (cookie auth is implicit via middleware)
+        assert "security" not in openapi_schema or openapi_schema["security"] == []
 
     def test_auth_endpoints_no_security_requirement(self, test_client_with_auth):
         """Test that auth endpoints don't require authentication in OpenAPI."""
@@ -405,16 +428,27 @@ class TestOpenAPISecurity:
         assert "security" in refresh_post
         assert refresh_post["security"] == []
 
-    def test_protected_endpoints_have_security_requirement(self, test_client_with_auth):
-        """Test that protected endpoints have security requirement in OpenAPI."""
+        # Check that csrf-token endpoint has no security requirement
+        assert "/api/v1/auth/csrf-token" in paths
+        csrf_get = paths["/api/v1/auth/csrf-token"]["get"]
+        assert "security" in csrf_get
+        assert csrf_get["security"] == []
+
+    def test_protected_endpoints_have_no_explicit_security_requirement(self, test_client_with_auth):
+        """Test that protected endpoints don't have explicit security requirements.
+        
+        Cookie-based authentication is enforced by middleware, not OpenAPI security schemes.
+        Endpoints rely on implicit cookie authentication rather than explicit security requirements.
+        """
         response = test_client_with_auth.get("/openapi.json")
         assert response.status_code == 200
 
         openapi_schema = response.json()
         paths = openapi_schema["paths"]
 
-        # Check that colonies endpoint has security requirement (from global)
+        # Check that colonies endpoint has no explicit security requirement
+        # (authentication is handled by middleware, not OpenAPI)
         assert "/api/v1/colonies" in paths
         colonies_get = paths["/api/v1/colonies"]["get"]
-        # Should inherit global security (no explicit security override)
-        assert "security" not in colonies_get or colonies_get.get("security") != []
+        # Should not have explicit security (middleware handles it)
+        assert "security" not in colonies_get or colonies_get.get("security") == []

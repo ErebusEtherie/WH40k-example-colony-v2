@@ -26,12 +26,33 @@ def test_client_with_auth(tmp_path: Path):
     os.environ["JWT_SECRET_KEY"] = TEST_JWT_SECRET
 
     import colony_manager.adapters.api.dependencies as deps
+    from colony_manager.adapters.api.dependencies import init_rule_config_provider
 
+    # Initialize rule config provider (normally done in lifespan)
+    init_rule_config_provider()
+    
     init_db(db_path)
     app = create_app()
     app.dependency_overrides[deps.get_db_path] = lambda: db_path
 
     client = TestClient(app)
+    
+    # Login to get cookies (cookie-based auth)
+    login_data = {"username": "testuser", "password": "TestPass123!"}
+    # First register the user
+    register_data = {
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "TestPass123!",
+    }
+    client.post("/api/v1/auth/register", json=register_data)
+    client.post("/api/v1/auth/login", json=login_data)
+    
+    # Fetch CSRF token for state-changing requests (double-submit pattern)
+    csrf_response = client.get("/api/v1/auth/csrf-token")
+    csrf_token = csrf_response.json()["csrf_token"]
+    client.headers["X-CSRF-Token"] = csrf_token
+    
     yield client
 
     app.dependency_overrides.clear()
@@ -42,7 +63,8 @@ def test_client_with_auth(tmp_path: Path):
 
 @pytest.fixture
 def admin_user(test_client_with_auth):
-    """Create an admin user."""
+    """Create an admin user and return the client with auth cookies."""
+    # Register admin user
     register_data = {
         "username": "admin_user",
         "email": "admin@example.com",
@@ -51,15 +73,23 @@ def admin_user(test_client_with_auth):
     }
     response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
     assert response.status_code == 201
+    
+    # Login to get cookies (this will replace the testuser cookies)
     login_data = {"username": "admin_user", "password": "AdminPass123!"}
-    login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-    assert login_response.status_code == 200
-    return login_response.json()["access_token"]
+    test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+    
+    # Refresh CSRF token for the new session
+    csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+    csrf_token = csrf_response.json()["csrf_token"]
+    test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+    
+    return test_client_with_auth
 
 
 @pytest.fixture
 def regular_user(test_client_with_auth):
-    """Create a regular colony_manager user."""
+    """Create a regular colony_manager user and return the client with auth cookies."""
+    # Register regular user
     register_data = {
         "username": "regular_user",
         "email": "regular@example.com",
@@ -68,10 +98,17 @@ def regular_user(test_client_with_auth):
     }
     response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
     assert response.status_code == 201
+    
+    # Login to get cookies
     login_data = {"username": "regular_user", "password": "RegularPass123!"}
-    login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-    assert login_response.status_code == 200
-    return login_response.json()["access_token"]
+    test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+    
+    # Refresh CSRF token for the new session
+    csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+    csrf_token = csrf_response.json()["csrf_token"]
+    test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+    
+    return test_client_with_auth
 
 
 class TestAuthenticationRequired:
@@ -79,19 +116,19 @@ class TestAuthenticationRequired:
 
     def test_colony_list_requires_auth(self, test_client_with_auth):
         """Unauthenticated users cannot list colonies."""
-        test_client_with_auth.headers.pop("Authorization", None)
+        test_client_with_auth.cookies.clear()
         response = test_client_with_auth.get("/api/v1/colonies")
         assert response.status_code == 401
 
     def test_colony_detail_requires_auth(self, test_client_with_auth, colony):
         """Unauthenticated users cannot view colony details."""
-        test_client_with_auth.headers.pop("Authorization", None)
+        test_client_with_auth.cookies.clear()
         response = test_client_with_auth.get(f"/api/v1/colonies/{colony['id']}")
         assert response.status_code == 401
 
     def test_infrastructure_list_requires_auth(self, test_client_with_auth, colony):
         """Unauthenticated users cannot list infrastructure."""
-        test_client_with_auth.headers.pop("Authorization", None)
+        test_client_with_auth.cookies.clear()
         response = test_client_with_auth.get(f"/api/v1/colonies/{colony['id']}/infrastructure")
         assert response.status_code == 401
 
@@ -106,7 +143,7 @@ class TestColonyMembershipEnforcement:
         may allow access - this test will pass when permission enforcement
         is fully implemented.
         """
-        test_client_with_auth.headers["Authorization"] = f"Bearer {regular_user}"
+        # regular_user fixture already set up cookies
         response = test_client_with_auth.get(f"/api/v1/colonies/{colony['id']}")
         # Expected: 403 or 404 when permission enforcement is complete
         # Current: May return 200 if enforcement not yet implemented
@@ -114,7 +151,7 @@ class TestColonyMembershipEnforcement:
 
     def test_user_cannot_modify_stranger_colony(self, test_client_with_auth, regular_user, colony):
         """Regular users cannot modify colonies they don't belong to."""
-        test_client_with_auth.headers["Authorization"] = f"Bearer {regular_user}"
+        # regular_user fixture already set up cookies
         infra_data = {"infrastructure_type": "habitation_block", "state": "planned"}
         response = test_client_with_auth.post(
             f"/api/v1/colonies/{colony['id']}/infrastructure",
@@ -125,7 +162,7 @@ class TestColonyMembershipEnforcement:
 
     def test_admin_can_access_any_colony(self, test_client_with_auth, admin_user, colony):
         """Admin users bypass colony membership restrictions."""
-        test_client_with_auth.headers["Authorization"] = f"Bearer {admin_user}"
+        # admin_user fixture already set up cookies
         response = test_client_with_auth.get(f"/api/v1/colonies/{colony['id']}")
         assert response.status_code in (200, 403)
 
@@ -135,7 +172,7 @@ class TestColonyRolePermissions:
 
     def test_owner_can_edit_colony(self, test_client_with_auth, colony_owner, colony):
         """Colony Owner can modify colony data."""
-        test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
+        # colony_owner fixture already set up cookies
         infra_data = {"infrastructure_type": "habitation_block", "state": "planned"}
         response = test_client_with_auth.post(
             f"/api/v1/colonies/{colony['id']}/infrastructure",
@@ -145,7 +182,7 @@ class TestColonyRolePermissions:
 
     def test_owner_can_delete_colony(self, test_client_with_auth, colony_owner):
         """Colony Owner can delete their colony."""
-        test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
+        # colony_owner fixture already set up cookies
         create_data = {
             "name": "Delete Test",
             "founder_name": "Owner",
@@ -165,7 +202,7 @@ class TestCrossColonyIsolation:
         self, test_client_with_auth, colony_owner, colony
     ):
         """Users cannot access infrastructure in colonies they don't own."""
-        test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
+        # colony_owner fixture already set up cookies
         create_data = {"name": "Second Colony", "founder_name": "Owner", "colony_type": "research_mission"}
         response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
         assert response.status_code == 201
@@ -188,10 +225,13 @@ class TestCrossColonyIsolation:
             }
             test_client_with_auth.post("/api/v1/auth/register", json=register_data)
             login_data = {"username": "other_user", "password": "OtherPass123!"}
-            login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-            other_token = login_response.json()["access_token"]
+            test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+            
+            # Refresh CSRF token for the new session
+            csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+            csrf_token = csrf_response.json()["csrf_token"]
+            test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
 
-            test_client_with_auth.headers["Authorization"] = f"Bearer {other_token}"
             response = test_client_with_auth.get(
                 f"/api/v1/colonies/{second_colony_id}/infrastructure/{infra_id}"
             )
@@ -201,7 +241,7 @@ class TestCrossColonyIsolation:
 
 @pytest.fixture
 def colony_owner(test_client_with_auth):
-    """Create a colony owner user."""
+    """Create a colony owner user and set up cookies."""
     register_data = {
         "username": "colony_owner",
         "email": "owner@example.com",
@@ -211,15 +251,20 @@ def colony_owner(test_client_with_auth):
     response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
     assert response.status_code == 201
     login_data = {"username": "colony_owner", "password": "OwnerPass123!"}
-    login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-    assert login_response.status_code == 200
-    return login_response.json()["access_token"]
+    test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+    
+    # Refresh CSRF token for the new session
+    csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+    csrf_token = csrf_response.json()["csrf_token"]
+    test_client_with_auth.headers["X-CSRF-Token"] = csrf_token
+    
+    return test_client_with_auth
 
 
 @pytest.fixture
 def colony(test_client_with_auth, colony_owner):
     """Create a colony owned by colony_owner."""
-    test_client_with_auth.headers["Authorization"] = f"Bearer {colony_owner}"
+    # colony_owner fixture already set up cookies
     create_data = {"name": "Test Colony", "founder_name": "Owner", "colony_type": "agricultural"}
     response = test_client_with_auth.post("/api/v1/colonies", json=create_data)
     assert response.status_code == 201

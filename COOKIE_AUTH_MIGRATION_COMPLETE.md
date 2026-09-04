@@ -38,10 +38,17 @@ Successfully migrated WH40k Colony Manager from localStorage-based authenticatio
 #### 5. Added Cookie-Based Auth Dependencies
 
 - **File:** `src/colony_manager/adapters/api/middleware/auth.py`
-- `get_current_user_from_cookie()` - reads access token from cookie
-- `get_current_user_unified()` - tries cookie first, then Bearer header (for migration flexibility)
+- `get_current_user_from_cookie()` - reads access token from HttpOnly cookie
 
-#### 6. Updated All Protected Endpoints
+#### 6. Removed Bearer Token Auth (Migration Complete)
+
+- **File:** `src/colony_manager/adapters/api/middleware/auth.py`
+- Removed `get_current_user()` - Bearer header-based auth
+- Removed `get_current_user_unified()` - hybrid auth (no longer needed)
+- Removed `HTTPBearer` and `HTTPAuthorizationCredentials` imports
+- Removed `security = HTTPBearer(...)` scheme definition
+
+#### 7. Updated All Protected Endpoints
 
 - **Files:** All router files in `src/colony_manager/adapters/api/routers/`
 - Replaced `get_current_user` with `get_current_user_from_cookie` in 21 locations
