@@ -229,10 +229,10 @@ export function App() {
 
     // Call backend endpoint to increment age for all colonies
     if (currentColony) {
-      apiFetch(`/api/v1/colonies/${currentColony.id}/advance-age`, {
+      apiFetch(`/api/v1/colonies/${currentColony.id}/age`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quarters: 1 }),
+        body: JSON.stringify({ add: 90 }), // 1 quarter = 90 days
       })
         .then((res) => res.json())
         .then((updated) => {
@@ -261,10 +261,10 @@ export function App() {
       )
     );
 
-    apiFetch(`/api/v1/colonies/${currentColony.id}/advance-age`, {
+    apiFetch(`/api/v1/colonies/${currentColony.id}/age`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ days }),
+      body: JSON.stringify({ add: days }),
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((updated) => {

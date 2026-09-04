@@ -344,75 +344,33 @@ async def get_colony_state(
     return _build_state_nested(state)
 
 
-@router.post("/{colony_id}/age", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}})
-async def advance_colony_age(
+@router.post("/{colony_id}/age", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}, 400: {"description": "Invalid age operation"}})
+async def manage_colony_age(
     colony_id: int,
     age_request: ColonyAgeAdvance,
     current_user: Annotated[User, Depends(require_colony_permission("edit"))],
     service: Annotated[ColonyService, Depends(get_colony_service)],
 ) -> ColonyResponse:
-    """Advance colony age.
+    """Manage colony age.
+    
+    Supports three operations:
+    - add: Add days to current age (use negative values to decrease)
+    - set: Set age to a specific value
+    - subtract: Subtract days from current age
     
     Args:
-        colony_id: The ID of the colony to advance.
-        age_request: Request body containing the number of days to advance.
+        colony_id: The ID of the colony to update.
+        age_request: Request body containing the age operation.
         
     Raises:
-        HTTPException: 404 if colony not found.
+        HTTPException: 404 if colony not found, 400 if invalid operation.
     """
     _check_colony_exists(service, colony_id)
     try:
-        days_to_advance = age_request.get_days()
-        updated = service.update_age(colony_id, days_to_advance)
-    except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    state = service.get_state(colony_id)
-    return ColonyResponse(
-        id=updated.id,
-        name=updated.name,
-        founder_name=updated.founder_name,
-        patron_name=updated.patron_name,
-        colony_type=updated.colony_type,
-        age_days=updated.age_days,
-        age_last_updated=updated.age_last_updated,
-        current_event=updated.current_event,
-        base_complacency=updated.base_complacency,
-        base_order=updated.base_order,
-        base_productivity=updated.base_productivity,
-        base_piety=updated.base_piety,
-        base_size=updated.base_size,
-        representative_id=updated.representative_id,
-        dynasty_outcome=updated.dynasty_outcome,
-        complacency_locked=updated.complacency_locked,
-        order_locked=updated.order_locked,
-        productivity_locked=updated.productivity_locked,
-        planetary_resources=updated.planetary_resources,
-        state=_build_state_nested(state),
-    )
-
-
-@router.post("/{colony_id}/advance-age", response_model=ColonyResponse, responses={404: {"description": "Colony not found"}})
-async def advance_colony_age_legacy(
-    colony_id: int,
-    age_request: ColonyAgeAdvance,
-    current_user: Annotated[User, Depends(require_colony_permission("edit"))],
-    service: Annotated[ColonyService, Depends(get_colony_service)],
-) -> ColonyResponse:
-    """Advance colony age (legacy endpoint alias for /age).
-    
-    Args:
-        colony_id: The ID of the colony to advance.
-        age_request: Request body containing the number of days to advance.
-        
-    Raises:
-        HTTPException: 404 if colony not found.
-    """
-    _check_colony_exists(service, colony_id)
-    try:
-        days_to_advance = age_request.get_days()
-        updated = service.update_age(colony_id, days_to_advance)
+        # Get current colony state to calculate new age
+        colony = service.get(colony_id)
+        new_age = age_request.get_days_delta(colony.age_days)
+        updated = service.update_age(colony_id, new_age)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except ValueError as e:
