@@ -4,7 +4,7 @@ This middleware validates CSRF tokens on state-changing requests to prevent
 Cross-Site Request Forgery attacks.
 """
 
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 

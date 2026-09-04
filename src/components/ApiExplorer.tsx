@@ -94,9 +94,9 @@ export const ApiExplorer: React.FC = () => {
       {/* Presets Strip */}
       <div className="flex items-center space-x-2 overflow-x-auto pb-2">
         <span className="text-xs font-mono-slate text-[#64748b] shrink-0">Presets:</span>
-        {presets.map((p, idx) => (
+        {presets.map((p) => (
           <button
-            key={idx}
+            key={p.label}
             onClick={() => {
               setMethod(p.method as any);
               setEndpoint(p.path);
@@ -142,8 +142,9 @@ export const ApiExplorer: React.FC = () => {
 
         {["POST", "PUT"].includes(method) && (
           <div className="space-y-1.5">
-            <label className="text-xs font-mono-slate text-[#94a3b8]">Request JSON Body:</label>
+            <label htmlFor="request-body" className="text-xs font-mono-slate text-[#94a3b8]">Request JSON Body:</label>
             <textarea
+              id="request-body"
               value={requestBody}
               onChange={(e) => setRequestBody(e.target.value)}
               rows={4}

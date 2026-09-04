@@ -368,7 +368,7 @@ async def manage_colony_age(
     _check_colony_exists(service, colony_id)
     try:
         # Get current colony state to calculate new age
-        colony = service.get(colony_id)
+        colony = service.get_colony(colony_id)
         new_age = age_request.get_days_delta(colony.age_days)
         updated = service.update_age(colony_id, new_age)
     except NotFoundError as e:

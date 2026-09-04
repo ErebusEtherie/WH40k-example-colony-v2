@@ -9,14 +9,17 @@ Security Features:
 - Refresh token rotation
 """
 
-from typing import Annotated
 import secrets
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
-from colony_manager.adapters.api.middleware.auth import get_current_user_from_cookie, get_jwt_secret_key
+from colony_manager.adapters.api.middleware.auth import (
+    get_current_user_from_cookie,
+    get_jwt_secret_key,
+)
 from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
     login_rate_limit,
@@ -27,7 +30,6 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
 from colony_manager.adapters.api.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
-    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
     TokenRevokeAllRequest,

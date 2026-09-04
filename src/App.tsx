@@ -102,6 +102,49 @@ export function App() {
   const [isLogResourceOpen, setIsLogResourceOpen] = useState(false);
   const [isEditCharterOpen, setIsEditCharterOpen] = useState(false);
 
+  // Helper function to fetch and update colony details
+  const fetchColonyDetails = async (colony: Colony) => {
+    try {
+      const res = await apiFetch(`/api/v1/colonies/${colony.id}`);
+      if (!res.ok) return;
+      const details = await res.json();
+      if (!details) return;
+
+      if (Array.isArray(details.infrastructure) && details.infrastructure.length > 0) {
+        setInfrastructures((prev) => [
+          ...prev.filter((i) => i.colony_id !== colony.id),
+          ...details.infrastructure,
+        ]);
+      }
+      if (Array.isArray(details.upgrades) && details.upgrades.length > 0) {
+        setUpgrades((prev) => [
+          ...prev.filter((u) => u.colony_id !== colony.id),
+          ...details.upgrades,
+        ]);
+      }
+      if (Array.isArray(details.modifiers) && details.modifiers.length > 0) {
+        setModifiers((prev) => [
+          ...prev.filter((m) => m.colony_id !== colony.id),
+          ...details.modifiers,
+        ]);
+      }
+      if (Array.isArray(details.resources) && details.resources.length > 0) {
+        setResources((prev) => [
+          ...prev.filter((r) => r.colony_id !== colony.id),
+          ...details.resources,
+        ]);
+      }
+      if (Array.isArray(details.plans) && details.plans.length > 0) {
+        setPlans((prev) => [
+          ...prev.filter((p) => p.colony_id !== colony.id),
+          ...details.plans,
+        ]);
+      }
+    } catch (err) {
+      console.log(`Fetch colony ${colony.id} details error:`, err);
+    }
+  };
+
   // Sync Data with Backend on initial load (only when logged in)
   useEffect(() => {
     // Only fetch data if user is authenticated
@@ -109,66 +152,40 @@ export function App() {
       return;
     }
 
-    apiFetch("/api/v1/colonies")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((coloniesList) => {
+    const loadInitialData = async () => {
+      try {
+        const res = await apiFetch("/api/v1/colonies");
+        if (!res.ok) return;
+        const coloniesList = await res.json();
+
         if (coloniesList && Array.isArray(coloniesList) && coloniesList.length > 0) {
           setColonies(coloniesList);
           if (!coloniesList.some((c: Colony) => c.id === selectedColonyId)) {
             setSelectedColonyId(coloniesList[0].id);
           }
 
-          // Fetch nested details (infrastructure, upgrades, modifiers, resources, plans) for each colony
+          // Fetch nested details for each colony
           coloniesList.forEach((c: Colony) => {
-            apiFetch(`/api/v1/colonies/${c.id}`)
-              .then((res) => (res.ok ? res.json() : null))
-              .then((details) => {
-                if (!details) return;
-                if (Array.isArray(details.infrastructure) && details.infrastructure.length > 0) {
-                  setInfrastructures((prev) => [
-                    ...prev.filter((i) => i.colony_id !== c.id),
-                    ...details.infrastructure,
-                  ]);
-                }
-                if (Array.isArray(details.upgrades) && details.upgrades.length > 0) {
-                  setUpgrades((prev) => [
-                    ...prev.filter((u) => u.colony_id !== c.id),
-                    ...details.upgrades,
-                  ]);
-                }
-                if (Array.isArray(details.modifiers) && details.modifiers.length > 0) {
-                  setModifiers((prev) => [
-                    ...prev.filter((m) => m.colony_id !== c.id),
-                    ...details.modifiers,
-                  ]);
-                }
-                if (Array.isArray(details.resources) && details.resources.length > 0) {
-                  setResources((prev) => [
-                    ...prev.filter((r) => r.colony_id !== c.id),
-                    ...details.resources,
-                  ]);
-                }
-                if (Array.isArray(details.plans) && details.plans.length > 0) {
-                  setPlans((prev) => [
-                    ...prev.filter((p) => p.colony_id !== c.id),
-                    ...details.plans,
-                  ]);
-                }
-              })
-              .catch((err) => console.log(`Fetch colony ${c.id} details error:`, err));
+            fetchColonyDetails(c);
           });
         }
-      })
-      .catch((err) => console.log("Initial fetch colonies error:", err));
+      } catch (err) {
+        console.log("Initial fetch colonies error:", err);
+      }
 
-    apiFetch("/api/v1/representatives")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      try {
+        const res = await apiFetch("/api/v1/representatives");
+        if (!res.ok) return;
+        const data = await res.json();
         if (data && Array.isArray(data) && data.length > 0) {
           setRepresentatives(data);
         }
-      })
-      .catch((err) => console.log("Fetch reps error:", err));
+      } catch (err) {
+        console.log("Fetch reps error:", err);
+      }
+    };
+
+    loadInitialData();
   }, [isLoggedIn]);
 
   // Chronometer timer
@@ -236,7 +253,7 @@ export function App() {
       })
         .then((res) => res.json())
         .then((updated) => {
-          if (updated && updated.id) {
+          if (updated?.id) {
             setColonies((prev) =>
               prev.map((c) => (c.id === updated.id ? updated : c))
             );
@@ -268,7 +285,7 @@ export function App() {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((updated) => {
-        if (updated && updated.id) {
+        if (updated?.id) {
           setColonies((prev) =>
             prev.map((c) => (c.id === updated.id ? updated : c))
           );
@@ -327,25 +344,21 @@ export function App() {
     URL.revokeObjectURL(url);
   };
 
-  const handleImportData = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(e.target?.result as string);
-        if (parsed.colonies) setColonies(parsed.colonies);
-        if (parsed.representatives) setRepresentatives(parsed.representatives);
-        if (parsed.infrastructures) setInfrastructures(parsed.infrastructures);
-        if (parsed.upgrades) setUpgrades(parsed.upgrades);
-        if (parsed.modifiers) setModifiers(parsed.modifiers);
-        if (parsed.resources) setResources(parsed.resources);
-        if (parsed.plans) setPlans(parsed.plans);
-        if (parsed.currentTurnYear) setCurrentTurnYear(parsed.currentTurnYear);
-        if (parsed.currentTurnQuarter) setCurrentTurnQuarter(parsed.currentTurnQuarter);
-      } catch (err) {
-        console.error("Invalid import JSON:", err);
-      }
-    };
-    reader.readAsText(file);
+  const handleImportData = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (parsed.colonies) setColonies(parsed.colonies);
+      if (parsed.representatives) setRepresentatives(parsed.representatives);
+      if (parsed.infrastructures) setInfrastructures(parsed.infrastructures);
+      if (parsed.upgrades) setUpgrades(parsed.upgrades);
+      if (parsed.modifiers) setModifiers(parsed.modifiers);
+      if (parsed.resources) setResources(parsed.resources);
+      if (parsed.plans) setPlans(parsed.plans);
+      if (parsed.currentTurnYear) setCurrentTurnYear(parsed.currentTurnYear);
+      if (parsed.currentTurnQuarter) setCurrentTurnQuarter(parsed.currentTurnQuarter);
+    } catch (err) {
+      console.error("Invalid import JSON:", err);
+    }
   };
 
   // --- CRUD Handlers ---
@@ -714,7 +727,7 @@ export function App() {
     // If it's a support upgrade, add it to upgrades
     handleInstallUpgrade({
       colony_id: plan.colony_id,
-      upgrade_type: (plan.specific_type.toLowerCase().replace(/ /g, "_") as any) || "garrison",
+      upgrade_type: (plan.specific_type.toLowerCase().replaceAll(" ", "_") as any) || "garrison",
       name: plan.name,
       state: "working",
       description: plan.description,

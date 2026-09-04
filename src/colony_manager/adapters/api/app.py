@@ -11,6 +11,7 @@ from fastapi.security import HTTPBearer
 from slowapi.errors import RateLimitExceeded
 
 from colony_manager.adapters.api import dependencies
+from colony_manager.adapters.api.middleware.csrf import CSRFProtectionMiddleware
 from colony_manager.adapters.api.middleware.rate_limiter import (
     get_limiter,
     get_rate_limit_exceeded_handler,
@@ -18,7 +19,6 @@ from colony_manager.adapters.api.middleware.rate_limiter import (
 from colony_manager.adapters.api.middleware.security_headers import (
     SecurityHeadersMiddleware,
 )
-from colony_manager.adapters.api.middleware.csrf import CSRFProtectionMiddleware
 from colony_manager.adapters.api.routers import (
     audit_logs_router,
     auth_router,

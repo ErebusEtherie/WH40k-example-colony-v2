@@ -22,6 +22,11 @@ from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklis
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.token import TokenError, verify_token
 
+# Error message constants to avoid duplication
+ERR_TOKEN_REVOKED = "Token has been revoked"
+ERR_USER_NOT_FOUND = "User not found"
+ERR_USER_DEACTIVATED = "User account is deactivated"
+
 # Security scheme for Bearer token
 # scheme_name must match the OpenAPI security scheme name for Swagger UI to work correctly
 security = HTTPBearer(scheme_name="HTTPBearer", auto_error=False)
@@ -84,7 +89,7 @@ def get_current_user(
         if token_jti and token_blacklist_repository.is_blacklisted(token_jti):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
+                detail=ERR_TOKEN_REVOKED,
                 headers={"WWW-Authenticate": "Bearer"},
             )
     except TokenError as e:
@@ -105,13 +110,13 @@ def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=ERR_USER_NOT_FOUND,
         )
 
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is deactivated",
+            detail=ERR_USER_DEACTIVATED,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -165,7 +170,7 @@ def get_current_user_from_cookie(
         if token_jti and token_blacklist_repository.is_blacklisted(token_jti):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
+                detail=ERR_TOKEN_REVOKED,
                 headers={"WWW-Authenticate": "Bearer"},
             )
     except TokenError as e:
@@ -186,13 +191,13 @@ def get_current_user_from_cookie(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=ERR_USER_NOT_FOUND,
         )
     
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is deactivated",
+            detail=ERR_USER_DEACTIVATED,
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -252,7 +257,7 @@ def get_current_user_unified(
         if token_jti and token_blacklist_repository.is_blacklisted(token_jti):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
+                detail=ERR_TOKEN_REVOKED,
                 headers={"WWW-Authenticate": "Bearer"},
             )
     except TokenError as e:
@@ -273,13 +278,13 @@ def get_current_user_unified(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=ERR_USER_NOT_FOUND,
         )
     
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is deactivated",
+            detail=ERR_USER_DEACTIVATED,
             headers={"WWW-Authenticate": "Bearer"},
         )
     

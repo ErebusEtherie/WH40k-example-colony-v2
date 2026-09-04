@@ -467,7 +467,10 @@ export function useColonies() {
   });
 }
 
-export function useColony(colonyId: number | string | null) {
+// Type alias for ID parameters used across multiple hooks
+type IdParam = number | string | null;
+
+export function useColony(colonyId: IdParam) {
   return useQuery<Colony, ApiError>({
     queryKey: ['colonies', colonyId],
     queryFn: () => fetchApi<Colony>(`/colonies/${colonyId}`),
@@ -475,7 +478,7 @@ export function useColony(colonyId: number | string | null) {
   });
 }
 
-export function useColonyStats(colonyId: number | string | null) {
+export function useColonyStats(colonyId: IdParam) {
   return useQuery<ColonyStatsBreakdown, ApiError>({
     queryKey: ['colonies', colonyId, 'stats'],
     queryFn: () => fetchApi<ColonyStatsBreakdown>(`/colonies/${colonyId}/stats`),
@@ -498,7 +501,7 @@ export function useCreateColony() {
   });
 }
 
-export function useUpdateColony(colonyId: number | string) {
+export function useUpdateColony(colonyId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<Colony, ApiError, ColonyUpdate>({
@@ -517,7 +520,7 @@ export function useUpdateColony(colonyId: number | string) {
 export function useDeleteColony() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (colonyId) =>
       fetchApi<void>(`/colonies/${colonyId}`, {
         method: 'DELETE',
@@ -533,7 +536,7 @@ export function useDeleteColony() {
 // TanStack Query Hooks - Representatives
 // ============================================================================
 
-export function useRepresentatives(colonyId?: number | string) {
+export function useRepresentatives(colonyId?: IdParam) {
   const url = colonyId
     ? `/colonies/${colonyId}/representative`
     : '/representatives';
@@ -560,10 +563,10 @@ export function useCreateRepresentative() {
   });
 }
 
-export function useAssignRepresentative(repId: number | string) {
+export function useAssignRepresentative(repId: IdParam) {
   const queryClient = useQueryClient();
 
-  return useMutation<Representative, ApiError, { colony_id: number | string }>({
+  return useMutation<Representative, ApiError, { colony_id: IdParam }>({
     mutationFn: ({ colony_id }) =>
       fetchApi<Representative>(`/representatives/${repId}/assign`, {
         method: 'POST',
@@ -579,7 +582,7 @@ export function useAssignRepresentative(repId: number | string) {
 export function useUnassignRepresentative() {
   const queryClient = useQueryClient();
 
-  return useMutation<Representative, ApiError, { colony_id: number | string }>({
+  return useMutation<Representative, ApiError, { colony_id: IdParam }>({
     mutationFn: ({ colony_id }) =>
       fetchApi<Representative>(`/colonies/${colony_id}/representative`, {
         method: 'DELETE',
@@ -595,7 +598,7 @@ export function useUnassignRepresentative() {
 // TanStack Query Hooks - Infrastructure
 // ============================================================================
 
-export function useInfrastructure(colonyId: number | string | null) {
+export function useInfrastructure(colonyId: IdParam) {
   return useQuery<Infrastructure[], ApiError>({
     queryKey: ['infrastructure', colonyId],
     queryFn: () =>
@@ -622,7 +625,7 @@ export function useCreateInfrastructure() {
   });
 }
 
-export function useUpdateInfrastructure(infrastructureId: number | string) {
+export function useUpdateInfrastructure(infrastructureId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<Infrastructure, ApiError, InfrastructureCreate>({
@@ -643,7 +646,7 @@ export function useUpdateInfrastructure(infrastructureId: number | string) {
 export function useDeleteInfrastructure() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (infrastructureId) =>
       fetchApi<void>(`/infrastructure/${infrastructureId}`, {
         method: 'DELETE',
@@ -658,7 +661,7 @@ export function useDeleteInfrastructure() {
 // TanStack Query Hooks - Support Upgrades
 // ============================================================================
 
-export function useSupportUpgrades(colonyId: number | string | null) {
+export function useSupportUpgrades(colonyId: IdParam) {
   return useQuery<SupportUpgrade[], ApiError>({
     queryKey: ['upgrades', colonyId],
     queryFn: () =>
@@ -685,7 +688,7 @@ export function useCreateSupportUpgrade() {
   });
 }
 
-export function useUpdateSupportUpgrade(upgradeId: number | string) {
+export function useUpdateSupportUpgrade(upgradeId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<SupportUpgrade, ApiError, SupportUpgradeCreate>({
@@ -706,7 +709,7 @@ export function useUpdateSupportUpgrade(upgradeId: number | string) {
 export function useDeleteSupportUpgrade() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (upgradeId) =>
       fetchApi<void>(`/upgrades/${upgradeId}`, {
         method: 'DELETE',
@@ -722,7 +725,7 @@ export function useDeleteSupportUpgrade() {
 // TanStack Query Hooks - Modifiers
 // ============================================================================
 
-export function useModifiers(colonyId: number | string | null) {
+export function useModifiers(colonyId: IdParam) {
   return useQuery<Modifier[], ApiError>({
     queryKey: ['modifiers', colonyId],
     queryFn: () => fetchApi<Modifier[]>(`/colonies/${colonyId}/modifiers`),
@@ -748,7 +751,7 @@ export function useCreateModifier() {
   });
 }
 
-export function useUpdateModifier(modifierId: number | string) {
+export function useUpdateModifier(modifierId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<Modifier, ApiError, ModifierUpdate>({
@@ -769,7 +772,7 @@ export function useUpdateModifier(modifierId: number | string) {
 export function useDeleteModifier() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (modifierId) =>
       fetchApi<void>(`/modifiers/${modifierId}`, {
         method: 'DELETE',
@@ -784,7 +787,7 @@ export function useDeleteModifier() {
 // TanStack Query Hooks - Resources
 // ============================================================================
 
-export function useResources(colonyId: number | string | null) {
+export function useResources(colonyId: IdParam) {
   return useQuery<ColonyResource[], ApiError>({
     queryKey: ['resources', colonyId],
     queryFn: () => fetchApi<ColonyResource[]>(`/colonies/${colonyId}/resources`),
@@ -809,7 +812,7 @@ export function useCreateResource() {
   });
 }
 
-export function useUpdateResource(resourceId: number | string) {
+export function useUpdateResource(resourceId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<ColonyResource, ApiError, Omit<ColonyResource, 'id'>>({
@@ -829,7 +832,7 @@ export function useUpdateResource(resourceId: number | string) {
 export function useDeleteResource() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (resourceId) =>
       fetchApi<void>(`/resources/${resourceId}`, {
         method: 'DELETE',
@@ -844,7 +847,7 @@ export function useDeleteResource() {
 // TanStack Query Hooks - Development Plans
 // ============================================================================
 
-export function useDevelopmentPlans(colonyId: number | string | null) {
+export function useDevelopmentPlans(colonyId: IdParam) {
   return useQuery<DevelopmentPlan[], ApiError>({
     queryKey: ['plans', colonyId],
     queryFn: () =>
@@ -870,7 +873,7 @@ export function useCreateDevelopmentPlan() {
   });
 }
 
-export function useUpdateDevelopmentPlan(planId: number | string) {
+export function useUpdateDevelopmentPlan(planId: IdParam) {
   const queryClient = useQueryClient();
 
   return useMutation<DevelopmentPlan, ApiError, Partial<DevelopmentPlanCreate>>({
@@ -890,7 +893,7 @@ export function useUpdateDevelopmentPlan(planId: number | string) {
 export function useDeleteDevelopmentPlan() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, ApiError, number | string>({
+  return useMutation<void, ApiError, IdParam>({
     mutationFn: (planId) =>
       fetchApi<void>(`/development-plans/${planId}`, {
         method: 'DELETE',
@@ -907,7 +910,7 @@ export function useInstallDevelopmentPlan() {
   return useMutation<
     DevelopmentPlan,
     ApiError,
-    { planId: number | string; install_as_infrastructure?: boolean }
+    { planId: IdParam; install_as_infrastructure?: boolean }
   >({
     mutationFn: ({ planId, install_as_infrastructure }) =>
       fetchApi<DevelopmentPlan>(`/development-plans/${planId}/install`, {
