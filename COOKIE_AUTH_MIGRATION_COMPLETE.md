@@ -12,31 +12,37 @@ Successfully migrated WH40k Colony Manager from localStorage-based authenticatio
 ### Backend (Phase 1)
 
 #### 1. Created CSRF Middleware
+
 - **File:** `src/colony_manager/adapters/api/middleware/csrf.py`
 - Implements double-submit CSRF pattern
 - Validates `X-CSRF-Token` header against `csrf_token` cookie
 - Skips validation for safe methods (GET, HEAD, OPTIONS) and auth endpoints
 
 #### 2. Registered CSRF Middleware
+
 - **File:** `src/colony_manager/adapters/api/app.py`
 - Added middleware registration after SecurityHeadersMiddleware, before CORS
 
 #### 3. Added CSRF Token Endpoint
+
 - **File:** `src/colony_manager/adapters/api/routers/auth_router.py`
 - New endpoint: `GET /api/v1/auth/csrf-token`
 - Generates secure random token and sets non-HttpOnly cookie
 
 #### 4. Updated Refresh Endpoint
+
 - **File:** `src/colony_manager/adapters/api/routers/auth_router.py`
 - Now reads refresh token from cookie instead of request body
 - Returns new tokens as HttpOnly cookies
 
 #### 5. Added Cookie-Based Auth Dependencies
+
 - **File:** `src/colony_manager/adapters/api/middleware/auth.py`
 - `get_current_user_from_cookie()` - reads access token from cookie
 - `get_current_user_unified()` - tries cookie first, then Bearer header (for migration flexibility)
 
 #### 6. Updated All Protected Endpoints
+
 - **Files:** All router files in `src/colony_manager/adapters/api/routers/`
 - Replaced `get_current_user` with `get_current_user_from_cookie` in 21 locations
 - Updated middleware files: `auth.py`, `permissions.py`
@@ -44,15 +50,18 @@ Successfully migrated WH40k Colony Manager from localStorage-based authenticatio
 ### Frontend (Phase 2)
 
 #### 1. Replaced API Client
+
 - **File:** `src/lib/api.ts`
 - Replaced with `api.ts.secure` (cookie-based + CSRF support)
 - Backup created: `src/lib/api.ts.backup`
 
 #### 2. Updated App.tsx
+
 - Removed `authStorage` import (no longer needed)
 - Authentication now handled entirely by HttpOnly cookies
 
 #### 3. Build Verification
+
 - ✅ Frontend build: SUCCESS (0 errors)
 - ✅ Backend syntax check: SUCCESS
 - ✅ Backend app creation: SUCCESS
@@ -67,6 +76,7 @@ Successfully migrated WH40k Colony Manager from localStorage-based authenticatio
 ## API Changes
 
 ### New Endpoint
+
 ```
 GET /api/v1/auth/csrf-token
 Response: { csrf_token: string }
@@ -74,6 +84,7 @@ Sets: csrf_token cookie (non-HttpOnly, 1 hour expiry)
 ```
 
 ### Modified Endpoint
+
 ```
 POST /api/v1/auth/refresh
 Before: Required { refresh_token: string } in body
@@ -83,11 +94,13 @@ After:  Reads refresh_token from cookie automatically
 ### Authentication Flow
 
 **Before (localStorage):**
+
 1. Login → store tokens in localStorage
 2. Include `Authorization: Bearer <token>` header
 3. Manual token refresh required
 
 **After (Cookies):**
+
 1. Login → tokens stored in HttpOnly cookies
 2. Cookies sent automatically with `credentials: 'include'`
 3. CSRF token fetched on login, included in `X-CSRF-Token` header
@@ -96,6 +109,7 @@ After:  Reads refresh_token from cookie automatically
 ## Testing Recommendations
 
 ### Backend Tests Needed
+
 1. CSRF token endpoint returns valid token
 2. CSRF middleware rejects requests without token
 3. CSRF middleware accepts valid token
@@ -103,6 +117,7 @@ After:  Reads refresh_token from cookie automatically
 5. Cookie-based auth works for protected endpoints
 
 ### Frontend Tests Needed
+
 1. Login sets cookies correctly
 2. CSRF token fetched and stored
 3. State-changing requests include X-CSRF-Token header
@@ -118,6 +133,7 @@ After:  Reads refresh_token from cookie automatically
 ## Files Modified
 
 ### Backend
+
 - `src/colony_manager/adapters/api/middleware/csrf.py` (NEW)
 - `src/colony_manager/adapters/api/app.py`
 - `src/colony_manager/adapters/api/middleware/auth.py`
@@ -131,6 +147,7 @@ After:  Reads refresh_token from cookie automatically
 - `src/colony_manager/adapters/api/routers/representatives.py`
 
 ### Frontend
+
 - `src/lib/api.ts` (replaced with secure version)
 - `src/App.tsx` (removed authStorage import)
 - `src/components/ApiExplorer.tsx` (removed authStorage usage, updated to cookie-based auth)
@@ -146,6 +163,7 @@ After:  Reads refresh_token from cookie automatically
 ## Rollback Plan
 
 If issues arise, rollback is straightforward:
+
 1. Restore `src/lib/api.ts` from `api.ts.backup`
 2. Restore `src/App.tsx` import line
 3. Revert backend router imports to `get_current_user`

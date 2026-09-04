@@ -25,6 +25,7 @@
 ### 1. ✅ CSRF Token Management (NEW SECTION)
 
 **Added lines 140-171:**
+
 ```typescript
 // ============================================================================
 // CSRF Token Management
@@ -52,11 +53,13 @@ export function clearCsrfToken(): void {
 ### 2. ✅ Updated `fetchApi` Function
 
 **Changes:**
+
 - Removed `Authorization: Bearer ${token}` header
 - Added CSRF token to state-changing requests
 - Added `credentials: 'include'` for cookie-based auth
 
 **Before:**
+
 ```typescript
 const token = authStorage.getAccessToken();
 const headers: HeadersInit = {
@@ -66,6 +69,7 @@ const headers: HeadersInit = {
 ```
 
 **After:**
+
 ```typescript
 const headers: HeadersInit = {
   'Content-Type': 'application/json',
@@ -92,6 +96,7 @@ const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 ### 3. ✅ Updated `refreshAccessToken`
 
 **Before:**
+
 ```typescript
 async function refreshAccessToken(): Promise<AuthSession | null> {
   const refreshToken = authStorage.getRefreshToken();
@@ -106,6 +111,7 @@ async function refreshAccessToken(): Promise<AuthSession | null> {
 ```
 
 **After:**
+
 ```typescript
 async function refreshAccessToken(): Promise<boolean> {
   try {
@@ -128,11 +134,13 @@ async function refreshAccessToken(): Promise<boolean> {
 ### 4. ✅ Updated `loginApi`
 
 **Changes:**
+
 - Removed localStorage operations
 - Added CSRF token fetch after login
 - Returns session with empty token strings (tokens in cookies)
 
 **After:**
+
 ```typescript
 export async function loginApi(username: string, password: string): Promise<AuthSession> {
   await fetchApi('/auth/login', { /* ... */ });
@@ -163,6 +171,7 @@ export async function loginApi(username: string, password: string): Promise<Auth
 ### 6. ✅ Updated `logoutApi`
 
 **Before:**
+
 ```typescript
 export async function logoutApi(): Promise<void> {
   await fetchApi('/auth/revoke', { /* ... */ });
@@ -171,6 +180,7 @@ export async function logoutApi(): Promise<void> {
 ```
 
 **After:**
+
 ```typescript
 export async function logoutApi(): Promise<void> {
   try {
@@ -189,6 +199,7 @@ export async function logoutApi(): Promise<void> {
 ### 7. ✅ Updated `useLogout` Hook
 
 **Before:**
+
 ```typescript
 export function useLogout() {
   return useMutation({
@@ -202,6 +213,7 @@ export function useLogout() {
 ```
 
 **After:**
+
 ```typescript
 export function useLogout() {
   return useMutation({
@@ -221,6 +233,7 @@ export function useLogout() {
 ### 8. ✅ Updated Query Hook `enabled` Flags
 
 **Before:**
+
 ```typescript
 export function useColonies() {
   return useQuery<Colony[], ApiError>({
@@ -232,6 +245,7 @@ export function useColonies() {
 ```
 
 **After:**
+
 ```typescript
 export function useColonies() {
   return useQuery<Colony[], ApiError>({
@@ -251,6 +265,7 @@ export function useColonies() {
 **Changes:** Same as `fetchApi` - uses cookies and CSRF tokens
 
 **After:**
+
 ```typescript
 export const apiFetch = async (url: string, options?: RequestInit): Promise<Response> => {
   const headers: HeadersInit = {
@@ -282,6 +297,7 @@ export const apiFetch = async (url: string, options?: RequestInit): Promise<Resp
 ### 10. ✅ Removed `authStorage` Object Entirely
 
 **Before:** ~60 lines of localStorage operations
+
 ```typescript
 export const authStorage = {
   getAccessToken: () => localStorage.getItem('rt_auth_access_token'),
@@ -316,6 +332,7 @@ export const authStorage = {
 Ensure backend supports:
 
 1. **HttpOnly cookies on login/register:**
+
    ```
    Set-Cookie: access_token=<token>; HttpOnly; Secure; SameSite=Strict
    Set-Cookie: refresh_token=<token>; HttpOnly; Secure; SameSite=Strict
@@ -362,6 +379,7 @@ Before deploying:
 **✅ APPROVED FOR DEPLOYMENT** (pending backend verification)
 
 All 10 required changes have been correctly implemented:
+
 1. ✅ CSRF token management added
 2. ✅ `fetchApi` updated for cookies + CSRF
 3. ✅ `refreshAccessToken` uses cookies
@@ -374,6 +392,7 @@ All 10 required changes have been correctly implemented:
 10. ✅ `authStorage` completely removed
 
 **Next steps:**
+
 1. Verify backend supports cookie-based auth
 2. Test in development environment
 3. Check `App.tsx` for remaining `authStorage` references
