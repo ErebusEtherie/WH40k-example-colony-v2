@@ -41,17 +41,35 @@ than imposed from here — flag the mismatch rather than silently picking one.
 
 ## API Contract & Type Safety
 
-The single most common source of FE↔BE breakage is hand-maintained
-TypeScript interfaces silently drifting from the backend's Pydantic
-schemas. This project avoids that by generating types instead of writing
-them by hand.
+**Confirmed: `openapi-typescript`, types only — no runtime client
+generation.** Chosen specifically for the security/safety priority: it
+keeps every request's actual behavior (attaching credentials, the CSRF
+header, the shared error-normalizer) in code that's hand-written and
+auditable, rather than trusting a generator's mutator config to have
+applied that consistently across every generated hook. The single most
+common source of FE↔BE breakage otherwise is hand-maintained TypeScript
+interfaces silently drifting from the backend's Pydantic schemas — this
+project avoids that by generating the *types*, while keeping the
+request-sending code itself explicit.
 
 - Backend FastAPI app exposes its OpenAPI schema (`/openapi.json`) as usual
   — no extra work required there.
-- Frontend generates TypeScript types from that schema via
-  `openapi-typescript` into `frontend/src/types/api.d.ts`. This is a
-  checked-in generated file, run manually (`npm run generate:types`) or in
-  CI when the backend schema changes — not on every dev save.
+- Frontend generates TypeScript types via:
+  ```
+  npx openapi-typescript http://localhost:8000/api/v1/openapi.json -o frontend/src/types/api.d.ts
+  ```
+  (adjust the schema URL/path to match the actual dev server; a static
+  `openapi.json` file path also works as the source if preferred over
+  hitting a running server). Wire this as an `npm run generate:types`
+  script rather than a one-off command someone has to remember the flags
+  for.
+- This is a checked-in generated file, run manually or in CI when the
+  backend schema changes — not on every dev save.
+- **Status: not yet implemented as of this rule set's last update** — this
+  section describes the target setup, not a working pipeline to assume
+  exists. Confirm the script and generated file are actually in place
+  before relying on them (e.g. before wiring MSW handlers to the generated
+  types per `08-frontend-testing.md`).
 - `api/` hooks (TanStack Query) import from the generated types for request
   and response shapes. Do not hand-write a parallel interface for a
   request/response body that already has a generated type.
