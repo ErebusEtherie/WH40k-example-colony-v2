@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Modifier, ColonyStatKey } from "../../types/colony";
-import { X, Plus, Sparkles } from "lucide-react";
+import { Modifier, ModifierStat } from "../../types/colony";
+import { X, Sparkles } from "lucide-react";
 
 interface AddCustomModifierModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
   onAddModifier,
 }) => {
   const [name, setName] = useState("");
-  const [targetStat, setTargetStat] = useState<ColonyStatKey>("order");
+  const [targetStat, setTargetStat] = useState<ModifierStat>("order");
   const [value, setValue] = useState(1);
   const [source, setSource] = useState("GM Ruling");
   const [description, setDescription] = useState("");
@@ -24,7 +24,7 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -70,7 +70,10 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           {/* Modifier Name */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-modifier-name-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Modifier Title / Name *
             </label>
             <input
@@ -87,13 +90,16 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
           {/* Target Stat & Value */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-modifier-stat-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Target Characteristic / Stat
               </label>
               <select
                 id="modal-modifier-stat-select"
                 value={targetStat}
-                onChange={(e) => setTargetStat(e.target.value as ColonyStatKey)}
+                onChange={(e) => setTargetStat(e.target.value as ModifierStat)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none uppercase font-bold"
               >
                 <option value="complacency">Complacency</option>
@@ -106,14 +112,17 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-modifier-value-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Modifier Value (+ / -)
               </label>
               <input
                 id="modal-modifier-value-input"
                 type="number"
                 value={value}
-                onChange={(e) => setValue(parseInt(e.target.value, 10) || 0)}
+                onChange={(e) => setValue(Number.parseInt(e.target.value, 10) || 0)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>
@@ -121,10 +130,14 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
 
           {/* Source Rationale */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-modifier-source-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Source Rationale
             </label>
             <input
+              id="modal-modifier-source-input"
               type="text"
               value={source}
               onChange={(e) => setSource(e.target.value)}
@@ -135,10 +148,14 @@ export const AddCustomModifierModal: React.FC<AddCustomModifierModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-modifier-description-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Detailed Context & Lore Rationale
             </label>
             <textarea
+              id="modal-modifier-description-input"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

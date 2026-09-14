@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Infrastructure, InfrastructureType } from "../../types/colony";
+import { Infrastructure } from "../../types/colony";
 import { INFRASTRUCTURE_TYPES } from "../../data/rulesData";
 import { X, Layers, Check } from "lucide-react";
 
@@ -10,20 +10,32 @@ interface CommissionHardInfrastructureModalProps {
   onCommission: (infraData: Omit<Infrastructure, "id">) => void;
 }
 
+// Style classes for each operational status, keyed by state, so button styling
+// is a flat lookup instead of a nested ternary.
+const STATUS_CLASSES: Record<Infrastructure["state"], string> = {
+  working: "bg-[#10b981] text-[#06080e] border-[#10b981]",
+  not_working: "bg-[#ef4444] text-white border-[#ef4444]",
+  in_progress: "bg-[#f59e0b] text-[#06080e] border-[#f59e0b]",
+  needed: "bg-[#64748b] text-white border-[#64748b]",
+};
+
+const UNSELECTED_STATUS_CLASS =
+  "bg-[#0d121f] border-[#222e46] text-[#94a3b8] hover:text-white";
+
 export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastructureModalProps> = ({
   isOpen,
   onClose,
   colonyId,
   onCommission,
 }) => {
-  const [infraType, setInfraType] = useState<InfrastructureType>("transport");
+  const [infraType, setInfraType] = useState<string>("transport");
   const [name, setName] = useState("");
   const [state, setState] = useState<Infrastructure["state"]>("working");
   const [notes, setNotes] = useState("");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const typeConfig = INFRASTRUCTURE_TYPES.find((i) => i.name === infraType);
 
@@ -71,9 +83,9 @@ export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastru
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           {/* Infrastructure Type Grid */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
               Select Infrastructure Type
-            </label>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {INFRASTRUCTURE_TYPES.map((type) => {
                 const isSelected = infraType === type.name;
@@ -108,7 +120,10 @@ export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastru
 
           {/* System Name */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-infra-name-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Custom System Designation / Name
             </label>
             <input
@@ -123,9 +138,9 @@ export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastru
 
           {/* Initial Status */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
               Initial Operational Status
-            </label>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(["working", "not_working", "in_progress", "needed"] as Infrastructure["state"][]).map(
                 (st) => (
@@ -134,18 +149,10 @@ export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastru
                     type="button"
                     onClick={() => setState(st)}
                     className={`py-2 rounded border text-center uppercase font-bold text-[11px] transition ${
-                      state === st
-                        ? st === "working"
-                          ? "bg-[#10b981] text-[#06080e] border-[#10b981]"
-                          : st === "not_working"
-                          ? "bg-[#ef4444] text-white border-[#ef4444]"
-                          : st === "in_progress"
-                          ? "bg-[#f59e0b] text-[#06080e] border-[#f59e0b]"
-                          : "bg-[#64748b] text-white border-[#64748b]"
-                        : "bg-[#0d121f] border-[#222e46] text-[#94a3b8] hover:text-white"
+                      state === st ? STATUS_CLASSES[st] : UNSELECTED_STATUS_CLASS
                     }`}
                   >
-                    {st.replace(/_/g, " ")}
+                    {st.replaceAll("_", " ")}
                   </button>
                 )
               )}
@@ -154,7 +161,10 @@ export const CommissionHardInfrastructureModal: React.FC<CommissionHardInfrastru
 
           {/* Operational Notes */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-infra-notes-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Operational Notes
             </label>
             <textarea

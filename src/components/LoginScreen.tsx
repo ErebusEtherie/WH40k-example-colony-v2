@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Key, Cpu, Loader2, ShieldCheck, Eye } from "lucide-react";
+import { Key, Cpu, Loader2 } from "lucide-react";
 import { loginApi } from "../lib/api";
 import { User } from "../types/colony";
 
@@ -31,7 +31,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!username.trim()) {
       setError("Please provide a valid Dynasty Cipher / Scribe ID");

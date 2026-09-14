@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ColonyResource } from "../../types/colony";
-import { X, Sparkles, Plus } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 
 interface LogResourceDepositModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export const LogResourceDepositModal: React.FC<LogResourceDepositModalProps> = (
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -69,7 +69,10 @@ export const LogResourceDepositModal: React.FC<LogResourceDepositModalProps> = (
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           {/* Deposit Name */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-resource-name-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Deposit Name / Vein Designation *
             </label>
             <input
@@ -86,10 +89,14 @@ export const LogResourceDepositModal: React.FC<LogResourceDepositModalProps> = (
           {/* Type & Abundance */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-resource-type-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Resource Category / Type
               </label>
               <select
+                id="modal-resource-type-select"
                 value={resourceType}
                 onChange={(e) => setResourceType(e.target.value)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
@@ -103,10 +110,14 @@ export const LogResourceDepositModal: React.FC<LogResourceDepositModalProps> = (
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-resource-abundance-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Abundance Rating
               </label>
               <select
+                id="modal-resource-abundance-select"
                 value={abundance}
                 onChange={(e) => setAbundance(e.target.value as any)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none uppercase font-bold"
@@ -121,10 +132,14 @@ export const LogResourceDepositModal: React.FC<LogResourceDepositModalProps> = (
 
           {/* Description */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-resource-description-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Survey & Extraction Details
             </label>
             <textarea
+              id="modal-resource-description-input"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Colony, ColonyResource, DevelopmentPlan } from "../types/colony";
-import { Target, Plus, Trash2, Gem, CheckCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { ColonyResource, DevelopmentPlan } from "../types/colony";
+import { Target, Plus, Trash2, Gem, CheckCircle } from "lucide-react";
 
 interface DevelopmentPlansResourcesProps {
-  colony: Colony;
   plans: DevelopmentPlan[];
   resources: ColonyResource[];
   onAddPlan: (name: string, targetStat: string, targetVal: number, reqPoints: number, desc?: string) => void;
@@ -37,7 +36,7 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
   const [pfBonus, setPfBonus] = useState(1);
   const [resDesc, setResDesc] = useState("");
 
-  const handleCreatePlan = (e: React.FormEvent) => {
+  const handleCreatePlan = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!planName) return;
     onAddPlan(planName, targetStat, Number(targetVal), Number(reqPoints), planDesc);
@@ -46,7 +45,7 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
     setShowPlanModal(false);
   };
 
-  const handleCreateRes = (e: React.FormEvent) => {
+  const handleCreateRes = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!resName) return;
     onAddResource(resName, resType, Number(prodBonus), Number(pfBonus), resDesc);
@@ -194,7 +193,7 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-[#f8fafc]">{res.name}</span>
                     <span className="px-2 py-0.5 text-[10px] uppercase font-mono-slate bg-[#1e2538] text-[#fdba74] rounded">
-                      {res.resource_type.replace(/_/g, " ")}
+                      {res.resource_type.replaceAll("_", " ")}
                     </span>
                   </div>
 
@@ -239,10 +238,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
 
             <form onSubmit={handleCreatePlan} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-planname-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Endeavour Name
                 </label>
                 <input
+                  id="dpr-planname-input"
                   type="text"
                   required
                   placeholder="e.g. Orbital Defense Grid Phase I"
@@ -254,10 +257,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="dpr-targetstat-select"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Target Characteristic
                   </label>
                   <select
+                    id="dpr-targetstat-select"
                     value={targetStat}
                     onChange={(e) => setTargetStat(e.target.value)}
                     className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -271,10 +278,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="dpr-targetval-input"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Target Score Value
                   </label>
                   <input
+                    id="dpr-targetval-input"
                     type="number"
                     value={targetVal}
                     onChange={(e) => setTargetVal(Number(e.target.value))}
@@ -284,10 +295,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-reqpoints-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Achievement Points Required
                 </label>
                 <input
+                  id="dpr-reqpoints-input"
                   type="number"
                   value={reqPoints}
                   onChange={(e) => setReqPoints(Number(e.target.value))}
@@ -296,10 +311,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-plandesc-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Endeavour Scope & Milestones
                 </label>
                 <textarea
+                  id="dpr-plandesc-input"
                   rows={2}
                   placeholder="Outline logistics, contractor guilds, or labor forces..."
                   value={planDesc}
@@ -338,10 +357,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
 
             <form onSubmit={handleCreateRes} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-resname-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Resource Name
                 </label>
                 <input
+                  id="dpr-resname-input"
                   type="text"
                   required
                   placeholder="e.g. Subterranean Promethium Reservoirs"
@@ -352,10 +375,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-restype-select"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Resource Type
                 </label>
                 <select
+                  id="dpr-restype-select"
                   value={resType}
                   onChange={(e) => setResType(e.target.value)}
                   className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -369,10 +396,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="dpr-prodbonus-input"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Productivity Bonus
                   </label>
                   <input
+                    id="dpr-prodbonus-input"
                     type="number"
                     value={prodBonus}
                     onChange={(e) => setProdBonus(Number(e.target.value))}
@@ -381,10 +412,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="dpr-pfbonus-input"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Profit Factor Export Bonus
                   </label>
                   <input
+                    id="dpr-pfbonus-input"
                     type="number"
                     value={pfBonus}
                     onChange={(e) => setPfBonus(Number(e.target.value))}
@@ -394,10 +429,14 @@ export const DevelopmentPlansResources: React.FC<DevelopmentPlansResourcesProps>
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="dpr-resdesc-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Geological / Biological Survey Notes
                 </label>
                 <textarea
+                  id="dpr-resdesc-input"
                   rows={2}
                   placeholder="Geological purity, extraction difficulty..."
                   value={resDesc}

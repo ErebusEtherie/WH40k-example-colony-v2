@@ -22,7 +22,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
   const selectedTypeConfig = COLONY_TYPES.find((t) => t.name === colonyType);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) return;
     onCreateColony(name, colonyType, Number(baseSize), notes);
@@ -43,10 +43,14 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+            <label
+              htmlFor="nc-name-input"
+              className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+            >
               Colony Designation / World Name
             </label>
             <input
+              id="nc-name-input"
               type="text"
               required
               placeholder="e.g. Aurelia Secundus, Port Wander Bastion"
@@ -58,10 +62,14 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+              <label
+                htmlFor="nc-archetype-select"
+                className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+              >
                 Colony Archetype
               </label>
               <select
+                id="nc-archetype-select"
                 value={colonyType}
                 onChange={(e) => setColonyType(e.target.value)}
                 className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -75,10 +83,14 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+              <label
+                htmlFor="nc-size-input"
+                className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+              >
                 Initial Size (1-10)
               </label>
               <input
+                id="nc-size-input"
                 type="number"
                 min="1"
                 max="10"
@@ -111,10 +123,14 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+            <label
+              htmlFor="nc-notes-input"
+              className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+            >
               Colony Charter Notes & Lore
             </label>
             <textarea
+              id="nc-notes-input"
               rows={2}
               placeholder="Record climate, imperial tithe grade, planetary quirks..."
               value={notes}

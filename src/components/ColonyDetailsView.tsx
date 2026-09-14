@@ -12,22 +12,10 @@ import {
 import { formatFoundingAge } from "../lib/chronometer";
 import {
   Edit3,
-  Calendar,
-  Clock,
   UserCheck,
   Plus,
   Trash2,
-  Sparkles,
   ArrowRight,
-  Shield,
-  Coins,
-  CheckCircle2,
-  TrendingUp,
-  Flame,
-  Layers,
-  Smile,
-  ShieldCheck,
-  Building2,
 } from "lucide-react";
 
 interface ColonyDetailsViewProps {
@@ -49,6 +37,9 @@ interface ColonyDetailsViewProps {
   onToggleModifier: (id: string, active: boolean) => void;
   onDeleteResource: (id: string) => void;
   onOpenEditCharter?: () => void;
+  /** Only shown to the system admin (Arch Magos) role. */
+  canDelete?: boolean;
+  onDeleteColony?: () => void;
 }
 
 export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
@@ -70,16 +61,39 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
   onToggleModifier,
   onDeleteResource,
   onOpenEditCharter,
+  canDelete,
+  onDeleteColony,
 }) => {
   const [customDays, setCustomDays] = useState("30");
   const age = formatFoundingAge(colony.founding_days || 0);
 
-  const handleCustomAdvance = (e: React.FormEvent) => {
+  const handleCustomAdvance = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const days = parseInt(customDays, 10);
-    if (!isNaN(days) && days > 0) {
+    const days = Number.parseInt(customDays, 10);
+    if (!Number.isNaN(days) && days > 0) {
       onAdvanceDays(days);
     }
+  };
+
+  const getComplacencyState = (): string => {
+    if (stats.states.isPlacated) return "PLACATED";
+    if (stats.states.hasRiots) return "RIOTS";
+    return "NORMAL";
+  };
+  const getOrderState = (): string => {
+    if (stats.states.isOrderly) return "ORDERLY";
+    if (stats.states.hasAnarchy) return "ANARCHY";
+    return "NORMAL";
+  };
+  const getProductivityState = (): string => {
+    if (stats.states.isProductive) return "PRODUCTIVE";
+    if (stats.states.isHalted) return "HALTED";
+    return "NORMAL";
+  };
+  const getPietyState = (): string => {
+    if (stats.states.isPious) return "PIOUS";
+    if (stats.states.isHeretical) return "HERETICAL";
+    return "NORMAL";
   };
 
   const renderAuditList = (contributions: StatContribution[] = []) => {
@@ -88,8 +102,8 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
     }
     return (
       <div className="space-y-1 mt-2 font-mono-slate text-xs">
-        {contributions.map((c, idx) => (
-          <div key={idx} className="flex items-center justify-between text-[11px] py-0.5 border-b border-[#1c263c]/50">
+        {contributions.map((c) => (
+          <div key={c.source} className="flex items-center justify-between text-[11px] py-0.5 border-b border-[#1c263c]/50">
             <span className="text-[#94a3b8]">{c.source}:</span>
             <span className={`font-semibold ${c.value >= 0 ? "text-[#34d399]" : "text-[#f87171]"}`}>
               {c.value >= 0 ? `+${c.value}` : c.value}
@@ -117,14 +131,34 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
             </p>
           </div>
 
-          <button
-            id="details-edit-charter-button"
-            onClick={onOpenEditCharter}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-[#121828] hover:bg-[#1a233a] border border-[#f59e0b]/50 text-xs font-mono-slate text-[#fef08a] rounded transition"
-          >
-            <Edit3 className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span>Edit Charter</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              id="details-edit-charter-button"
+              onClick={onOpenEditCharter}
+              className="flex items-center space-x-1 px-3 py-1.5 bg-[#121828] hover:bg-[#1a233a] border border-[#f59e0b]/50 text-xs font-mono-slate text-[#fef08a] rounded transition"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span>Edit Charter</span>
+            </button>
+            {canDelete && (
+              <button
+                id="details-delete-colony-button"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Are you sure you want to dissolve the colony "${colony.name}"? This action cannot be undone.`
+                    )
+                  ) {
+                    onDeleteColony?.();
+                  }
+                }}
+                className="flex items-center space-x-1 px-3 py-1.5 bg-[#2a1113] hover:bg-[#3a1518] border border-[#ef4444]/50 text-xs font-mono-slate text-[#fca5a5] rounded transition"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-[#ef4444]" />
+                <span>Delete Colony</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Administrative Grid */}
@@ -161,7 +195,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               COLONY TYPE (FIXED AT CREATION)
             </span>
             <span className="font-gothic font-bold text-sm text-[#fef08a] block capitalize">
-              {colony.colony_type.replace(/_/g, " ")}
+              {colony.colony_type.replaceAll("_", " ")}
             </span>
           </div>
         </div>
@@ -321,9 +355,9 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
                   Personality Traits ({representative.personality_traits.length})
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {representative.personality_traits.map((trait, idx) => (
+                  {representative.personality_traits.map((trait) => (
                     <div
-                      key={idx}
+                      key={trait.id}
                       className="p-2 bg-[#090d16] border border-[#1b253b] rounded text-[11px] space-y-0.5"
                     >
                       <div className="flex items-center space-x-1.5">
@@ -375,7 +409,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               <div>
                 <span className="font-bold text-sm text-[#f8fafc] block">COMPLACENCY</span>
                 <span className="text-[10px] text-[#34d399] uppercase font-bold">
-                  {stats.states.isPlacated ? "PLACATED" : stats.states.hasRiots ? "RIOTS" : "NORMAL"}
+                  {getComplacencyState()}
                 </span>
               </div>
               <span className="text-2xl font-gothic font-bold text-[#38bdf8]">
@@ -391,7 +425,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               <div>
                 <span className="font-bold text-sm text-[#f8fafc] block">ORDER</span>
                 <span className="text-[10px] text-[#34d399] uppercase font-bold">
-                  {stats.states.isOrderly ? "ORDERLY" : stats.states.hasAnarchy ? "ANARCHY" : "NORMAL"}
+                  {getOrderState()}
                 </span>
               </div>
               <span className="text-2xl font-gothic font-bold text-[#a855f7]">
@@ -407,7 +441,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               <div>
                 <span className="font-bold text-sm text-[#f8fafc] block">PRODUCTIVITY</span>
                 <span className="text-[10px] text-[#34d399] uppercase font-bold">
-                  {stats.states.isProductive ? "PRODUCTIVE" : stats.states.isHalted ? "HALTED" : "NORMAL"}
+                  {getProductivityState()}
                 </span>
               </div>
               <span className="text-2xl font-gothic font-bold text-[#10b981]">
@@ -423,7 +457,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               <div>
                 <span className="font-bold text-sm text-[#f8fafc] block">PIETY</span>
                 <span className="text-[10px] text-[#38bdf8] uppercase font-bold">
-                  {stats.states.isPious ? "PIOUS" : stats.states.isHeretical ? "HERETICAL" : "NORMAL"}
+                  {getPietyState()}
                 </span>
               </div>
               <span className="text-2xl font-gothic font-bold text-[#ef4444]">

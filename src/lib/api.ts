@@ -11,13 +11,7 @@
  * and the frontend never reimplements backend rule logic.
  */
 
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  type UseQueryOptions,
-  type UseMutationOptions,
-} from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   Colony,
   Representative,
@@ -191,6 +185,55 @@ export class ApiError extends Error {
 // ============================================================================
 
 /**
+ * In-flight CSRF-token fetch promise so concurrent mutating requests share a
+ * single fetch instead of each triggering one (mirrors the 401-refresh mutex).
+ */
+let csrfTokenPromise: Promise<string> | null = null;
+
+/**
+ * Ensure a CSRF token is available, fetching it lazily from the backend when
+ * one isn't already cached in memory.
+ *
+ * The backend also sets the same value in a non-HttpOnly cookie, which the
+ * browser auto-attaches (via `credentials: 'include'`) to credentialed
+ * requests; echoing it back as the X-CSRF-Token header satisfies the double-
+ * submit check.
+ *
+ * Per 07-frontend-architecture.md this runs before the first mutating request
+ * (and on session start), not only at login — the in-memory value resets on a
+ * page refresh while the HttpOnly session cookies persist, so without this a
+ * state-changing request after refresh would be rejected as "CSRF token
+ * missing".
+ *
+ * @returns The current CSRF token.
+ */
+async function ensureCsrfToken(): Promise<string> {
+  if (csrfToken) {
+    return csrfToken;
+  }
+  if (!csrfTokenPromise) {
+    csrfTokenPromise = fetch(`${API_BASE_URL}/auth/csrf-token`, {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new ApiError(response.status, 'Failed to fetch CSRF token');
+        }
+        return response.json() as Promise<{ csrf_token: string }>;
+      })
+      .then((data) => {
+        csrfToken = data.csrf_token;
+        return csrfToken;
+      })
+      .finally(() => {
+        csrfTokenPromise = null;
+      });
+  }
+  return csrfTokenPromise;
+}
+
+/**
  * Internal fetch wrapper with authentication and error handling.
  * Uses HttpOnly cookies for authentication and CSRF tokens for state-changing requests.
  */
@@ -205,8 +248,8 @@ async function fetchApi<T>(
 
   // Add CSRF token to state-changing requests
   const method = (options.method || 'GET').toUpperCase();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && csrfToken) {
-    (headers as Record<string, string>)['X-CSRF-Token'] = csrfToken;
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    (headers as Record<string, string>)['X-CSRF-Token'] = await ensureCsrfToken();
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -1004,8 +1047,8 @@ export const apiFetch = async (url: string, options?: RequestInit): Promise<Resp
 
   // Add CSRF token to state-changing requests
   const method = (options?.method || 'GET').toUpperCase();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && csrfToken) {
-    (headers as Record<string, string>)['X-CSRF-Token'] = csrfToken;
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    (headers as Record<string, string>)['X-CSRF-Token'] = await ensureCsrfToken();
   }
 
   const response = await fetch(fullUrl, {

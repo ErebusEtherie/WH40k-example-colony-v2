@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Colony, Representative } from "../types/colony";
 import { PERSONALITIES, REPRESENTATIVE_TYPES, LEADERSHIP_MODIFIERS } from "../data/rulesData";
-import { User, Shield, UserCheck, Plus, Trash2, Award, Sparkles } from "lucide-react";
+import { User, UserCheck, Plus, Trash2, Award } from "lucide-react";
 
 interface RepresentativesManagerProps {
   colony: Colony;
@@ -27,12 +27,10 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
   const [notes, setNotes] = useState("");
 
   const assignedRep = allRepresentatives.find((r) => r.assigned_colony_id === colony.id);
-  const availableReps = allRepresentatives.filter((r) => r.assigned_colony_id !== colony.id);
 
   const selectedTypeConfig = REPRESENTATIVE_TYPES.find((t) => t.name === repType);
-  const selectedPersonalityConfig = PERSONALITIES.find((p) => p.name === personality);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) return;
 
@@ -102,7 +100,7 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
                   Type: {assignedRep.representative_type.toUpperCase()}
                 </span>
                 <span className="px-2 py-0.5 bg-[#1e2538] text-[#fdba74] rounded font-mono-slate">
-                  Personality: {assignedRep.personality.replace(/_/g, " ").toUpperCase()}
+                  Personality: {assignedRep.personality.replaceAll("_", " ").toUpperCase()}
                 </span>
                 <span className="px-2 py-0.5 bg-[#1e2538] text-[#86efac] rounded font-mono-slate">
                   Stat Bonus: {assignedRep.stat_bonus} (
@@ -151,6 +149,10 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
           {allRepresentatives.map((rep) => {
             const isCurrentGovernor = rep.assigned_colony_id === colony.id;
             const personalityObj = PERSONALITIES.find((p) => p.name === rep.personality);
+            let assignmentStatus = "Awaiting assignment";
+            if (rep.assigned_colony_id) {
+              assignmentStatus = isCurrentGovernor ? "Governing this world" : "Assigned elsewhere";
+            }
             return (
               <div
                 key={rep.id}
@@ -197,11 +199,7 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
 
                 <div className="mt-4 pt-3 border-t border-[#1e2538] flex items-center justify-between">
                   <span className="text-[11px] font-mono-slate text-[#64748b]">
-                    {rep.assigned_colony_id
-                      ? isCurrentGovernor
-                        ? "Governing this world"
-                        : "Assigned elsewhere"
-                      : "Awaiting assignment"}
+                    {assignmentStatus}
                   </span>
 
                   {!isCurrentGovernor && (
@@ -229,10 +227,14 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
 
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="rep-name"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Representative Name
                 </label>
                 <input
+                  id="rep-name"
                   type="text"
                   required
                   placeholder="e.g. Commander Ignatius Drake"
@@ -243,10 +245,14 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="rep-title"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Imperial Title / Rank
                 </label>
                 <input
+                  id="rep-title"
                   type="text"
                   placeholder="e.g. High Arbiter, Arch-Magos, Void Marshal"
                   value={title}
@@ -257,10 +263,14 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="rep-type"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Archetype / Role
                   </label>
                   <select
+                    id="rep-type"
                     value={repType}
                     onChange={(e) => setRepType(e.target.value)}
                     className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -274,10 +284,14 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="rep-personality"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Personality
                   </label>
                   <select
+                    id="rep-personality"
                     value={personality}
                     onChange={(e) => setPersonality(e.target.value)}
                     className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -292,7 +306,10 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="rep-stat-bonus"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Leadership Stat Bonus: {statBonus} (
                   {LEADERSHIP_MODIFIERS[statBonus] >= 0
                     ? `+${LEADERSHIP_MODIFIERS[statBonus]}`
@@ -300,6 +317,7 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
                   PF Modifier)
                 </label>
                 <input
+                  id="rep-stat-bonus"
                   type="range"
                   min="2"
                   max="6"
@@ -317,10 +335,14 @@ export const RepresentativesManager: React.FC<RepresentativesManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="rep-notes"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Background Lore & History
                 </label>
                 <textarea
+                  id="rep-notes"
                   rows={2}
                   placeholder="Record credentials, allegiances, or past deeds..."
                   value={notes}

@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import path from "path";
+import path from "node:path";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { createServer as createViteServer } from "vite";
@@ -96,14 +96,14 @@ const db: AppDataStore = {
   ],
   userPasswords: new Map(),
   tokenBlacklist: new Set(),
-  colonies: JSON.parse(JSON.stringify(INITIAL_COLONIES)),
-  infrastructures: JSON.parse(JSON.stringify(INITIAL_INFRASTRUCTURE)),
-  upgrades: JSON.parse(JSON.stringify(INITIAL_UPGRADES)),
-  representatives: JSON.parse(JSON.stringify(INITIAL_REPRESENTATIVES)),
-  modifiers: JSON.parse(JSON.stringify(INITIAL_MODIFIERS)),
+  colonies: structuredClone(INITIAL_COLONIES),
+  infrastructures: structuredClone(INITIAL_INFRASTRUCTURE),
+  upgrades: structuredClone(INITIAL_UPGRADES),
+  representatives: structuredClone(INITIAL_REPRESENTATIVES),
+  modifiers: structuredClone(INITIAL_MODIFIERS),
   events: [],
-  plans: JSON.parse(JSON.stringify(INITIAL_PLANS)),
-  resources: JSON.parse(JSON.stringify(INITIAL_RESOURCES)),
+  plans: structuredClone(INITIAL_PLANS),
+  resources: structuredClone(INITIAL_RESOURCES),
   auditLogs: [
     {
       id: "log-1",
@@ -128,7 +128,7 @@ db.userPasswords.set("usr-legacy-scribe", defaultHash);
 // Authentication Middleware
 function authenticateToken(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
     res.status(401).json({ error: "Missing authorization bearer token" });
@@ -144,14 +144,15 @@ function authenticateToken(req: Request, res: Response, next: NextFunction): voi
     const payload = jwt.verify(token, JWT_SECRET) as any;
     (req as any).user = payload;
     next();
-  } catch (err) {
+  } catch {
+    // Any verification failure (expired, malformed, wrong-signature) maps to the same 401.
     res.status(401).json({ error: "Invalid or expired token" });
   }
 }
 
 function parseTokenUser(req: Request): { sub: string; username: string; role: string } | null {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader?.split(" ")[1];
   if (!token || db.tokenBlacklist.has(token)) return null;
   try {
     return jwt.verify(token, JWT_SECRET) as any;
@@ -241,7 +242,7 @@ async function startAppServer() {
       return res.status(400).json({ error: "Username, email, and password required" });
     }
 
-    const existing = db.users.find((u) => u.username === username || u.email === email);
+    const existing = db.users.some((u) => u.username === username || u.email === email);
     if (existing) {
       return res.status(400).json({ error: "Username or email already registered" });
     }
@@ -345,7 +346,7 @@ async function startAppServer() {
 
   app.post("/api/v1/auth/revoke", (req, res) => {
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const token = authHeader?.split(" ")[1];
     if (token) {
       db.tokenBlacklist.add(token);
     }
@@ -353,13 +354,13 @@ async function startAppServer() {
   });
 
   app.post("/api/v1/reset-seed", (_req, res) => {
-    db.colonies = JSON.parse(JSON.stringify(INITIAL_COLONIES));
-    db.infrastructures = JSON.parse(JSON.stringify(INITIAL_INFRASTRUCTURE));
-    db.upgrades = JSON.parse(JSON.stringify(INITIAL_UPGRADES));
-    db.representatives = JSON.parse(JSON.stringify(INITIAL_REPRESENTATIVES));
-    db.modifiers = JSON.parse(JSON.stringify(INITIAL_MODIFIERS));
-    db.plans = JSON.parse(JSON.stringify(INITIAL_PLANS));
-    db.resources = JSON.parse(JSON.stringify(INITIAL_RESOURCES));
+    db.colonies = structuredClone(INITIAL_COLONIES);
+    db.infrastructures = structuredClone(INITIAL_INFRASTRUCTURE);
+    db.upgrades = structuredClone(INITIAL_UPGRADES);
+    db.representatives = structuredClone(INITIAL_REPRESENTATIVES);
+    db.modifiers = structuredClone(INITIAL_MODIFIERS);
+    db.plans = structuredClone(INITIAL_PLANS);
+    db.resources = structuredClone(INITIAL_RESOURCES);
     db.events = [];
     db.auditLogs = [
       {
@@ -378,7 +379,7 @@ async function startAppServer() {
     const colony = db.colonies.find((c) => c.id === req.params.id);
     if (!colony) return res.status(404).json({ error: "Colony not found" });
 
-    const days = parseInt(req.body.days || "1", 10);
+    const days = Number.parseInt(req.body.days || "1", 10);
     colony.founding_days = (colony.founding_days || 0) + days;
     colony.updated_at = new Date().toISOString();
 
@@ -718,8 +719,9 @@ async function startAppServer() {
 
     const { colony_id } = req.body;
     if (colony_id) {
-      const colony = db.colonies.find((c) => c.id === colony_id);
-      if (!colony) return res.status(404).json({ error: "Colony not found" });
+      if (!db.colonies.some((c) => c.id === colony_id)) {
+        return res.status(404).json({ error: "Colony not found" });
+      }
 
       // Unassign existing representative on this colony
       db.representatives.forEach((r) => {
@@ -988,7 +990,7 @@ async function startAppServer() {
 
   app.post("/api/v1/colonies/import", (req, res) => {
     const data = req.body;
-    if (!data.colony || !data.colony.name) {
+    if (!data.colony?.name) {
       return res.status(400).json({ error: "Invalid colony export schema" });
     }
 
@@ -1059,7 +1061,13 @@ async function startAppServer() {
   });
 }
 
-startAppServer().catch((err) => {
-  console.error("Failed to start server:", err);
-  process.exit(1);
-});
+// The production build emits CommonJS, where top-level await is illegal, so we
+// boot inside an async IIFE and funnel startup failures through one handler.
+(async () => {
+  try {
+    await startAppServer();
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+})();

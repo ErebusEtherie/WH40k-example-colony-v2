@@ -86,62 +86,6 @@ export const COLONY_TYPES: ColonyTypeConfig[] = [
       },
     ],
   },
-  {
-    name: "military_outpost",
-    display_name: "Military Outpost",
-    description: "Fortified bastion defending borders or strategic trade lanes against xenos incursions and pirates.",
-    initial_investment_pf: "1d5+4",
-    base_stats: { size: 1, complacency: 1, productivity: 1, order: 2, piety: 1 },
-    special_effects: [
-      {
-        name: "martial_vigilance",
-        description: "Begins with a free Infantry Garrison Upgrade. Order losses are reduced by 1.",
-        starts_with_upgrade: true,
-        upgrade_type: "infantry_garrison",
-      },
-    ],
-  },
-  {
-    name: "penal_colony",
-    display_name: "Penal Colony",
-    description: "Harsh penitentiary world where the condemned work arduous shifts in dangerous mines or manufactorums.",
-    initial_investment_pf: "1d5+1",
-    base_stats: { size: 1, complacency: 0, productivity: 2, order: 2, piety: 1 },
-    special_effects: [
-      {
-        name: "forced_labor",
-        description: "Higher initial productivity but prone to intense unrest if complacency remains zero.",
-      },
-    ],
-  },
-  {
-    name: "feudal_world",
-    display_name: "Feudal World",
-    description: "Pre-industrial society governed by nobility and knightly oaths, offering staunch recruits and raw resources.",
-    initial_investment_pf: "1d5+2",
-    base_stats: { size: 1, complacency: 2, productivity: 1, order: 1, piety: 2 },
-    special_effects: [
-      {
-        name: "ancient_oaths",
-        description: "Faith and tradition keep the populace steadfast during crises.",
-      },
-    ],
-  },
-  {
-    name: "pleasure_planet",
-    display_name: "Pleasure Planet",
-    description: "Dedicated to the lavish entertainment and indulgence of the nobility, high guildmasters, and Rogue Traders.",
-    initial_investment_pf: "1d5+6",
-    base_stats: { size: 1, complacency: 3, productivity: 1, order: 0, piety: 0 },
-    special_effects: [
-      {
-        name: "decadent_haven",
-        description: "Begins with Personal Lodgings. Generates bonus profit factor from trade and leisure endeavours.",
-        starts_with_upgrade: true,
-        upgrade_type: "personal_lodgings",
-      },
-    ],
-  },
 ];
 
 export interface InfrastructureConfig {

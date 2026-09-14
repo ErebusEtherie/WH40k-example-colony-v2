@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ColonyType } from "../../types/colony";
 import { COLONY_TYPES } from "../../data/rulesData";
-import { X, Building2, Landmark, Check } from "lucide-react";
+import { X, Landmark, Check } from "lucide-react";
 
 interface NewColonyModalProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) {
       setError("Please specify a valid colony designation.");
@@ -87,8 +87,11 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
           {/* Row 1: Designation and Star System */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
-                Colony Designation / Name *
+              <label
+                htmlFor="modal-colony-name-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
+                Colony Name *
               </label>
               <input
                 id="modal-colony-name-input"
@@ -102,8 +105,11 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
-                Star System / Sector
+              <label
+                htmlFor="modal-colony-system-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
+                Star System
               </label>
               <input
                 id="modal-colony-system-input"
@@ -116,11 +122,11 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Colony Charter Type Selector */}
+          {/* Row 2: Colony Type Selector */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
-              Colony Charter Type
-            </label>
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
+              Colony Type
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {COLONY_TYPES.map((type) => {
                 const isSelected = colonyType === type.name;
@@ -153,7 +159,10 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
           {/* Row 3: Initial Size & Founder */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-colony-size-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Initial Settlement Size (0-10)
               </label>
               <input
@@ -162,13 +171,16 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
                 min="0"
                 max="10"
                 value={baseSize}
-                onChange={(e) => setBaseSize(parseInt(e.target.value, 10) || 1)}
+                onChange={(e) => setBaseSize(Number.parseInt(e.target.value, 10) || 1)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-colony-founder-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Founding Dynasty / Founder
               </label>
               <input
@@ -184,7 +196,10 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
           {/* Row 4: Notes */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-colony-notes-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Colony Dossier Notes & Strategic Intent
             </label>
             <textarea
@@ -211,7 +226,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
               type="submit"
               className="px-5 py-2 bg-gradient-to-r from-[#b45309] to-[#f59e0b] hover:from-[#d97706] hover:to-[#fcd34d] text-[#06080e] font-gothic font-bold text-xs uppercase tracking-wider rounded transition shadow-lg"
             >
-              Establish Colony Charter
+              Establish New Colony
             </button>
           </div>
         </form>

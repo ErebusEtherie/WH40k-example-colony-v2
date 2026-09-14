@@ -287,6 +287,24 @@ class TestCORSMethodsAndHeaders:
         assert response.status_code == 200
         assert "Content-Type" in response.headers.get("Access-Control-Allow-Headers", "")
 
+    def test_x_csrf_token_header_allowed(self, test_client_with_defaults):
+        """Test that X-CSRF-Token header is allowed for state-changing requests.
+
+        The frontend echoes the CSRF token as X-CSRF-Token on POST/PUT/PATCH/DELETE,
+        so the backend must advertise it in Access-Control-Allow-Headers for the
+        browser's preflight (OPTIONS) to succeed.
+        """
+        response = test_client_with_defaults.options(
+            "/api/v1/colonies",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "DELETE",
+                "Access-Control-Request-Headers": "X-CSRF-Token",
+            },
+        )
+        assert response.status_code == 200
+        assert "X-CSRF-Token" in response.headers.get("Access-Control-Allow-Headers", "")
+
 
 class TestCORSCredentials:
     """Tests for credentials handling in CORS."""

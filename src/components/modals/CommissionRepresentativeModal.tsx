@@ -1,12 +1,7 @@
 import React, { useState } from "react";
-import {
-  Representative,
-  RepresentativeType,
-  Colony,
-  Characteristics,
-} from "../../types/colony";
+import { Representative, Colony, Characteristics } from "../../types/colony";
 import { REPRESENTATIVE_TYPES } from "../../data/rulesData";
-import { X, UserCheck, Check, Shield } from "lucide-react";
+import { X, UserCheck, Check } from "lucide-react";
 
 interface CommissionRepresentativeModalProps {
   isOpen: boolean;
@@ -22,7 +17,7 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
   onCommission,
 }) => {
   const [name, setName] = useState("");
-  const [repType, setRepType] = useState<RepresentativeType>("satrap");
+  const [repType, setRepType] = useState<string>("satrap");
   const [personality, setPersonality] = useState("scholarly");
   const [assignedColonyId, setAssignedColonyId] = useState<string>("");
   const [specialMechanics, setSpecialMechanics] = useState(
@@ -42,7 +37,7 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -54,14 +49,14 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
       representative_type: repType,
       theme: repTypeConfig?.special_rule || "General Administration",
       personality,
-      assigned_colony_id: assignedColonyId ? assignedColonyId : null,
+      assigned_colony_id: assignedColonyId || null,
       stat_bonus: 5,
       special_mechanics: specialMechanics.trim(),
       characteristics: chars,
       personality_traits: [
         {
           id: personality,
-          name: personality.charAt(0).toUpperCase() + personality.slice(1).replace(/_/g, " "),
+          name: personality.charAt(0).toUpperCase() + personality.slice(1).replaceAll("_", " "),
           stat_tag: "PRODUCTIVITY",
           description: "Balances and stabilizes the colony.",
           effect: "+1 to lowest characteristic when installed",
@@ -76,7 +71,7 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
   };
 
   const handleCharChange = (key: keyof Characteristics, val: string) => {
-    const num = parseInt(val, 10) || 0;
+    const num = Number.parseInt(val, 10) || 0;
     setChars((prev) => ({ ...prev, [key]: num }));
   };
 
@@ -110,7 +105,10 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
           {/* Row 1: Name and Assignment */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-rep-name-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Representative Full Name & Title *
               </label>
               <input
@@ -125,7 +123,10 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-rep-colony-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Domain Colony Assignment
               </label>
               <select
@@ -137,7 +138,7 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
                 <option value="">Unassigned (Ledger Reserve)</option>
                 {colonies.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} ({c.colony_type.replace(/_/g, " ")})
+                    {c.name} ({c.colony_type.replaceAll("_", " ")})
                   </option>
                 ))}
               </select>
@@ -146,9 +147,9 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
 
           {/* Row 2: Role Archetype Selection */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
               Role Archetype
-            </label>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {REPRESENTATIVE_TYPES.map((type) => {
                 const isSelected = repType === type.name;
@@ -181,7 +182,10 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
           {/* Row 3: Personality Profile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-rep-personality-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Personality Matrix Archetype
               </label>
               <select
@@ -200,7 +204,10 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-rep-special-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Special Mechanics Note
               </label>
               <input
@@ -215,9 +222,9 @@ export const CommissionRepresentativeModal: React.FC<CommissionRepresentativeMod
 
           {/* Row 4: Characteristics Matrix (9 stats) */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
               Initial Characteristics (0-100)
-            </label>
+            </div>
             <div className="grid grid-cols-3 sm:grid-cols-9 gap-2">
               {(["ws", "bs", "s", "t", "ag", "int", "per", "wp", "fel"] as (keyof Characteristics)[]).map(
                 (statKey) => (

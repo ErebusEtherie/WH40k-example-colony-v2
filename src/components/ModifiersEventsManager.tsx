@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Colony, ColonyEvent, Modifier, ModifierStat } from "../types/colony";
-import { Activity, Plus, Trash2, BookOpen, AlertOctagon, Flame } from "lucide-react";
+import { ColonyEvent, Modifier, ModifierStat } from "../types/colony";
+import { Activity, Plus, Trash2, BookOpen, Flame } from "lucide-react";
 
 interface ModifiersEventsManagerProps {
-  colony: Colony;
   modifiers: Modifier[];
   events: ColonyEvent[];
   onAddModifier: (
@@ -45,7 +44,7 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
   const [evtDesc, setEvtDesc] = useState("");
   const [evtEffects, setEvtEffects] = useState("");
 
-  const handleAddMod = (e: React.FormEvent) => {
+  const handleAddMod = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!modName) return;
     onAddModifier(modName, modStat, Number(modValue), modSource, modDesc);
@@ -54,7 +53,7 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
     setShowModModal(false);
   };
 
-  const handleAddEvt = (e: React.FormEvent) => {
+  const handleAddEvt = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!evtName || !evtDesc) return;
     onAddEvent(evtName, evtType, evtDesc, evtEffects);
@@ -205,10 +204,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
 
             <form onSubmit={handleAddMod} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-modname-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Modifier Name
                 </label>
                 <input
+                  id="mee-modname-input"
                   type="text"
                   required
                   placeholder="e.g. Ash Waste Storms, Tech-Heresy Purge"
@@ -220,10 +223,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="mee-modstat-select"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Target Characteristic
                   </label>
                   <select
+                    id="mee-modstat-select"
                     value={modStat}
                     onChange={(e) => setModStat(e.target.value as any)}
                     className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -238,10 +245,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="mee-modvalue-input"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Modifier Value (+/-)
                   </label>
                   <input
+                    id="mee-modvalue-input"
                     type="number"
                     value={modValue}
                     onChange={(e) => setModValue(Number(e.target.value))}
@@ -251,10 +262,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-modsource-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Source / Authority
                 </label>
                 <input
+                  id="mee-modsource-input"
                   type="text"
                   placeholder="e.g. GM Ruling, Narrative Event, Planetary Trait"
                   value={modSource}
@@ -264,10 +279,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-moddesc-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Narrative Justification
                 </label>
                 <textarea
+                  id="mee-moddesc-input"
                   rows={2}
                   placeholder="Explain why this modifier has been instituted..."
                   value={modDesc}
@@ -306,10 +325,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
 
             <form onSubmit={handleAddEvt} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-evtname-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Event Title
                 </label>
                 <input
+                  id="mee-evtname-input"
                   type="text"
                   required
                   placeholder="e.g. Void Pirate Blockade, Miraculous Relic Exhumed"
@@ -320,10 +343,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-evtcategory-select"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Event Category
                 </label>
                 <select
+                  id="mee-evtcategory-select"
                   value={evtType}
                   onChange={(e) => setEvtType(e.target.value as any)}
                   className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -336,10 +363,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-evtdesc-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Event Description
                 </label>
                 <textarea
+                  id="mee-evtdesc-input"
                   rows={2}
                   required
                   placeholder="Narrate the encounter, casualty reports, or political shifts..."
@@ -350,10 +381,14 @@ export const ModifiersEventsManager: React.FC<ModifiersEventsManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="mee-evteffects-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Mechanical Effects & Rewards (Optional)
                 </label>
                 <input
+                  id="mee-evteffects-input"
                   type="text"
                   placeholder="e.g. +100 Achievement Points, +1 Profit Factor"
                   value={evtEffects}

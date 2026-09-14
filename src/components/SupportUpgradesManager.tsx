@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Colony, ModifierStat, SupportUpgrade } from "../types/colony";
+import { ModifierStat, SupportUpgrade } from "../types/colony";
 import { SUPPORT_UPGRADE_TYPES } from "../data/rulesData";
 import { Shield, Plus, Trash2, Award, Sparkles, AlertCircle } from "lucide-react";
 
 interface SupportUpgradesManagerProps {
-  colony: Colony;
   currentSize: number;
   upgrades: SupportUpgrade[];
   onAddUpgrade: (
@@ -34,7 +33,7 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
   const isAtCapacity = upgrades.length >= maxSlots;
   const currentConfig = SUPPORT_UPGRADE_TYPES.find((t) => t.name === selectedType);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!currentConfig) return;
 
@@ -187,10 +186,14 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
 
             <form onSubmit={handleAdd} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="su-archetype-select"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Upgrade Archetype
                 </label>
                 <select
+                  id="su-archetype-select"
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
                   className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -204,10 +207,14 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="su-name-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Structure / Landmark Name
                 </label>
                 <input
+                  id="su-name-input"
                   type="text"
                   placeholder={`e.g. ${currentConfig?.display_name || "Imperial Installation"}`}
                   value={customName}
@@ -218,10 +225,14 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
 
               {selectedType === "cultural_improvement" && (
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="su-chosenstat-select"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Select Characteristic to Boost (+1)
                   </label>
                   <select
+                    id="su-chosenstat-select"
                     value={chosenStat}
                     onChange={(e) => setChosenStat(e.target.value as any)}
                     className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -236,10 +247,14 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
 
               {selectedType === "industrial_facility" && (
                 <div>
-                  <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                  <label
+                    htmlFor="su-product-input"
+                    className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                  >
                     Export Product Definition
                   </label>
                   <input
+                    id="su-product-input"
                     type="text"
                     placeholder="e.g. Lock-pattern Boltguns, Voidship Hull Plates"
                     value={customProduct}
@@ -250,10 +265,14 @@ export const SupportUpgradesManager: React.FC<SupportUpgradesManagerProps> = ({
               )}
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label
+                  htmlFor="su-notes-input"
+                  className="block text-xs font-mono-slate text-[#94a3b8] mb-1"
+                >
                   Lore & Strategic Notes
                 </label>
                 <textarea
+                  id="su-notes-input"
                   rows={2}
                   placeholder="Architectural style, commanding officer, or patron..."
                   value={notes}

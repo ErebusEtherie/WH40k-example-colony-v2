@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Colony,
   Representative,
@@ -8,9 +9,8 @@ import {
   ColonyResource,
   DevelopmentPlan,
   OpticsSettings,
-  User,
 } from "./types/colony";
-import { useCurrentUser, useLogin, useLogout, apiFetch } from "./lib/api";
+import { useCurrentUser, useLogout, apiFetch } from "./lib/api";
 import {
   INITIAL_COLONIES,
   INITIAL_REPRESENTATIVES,
@@ -41,36 +41,32 @@ import { LogResourceDepositModal } from "./components/modals/LogResourceDepositM
 import { EditCharterModal } from "./components/modals/EditCharterModal";
 
 export function App() {
+  const queryClient = useQueryClient();
   // Use TanStack Query for authentication state
   const { data: currentUser, isLoading: authLoading } = useCurrentUser();
-  const loginMutation = useLogin();
   const logoutMutation = useLogout();
   
   const isLoggedIn = !!currentUser;
   
   // Global App States
-  const [colonies, setColonies] = useState<Colony[]>(INITIAL_COLONIES);
-  const [selectedColonyId, setSelectedColonyId] = useState<string>(
-    INITIAL_COLONIES[0]?.id || "colony-1"
-  );
+  const [colonies, setColonies] = useState<Colony[]>([]);
+  const [selectedColonyId, setSelectedColonyId] = useState<string>("");
+
+  // Tracks whether the initial backend sync has completed, so we don't flash an
+  // empty/demo dashboard while real colonies are still loading.
+  const [coloniesLoaded, setColoniesLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "overview" | "details" | "infrastructure" | "representatives"
   >("overview");
 
-  const [representatives, setRepresentatives] = useState<Representative[]>(
-    INITIAL_REPRESENTATIVES
-  );
-  const [selectedRepId, setSelectedRepId] = useState<string>(
-    INITIAL_REPRESENTATIVES[0]?.id || "rep-1"
-  );
+  const [representatives, setRepresentatives] = useState<Representative[]>([]);
+  const [selectedRepId, setSelectedRepId] = useState<string>("");
 
-  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>(
-    INITIAL_INFRASTRUCTURES
-  );
-  const [upgrades, setUpgrades] = useState<SupportUpgrade[]>(INITIAL_UPGRADES);
-  const [modifiers, setModifiers] = useState<Modifier[]>(INITIAL_MODIFIERS);
-  const [resources, setResources] = useState<ColonyResource[]>(INITIAL_RESOURCES);
-  const [plans, setPlans] = useState<DevelopmentPlan[]>(INITIAL_PLANS);
+  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+  const [upgrades, setUpgrades] = useState<SupportUpgrade[]>([]);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]);
+  const [resources, setResources] = useState<ColonyResource[]>([]);
+  const [plans, setPlans] = useState<DevelopmentPlan[]>([]);
 
   // Chronometer & Turn System
   const [currentTurnYear, setCurrentTurnYear] = useState(814);
@@ -149,25 +145,32 @@ export function App() {
   useEffect(() => {
     // Only fetch data if user is authenticated
     if (!isLoggedIn) {
+      setColoniesLoaded(false);
       return;
     }
 
     const loadInitialData = async () => {
       try {
         const res = await apiFetch("/api/v1/colonies");
-        if (!res.ok) return;
-        const coloniesList = await res.json();
+        if (res.ok) {
+          const payload = await res.json();
+          // The list endpoint returns a paginated envelope { items, meta }; guard
+          // for both that and a bare array in case the shape ever changes.
+          const coloniesList: Colony[] = Array.isArray(payload)
+            ? payload
+            : (payload?.items ?? []);
 
-        if (coloniesList && Array.isArray(coloniesList) && coloniesList.length > 0) {
-          setColonies(coloniesList);
-          if (!coloniesList.some((c: Colony) => c.id === selectedColonyId)) {
-            setSelectedColonyId(coloniesList[0].id);
+          if (coloniesList.length > 0) {
+            setColonies(coloniesList);
+            if (!coloniesList.some((c) => c.id === selectedColonyId)) {
+              setSelectedColonyId(coloniesList[0].id);
+            }
+
+            // Fetch nested details for each colony
+            coloniesList.forEach((c) => {
+              fetchColonyDetails(c);
+            });
           }
-
-          // Fetch nested details for each colony
-          coloniesList.forEach((c: Colony) => {
-            fetchColonyDetails(c);
-          });
         }
       } catch (err) {
         console.log("Initial fetch colonies error:", err);
@@ -175,14 +178,22 @@ export function App() {
 
       try {
         const res = await apiFetch("/api/v1/representatives");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data && Array.isArray(data) && data.length > 0) {
-          setRepresentatives(data);
+        if (res.ok) {
+          const payload = await res.json();
+          const data: Representative[] = Array.isArray(payload)
+            ? payload
+            : (payload?.items ?? []);
+          if (data.length > 0) {
+            setRepresentatives(data);
+          }
         }
       } catch (err) {
         console.log("Fetch reps error:", err);
       }
+
+      // Mark the initial sync as complete so the dashboard renders (or shows the
+      // empty-colony state) instead of flashing stale demo content.
+      setColoniesLoaded(true);
     };
 
     loadInitialData();
@@ -201,9 +212,10 @@ export function App() {
     };
   }, [isChronometerRunning, chronometerSpeed, currentTurnQuarter, currentTurnYear]);
 
-  // Active Colony
+  // Active Colony (null when the backend has no colonies yet — the dashboard
+  // renders an empty-charter prompt in that case, see below).
   const currentColony =
-    colonies.find((c) => c.id === selectedColonyId) || colonies[0] || INITIAL_COLONIES[0];
+    colonies.find((c) => c.id === selectedColonyId) || colonies[0] || null;
 
   // Active Representative for this colony
   const currentRep =
@@ -211,9 +223,7 @@ export function App() {
 
   // Selected Representative for Representative View
   const selectedRep =
-    representatives.find((r) => r.id === selectedRepId) ||
-    representatives[0] ||
-    INITIAL_REPRESENTATIVES[0];
+    representatives.find((r) => r.id === selectedRepId) || representatives[0] || null;
 
   // Filtered collections for active colony
   const colonyInfrastructures = infrastructures.filter(
@@ -223,15 +233,6 @@ export function App() {
   const colonyModifiers = modifiers.filter((m) => m.colony_id === currentColony?.id);
   const colonyResources = resources.filter((r) => r.colony_id === currentColony?.id);
   const colonyPlans = plans.filter((p) => p.colony_id === currentColony?.id);
-
-  // Real-time calculation breakdown
-  const colonyStats = calculateColonyStats(
-    currentColony,
-    currentRep ? [currentRep] : [],
-    colonyInfrastructures,
-    colonyUpgrades,
-    colonyModifiers
-  );
 
   // Turn Advance Handler
   const handleAdvanceQuarter = () => {
@@ -370,8 +371,13 @@ export function App() {
       return;
     }
 
+    // Optimistic local entry so the UI updates immediately. The backend assigns the
+    // authoritative integer id; we replace this temporary row once POST resolves so
+    // deletes and other operations always target a real colony id (never a synthetic
+    // string that the backend would reject with a 422).
+    const tempId = `temp-colony-${Date.now()}`;
     const newColony: Colony = {
-      id: `colony-${Date.now()}`,
+      id: tempId,
       name: colonyData.name,
       star_system: colonyData.star_system,
       colony_type: colonyData.colony_type,
@@ -391,12 +397,32 @@ export function App() {
     setColonies((prev) => [...prev, newColony]);
     setSelectedColonyId(newColony.id);
 
-    // Add default infrastructure according to type
-    apiFetch("/api/v1/colonies", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newColony),
-    }).catch(console.error);
+    try {
+      const res = await apiFetch("/api/v1/colonies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newColony),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        if (created?.id) {
+          // Adopt the backend-assigned id so subsequent operations use a real colony.
+          setColonies((prev) => prev.map((c) => (c.id === tempId ? created : c)));
+          setSelectedColonyId(created.id);
+          fetchColonyDetails(created);
+          return created;
+        }
+      } else {
+        console.error("Create colony failed:", res.status);
+      }
+    } catch (err) {
+      console.error("Create colony error:", err);
+    }
+
+    // POST failed or returned no id — roll back the optimistic entry.
+    setColonies((prev) => prev.filter((c) => c.id !== tempId));
+    setSelectedColonyId((prev) => (prev === tempId ? "" : prev));
+    return null;
   };
 
   const handleSaveCharter = (updates: Partial<Colony>) => {
@@ -413,6 +439,40 @@ export function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     }).catch(console.error);
+  };
+
+  const handleDeleteColony = async (colonyId: string) => {
+    if (currentUser?.role !== "admin") {
+      alert("Clearance Denied: Arch Magos clearance required to dissolve a colony.");
+      return;
+    }
+    if (!colonyId) return;
+
+    try {
+      const res = await apiFetch(`/api/v1/colonies/${colonyId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        alert(body?.detail || `Failed to delete colony (HTTP ${res.status}).`);
+        return;
+      }
+    } catch (err) {
+      console.error("Delete colony error:", err);
+      alert("Failed to delete colony. Please check the backend connection and try again.");
+      return;
+    }
+
+    // Only mutate local state after the server confirms deletion
+    setColonies((prev) => prev.filter((c) => c.id !== colonyId));
+    setInfrastructures((prev) => prev.filter((i) => i.colony_id !== colonyId));
+    setUpgrades((prev) => prev.filter((u) => u.colony_id !== colonyId));
+    setModifiers((prev) => prev.filter((m) => m.colony_id !== colonyId));
+    setResources((prev) => prev.filter((r) => r.colony_id !== colonyId));
+    setPlans((prev) => prev.filter((p) => p.colony_id !== colonyId));
+    setSelectedColonyId((prev) => {
+      if (prev !== colonyId) return prev;
+      // Select the first remaining colony after the deletion (if any).
+      return colonies.find((c) => c.id !== colonyId)?.id || "";
+    });
   };
 
   // Representatives
@@ -839,10 +899,26 @@ export function App() {
     return (
       <LoginScreen
         onLogin={(user) => {
-          // TanStack Query will automatically refetch currentUser on successful login
-          // because loginMutation invalidates the auth queries
+          // Populate the session query cache with the just-authenticated user so
+          // isLoggedIn flips true and the app transitions to the dashboard without
+          // waiting for a full refetch. (LoginScreen calls loginApi directly, so the
+          // loginMutation.onSuccess invalidation never runs on this path.)
+          queryClient.setQueryData(["auth", "me"], user);
         }}
       />
+    );
+  }
+
+  // Wait for the initial backend sync so the dashboard doesn't flash an
+  // empty/demo state while real colonies are still loading.
+  if (!coloniesLoaded) {
+    return (
+      <div className="min-h-screen bg-[#04060b] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#f59e0b]/30 border-t-[#f59e0b] rounded-full animate-spin mx-auto" />
+          <p className="text-[#f59e0b] font-mono-slate text-sm tracking-wider">LOADING IMPERIAL DATASLATE...</p>
+        </div>
+      </div>
     );
   }
 
@@ -859,6 +935,78 @@ export function App() {
   ]
     .filter(Boolean)
     .join(" ");
+
+  // No real colonies on the backend yet — the GM is logged in but there is nothing
+  // to show. Seed/demo data is not displayed here: it's demo-only and must never be
+  // sent to the API, so we prompt to charter the first real colony instead.
+  if (!currentColony) {
+    return (
+      <div
+        className={`min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black ${accessibilityClasses}`}
+      >
+        <div className="flex-1 flex flex-col">
+          <Header
+            colonies={colonies}
+            selectedColony={currentColony}
+            activeTab={activeTab}
+            theme={theme}
+            opticsSettings={opticsSettings}
+            onSelectColony={(colony) => setSelectedColonyId(colony.id)}
+            onSelectTab={setActiveTab}
+            onAdvanceDays={handleAdvanceDays}
+            onOpenNewColony={() => setIsNewColonyOpen(true)}
+            onChangeTheme={setTheme}
+            onUpdateOpticsSettings={setOpticsSettings}
+            userRole={currentUser?.role || "colony_manager"}
+            userName={currentUser?.username || "Alexis Valancius"}
+            onLogout={handleLogout}
+          />
+
+          <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <p className="text-[#f59e0b] font-mono-slate text-sm tracking-wider uppercase">
+                No colonised worlds on record
+              </p>
+              <p className="text-[#94a3b8] text-sm max-w-md mx-auto">
+                The dynasty has not yet chartered a colony in the Imperial dataslate.
+                Create the first settlement to begin tracking it here.
+              </p>
+              <button
+                onClick={() => setIsNewColonyOpen(true)}
+                className="px-5 py-2 rounded font-mono-slate text-sm bg-[#f59e0b]/15 text-[#f59e0b] border border-[#f59e0b]/40 hover:bg-[#f59e0b]/25 transition"
+              >
+                Charter First Colony
+              </button>
+            </div>
+          </main>
+        </div>
+
+        <Footer
+          colonyCount={colonies.length}
+          activeColonyName="None"
+          onResetSeedData={handleResetData}
+          onExportData={handleExportData}
+          onImportData={handleImportData}
+        />
+
+        <NewColonyModal
+          isOpen={isNewColonyOpen}
+          onClose={() => setIsNewColonyOpen(false)}
+          onCreateColony={handleCreateColony}
+        />
+      </div>
+    );
+  }
+
+  // Real-time calculation breakdown (only evaluated once a colony exists — the
+  // stubbed calculator dereferences colony fields directly).
+  const colonyStats = calculateColonyStats(
+    currentColony,
+    currentRep ? [currentRep] : [],
+    colonyInfrastructures,
+    colonyUpgrades,
+    colonyModifiers
+  );
 
   return (
     <div
@@ -941,6 +1089,8 @@ export function App() {
               onToggleModifier={handleToggleModifier}
               onDeleteModifier={handleDeleteModifier}
               onDeleteResource={handleDeleteResource}
+              canDelete={currentUser?.role === "admin"}
+              onDeleteColony={() => handleDeleteColony(currentColony.id)}
             />
           )}
 
@@ -1020,35 +1170,35 @@ export function App() {
       <CommissionHardInfrastructureModal
         isOpen={isCommissionSystemOpen}
         onClose={() => setIsCommissionSystemOpen(false)}
-        colonyId={currentColony?.id || "colony-1"}
+        colonyId={currentColony?.id || ""}
         onCommission={handleCommissionInfrastructure}
       />
 
       <AddSupportUpgradeModal
         isOpen={isInstallUpgradeOpen}
         onClose={() => setIsInstallUpgradeOpen(false)}
-        colonyId={currentColony?.id || "colony-1"}
+        colonyId={currentColony?.id || ""}
         onInstall={handleInstallUpgrade}
       />
 
       <AddBlueprintModal
         isOpen={isAddBlueprintOpen}
         onClose={() => setIsAddBlueprintOpen(false)}
-        colonyId={currentColony?.id || "colony-1"}
+        colonyId={currentColony?.id || ""}
         onAddPlan={handleAddPlan}
       />
 
       <AddCustomModifierModal
         isOpen={isAddModifierOpen}
         onClose={() => setIsAddModifierOpen(false)}
-        colonyId={currentColony?.id || "colony-1"}
+        colonyId={currentColony?.id || ""}
         onAddModifier={handleAddModifier}
       />
 
       <LogResourceDepositModal
         isOpen={isLogResourceOpen}
         onClose={() => setIsLogResourceOpen(false)}
-        colonyId={currentColony?.id || "colony-1"}
+        colonyId={currentColony?.id || ""}
         onLogResource={handleLogResource}
       />
 

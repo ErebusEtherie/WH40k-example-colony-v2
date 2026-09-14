@@ -25,7 +25,7 @@ export const ReassignRepresentativeModal: React.FC<ReassignRepresentativeModalPr
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     onReassign(selectedRepId);
     onClose();

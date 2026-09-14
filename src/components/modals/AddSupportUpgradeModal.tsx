@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SupportUpgrade, UpgradeType } from "../../types/colony";
+import { SupportUpgrade } from "../../types/colony";
 import { UPGRADE_TYPES } from "../../data/rulesData";
 import { X, Shield, Check } from "lucide-react";
 
@@ -16,7 +16,7 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
   colonyId,
   onInstall,
 }) => {
-  const [upgradeType, setUpgradeType] = useState<UpgradeType>("arbites_precinct");
+  const [upgradeType, setUpgradeType] = useState<string>("arbites_precinct");
   const [name, setName] = useState("");
   const [state, setState] = useState<SupportUpgrade["state"]>("working");
   const [customProduct, setCustomProduct] = useState("");
@@ -24,14 +24,14 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const typeConfig = UPGRADE_TYPES.find((u) => u.name === upgradeType);
 
     onInstall({
       colony_id: colonyId,
       upgrade_type: upgradeType,
-      name: name.trim() || typeConfig?.display_name || upgradeType.replace(/_/g, " "),
+      name: name.trim() || typeConfig?.display_name || upgradeType.replaceAll("_", " "),
       state,
       custom_product: upgradeType === "industrial_facility" ? customProduct.trim() : undefined,
       description: description.trim() || typeConfig?.description || "Specialized Imperial installation.",
@@ -71,9 +71,9 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           {/* Upgrade Type Grid */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
+            <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
               Select Upgrade Facility
-            </label>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
               {UPGRADE_TYPES.map((type) => {
                 const isSelected = upgradeType === type.name;
@@ -109,7 +109,10 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
           {/* Upgrade Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-upgrade-name-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Facility Designation / Name
               </label>
               <input
@@ -123,10 +126,14 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-upgrade-status-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Operational Status
               </label>
               <select
+                id="modal-upgrade-status-select"
                 value={state}
                 onChange={(e) => setState(e.target.value as SupportUpgrade["state"])}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none uppercase font-bold"
@@ -141,10 +148,14 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
           {/* Industrial Product (if industrial facility) */}
           {upgradeType === "industrial_facility" && (
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-upgrade-product-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Manufactured Product
               </label>
               <input
+                id="modal-upgrade-product-input"
                 type="text"
                 value={customProduct}
                 onChange={(e) => setCustomProduct(e.target.value)}
@@ -156,10 +167,14 @@ export const AddSupportUpgradeModal: React.FC<AddSupportUpgradeModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-upgrade-description-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Facility Description
             </label>
             <textarea
+              id="modal-upgrade-description-input"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

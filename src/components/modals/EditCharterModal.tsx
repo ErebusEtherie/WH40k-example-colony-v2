@@ -22,7 +22,7 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSaveCharter({
       name: name.trim() || colony.name,
@@ -62,10 +62,14 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
-              Colony Designation / Name
+            <label
+              htmlFor="edit-charter-name"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
+              Colony Name
             </label>
             <input
+              id="edit-charter-name"
               type="text"
               required
               value={name}
@@ -76,10 +80,14 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
-                Star System / Sector
+              <label
+                htmlFor="edit-charter-system"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
+                Star System
               </label>
               <input
+                id="edit-charter-system"
                 type="text"
                 value={starSystem}
                 onChange={(e) => setStarSystem(e.target.value)}
@@ -88,10 +96,14 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="edit-charter-founder"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Founding Dynasty / Founder
               </label>
               <input
+                id="edit-charter-founder"
                 type="text"
                 value={founderName}
                 onChange={(e) => setFounderName(e.target.value)}
@@ -101,10 +113,14 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="edit-charter-quote"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Dossier Quote & Strategic Summary
             </label>
             <textarea
+              id="edit-charter-quote"
               rows={3}
               value={quote}
               onChange={(e) => setQuote(e.target.value)}

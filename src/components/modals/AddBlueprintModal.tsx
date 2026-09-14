@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { DevelopmentPlan } from "../../types/colony";
-import { X, Layers, Plus } from "lucide-react";
+import { X, Layers } from "lucide-react";
 
 interface AddBlueprintModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -73,7 +73,10 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
           {/* Project Name */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-plan-name-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Project Designation / Name *
             </label>
             <input
@@ -90,10 +93,14 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
           {/* Category & Specific Type */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-plan-category-select"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Blueprint Category
               </label>
               <select
+                id="modal-plan-category-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
@@ -105,10 +112,14 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-plan-specifctype-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Specific System / Upgrade Type
               </label>
               <input
+                id="modal-plan-specifctype-input"
                 type="text"
                 value={specificType}
                 onChange={(e) => setSpecificType(e.target.value)}
@@ -121,29 +132,37 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
           {/* Priority Rank & Progress Percent */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-plan-priority-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Priority Rank (1-10)
               </label>
               <input
+                id="modal-plan-priority-input"
                 type="number"
                 min="1"
                 max="10"
                 value={priorityRank}
-                onChange={(e) => setPriorityRank(parseInt(e.target.value, 10) || 1)}
+                onChange={(e) => setPriorityRank(Number.parseInt(e.target.value, 10) || 1)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+              <label
+                htmlFor="modal-plan-progress-input"
+                className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+              >
                 Current Construction Progress (%)
               </label>
               <input
+                id="modal-plan-progress-input"
                 type="number"
                 min="0"
                 max="100"
                 value={progressPercent}
-                onChange={(e) => setProgressPercent(parseInt(e.target.value, 10) || 0)}
+                onChange={(e) => setProgressPercent(Number.parseInt(e.target.value, 10) || 0)}
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>
@@ -151,10 +170,14 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
 
           {/* Progress Details Note */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-plan-progressdetails-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Progress Status Note
             </label>
             <input
+              id="modal-plan-progressdetails-input"
               type="text"
               value={progressDetails}
               onChange={(e) => setProgressDetails(e.target.value)}
@@ -165,10 +188,14 @@ export const AddBlueprintModal: React.FC<AddBlueprintModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold">
+            <label
+              htmlFor="modal-plan-description-input"
+              className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
+            >
               Project Description & Strategic Intent
             </label>
             <textarea
+              id="modal-plan-description-input"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

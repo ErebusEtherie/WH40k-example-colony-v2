@@ -1,15 +1,24 @@
 import React, { useState } from "react";
-import { Colony, Infrastructure, InfrastructureState } from "../types/colony";
+import { Infrastructure, InfrastructureState } from "../types/colony";
 import { INFRASTRUCTURE_TYPES } from "../data/rulesData";
 import { Cpu, CheckCircle2, XCircle, Clock, Plus, Trash2 } from "lucide-react";
 
 interface InfrastructureManagerProps {
-  colony: Colony;
   infrastructures: Infrastructure[];
   onUpdateState: (infraId: string, newState: InfrastructureState) => void;
   onAddInfrastructure: (type: string, name: string, state: InfrastructureState, notes?: string) => void;
   onDeleteInfrastructure: (infraId: string) => void;
 }
+
+const getInfraBorderClass = (state: InfrastructureState): string => {
+  if (state === "working") {
+    return "border-[#22c55e]/40 shadow-[0_0_15px_rgba(34,197,94,0.05)]";
+  }
+  if (state === "not_working") {
+    return "border-[#ef4444]/50 bg-[#2d0e0e]/20";
+  }
+  return "border-[#eab308]/40";
+};
 
 export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
   infrastructures,
@@ -23,7 +32,7 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
   const [initialState, setInitialState] = useState<InfrastructureState>("working");
   const [notes, setNotes] = useState("");
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const config = INFRASTRUCTURE_TYPES.find((t) => t.name === selectedType);
     onAddInfrastructure(selectedType, customName || config?.display_name || selectedType, initialState, notes);
@@ -64,13 +73,7 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
           return (
             <div
               key={infra.id}
-              className={`bg-[#121520] border rounded-xl p-5 flex flex-col justify-between transition ${
-                infra.state === "working"
-                  ? "border-[#22c55e]/40 shadow-[0_0_15px_rgba(34,197,94,0.05)]"
-                  : infra.state === "not_working"
-                  ? "border-[#ef4444]/50 bg-[#2d0e0e]/20"
-                  : "border-[#eab308]/40"
-              }`}
+              className={`bg-[#121520] border rounded-xl p-5 flex flex-col justify-between transition ${getInfraBorderClass(infra.state)}`}
             >
               <div>
                 <div className="flex items-start justify-between">
@@ -99,8 +102,8 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
                   <div className="text-[10px] uppercase font-mono-slate text-[#64748b]">Active Mechanical Impact:</div>
                   {infra.state === "working" && (
                     <div className="flex flex-wrap gap-2 text-[#86efac] font-medium">
-                      {config?.working_modifiers.map((m, idx) => (
-                        <span key={idx} className="bg-[#14532d]/40 px-2 py-0.5 rounded border border-[#22c55e]/30">
+                      {config?.working_modifiers.map((m) => (
+                        <span key={`${m.stat}-${m.value}`} className="bg-[#14532d]/40 px-2 py-0.5 rounded border border-[#22c55e]/30">
                           +{m.value} {m.stat.toUpperCase()}
                         </span>
                       ))}
@@ -108,8 +111,8 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
                   )}
                   {infra.state === "not_working" && (
                     <div className="flex flex-wrap gap-2 text-[#fca5a5] font-medium">
-                      {config?.not_working_modifiers.map((m, idx) => (
-                        <span key={idx} className="bg-[#7f1d1d]/40 px-2 py-0.5 rounded border border-[#ef4444]/30">
+                      {config?.not_working_modifiers.map((m) => (
+                        <span key={`${m.stat}-${m.value}`} className="bg-[#7f1d1d]/40 px-2 py-0.5 rounded border border-[#ef4444]/30">
                           {m.value} {m.stat.toUpperCase()}
                         </span>
                       ))}
@@ -185,10 +188,11 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
 
             <form onSubmit={handleAdd} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label htmlFor="infra-classification-select" className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
                   Infrastructure Classification
                 </label>
                 <select
+                  id="infra-classification-select"
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
                   className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -202,10 +206,11 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label htmlFor="infra-name-input" className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
                   Facility Designation / Name
                 </label>
                 <input
+                  id="infra-name-input"
                   type="text"
                   placeholder="e.g. Omnissiah Plasma Core Alpha"
                   value={customName}
@@ -215,10 +220,11 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label htmlFor="infra-state-select" className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
                   Initial Operational State
                 </label>
                 <select
+                  id="infra-state-select"
                   value={initialState}
                   onChange={(e) => setInitialState(e.target.value as any)}
                   className="w-full bg-[#0b0d13] border border-[#334155] rounded px-3 py-2 text-sm text-[#f8fafc]"
@@ -230,10 +236,11 @@ export const InfrastructureManager: React.FC<InfrastructureManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
+                <label htmlFor="infra-notes-input" className="block text-xs font-mono-slate text-[#94a3b8] mb-1">
                   Notes & Lore
                 </label>
                 <textarea
+                  id="infra-notes-input"
                   rows={2}
                   placeholder="Describe location, tech level, or machinery details..."
                   value={notes}

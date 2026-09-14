@@ -2,11 +2,7 @@ export type ColonyType =
   | "research_mission"
   | "mining_and_industry"
   | "ecclesiastical"
-  | "agricultural"
-  | "military_outpost"
-  | "penal_colony"
-  | "feudal_world"
-  | "pleasure_planet";
+  | "agricultural";
 
 export type ModifierStat =
   | "size"
@@ -15,11 +11,6 @@ export type ModifierStat =
   | "productivity"
   | "piety"
   | "profit_factor";
-
-export type ColonyStatKey = ModifierStat;
-export type InfrastructureType = string;
-export type UpgradeType = string;
-export type RepresentativeType = string;
 
 export type InfrastructureState = "in_progress" | "working" | "not_working" | "needed";
 
@@ -226,7 +217,7 @@ export interface User {
 }
 
 export interface OpticsSettings {
-  theme?: "theme-grimdark" | "theme-mechanicus" | "theme-inquisition" | string;
+  theme?: "theme-grimdark" | "theme-mechanicus" | "theme-inquisition";
   high_contrast?: boolean;
   large_text?: boolean;
   dyslexia_font?: boolean;

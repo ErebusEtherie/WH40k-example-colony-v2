@@ -1,14 +1,8 @@
 import React, { useState } from "react";
 import { Representative, Colony } from "../types/colony";
 import {
-  UserCheck,
   Plus,
   Edit2,
-  Trash2,
-  Sparkles,
-  Shield,
-  Award,
-  BookOpen,
   Check,
   X,
   User,
@@ -61,7 +55,7 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
     }
   };
 
-  const handleSaveRename = (e: React.FormEvent) => {
+  const handleSaveRename = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (rep && editedName.trim()) {
       onRenameRepresentative(rep.id, editedName.trim());
@@ -69,7 +63,7 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
     }
   };
 
-  const handleSkillSubmit = (e: React.FormEvent) => {
+  const handleSkillSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (rep && newSkillInput.trim()) {
       onAddSkill(rep.id, newSkillInput.trim());
@@ -77,7 +71,7 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
     }
   };
 
-  const handleTalentSubmit = (e: React.FormEvent) => {
+  const handleTalentSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (rep && newTalentInput.trim()) {
       onAddTalent(rep.id, newTalentInput.trim());
@@ -239,9 +233,9 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
                 </span>
                 <div className="space-y-1.5">
                   {rep.personality_traits && rep.personality_traits.length > 0 ? (
-                    rep.personality_traits.map((trait, idx) => (
+                    rep.personality_traits.map((trait) => (
                       <div
-                        key={idx}
+                        key={trait.name}
                         className="p-1.5 bg-[#070a12] border border-[#1b253b] rounded text-[11px]"
                       >
                         <div className="flex items-center justify-between">
@@ -360,9 +354,9 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
 
             <div className="flex flex-wrap gap-2 pt-2">
               {rep.skills && rep.skills.length > 0 ? (
-                rep.skills.map((skill, idx) => (
+                rep.skills.map((skill) => (
                   <span
-                    key={idx}
+                    key={skill}
                     className="px-2.5 py-1 bg-[#0d121f] border border-[#23314d] text-[#cbd5e1] rounded text-xs font-mono-slate flex items-center space-x-1.5 group"
                   >
                     <span>{skill}</span>
@@ -413,9 +407,9 @@ export const RepresentativeView: React.FC<RepresentativeViewProps> = ({
 
             <div className="flex flex-wrap gap-2 pt-2">
               {rep.talents && rep.talents.length > 0 ? (
-                rep.talents.map((talent, idx) => (
+                rep.talents.map((talent) => (
                   <span
-                    key={idx}
+                    key={talent}
                     className="px-2.5 py-1 bg-[#0d121f] border border-[#23314d] text-[#cbd5e1] rounded text-xs font-mono-slate flex items-center space-x-1.5 group"
                   >
                     <span>{talent}</span>
