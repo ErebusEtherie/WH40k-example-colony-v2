@@ -74,7 +74,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
     // enforces min_length=1), so collect it from the GM rather than defaulting
     // to a dynasty placeholder.
     if (!founderName.trim()) {
-      setError("Please specify a founding dynasty or founder.");
+      setError("Please specify a founder.");
       return;
     }
 
