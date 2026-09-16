@@ -22,11 +22,6 @@ class RegisterRequest(BaseModel):
         description="Password (min 8 chars, must contain uppercase, lowercase, number, and special char)",
         examples=["SecureP@ss123"],
     )
-    role: str | None = Field(
-        None,
-        description="Optional role for testing (defaults to VIEWER). Options: viewer, colony_manager, admin",
-        examples=["viewer"],
-    )
 
 
 class UserResponse(BaseModel):

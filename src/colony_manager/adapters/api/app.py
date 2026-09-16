@@ -241,7 +241,7 @@ endpoints will automatically use your token.
     # Custom Swagger UI route with cookie-based auth support
     @app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
-        """Serve custom Swagger UI with proper JWT Bearer authentication support."""
+        """Serve custom Swagger UI (cookie-based auth; no Bearer tokens)."""
         from fastapi.responses import HTMLResponse
 
         # openapi_url is set by FastAPI after app creation, default is "/openapi.json"

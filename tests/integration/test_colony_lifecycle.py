@@ -11,7 +11,7 @@ from colony_manager.adapters.persistence.db import init_db
 
 
 @pytest.fixture
-def auth_client(tmp_path: Path):
+def auth_client(tmp_path: Path, bootstrap_user):
     """Create authenticated test client with isolated database."""
     db_path = tmp_path / "test.db"
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-testing-minimum-32-bytes"
@@ -24,14 +24,15 @@ def auth_client(tmp_path: Path):
 
     client = TestClient(app)
 
-    # Register and login with colony_manager role (needed for most operations)
-    register_data = {
-        "username": "colony_admin",
-        "email": "admin@example.com",
-        "password": "SecurePass123!",
-        "role": "colony_manager",
-    }
-    client.post("/api/v1/auth/register", json=register_data)
+    # /auth/register only creates VIEWER; bootstrap a colony_manager directly
+    # (needed for most operations).
+    bootstrap_user(
+        db_path,
+        username="colony_admin",
+        email="admin@example.com",
+        password="SecurePass123!",
+        role="colony_manager",
+    )
     login_data = {"username": "colony_admin", "password": "SecurePass123!"}
     client.post("/api/v1/auth/login", json=login_data)
 

@@ -62,18 +62,17 @@ def test_client_with_auth(tmp_path: Path):
 
 
 @pytest.fixture
-def admin_user(test_client_with_auth):
+def admin_user(test_client_with_auth, tmp_path, bootstrap_user):
     """Create an admin user and return the client with auth cookies."""
-    # Register admin user
-    register_data = {
-        "username": "admin_user",
-        "email": "admin@example.com",
-        "password": "AdminPass123!",
-        "role": "admin",
-    }
-    response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
-    assert response.status_code == 201
-    
+    # /auth/register only creates VIEWER; bootstrap an admin directly.
+    bootstrap_user(
+        tmp_path / "test.db",
+        username="admin_user",
+        email="admin@example.com",
+        password="AdminPass123!",
+        role="admin",
+    )
+
     # Login to get cookies (this will replace the testuser cookies)
     login_data = {"username": "admin_user", "password": "AdminPass123!"}
     test_client_with_auth.post("/api/v1/auth/login", json=login_data)
@@ -87,18 +86,17 @@ def admin_user(test_client_with_auth):
 
 
 @pytest.fixture
-def regular_user(test_client_with_auth):
+def regular_user(test_client_with_auth, tmp_path, bootstrap_user):
     """Create a regular colony_manager user and return the client with auth cookies."""
-    # Register regular user
-    register_data = {
-        "username": "regular_user",
-        "email": "regular@example.com",
-        "password": "RegularPass123!",
-        "role": "colony_manager",
-    }
-    response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
-    assert response.status_code == 201
-    
+    # /auth/register only creates VIEWER; bootstrap a colony_manager directly.
+    bootstrap_user(
+        tmp_path / "test.db",
+        username="regular_user",
+        email="regular@example.com",
+        password="RegularPass123!",
+        role="colony_manager",
+    )
+
     # Login to get cookies
     login_data = {"username": "regular_user", "password": "RegularPass123!"}
     test_client_with_auth.post("/api/v1/auth/login", json=login_data)
@@ -199,7 +197,7 @@ class TestCrossColonyIsolation:
     """Tests that users cannot access resources across colony boundaries."""
 
     def test_cannot_access_infrastructure_from_different_colony(
-        self, test_client_with_auth, colony_owner, colony
+        self, test_client_with_auth, colony_owner, colony, tmp_path, bootstrap_user
     ):
         """Users cannot access infrastructure in colonies they don't own."""
         # colony_owner fixture already set up cookies
@@ -217,13 +215,13 @@ class TestCrossColonyIsolation:
         if infra_response.status_code == 201:
             infra_id = infra_response.json()["id"]
 
-            register_data = {
-                "username": "other_user",
-                "email": "other@example.com",
-                "password": "OtherPass123!",
-                "role": "colony_manager",
-            }
-            test_client_with_auth.post("/api/v1/auth/register", json=register_data)
+            bootstrap_user(
+                tmp_path / "test.db",
+                username="other_user",
+                email="other@example.com",
+                password="OtherPass123!",
+                role="colony_manager",
+            )
             login_data = {"username": "other_user", "password": "OtherPass123!"}
             test_client_with_auth.post("/api/v1/auth/login", json=login_data)
             
@@ -240,16 +238,16 @@ class TestCrossColonyIsolation:
 
 
 @pytest.fixture
-def colony_owner(test_client_with_auth):
+def colony_owner(test_client_with_auth, tmp_path, bootstrap_user):
     """Create a colony owner user and set up cookies."""
-    register_data = {
-        "username": "colony_owner",
-        "email": "owner@example.com",
-        "password": "OwnerPass123!",
-        "role": "colony_manager",
-    }
-    response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
-    assert response.status_code == 201
+    # /auth/register only creates VIEWER; bootstrap a colony_manager directly.
+    bootstrap_user(
+        tmp_path / "test.db",
+        username="colony_owner",
+        email="owner@example.com",
+        password="OwnerPass123!",
+        role="colony_manager",
+    )
     login_data = {"username": "colony_owner", "password": "OwnerPass123!"}
     test_client_with_auth.post("/api/v1/auth/login", json=login_data)
     

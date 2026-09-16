@@ -85,6 +85,22 @@ class TestUserRegistration:
         assert response.status_code == 400
         assert "Email already registered" in response.json()["detail"]
 
+    def test_register_ignores_client_supplied_role(self, test_client_with_auth):
+        """Test registration cannot escalate privileges via a client role field.
+
+        Even if a client sends ``role: admin``, public registration always
+        creates a VIEWER and ignores the supplied role.
+        """
+        register_data = {
+            "username": "escalateuser",
+            "email": "escalate@example.com",
+            "password": "SecurePass123!",
+            "role": "admin",
+        }
+        response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
+        assert response.status_code == 201
+        assert response.json()["role"] == "viewer"
+
 
 class TestUserLogin:
     """Tests for user login endpoint."""
@@ -202,6 +218,10 @@ class TestChangePassword:
         login_data = {"username": "testuser", "password": "TestPass123!"}
         test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
+        # change-password is an authenticated state-changer and needs CSRF
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
+
         change_data = {
             "current_password": "TestPass123!",
             "new_password": "NewSecure456!",
@@ -224,6 +244,10 @@ class TestChangePassword:
         login_data = {"username": "testuser", "password": "TestPass123!"}
         test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
+        # change-password is an authenticated state-changer and needs CSRF
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
+
         change_data = {
             "current_password": "WrongPass123!",
             "new_password": "NewSecure456!",
@@ -237,7 +261,15 @@ class TestChangePassword:
         assert "Current password is incorrect" in response.json()["detail"]
 
     def test_change_password_without_token(self, test_client_with_auth):
-        """Test change password without authentication fails."""
+        """Test change password without authentication fails.
+
+        A valid CSRF token is provided so the request reaches the auth check
+        (rather than being rejected earlier by CSRF middleware) and receives a
+        401 for the missing session.
+        """
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
+
         change_data = {
             "current_password": "anypassword",
             "new_password": "newpassword",
@@ -253,16 +285,19 @@ class TestChangePassword:
 class TestRoleBasedAuthorization:
     """Tests for role-based access control."""
 
-    def test_admin_user_can_access_admin_endpoints(self, test_client_with_auth):
-        """Test admin user has proper role."""
-        # Register admin user (password must meet complexity requirements)
-        register_data = {
-            "username": "adminuser",
-            "email": "admin@example.com",
-            "password": "AdminPass123!",
-        }
-        response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
-        assert response.status_code == 201
+    def test_admin_user_can_access_admin_endpoints(self, test_client_with_auth, tmp_path, bootstrap_user):
+        """Test admin user has proper role.
+
+        /auth/register only creates VIEWER users, so an admin is bootstrapped
+        directly to verify admin role and access.
+        """
+        bootstrap_user(
+            tmp_path / "test.db",
+            username="adminuser",
+            email="admin@example.com",
+            password="AdminPass123!",
+            role="admin",
+        )
 
         # Login and check role (authenticates via HttpOnly cookie)
         login_data = {"username": "adminuser", "password": "AdminPass123!"}
@@ -271,8 +306,7 @@ class TestRoleBasedAuthorization:
         # Get user info
         me_response = test_client_with_auth.get("/api/v1/auth/me")
         assert me_response.status_code == 200
-        # Default role is viewer
-        assert me_response.json()["role"] == "viewer"
+        assert me_response.json()["role"] == "admin"
 
     def test_protected_colony_requires_auth(self, test_client_with_auth, registered_user):
         """Test that colony endpoints require authentication."""

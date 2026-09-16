@@ -134,13 +134,15 @@ def register(
         )
 
     password_hash = hash_password(register_request.password)
-    # Use provided role or default to VIEWER
-    user_role = UserRole(register_request.role) if register_request.role else UserRole.VIEWER
+    # Public registration never accepts a client-supplied role — it always
+    # creates a VIEWER. Elevated roles (colony_manager, admin) are only
+    # assignable through the privileged user-management path (UserService),
+    # never through self-service registration. See 02-domain-modeling.md.
     user = User(
         username=register_request.username,
         email=register_request.email,
         password_hash=password_hash,
-        role=user_role,
+        role=UserRole.VIEWER,
         is_active=True,
     )
 
@@ -210,7 +212,6 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
             detail="Account is temporarily locked due to too many failed login attempts. Please try again in 15 minutes.",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     user = user_repository.get_by_username(login_request.username)
@@ -226,7 +227,6 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
@@ -240,7 +240,6 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account is deactivated",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not verify_password(login_request.password, user.password_hash):
@@ -254,7 +253,6 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     # Log successful login
@@ -370,7 +368,6 @@ def refresh_token_endpoint(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired refresh token: {e}",
-            headers={"WWW-Authenticate": "Bearer"},
         ) from e
     
     user = user_repository.get_by_id(user_id)
@@ -379,7 +376,6 @@ def refresh_token_endpoint(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or deactivated",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     
     # Token rotation: issue new refresh token along with new access token

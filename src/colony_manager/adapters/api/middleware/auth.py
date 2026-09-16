@@ -16,7 +16,7 @@ from colony_manager.adapters.api.dependencies import (
     get_user_repository,
 )
 from colony_manager.config.settings import get_security_settings
-from colony_manager.domain.models.user import User
+from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.ports.token_blacklist_repository import TokenBlacklistRepository
 from colony_manager.domain.ports.user_repository import UserRepository
 from colony_manager.domain.util.token import TokenError, verify_token
@@ -72,10 +72,9 @@ def get_current_user_from_cookie(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Validate token (same logic as Bearer token validation)
+    # Validate the access token (delivered via HttpOnly cookie)
     secret_key = get_jwt_secret_key()
 
     try:
@@ -88,19 +87,16 @@ def get_current_user_from_cookie(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=ERR_TOKEN_REVOKED,
-                headers={"WWW-Authenticate": "Bearer"},
             )
     except TokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token: {e}",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail=f"Invalid or expired token: {e}",
         ) from e
     except jwt.PyJWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token validation error: {e}",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail=f"Token validation error: {e}",
         ) from e
 
     user = user_repository.get_by_id(user_id)
@@ -115,37 +111,34 @@ def get_current_user_from_cookie(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ERR_USER_DEACTIVATED,
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     return user
 
 
-def require_role(required_role: str) -> Callable[[User], User]:
+def require_role(required_role: str | UserRole) -> Callable[[User], User]:
     """Create a dependency that requires a specific user role.
 
+    The role-ordering rule itself lives in the domain ``UserRole`` enum
+    (``meets_or_exceeds``), so this adapter only coerces the boundary argument
+    to a role and delegates the comparison — it does not re-implement the
+    hierarchy (see 01-architecture.md / 02-domain-modeling.md).
+
     Args:
-        required_role: Minimum role required (e.g., "admin", "colony_manager")
+        required_role: Minimum role required (e.g., "admin", "colony_manager").
 
     Returns:
         A dependency function that checks user role
     """
-    role_hierarchy = {
-        "viewer": 0,
-        "colony_manager": 1,
-        "admin": 2,
-    }
-
-    required_level = role_hierarchy.get(required_role, 0)
+    required: UserRole = (
+        required_role if isinstance(required_role, UserRole) else UserRole(required_role)
+    )
 
     def check_role(user: Annotated[User, Depends(get_current_user_from_cookie)]) -> User:
-        user_role = user.role.value if hasattr(user.role, "value") else user.role
-        user_level = role_hierarchy.get(user_role, 0)
-
-        if user_level < required_level:
+        if not user.role.meets_or_exceeds(required):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions. Required role: {required_role}",
+                detail=f"Insufficient permissions. Required role: {required.value}",
             )
 
         return user

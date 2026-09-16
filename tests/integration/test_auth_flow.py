@@ -355,9 +355,9 @@ class TestAuthFlowTokenRevocation:
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
 
-        login_data = {"username": "revoke_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        assert login_response.status_code == 200
+        # login via helper to also set up the double-submit CSRF header,
+        # since /revoke is an authenticated state-changer that now enforces CSRF
+        _login_with_csrf(integration_client, "revoke_user", "SecurePass123!")
 
         # Use the session cookie set by login
         me_response = integration_client.get("/api/v1/auth/me")
@@ -379,9 +379,9 @@ class TestAuthFlowTokenRevocation:
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
 
-        login_data = {"username": "revoke_all_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        assert login_response.status_code == 200
+        # login via helper to also set up the double-submit CSRF header,
+        # since /revoke-all is an authenticated state-changer that enforces CSRF
+        _login_with_csrf(integration_client, "revoke_all_user", "SecurePass123!")
 
         # Revoke all of the user's sessions
         revoke_all_response = integration_client.post(
@@ -508,7 +508,7 @@ class TestAuthorizationPermissions:
         assert edit_response.status_code == 200
         assert edit_response.json()["name"] == "Editor Updated Colony"
 
-    def test_admin_can_access_any_colony(self, integration_client):
+    def test_admin_can_access_any_colony(self, integration_client, tmp_path, bootstrap_user):
         """Test that admin users can access colonies they don't belong to."""
         # Register regular user and create colony
         register_data = {
@@ -529,14 +529,14 @@ class TestAuthorizationPermissions:
         assert colony_response.status_code == 201
         colony_id = colony_response.json()["id"]
 
-        # Register admin user (login switches the session to admin)
-        register_data2 = {
-            "username": "admin_user",
-            "email": "admin@example.com",
-            "password": "SecurePass123!",
-            "role": "admin",
-        }
-        integration_client.post("/api/v1/auth/register", json=register_data2)
+        # /auth/register only creates VIEWER; bootstrap an admin directly
+        bootstrap_user(
+            tmp_path / "test.db",
+            username="admin_user",
+            email="admin@example.com",
+            password="SecurePass123!",
+            role="admin",
+        )
         _login_with_csrf(integration_client, "admin_user", "SecurePass123!")
 
         # Admin accesses colony they don't belong to
@@ -585,16 +585,16 @@ class TestAuthorizationPermissions:
         assert view_response.status_code == 403
         assert "not a member" in view_response.json()["detail"]
 
-    def test_colony_manager_cannot_delete_users(self, integration_client):
+    def test_colony_manager_cannot_delete_users(self, integration_client, tmp_path, bootstrap_user):
         """Test that colony_manager role cannot access admin-only endpoints."""
-        # Register user with colony_manager role
-        register_data = {
-            "username": "manager_user",
-            "email": "manager@example.com",
-            "password": "SecurePass123!",
-            "role": "colony_manager",
-        }
-        integration_client.post("/api/v1/auth/register", json=register_data)
+        # /auth/register only creates VIEWER; bootstrap a colony_manager directly
+        bootstrap_user(
+            tmp_path / "test.db",
+            username="manager_user",
+            email="manager@example.com",
+            password="SecurePass123!",
+            role="colony_manager",
+        )
         _login_with_csrf(integration_client, "manager_user", "SecurePass123!")
 
         # Try to access admin-only endpoint (list all users)
@@ -602,16 +602,16 @@ class TestAuthorizationPermissions:
         assert users_response.status_code == 403
         assert "Admin access required" in users_response.json()["detail"]
 
-    def test_admin_can_delete_users(self, integration_client):
+    def test_admin_can_delete_users(self, integration_client, tmp_path, bootstrap_user):
         """Test that admin role can access admin-only endpoints."""
-        # Register admin user
-        register_data = {
-            "username": "admin_delete_user",
-            "email": "admin_delete@example.com",
-            "password": "SecurePass123!",
-            "role": "admin",
-        }
-        integration_client.post("/api/v1/auth/register", json=register_data)
+        # /auth/register only creates VIEWER; bootstrap an admin directly
+        bootstrap_user(
+            tmp_path / "test.db",
+            username="admin_delete_user",
+            email="admin_delete@example.com",
+            password="SecurePass123!",
+            role="admin",
+        )
         _login_with_csrf(integration_client, "admin_delete_user", "SecurePass123!")
 
         # Create a user to delete

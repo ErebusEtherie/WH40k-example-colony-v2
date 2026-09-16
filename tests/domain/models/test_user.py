@@ -117,3 +117,45 @@ class TestUserDefaults:
             is_active=False,
         )
         assert user.is_active is False
+
+
+class TestUserRoleHierarchy:
+    """Example-based boundary tests for the system-role hierarchy.
+
+    Per 04-testing-strategy.md, the role-ordering rule is high-risk and each
+    boundary must be exercised explicitly: a viewer cannot do what
+    colony_manager can, and colony_manager cannot do what admin can.
+    """
+
+    def test_viewer_does_not_meet_colony_manager(self):
+        """A viewer cannot satisfy a colony_manager requirement."""
+        assert not UserRole.VIEWER.meets_or_exceeds(UserRole.COLONY_MANAGER)
+
+    def test_colony_manager_does_not_meet_admin(self):
+        """A colony_manager cannot satisfy an admin requirement."""
+        assert not UserRole.COLONY_MANAGER.meets_or_exceeds(UserRole.ADMIN)
+
+    def test_admin_meets_admin(self):
+        """A role always satisfies a requirement at its own level."""
+        assert UserRole.ADMIN.meets_or_exceeds(UserRole.ADMIN)
+
+    def test_colony_manager_meets_colony_manager(self):
+        """colony_manager satisfies its own requirement."""
+        assert UserRole.COLONY_MANAGER.meets_or_exceeds(UserRole.COLONY_MANAGER)
+
+    def test_higher_role_meets_lower_requirement(self):
+        """A higher role can do everything a lower role can — never less."""
+        assert UserRole.ADMIN.meets_or_exceeds(UserRole.COLONY_MANAGER)
+        assert UserRole.ADMIN.meets_or_exceeds(UserRole.VIEWER)
+        assert UserRole.COLONY_MANAGER.meets_or_exceeds(UserRole.VIEWER)
+
+    def test_levels_are_string_ordered(self):
+        """viewer < colony_manager < admin by level."""
+        levels = [UserRole.VIEWER, UserRole.COLONY_MANAGER, UserRole.ADMIN]
+        assert [r.level for r in levels] == sorted(r.level for r in levels)
+        assert levels[0].level < levels[1].level < levels[2].level
+
+    def test_viewer_meets_viewer(self):
+        """A viewer satisfies a viewer requirement."""
+        assert UserRole.VIEWER.meets_or_exceeds(UserRole.VIEWER)
+
