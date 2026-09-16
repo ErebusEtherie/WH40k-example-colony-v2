@@ -339,7 +339,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
                 htmlFor="modal-colony-founder-input"
                 className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
               >
-                Founding Dynasty / Founder
+                Founder *
               </label>
               <input
                 id="modal-colony-founder-input"

@@ -101,7 +101,7 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
                 htmlFor="edit-charter-founder"
                 className="block text-[#cbd5e1] uppercase tracking-wider mb-1 font-semibold"
               >
-                Founding Dynasty / Founder
+                Founder *
               </label>
               <input
                 id="edit-charter-founder"

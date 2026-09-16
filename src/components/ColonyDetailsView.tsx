@@ -183,7 +183,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
 
           <div className="p-3 bg-[#0d121f] border border-[#1e293b] rounded space-y-1">
             <span className="text-[10px] text-[#64748b] tracking-wider uppercase block font-semibold">
-              FOUNDING DYNASTY / FOUNDER
+              Founder *
             </span>
             <span className="font-semibold text-[#e2e8f0] text-sm block">
               {colony.founder_name}
