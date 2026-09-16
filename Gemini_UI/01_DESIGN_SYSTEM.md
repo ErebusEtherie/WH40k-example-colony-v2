@@ -24,23 +24,29 @@ The application pairs three distinct font families imported via Google Fonts:
 ### Typography Rules
 
 1. **Section & Modal Headers**: Always use `.font-gothic font-bold tracking-wider uppercase`.
+
    ```tsx
    <h2 className="font-gothic font-bold text-base tracking-wider text-[#f59e0b] uppercase">
      Commission Infrastructure System
    </h2>
    ```
+
 2. **Telemetry & Meta Badges**: Always use `.font-mono-slate uppercase text-[10px]` or `text-xs`.
+
    ```tsx
    <span className="font-mono-slate text-[10px] uppercase tracking-wider text-[#64748b]">
      STC BLUEPRINT ARCHIVE
    </span>
    ```
+
 3. **Imperial Stat Numbers**: Render large stat metrics in `.font-gothic font-bold text-3xl`.
+
    ```tsx
    <div className="text-3xl font-gothic font-bold text-[#fef08a]">
      {stats.size.final}
    </div>
    ```
+
 4. **No Wrapped Labels**: Badges, status chips, and button text must always remain on **a single line** using `whitespace-nowrap`.
 
 ---
@@ -89,6 +95,7 @@ All UI colors follow the grimdark palette of the Imperium of Man, balancing abys
 To maintain an authentic tactical cogitator interface without visual clutter:
 
 ### Padding & Margins
+
 - **Container Outers**: Major panels and page containers require at least `p-4 sm:p-6 md:p-8`.
 - **Card Internals**: Standard data-slates and cards use `p-3` or `p-4`.
 - **Button Padding**: Always maintain a **2:1 horizontal-to-vertical ratio**:
@@ -97,6 +104,7 @@ To maintain an authentic tactical cogitator interface without visual clutter:
   - Large: `px-6 py-3` (prominent actions)
 
 ### Border Radii & Nesting
+
 - **Cards & Modals**: Max radius is `rounded` (4px) or `rounded-md` (6px). Never use soft, bubble-like 20px+ radii for structural panels.
 - **Pills & Chips**: Badges, status chips, and clearance pills use `rounded` or `rounded-full`.
 - **Nested Corner Rule**: When a badge or input sits inside a padded panel, calculate inner radius:
@@ -109,7 +117,9 @@ To maintain an authentic tactical cogitator interface without visual clutter:
 The application includes custom CSS mechanical details defined in `src/index.css`:
 
 ### 1. Mechanical Corner Brackets (`.gothic-bracket-box`)
+
 Draws machined corner brackets around primary dossiers:
+
 ```html
 <div className="gothic-bracket-box p-4 rounded shadow-lg">
   <div className="gothic-bracket-bottom-left" />
@@ -119,12 +129,16 @@ Draws machined corner brackets around primary dossiers:
 ```
 
 ### 2. Glowing Plasma Accents (`.glow-plasma`, `.glow-amber`)
+
 Subtle phosphor glows for focal interactive elements:
+
 - `.glow-plasma`: `box-shadow: 0 0 15px rgba(0, 212, 255, 0.2)`
 - `.glow-amber`: `box-shadow: 0 0 15px rgba(245, 158, 11, 0.25)`
 
 ### 3. Cogitator CRT Vignette
+
 When enabled in Optics settings, a non-intrusive CRT vignette is projected:
+
 ```tsx
 <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] z-40 opacity-70" />
 ```

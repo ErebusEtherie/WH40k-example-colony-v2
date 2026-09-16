@@ -101,11 +101,11 @@ class FileRuleConfigProvider(RuleConfigProvider):
     def colony_types(self) -> list[ColonyTypeConfig]:
         return self._colony_types
 
-    def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
+    def get_colony_type_config(self, colony_type_name: str) -> ColonyTypeConfig:
         """Get colony type configuration by name."""
         for ct in self._colony_types:
             if ct.name == colony_type_name:
-                return ct.model_dump()
+                return ct
         raise ConfigurationError(f"Unknown colony type: {colony_type_name}")
 
     @property

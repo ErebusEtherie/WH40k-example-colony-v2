@@ -90,7 +90,7 @@ def create_colony(
     colony_user_repo = SqlAlchemyColonyUserRepository(build_database_url(_db_path))
     service = ColonyService(colony_repo, representative_repo, provider, colony_user_repo)
     colony_type_config = provider.get_colony_type_config(ColonyType(colony_type))
-    base_stats = colony_type_config["base_stats"]
+    base_stats = colony_type_config.base_stats
     colony = Colony(
         name=name,
         founder_name=founder_name,
@@ -98,11 +98,11 @@ def create_colony(
         colony_type=ColonyType(colony_type),
         age_days=0,
         age_last_updated=__import__("datetime").date.today(),
-        base_complacency=base_stats["complacency"],  # type: ignore[index]
-        base_order=base_stats["order"],  # type: ignore[index]
-        base_productivity=base_stats["productivity"],  # type: ignore[index]
-        base_piety=base_stats["piety"],  # type: ignore[index]
-        base_size=base_stats["size"],  # type: ignore[index]
+        base_complacency=base_stats.complacency,
+        base_order=base_stats.order,
+        base_productivity=base_stats.productivity,
+        base_piety=base_stats.piety,
+        base_size=base_stats.size,
     )
     created = service.create_colony(colony)
     typer.echo(f"Created colony {created.id}: {created.name}")
@@ -199,7 +199,7 @@ def add_colony_modifier(
             modifier_category=ModifierCategory.CUSTOM,
             modifier_stat=ModifierStat(modifier_stat),
             modifier_value=modifier_value,
-            description=modifier_description,
+            modifier_description=modifier_description,
             is_active=True,
         )
         service.add_modifier(colony_id, modifier)

@@ -270,6 +270,9 @@ function logAudit(
 
 async function startAppServer() {
   const app = express();
+  // Express emits an X-Powered-By header by default, advertising the
+  // framework/version to clients (SonarQube S5689). Disable it.
+  app.disable("x-powered-by");
 
   app.use(cors());
   app.use(express.json({ limit: "10mb" }));

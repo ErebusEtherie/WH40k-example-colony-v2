@@ -21,11 +21,11 @@ function StatCell({
   label,
   value,
   testId,
-}: {
+}: Readonly<{
   label: string;
   value: number;
   testId: string;
-}) {
+}>) {
   return (
     <div className="bg-[#070a12] border border-[#252f44] rounded p-2 text-center">
       <div className="text-[10px] uppercase tracking-wider text-[#94a3b8] mb-1">
@@ -110,6 +110,60 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
     ? normalizeApiError(colonyTypesErrorInfo)
     : null;
 
+  // Render the colony-type selector as one of three states (loading / error /
+  // loaded) via independent statements rather than a nested ternary.
+  let colonyTypeSelector: React.ReactNode;
+  if (colonyTypesLoading) {
+    colonyTypeSelector = (
+      <div
+        data-testid="colony-types-loading"
+        className="flex items-center gap-2 p-4 bg-[#0d121f] border border-[#222e46] rounded-lg text-xs text-[#94a3b8]"
+      >
+        <Loader2 className="w-4 h-4 animate-spin text-[#f59e0b]" />
+        Establishing vox-link to colony directory...
+      </div>
+    );
+  } else if (colonyTypesError) {
+    colonyTypeSelector = (
+      <div
+        data-testid="colony-types-error"
+        className="p-4 bg-[#ef4444]/10 border border-[#ef4444]/40 rounded-lg text-xs font-mono-slate text-[#fca5a5]"
+      >
+        Failed to load colony types: {loadError?.message}
+      </div>
+    );
+  } else {
+    colonyTypeSelector = (
+      <div className="grid grid-cols-2 gap-3">
+        {(colonyTypes ?? []).map((type) => {
+          const isSelected = colonyType === type.id;
+          return (
+            <button
+              key={type.id}
+              type="button"
+              onClick={() => setColonyType(type.id)}
+              className={`p-4 rounded-lg border text-left transition ${
+                isSelected
+                  ? "bg-[#f59e0b]/20 border-[#f59e0b] text-[#fef08a]"
+                  : "bg-[#0d121f] border-[#222e46] text-[#cbd5e1] hover:border-[#38bdf8]/50"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-gothic font-bold text-sm uppercase block">
+                  {type.name}
+                </span>
+                {isSelected && <Check className="w-4 h-4 text-[#f59e0b]" />}
+              </div>
+              <p className="text-xs text-[#94a3b8] mt-2 leading-snug">
+                {type.description}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
       <div className="gothic-bracket-box w-full max-w-2xl bg-[#0a0e18] border border-[#f59e0b]/60 rounded-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -188,50 +242,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
               Colony Type
             </div>
 
-            {colonyTypesLoading ? (
-              <div
-                data-testid="colony-types-loading"
-                className="flex items-center gap-2 p-4 bg-[#0d121f] border border-[#222e46] rounded-lg text-xs text-[#94a3b8]"
-              >
-                <Loader2 className="w-4 h-4 animate-spin text-[#f59e0b]" />
-                Establishing vox-link to colony directory...
-              </div>
-            ) : colonyTypesError ? (
-              <div
-                data-testid="colony-types-error"
-                className="p-4 bg-[#ef4444]/10 border border-[#ef4444]/40 rounded-lg text-xs font-mono-slate text-[#fca5a5]"
-              >
-                Failed to load colony types: {loadError?.message}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {(colonyTypes ?? []).map((type) => {
-                  const isSelected = colonyType === type.id;
-                  return (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setColonyType(type.id)}
-                      className={`p-4 rounded-lg border text-left transition ${
-                        isSelected
-                          ? "bg-[#f59e0b]/20 border-[#f59e0b] text-[#fef08a]"
-                          : "bg-[#0d121f] border-[#222e46] text-[#cbd5e1] hover:border-[#38bdf8]/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-gothic font-bold text-sm uppercase block">
-                          {type.name}
-                        </span>
-                        {isSelected && <Check className="w-4 h-4 text-[#f59e0b]" />}
-                      </div>
-                      <p className="text-xs text-[#94a3b8] mt-2 leading-snug">
-                        {type.description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {colonyTypeSelector}
 
             {selectedType && (
               <div className="mt-4 space-y-4 bg-[#0d121f] border border-[#222e46] rounded-lg p-4">

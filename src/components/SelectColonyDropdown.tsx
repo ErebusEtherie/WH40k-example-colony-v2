@@ -41,7 +41,7 @@ export const SelectColonyDropdown: React.FC<SelectColonyDropdownProps> = ({
         </span>
         {selectedColony && (
           <span className="text-[10px] text-[#94a3b8] uppercase tracking-wider hidden sm:inline">
-            [{selectedColony.colony_type.replace(/_/g, " ")}]
+            [{selectedColony.colony_type.replaceAll("_", " ")}]
           </span>
         )}
         <ChevronDown className="w-3.5 h-3.5 text-[#94a3b8]" />
@@ -85,7 +85,7 @@ export const SelectColonyDropdown: React.FC<SelectColonyDropdownProps> = ({
                       {colony.name}
                     </span>
                     <span className="text-[11px] text-[#94a3b8] font-mono-slate">
-                      {colony.colony_type.replace(/_/g, " ")}
+                      {colony.colony_type.replaceAll("_", " ")}
                       {colony.star_system
                         ? ` • ${colony.star_system}`
                         : " • Uncharted System"}

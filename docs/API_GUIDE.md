@@ -19,7 +19,7 @@
 9. [Development Plans](#development-plans)
 10. [Modifiers](#modifiers)
 11. [Colony Users](#colony-users)
-12. [Users](#users)
+12. [Users](#users-admin-only)
 13. [Export/Import](#exportimport)
 14. [Configuration](#configuration)
 15. [Audit Logs](#audit-logs)
@@ -444,6 +444,7 @@ Get information about when the next event and development rolls are due.
 List all representatives.
 
 **Query Parameters:**
+
 - `available_only` (bool, default: false) — Only show unassigned representatives
 - `type` (string, optional) — Filter by type: `judge`, `cardinal`, `satrap`, etc.
 - `name_search` (string, optional) — Search by name
@@ -768,6 +769,7 @@ Remove infrastructure from a colony. Requires admin permission.
 List all support upgrades for a colony.
 
 **Query Parameters:**
+
 - `offset` (int, default: 0)
 - `limit` (int, default: 20, max: 100)
 
@@ -915,6 +917,7 @@ Remove a planetary resource from a colony.
 List all events for a colony.
 
 **Query Parameters:**
+
 - `active_only` (bool, default: true) — Only show active events
 
 **Response (200 OK):**

@@ -2,6 +2,13 @@ from datetime import UTC, datetime
 
 import pytest
 
+from colony_manager.adapters.config.schemas import (
+    ColonyBaseStats,
+    ColonyTypeConfig,
+    InfrastructureTypeConfig,
+    RepresentativeTypeConfig,
+    SupportUpgradeConfig,
+)
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.representative_service import RepresentativeService
 from colony_manager.domain.enums import (
@@ -132,8 +139,14 @@ class FakeRuleConfigProvider:
     def get_lore_state_for_stat(self, stat: ModifierStat, value: int, size: int) -> LoreState:
         return LoreState.STABLE
 
-    def get_colony_type_config(self, colony_type_name: str) -> dict[str, object]:
-        return {}
+    def get_colony_type_config(self, colony_type_name: str) -> ColonyTypeConfig:
+        return ColonyTypeConfig(
+            name=colony_type_name,
+            display_name=colony_type_name,
+            description="",
+            initial_investment_pf="",
+            base_stats=ColonyBaseStats(size=1, complacency=1, productivity=1, order=1, piety=1),
+        )
 
     def get_event_roll_interval_days(self) -> int:
         return 60
@@ -144,6 +157,37 @@ class FakeRuleConfigProvider:
     def get_pf_state_bonuses(self) -> dict[str, int]:
         """Get Profit Factor bonuses for colony states."""
         return {"placated": 1, "productive": 2, "orderly": 2}
+
+    def get_infrastructure_type_config(self, infrastructure_name: str) -> dict[str, object]:
+        return {}
+
+    def get_representative_type_config(self, representative_name: str) -> dict[str, object]:
+        return {}
+
+    def get_support_upgrade_config(self, upgrade_name: str) -> dict[str, object]:
+        return {}
+
+    def get_profit_factor_table(self) -> dict[str, int]:
+        return {"5": 8}
+
+    def get_lore_thresholds(self) -> dict[str, object]:
+        return {}
+
+    @property
+    def colony_types(self) -> list[ColonyTypeConfig]:
+        return []
+
+    @property
+    def representative_types(self) -> list[RepresentativeTypeConfig]:
+        return []
+
+    @property
+    def infrastructure_types(self) -> list[InfrastructureTypeConfig]:
+        return []
+
+    @property
+    def support_upgrades(self) -> list[SupportUpgradeConfig]:
+        return []
 
 
 def test_colony_service_update_age_sets_last_updated():
@@ -199,7 +243,7 @@ def test_colony_service_add_modifier_updates_colony():
         modifier_category=ModifierCategory.CUSTOM,
         modifier_stat=ModifierStat.ORDER,
         modifier_value=2,
-        description="test",
+        modifier_description="test",
         is_active=True,
     )
 

@@ -103,10 +103,13 @@ Where appropriate, disable buttons directly for Servitors and display an explana
 ## 3. API Communication & Optimistic UI
 
 1. **Authentication**: Cookie-based. The browser sends the HttpOnly session cookie automatically (`credentials: 'include'`); state-changing requests echo the CSRF token from `GET /api/v1/auth/csrf-token` via the `X-CSRF-Token` header. Both are handled once by the shared API client (`src/lib/api.ts`) — never read or store tokens in component code:
+
    ```typescript
    // Handled centrally in api.ts — components never attach an auth header.
    ```
+
 2. **Optimistic Updates**: For instantaneous user feedback, update local React state immediately, then fire the asynchronous API call. If the request fails, revert the state and notify the user:
+
    ```typescript
    const toggleModifier = async (id: string, newActive: boolean) => {
      // 1. Optimistic Update

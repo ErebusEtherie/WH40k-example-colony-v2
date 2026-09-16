@@ -43,6 +43,22 @@ interface ColonyOverviewProps {
   onToggleModifier?: (id: string, active: boolean) => void;
   onNavigateTab: (tab: any) => void;
 }
+type ColonyStateFlags = ColonyStatsBreakdown["states"];
+
+function statLabel(
+  states: ColonyStateFlags,
+  primary: keyof ColonyStateFlags,
+  primaryLabel: string,
+  secondary: keyof ColonyStateFlags,
+  secondaryLabel: string,
+  fallback: string,
+): string {
+  if (states[primary]) return primaryLabel;
+  if (states[secondary]) return secondaryLabel;
+  return fallback;
+}
+
+
 
 export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
   colony,
@@ -67,26 +83,38 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
   const workingInfras = infrastructures.filter((i) => i.state === "working");
   const workingUpgrades = upgrades.filter((u) => u.state === "working");
 
-  const complacencyLabel = stats.states.isPlacated
-    ? "PLACATED"
-    : stats.states.hasRiots
-    ? "RIOTS"
-    : "NORMAL";
-  const orderLabel = stats.states.isOrderly
-    ? "ORDERLY"
-    : stats.states.hasAnarchy
-    ? "ANARCHY"
-    : "NORMAL";
-  const productivityLabel = stats.states.isProductive
-    ? "PRODUCTIVE"
-    : stats.states.isHalted
-    ? "HALTED"
-    : "NORMAL";
-  const pietyLabel = stats.states.isPious
-    ? "PIOUS"
-    : stats.states.isHeretical
-    ? "HERETICAL"
-    : "DEVOUT";
+  const complacencyLabel = statLabel(
+    stats.states,
+    "isPlacated",
+    "PLACATED",
+    "hasRiots",
+    "RIOTS",
+    "NORMAL",
+  );
+  const orderLabel = statLabel(
+    stats.states,
+    "isOrderly",
+    "ORDERLY",
+    "hasAnarchy",
+    "ANARCHY",
+    "NORMAL",
+  );
+  const productivityLabel = statLabel(
+    stats.states,
+    "isProductive",
+    "PRODUCTIVE",
+    "isHalted",
+    "HALTED",
+    "NORMAL",
+  );
+  const pietyLabel = statLabel(
+    stats.states,
+    "isPious",
+    "PIOUS",
+    "isHeretical",
+    "HERETICAL",
+    "DEVOUT",
+  );
 
   const sizeRank = stats.size.final;
   const sizeNames = [
@@ -130,7 +158,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
 
           <div className="flex items-center space-x-3">
             <span className="px-3 py-1 bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30 rounded font-mono-slate text-xs uppercase tracking-wider font-semibold">
-              {colony.colony_type.replace(/_/g, " ")}
+              {colony.colony_type.replaceAll("_", " ")}
             </span>
             <button
               id="overview-inspect-charter-button"
@@ -166,7 +194,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
               COLONY TYPE
             </span>
             <span className="text-[#cbd5e1] capitalize">
-              {colony.colony_type.replace(/_/g, " ")}
+              {colony.colony_type.replaceAll("_", " ")}
             </span>
           </div>
 
@@ -432,7 +460,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
                     className="px-2.5 py-1 bg-[#121929] border border-[#2b3954] text-[#cbd5e1] rounded text-xs font-mono-slate flex items-center space-x-1.5"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                    <span className="capitalize">{upg.name || upg.upgrade_type.replace(/_/g, " ")}</span>
+                    <span className="capitalize">{upg.name || upg.upgrade_type.replaceAll("_", " ")}</span>
                     <span className="text-[10px] text-[#64748b]">({upg.state})</span>
                   </span>
                 ))
