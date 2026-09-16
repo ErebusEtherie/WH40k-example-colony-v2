@@ -140,7 +140,7 @@
 /* Mechanical Corner Brackets */
 .gothic-bracket-box {
   position: relative;
-  background-color: #0b0f19;
+  background-color: var(--mech-panel);
   border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
@@ -210,31 +210,31 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #080a10;
+  background: var(--mech-void);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--mech-border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b;
+  background: var(--mech-gold);
 }
 
 /* Stat Cards */
 .stat-card {
-  background: #0f1422;
-  border: 1px solid #1e293b;
+  background: var(--mech-panel);
+  border: 1px solid var(--mech-border);
   transition: all 0.2s ease;
 }
 
 .stat-card:hover {
-  border-color: #334155;
+  border-color: var(--mech-border-highlight);
 }
 
 .stat-card-gold {
-  background: #131929;
+  background: var(--mech-panel);
   border: 1px solid rgba(245, 158, 11, 0.35);
   transition: all 0.2s ease;
 }
@@ -243,3 +243,10 @@
   border-color: rgba(245, 158, 11, 0.6);
 }
 
+
+
+/* Weak theme-colored tint used for the active nav-tab background (chrome).
+   Uses color-mix so it tracks the active theme's --mech-gold at low opacity. */
+.theme-active-tint {
+  background-color: color-mix(in srgb, var(--mech-gold) 12%, transparent);
+}

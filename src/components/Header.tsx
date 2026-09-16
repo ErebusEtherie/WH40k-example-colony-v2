@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
     if (r === "admin" || r.includes("admin") || r.includes("magos")) {
       return {
         label: "ARCH MAGOS",
-        classes: "bg-[#f59e0b]/15 text-[#fcd34d] border-[#f59e0b]/40",
+        classes: "bg-[#f59e0b]/15 text-[#fcd34d] border-[var(--mech-gold)]/40",
       };
     }
     if (r === "colony_manager" || r.includes("manager") || r.includes("captain")) {
@@ -87,22 +87,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   const roleInfo = getRolePresentation(userRole);
   return (
-    <header className="border-b border-[#1f293d] bg-[#090d16] sticky top-0 z-40 shadow-xl">
+    <header className="border-b border-[#1f293d] bg-[var(--mech-dark)] sticky top-0 z-40 shadow-xl">
       {/* Top Banner Row */}
-      <div className="border-b border-[#162033] px-4 py-1.5 bg-[#060910] text-[11px] font-mono-slate flex items-center justify-between">
+      <div className="border-b border-[#162033] px-4 py-1.5 bg-[var(--mech-void)] text-[11px] font-mono-slate flex items-center justify-between">
         <div className="flex items-center space-x-2 text-[#94a3b8]">
-          <Cpu className="w-3.5 h-3.5 text-[#f59e0b]" />
+          <Cpu className="w-3.5 h-3.5 text-[var(--mech-gold)]" />
           <span className="text-[#cbd5e1] font-bold tracking-wider uppercase">
             WARHAMMER 40,000 ROGUE TRADER
           </span>
           <span className="text-[#475569]">•</span>
-          <span className="text-[#38bdf8] uppercase tracking-widest hidden sm:inline">
+          <span className="text-[var(--mech-plasma)] uppercase tracking-widest hidden sm:inline">
             IMPERIAL COLONY OVERSEER SYSTEM
           </span>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-1.5 text-[10px] text-[#10b981]">
+          <div className="flex items-center space-x-1.5 text-[10px] text-[var(--mech-emerald)]">
             <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
             <span className="font-semibold uppercase tracking-wider">COGITATOR ONLINE</span>
           </div>
@@ -134,9 +134,9 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="header-found-colony-button"
             onClick={onOpenNewColony}
-            className="flex items-center space-x-1 px-2.5 py-1.5 bg-[#121929] hover:bg-[#1a233a] border border-[#f59e0b]/60 hover:border-[#f59e0b] text-xs font-gothic font-bold tracking-wider text-[#fef08a] uppercase rounded transition"
+            className="flex items-center space-x-1 px-2.5 py-1.5 bg-[#121929] hover:bg-[#1a233a] border border-[var(--mech-gold)]/60 hover:border-[var(--mech-gold)] text-xs font-gothic font-bold tracking-wider text-[#fef08a] uppercase rounded transition"
           >
-            <Plus className="w-3.5 h-3.5 text-[#f59e0b]" />
+            <Plus className="w-3.5 h-3.5 text-[var(--mech-gold)]" />
             <span>Found Colony</span>
           </button>
 
@@ -144,13 +144,13 @@ export const Header: React.FC<HeaderProps> = ({
           {selectedColony && (
             <div className="flex items-center space-x-1 pl-2 border-l border-[#1f293d]">
               <div className="flex items-center space-x-1 text-[11px] font-mono-slate text-[#94a3b8] mr-1 hidden md:flex">
-                <Clock className="w-3 h-3 text-[#38bdf8]" />
+                <Clock className="w-3 h-3 text-[var(--mech-plasma)]" />
                 <span>ADVANCE:</span>
               </div>
               <button
                 id="header-advance-1d"
                 onClick={() => onAdvanceDays(1)}
-                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[#38bdf8] rounded transition"
+                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[var(--mech-plasma)] rounded transition"
                 title="Advance Colony Age by 1 Days"
               >
                 +1d
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 id="header-advance-5d"
                 onClick={() => onAdvanceDays(5)}
-                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[#38bdf8] rounded transition"
+                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[var(--mech-plasma)] rounded transition"
                 title="Advance Colony Age by 5 Days"
               >
                 +5d
@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 id="header-advance-10d"
                 onClick={() => onAdvanceDays(10)}
-                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[#38bdf8] rounded transition"
+                className="px-2 py-1 bg-[#101726] hover:bg-[#19243c] border border-[#23314d] text-[11px] font-mono-slate text-[var(--mech-plasma)] rounded transition"
                 title="Advance Colony Age by 10 Days"
               >
                 +10d
@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="header-logout-button"
             onClick={onLogout}
-            className="p-1.5 bg-[#121622] hover:bg-[#1c2233] border border-[#2c364d] text-[#94a3b8] hover:text-[#f87171] rounded transition"
+            className="p-1.5 bg-[var(--mech-dark)] hover:bg-[var(--mech-steel)] border border-[var(--mech-border)] text-[#94a3b8] hover:text-[#f87171] rounded transition"
             title="Relock Terminal (Logout)"
           >
             <LogOut className="w-4 h-4" />
@@ -203,11 +203,11 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onSelectTab("overview")}
           className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-gothic font-bold uppercase tracking-wider transition border-b-2 whitespace-nowrap ${
             activeTab === "overview"
-              ? "border-[#f59e0b] text-[#fef08a] bg-[#f59e0b]/10"
-              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#121828]"
+              ? "border-[var(--mech-gold)] text-[#fef08a] theme-active-tint"
+              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[var(--mech-dark)]"
           }`}
         >
-          <Compass className="w-4 h-4 text-[#f59e0b]" />
+          <Compass className="w-4 h-4 text-[var(--mech-gold)]" />
           <span>At a Glance</span>
         </button>
 
@@ -216,11 +216,11 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onSelectTab("details")}
           className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-gothic font-bold uppercase tracking-wider transition border-b-2 whitespace-nowrap ${
             activeTab === "details"
-              ? "border-[#f59e0b] text-[#fef08a] bg-[#f59e0b]/10"
-              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#121828]"
+              ? "border-[var(--mech-gold)] text-[#fef08a] theme-active-tint"
+              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[var(--mech-dark)]"
           }`}
         >
-          <FileText className="w-4 h-4 text-[#38bdf8]" />
+          <FileText className="w-4 h-4 text-[var(--mech-plasma)]" />
           <span>Colony Details</span>
         </button>
 
@@ -229,11 +229,11 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onSelectTab("infrastructure")}
           className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-gothic font-bold uppercase tracking-wider transition border-b-2 whitespace-nowrap ${
             activeTab === "infrastructure" || activeTab === "plans"
-              ? "border-[#f59e0b] text-[#fef08a] bg-[#f59e0b]/10"
-              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#121828]"
+              ? "border-[var(--mech-gold)] text-[#fef08a] theme-active-tint"
+              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[var(--mech-dark)]"
           }`}
         >
-          <Layers className="w-4 h-4 text-[#10b981]" />
+          <Layers className="w-4 h-4 text-[var(--mech-emerald)]" />
           <span>Infrastructure & Plans</span>
         </button>
 
@@ -242,8 +242,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onSelectTab("representatives")}
           className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-gothic font-bold uppercase tracking-wider transition border-b-2 whitespace-nowrap ${
             activeTab === "representative" || activeTab === "representatives"
-              ? "border-[#f59e0b] text-[#fef08a] bg-[#f59e0b]/10"
-              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#121828]"
+              ? "border-[var(--mech-gold)] text-[#fef08a] theme-active-tint"
+              : "border-transparent text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[var(--mech-dark)]"
           }`}
         >
           <User className="w-4 h-4 text-[#a855f7]" />

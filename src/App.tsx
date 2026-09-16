@@ -858,7 +858,7 @@ export function App() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#04060b] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--mech-void)] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-[#f59e0b]/30 border-t-[#f59e0b] rounded-full animate-spin mx-auto" />
           <p className="text-[#f59e0b] font-mono-slate text-sm tracking-wider">AUTHENTICATING...</p>
@@ -886,7 +886,7 @@ export function App() {
   // empty/demo state while real colonies are still loading.
   if (!coloniesLoaded) {
     return (
-      <div className="min-h-screen bg-[#04060b] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--mech-void)] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-[#f59e0b]/30 border-t-[#f59e0b] rounded-full animate-spin mx-auto" />
           <p className="text-[#f59e0b] font-mono-slate text-sm tracking-wider">LOADING IMPERIAL DATASLATE...</p>
@@ -905,7 +905,7 @@ export function App() {
   if (!currentColony) {
     return (
       <div
-        className="min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
+        className="min-h-screen bg-[var(--mech-void)] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
       >
         <div className="flex-1 flex flex-col">
           <Header
@@ -973,7 +973,7 @@ export function App() {
 
   return (
     <div
-      className="min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
+      className="min-h-screen bg-[var(--mech-void)] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
     >
       {/* Optional CRT scanline / flicker effect */}
       {opticsSettings.crt_flicker && (

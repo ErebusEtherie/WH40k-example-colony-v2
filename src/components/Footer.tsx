@@ -27,12 +27,12 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="mt-12 border-t border-[#1e293b] bg-[#070a12] py-4 px-4 sm:px-6 lg:px-8 text-xs font-mono-slate text-[#64748b]">
+    <footer className="mt-12 border-t border-[#1e293b] bg-[var(--mech-dark)] py-4 px-4 sm:px-6 lg:px-8 text-xs font-mono-slate text-[#64748b]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left info */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center space-x-1.5 text-[#94a3b8]">
-            <Terminal className="w-4 h-4 text-[#f59e0b]" />
+            <Terminal className="w-4 h-4 text-[var(--mech-gold)]" />
             <span className="font-gothic font-bold uppercase tracking-wider text-[#cbd5e1]">
               ADEPTUS MECHANICUS COGITATION ENGINE
             </span>
@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({
           </span>
           <span className="text-[#334155]">•</span>
           <span className="text-[#64748b]">
-            Active Telemetry: <strong className="text-[#fef08a]">{activeColonyName}</strong>
+            Active Telemetry: <strong className="text-[var(--mech-gold)]">{activeColonyName}</strong>
           </span>
         </div>
 
@@ -53,7 +53,7 @@ export const Footer: React.FC<FooterProps> = ({
             <button
               id="footer-export-data-btn"
               onClick={onExportData}
-              className="flex items-center space-x-1 text-[#38bdf8] hover:text-[#7dd3fc] transition"
+              className="flex items-center space-x-1 text-[var(--mech-plasma)] hover:text-[var(--mech-plasma)] transition"
               title="Export complete colony database state to JSON"
             >
               <Download className="w-3.5 h-3.5" />

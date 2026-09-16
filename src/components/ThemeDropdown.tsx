@@ -69,7 +69,6 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({
             <span className="font-gothic font-bold text-xs tracking-wider text-[#f59e0b] uppercase">
               Imperial Theme
             </span>
-            <span className="text-[10px] text-[#94a3b8] font-mono-slate">View All</span>
           </div>
 
           <div className="py-1">

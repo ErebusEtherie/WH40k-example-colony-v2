@@ -119,10 +119,9 @@ describe("NewColonyModal founding size", () => {
     fireEvent.change(screen.getByLabelText(/Colony Name/i), {
       target: { value: "Castellax Secundus" },
     });
-    fireEvent.change(
-      screen.getByLabelText(/Founding Dynasty \/ Founder/i),
-      { target: { value: "House Vheiler" } }
-    );
+    fireEvent.change(screen.getByLabelText(/Founder/i), {
+      target: { value: "House Vheiler" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: /Establish New Colony/i })
     );
@@ -140,9 +139,7 @@ describe("NewColonyModal founding size", () => {
       (screen.getByLabelText(/Star System/i) as HTMLInputElement).value
     ).toBe("");
     expect(
-      (
-        screen.getByLabelText(/Founding Dynasty \/ Founder/i) as HTMLInputElement
-      ).value
+      (screen.getByLabelText(/Founder/i) as HTMLInputElement).value
     ).toBe("");
   });
 
