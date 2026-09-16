@@ -1,8 +1,8 @@
 import React from "react";
-import { Colony } from "../types/colony";
+import { Colony, OpticsSettings, ThemeId } from "../types/colony";
 import { SelectColonyDropdown } from "./SelectColonyDropdown";
 import { ThemeDropdown } from "./ThemeDropdown";
-import { LegibilityPopover, OpticsSettings } from "./LegibilityPopover";
+import { LegibilityPopover } from "./LegibilityPopover";
 import {
   Compass,
   FileText,
@@ -30,13 +30,13 @@ interface HeaderProps {
   onAdvanceDays?: (days: number) => void;
   activeTab: ActiveTab;
   onSelectTab: (tab: any) => void;
-  currentTheme?: string;
-  theme?: string;
-  onSelectTheme?: (theme: string) => void;
-  onChangeTheme?: (theme: any) => void;
-  opticsSettings: any;
-  onUpdateOptics?: (settings: any) => void;
-  onUpdateOpticsSettings?: (settings: any) => void;
+  currentTheme?: ThemeId;
+  theme?: ThemeId;
+  onSelectTheme?: (theme: ThemeId) => void;
+  onChangeTheme?: (theme: ThemeId) => void;
+  opticsSettings: OpticsSettings;
+  onUpdateOptics?: (settings: Partial<OpticsSettings>) => void;
+  onUpdateOpticsSettings?: (settings: Partial<OpticsSettings>) => void;
   userRole?: string;
   userName?: string;
   onLogout: () => void;
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onSelectTab,
   currentTheme,
-  theme = "theme-grimdark",
+  theme = "canonical",
   onSelectTheme,
   onChangeTheme,
   opticsSettings,

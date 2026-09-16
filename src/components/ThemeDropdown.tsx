@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Palette, Check, ChevronDown } from "lucide-react";
+import { ThemeId } from "../types/colony";
 
 export interface ThemeOption {
-  id: string;
+  id: ThemeId;
   name: string;
   dotColor: string;
   bgClass: string;
@@ -19,8 +20,8 @@ export const THEMES: ThemeOption[] = [
 ];
 
 interface ThemeDropdownProps {
-  currentTheme: string;
-  onSelectTheme: (themeId: string) => void;
+  currentTheme: ThemeId;
+  onSelectTheme: (themeId: ThemeId) => void;
 }
 
 export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({

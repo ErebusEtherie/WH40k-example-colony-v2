@@ -246,16 +246,37 @@ export interface User {
   created_at: string;
 }
 
+export type ThemeId =
+  | "canonical"
+  | "dataslate"
+  | "forge"
+  | "voidfarer"
+  | "inquisition"
+  | "auspex"
+  | "parchment";
+
+export type ColorBlindMode =
+  | "default"
+  | "monochrome"
+  | "deuteranopia"
+  | "tritanopia";
+
+export type DisplayScale = "100" | "115" | "130";
+
+/**
+ * Visual theme & accessibility optics preferences. Stored in App state and
+ * applied to `document.body` so the `body.theme-*` / `body.optics-*` rules in
+ * `src/index.css` take effect. (The active theme is tracked separately in App
+ * as a `ThemeId` and is intentionally not duplicated here.) Field names follow
+ * the snake_case convention used across this file.
+ */
 export interface OpticsSettings {
-  theme?: "theme-grimdark" | "theme-mechanicus" | "theme-inquisition";
-  high_contrast?: boolean;
-  large_text?: boolean;
-  dyslexia_font?: boolean;
-  crt_flicker?: boolean;
-  audio_chimes?: boolean;
-  dyslexicFont?: boolean;
-  highContrast?: boolean;
-  colorBlindMode?: "default" | "monochrome" | "deuteranopia" | "tritanopia";
-  displayScale?: "100" | "115" | "130";
+  high_contrast: boolean;
+  large_text: boolean;
+  dyslexia_font: boolean;
+  crt_flicker: boolean;
+  audio_chimes: boolean;
+  color_blind_mode: ColorBlindMode;
+  display_scale: DisplayScale;
 }
 

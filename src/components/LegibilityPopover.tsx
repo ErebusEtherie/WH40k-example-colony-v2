@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Eye, Check, X } from "lucide-react";
-
-export interface OpticsSettings {
-  dyslexicFont: boolean;
-  highContrast: boolean;
-  colorBlindMode: "default" | "monochrome" | "deuteranopia" | "tritanopia";
-  displayScale: "100" | "115" | "130";
-}
+import { Eye, X } from "lucide-react";
+import {
+  OpticsSettings,
+  ColorBlindMode,
+  DisplayScale,
+} from "../types/colony";
 
 interface LegibilityPopoverProps {
   settings: OpticsSettings;
@@ -36,7 +34,7 @@ export const LegibilityPopover: React.FC<LegibilityPopoverProps> = ({
         id="legibility-popover-trigger"
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center space-x-1.5 px-2.5 py-1.5 border text-xs font-mono-slate rounded transition shadow-sm ${
-          settings.dyslexicFont || settings.highContrast || settings.colorBlindMode !== "default" || settings.displayScale !== "100"
+          settings.dyslexia_font || settings.high_contrast || settings.color_blind_mode !== "default" || settings.display_scale !== "100"
             ? "bg-[#00d4ff]/15 text-[#38bdf8] border-[#00d4ff]/60"
             : "bg-[#121622] text-[#94a3b8] hover:text-[#e2e8f0] border-[#2c364d] hover:bg-[#1a2133]"
         }`}
@@ -78,14 +76,14 @@ export const LegibilityPopover: React.FC<LegibilityPopoverProps> = ({
               </div>
               <button
                 id="toggle-dyslexic-font"
-                onClick={() => onUpdateSettings({ dyslexicFont: !settings.dyslexicFont })}
+                onClick={() => onUpdateSettings({ dyslexia_font: !settings.dyslexia_font })}
                 className={`w-10 h-5 rounded-full p-0.5 transition ${
-                  settings.dyslexicFont ? "bg-[#38bdf8]" : "bg-[#252f44]"
+                  settings.dyslexia_font ? "bg-[#38bdf8]" : "bg-[#252f44]"
                 }`}
               >
                 <div
                   className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    settings.dyslexicFont ? "translate-x-5" : "translate-x-0"
+                    settings.dyslexia_font ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
               </button>
@@ -99,14 +97,14 @@ export const LegibilityPopover: React.FC<LegibilityPopoverProps> = ({
               </div>
               <button
                 id="toggle-high-contrast"
-                onClick={() => onUpdateSettings({ highContrast: !settings.highContrast })}
+                onClick={() => onUpdateSettings({ high_contrast: !settings.high_contrast })}
                 className={`w-10 h-5 rounded-full p-0.5 transition ${
-                  settings.highContrast ? "bg-[#f59e0b]" : "bg-[#252f44]"
+                  settings.high_contrast ? "bg-[#f59e0b]" : "bg-[#252f44]"
                 }`}
               >
                 <div
                   className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    settings.highContrast ? "translate-x-5" : "translate-x-0"
+                    settings.high_contrast ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
               </button>
@@ -127,11 +125,11 @@ export const LegibilityPopover: React.FC<LegibilityPopoverProps> = ({
                     id={`cb-profile-${profile.id}`}
                     onClick={() =>
                       onUpdateSettings({
-                        colorBlindMode: profile.id as OpticsSettings["colorBlindMode"],
+                        color_blind_mode: profile.id as ColorBlindMode,
                       })
                     }
                     className={`px-2 py-1.5 text-center text-[11px] rounded border transition ${
-                      settings.colorBlindMode === profile.id
+                      settings.color_blind_mode === profile.id
                         ? "bg-[#38bdf8]/20 border-[#38bdf8] text-[#38bdf8] font-bold"
                         : "bg-[#141b2a] border-[#252f44] text-[#94a3b8] hover:text-white"
                     }`}
@@ -156,11 +154,11 @@ export const LegibilityPopover: React.FC<LegibilityPopoverProps> = ({
                     id={`scale-${scale.id}`}
                     onClick={() =>
                       onUpdateSettings({
-                        displayScale: scale.id as OpticsSettings["displayScale"],
+                        display_scale: scale.id as DisplayScale,
                       })
                     }
                     className={`flex-1 py-1 text-center text-[11px] rounded border transition ${
-                      settings.displayScale === scale.id
+                      settings.display_scale === scale.id
                         ? "bg-[#f59e0b]/20 border-[#f59e0b] text-[#fcd34d] font-bold"
                         : "bg-[#141b2a] border-[#252f44] text-[#94a3b8] hover:text-white"
                     }`}

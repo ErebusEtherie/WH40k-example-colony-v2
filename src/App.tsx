@@ -9,6 +9,7 @@ import {
   ColonyResource,
   DevelopmentPlan,
   OpticsSettings,
+  ThemeId,
 } from "./types/colony";
 import { useCurrentUser, useLogout, apiFetch } from "./lib/api";
 import {
@@ -69,9 +70,7 @@ export function App() {
   const [plans, setPlans] = useState<DevelopmentPlan[]>([]);
 
   // Visual Theme & Accessibility
-  const [theme, setTheme] = useState<
-    "theme-grimdark" | "theme-mechanicus" | "theme-inquisition"
-  >("theme-grimdark");
+  const [theme, setTheme] = useState<ThemeId>("canonical");
 
   const [opticsSettings, setOpticsSettings] = useState<OpticsSettings>({
     high_contrast: false,
@@ -79,7 +78,36 @@ export function App() {
     dyslexia_font: false,
     crt_flicker: true,
     audio_chimes: true,
+    color_blind_mode: "default",
+    display_scale: "100",
   });
+
+  // Visual theme & optics are applied to `document.body` — the selectors in
+  // index.css target `body.theme-*` / `body.optics-*` — keyed off App state so
+  // toggling them in the Header actually re-themes the page.
+  useEffect(() => {
+    const body = document.body;
+    const knownClasses = [
+      "theme-canonical", "theme-dataslate", "theme-forge", "theme-voidfarer",
+      "theme-inquisition", "theme-auspex", "theme-parchment",
+      "optics-dyslexic", "optics-highcontrast",
+      "optics-cb-monochrome", "optics-cb-deuteranopia", "optics-cb-tritanopia",
+      "optics-scale-115", "optics-scale-130",
+    ];
+    knownClasses.forEach((cls) => body.classList.remove(cls));
+
+    body.classList.add(`theme-${theme}`);
+    if (opticsSettings.dyslexia_font) body.classList.add("optics-dyslexic");
+    if (opticsSettings.high_contrast) body.classList.add("optics-highcontrast");
+    if (opticsSettings.color_blind_mode !== "default")
+      body.classList.add(`optics-cb-${opticsSettings.color_blind_mode}`);
+    if (opticsSettings.display_scale !== "100")
+      body.classList.add(`optics-scale-${opticsSettings.display_scale}`);
+  }, [theme, opticsSettings]);
+
+  // Merge partial optics updates (legibility toggles send one field at a time).
+  const updateOpticsSettings = (patch: Partial<OpticsSettings>) =>
+    setOpticsSettings((prev) => ({ ...prev, ...patch }));
 
   // Modals state
   const [isNewColonyOpen, setIsNewColonyOpen] = useState(false);
@@ -871,23 +899,13 @@ export function App() {
     logoutMutation.mutate();
   };
 
-  // Accessibility classes applied to the root container
-  const accessibilityClasses = [
-    theme,
-    opticsSettings.high_contrast ? "high-contrast" : "",
-    opticsSettings.large_text ? "large-text" : "",
-    opticsSettings.dyslexia_font ? "dyslexia-font" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   // No real colonies on the backend yet — the GM is logged in but there is nothing
   // to show. Seed/demo data is not displayed here: it's demo-only and must never be
   // sent to the API, so we prompt to charter the first real colony instead.
   if (!currentColony) {
     return (
       <div
-        className={`min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black ${accessibilityClasses}`}
+        className="min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
       >
         <div className="flex-1 flex flex-col">
           <Header
@@ -901,7 +919,7 @@ export function App() {
             onAdvanceDays={handleAdvanceDays}
             onOpenNewColony={() => setIsNewColonyOpen(true)}
             onChangeTheme={setTheme}
-            onUpdateOpticsSettings={setOpticsSettings}
+            onUpdateOpticsSettings={updateOpticsSettings}
             userRole={currentUser?.role || "colony_manager"}
             userName={currentUser?.username || "Alexis Valancius"}
             onLogout={handleLogout}
@@ -955,7 +973,7 @@ export function App() {
 
   return (
     <div
-      className={`min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black ${accessibilityClasses}`}
+      className="min-h-screen bg-[#04060b] text-[#f8fafc] flex flex-col justify-between selection:bg-[#f59e0b] selection:text-black"
     >
       {/* Optional CRT scanline / flicker effect */}
       {opticsSettings.crt_flicker && (
@@ -982,7 +1000,7 @@ export function App() {
             setIsNewColonyOpen(true);
           }}
           onChangeTheme={setTheme}
-          onUpdateOpticsSettings={setOpticsSettings}
+          onUpdateOpticsSettings={updateOpticsSettings}
           userRole={currentUser?.role || "colony_manager"}
           userName={currentUser?.username || "Alexis Valancius"}
           onLogout={handleLogout}

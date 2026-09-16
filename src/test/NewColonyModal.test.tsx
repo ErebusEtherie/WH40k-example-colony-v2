@@ -159,7 +159,7 @@ describe("NewColonyModal founding size", () => {
 
     expect(onCreateColony).not.toHaveBeenCalled();
     expect(
-      screen.getByText(/Please specify a founding dynasty or founder/i)
+      screen.getByText(/Please specify a founder/i)
     ).toBeInTheDocument();
   });
 });
