@@ -23,6 +23,7 @@ import type {
   User,
   ColonyStatsBreakdown,
   ColonyType,
+  ColonyTypeInfo,
   ModifierStat,
   InfrastructureState,
   UserRole,
@@ -39,10 +40,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api/
 // ============================================================================
 
 export interface AuthSession {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
+  /**
+   * The authenticated user. Authentication is carried entirely by HttpOnly
+   * cookies + CSRF (per 07-frontend-architecture.md), so no token fields are
+   * ever exposed to the frontend.
+   */
   user: User | null;
 }
 
@@ -63,6 +65,9 @@ export interface ColonyCreate {
   founder_name: string;
   patron_name?: string | null;
   colony_type: ColonyType;
+  // Optional founding size for advanced-stage colonies. When omitted the backend
+  // falls back to the colony type's default starting size (config/colony_types.yaml).
+  base_size?: number | null;
 }
 
 export interface ColonyUpdate {
@@ -364,13 +369,9 @@ async function refreshAccessToken(): Promise<boolean> {
  * Sets HttpOnly cookies and fetches CSRF token on success.
  */
 export async function loginApi(username: string, password: string): Promise<AuthSession> {
-  // Login sets HttpOnly cookies on the response
-  await fetchApi<{
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
-    expires_in: number;
-  }>('/auth/login', {
+  // Login sets HttpOnly cookies on the response; the body only carries a
+  // success message (no tokens returned, per cookie-only auth).
+  await fetchApi<{ message: string }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
@@ -381,20 +382,13 @@ export async function loginApi(username: string, password: string): Promise<Auth
   // Fetch CSRF token for state-changing requests
   const csrfResponse = await fetchApi<{ csrf_token: string }>('/auth/csrf-token');
   setCsrfToken(csrfResponse.csrf_token);
-// Mark that user has authenticated in this session
+
+  // Mark that user has authenticated in this session
   // This enables automatic token refresh on 401 for future requests
   markAuthenticatedThisSession();
 
-  // Return session info (tokens are in cookies, not stored client-side)
-  const session: AuthSession = {
-    access_token: '', // Not stored client-side anymore
-    refresh_token: '', // Not stored client-side anymore
-    token_type: 'bearer',
-    expires_in: 1800,
-    user,
-  };
-
-  return session;
+  // Authentication is carried by HttpOnly cookies; the FE only needs the user.
+  return { user };
 }
 
 /**
@@ -402,13 +396,9 @@ export async function loginApi(username: string, password: string): Promise<Auth
  * Sets HttpOnly cookies and fetches CSRF token on success.
  */
 export async function registerApi(data: RegisterRequest): Promise<AuthSession> {
-  // Register sets HttpOnly cookies on the response
-  await fetchApi<{
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
-    expires_in: number;
-  }>('/auth/register', {
+  // Register returns the created user (UserResponse); auth is cookie-based and
+  // no tokens are ever returned in the body.
+  const created = await fetchApi<User>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -420,16 +410,8 @@ export async function registerApi(data: RegisterRequest): Promise<AuthSession> {
   const csrfResponse = await fetchApi<{ csrf_token: string }>('/auth/csrf-token');
   setCsrfToken(csrfResponse.csrf_token);
 
-  // Return session info (tokens are in cookies, not stored client-side)
-  const session: AuthSession = {
-    access_token: '', // Not stored client-side anymore
-    refresh_token: '', // Not stored client-side anymore
-    token_type: 'bearer',
-    expires_in: 1800,
-    user,
-  };
-
-  return session;
+  // Authentication is carried by HttpOnly cookies; the FE only needs the user.
+  return { user: user ?? created };
 }
 
 /**
@@ -973,9 +955,9 @@ export function useInstallDevelopmentPlan() {
 // ============================================================================
 
 export function useColonyTypes() {
-  return useQuery<ColonyType[], ApiError>({
+  return useQuery<ColonyTypeInfo[], ApiError>({
     queryKey: ['config', 'colony-types'],
-    queryFn: () => fetchApi<ColonyType[]>('/config/colony-types'),
+    queryFn: () => fetchApi<ColonyTypeInfo[]>('/config/colony-types'),
   });
 }
 

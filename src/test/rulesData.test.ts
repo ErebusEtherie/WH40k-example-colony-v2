@@ -9,24 +9,23 @@ import {
 } from "../data/rulesData";
 
 describe("Koronus Expanse Rulebook Configuration Integrity", () => {
-  it("contains all canonical colony archetypes with valid stat schemas", () => {
+  it("contains all canonical colony archetypes", () => {
     expect(COLONY_TYPES.length).toBeGreaterThanOrEqual(4);
 
-    const miningType = COLONY_TYPES.find((c) => c.name === "mining_and_industry");
-    expect(miningType).toBeDefined();
-    expect(miningType?.base_stats.productivity).toBeGreaterThanOrEqual(1);
-    expect(miningType?.base_stats.size).toBe(1);
+    const ids = COLONY_TYPES.map((c) => c.name);
+    expect(ids).toContain("research_mission");
+    expect(ids).toContain("mining_and_industry");
+    expect(ids).toContain("ecclesiastical");
+    expect(ids).toContain("agricultural");
 
-    // Ensure all types define required 5 core stats
+    // Selection identities only — starting stats and special effects are served
+    // from the backend (see tests/adapters/api/test_config_api.py for those
+    // assertions, which used to live here and were removed when the FE stopped
+    // duplicating the rule data).
     COLONY_TYPES.forEach((colonyType) => {
       expect(colonyType.name).toBeTruthy();
       expect(colonyType.display_name).toBeTruthy();
-      expect(colonyType.base_stats).toBeDefined();
-      expect(typeof colonyType.base_stats.size).toBe("number");
-      expect(typeof colonyType.base_stats.complacency).toBe("number");
-      expect(typeof colonyType.base_stats.order).toBe("number");
-      expect(typeof colonyType.base_stats.productivity).toBe("number");
-      expect(typeof colonyType.base_stats.piety).toBe("number");
+      expect(colonyType.description).toBeTruthy();
     });
   });
 

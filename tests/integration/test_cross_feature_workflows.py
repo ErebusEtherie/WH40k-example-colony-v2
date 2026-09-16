@@ -76,8 +76,8 @@ class TestColonyLifecycle:
         assert piety_mods[0]["value"] == 2
         assert "Divine blessing" in piety_mods[0]["source_name"]
         
-        # Step 5: Advance colony age
-        response = auth_client.post(f"/api/v1/colonies/{colony_id}/age", params={"age_days": 30})
+        # Step 5: Advance colony age (ColonyAgeAdvance body; add advances by N days)
+        response = auth_client.post(f"/api/v1/colonies/{colony_id}/age", json={"add": 30})
         assert response.status_code == 200
         colony_state = response.json()
         assert colony_state["age_days"] == 30

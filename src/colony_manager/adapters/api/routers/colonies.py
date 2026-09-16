@@ -196,6 +196,14 @@ async def create_colony(
     config = service._rule_config_provider
     colony_type_config = config.get_colony_type_config(colony_data.colony_type)
     base_stats = colony_type_config["base_stats"]
+    # Allow the GM to found an advanced-stage colony at a larger size than the
+    # colony type's default (1). When base_size is omitted we fall back to the
+    # type config so the common case stays behavior-identical to before.
+    base_size = (
+        colony_data.base_size
+        if colony_data.base_size is not None
+        else base_stats["size"]
+    )
     colony = Colony(
         name=colony_data.name,
         founder_name=colony_data.founder_name,
@@ -207,7 +215,7 @@ async def create_colony(
         base_order=base_stats["order"],  # type: ignore[index]
         base_productivity=base_stats["productivity"],  # type: ignore[index]
         base_piety=base_stats["piety"],  # type: ignore[index]
-        base_size=base_stats["size"],  # type: ignore[index]
+        base_size=base_size,
     )
     created = service.create_colony(colony, changed_by=current_user.id)
     assert created.id is not None

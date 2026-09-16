@@ -968,14 +968,14 @@ export function App() {
                 No colonised worlds on record
               </p>
               <p className="text-[#94a3b8] text-sm max-w-md mx-auto">
-                The dynasty has not yet chartered a colony in the Imperial dataslate.
+                You has not yet registered a colony in the Imperial dataslate.
                 Create the first settlement to begin tracking it here.
               </p>
               <button
                 onClick={() => setIsNewColonyOpen(true)}
                 className="px-5 py-2 rounded font-mono-slate text-sm bg-[#f59e0b]/15 text-[#f59e0b] border border-[#f59e0b]/40 hover:bg-[#f59e0b]/25 transition"
               >
-                Charter First Colony
+                Found Your First Colony
               </button>
             </div>
           </main>

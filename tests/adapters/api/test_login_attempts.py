@@ -24,7 +24,9 @@ class TestLoginAttemptTracking:
         }
         response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 200
-        assert "access_token" in response.json()
+        # Tokens are delivered only via HttpOnly cookies, never in the body
+        assert "access_token" not in response.json()
+        assert "rt_access_token" in test_client_with_auth.cookies
 
     def test_failed_login_is_logged(self, test_client_with_auth: TestClient):
         """Test that failed login attempts are logged."""

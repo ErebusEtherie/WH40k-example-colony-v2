@@ -33,6 +33,37 @@ def integration_client(tmp_path: Path):
         del os.environ["JWT_SECRET_KEY"]
 
 
+def _login_with_csrf(client: TestClient, username: str, password: str) -> dict:
+    """Log in via cookie-based auth and set up the double-submit CSRF token.
+
+    Bearer auth was removed from the API, so the session cookie set by
+    ``/auth/login`` is what authenticates subsequent requests. State-changing
+    requests additionally require the CSRF token from ``/auth/csrf-token``
+    echoed back in the ``X-CSRF-Token`` header. When a test switches users,
+    call this again to re-login (which replaces the session cookie); the CSRF
+    cookie persists across user switches on the same client.
+
+    Args:
+        client: The TestClient to authenticate.
+        username: User to log in as.
+        password: User's password.
+
+    Returns:
+        The login response body (a success message only; tokens are never
+        returned in the body, only set as HttpOnly cookies).
+    """
+    login_response = client.post(
+        "/api/v1/auth/login", json={"username": username, "password": password}
+    )
+    assert login_response.status_code == 200
+    csrf_response = client.get("/api/v1/auth/csrf-token")
+    assert csrf_response.status_code == 200
+    client.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
+    # Tokens are delivered only via HttpOnly cookies, never in the response body,
+    # so there is nothing else to return here.
+    return login_response.json()
+
+
 class TestAuthFlowRegistration:
     """Tests for complete registration to authenticated request flow."""
 
@@ -67,13 +98,17 @@ class TestAuthFlowRegistration:
         }
         login_response = integration_client.post("/api/v1/auth/login", json=login_data)
         assert login_response.status_code == 200
-        tokens = login_response.json()
-        assert "access_token" in tokens
-        assert "refresh_token" in tokens
-        assert tokens["token_type"] == "bearer"
+        login_body = login_response.json()
+        # Tokens are delivered only via HttpOnly cookies, never in the body
+        assert "message" in login_body
+        assert "access_token" not in login_body
+        assert "refresh_token" not in login_body
 
-        # Step 3: Make authenticated request with access token
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        # Step 3: Set up the double-submit CSRF token for state-changing requests.
+        # The login session cookie authenticates; the CSRF header protects mutating calls.
+        csrf_response = integration_client.get("/api/v1/auth/csrf-token")
+        csrf_token = csrf_response.json()["csrf_token"]
+        integration_client.headers["X-CSRF-Token"] = csrf_token
 
         # Get current user profile - verify all user details
         me_response = integration_client.get("/api/v1/auth/me")
@@ -222,9 +257,10 @@ class TestAuthFlowMeEndpoint:
         response = integration_client.get("/api/v1/auth/me")
         assert response.status_code == 401
 
-    def test_me_with_invalid_token(self, integration_client):
-        """Test /me endpoint returns 401 with invalid token."""
-        integration_client.headers["Authorization"] = "Bearer invalid-token"
+    def test_me_with_invalid_cookie(self, integration_client):
+        """Test /me endpoint returns 401 with an invalid session cookie."""
+        integration_client.cookies["rt_access_token"] = "invalid-token"
+        integration_client.cookies["rt_refresh_token"] = "invalid-token"
         response = integration_client.get("/api/v1/auth/me")
         assert response.status_code == 401
 
@@ -240,11 +276,8 @@ class TestAuthFlowMeEndpoint:
         
         login_data = {"username": "me_user", "password": "SecurePass123!"}
         login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
-        
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
-        
-        # Get user details
+        assert login_response.status_code == 200
+        # Authenticated via the session cookie set by login
         me_response = integration_client.get("/api/v1/auth/me")
         assert me_response.status_code == 200
         me_data = me_response.json()
@@ -282,31 +315,30 @@ class TestAuthFlowTokenRefresh:
 
         login_data = {"username": "refresh_user", "password": "SecurePass123!"}
         login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
+        assert login_response.status_code == 200
 
-        # Use access token
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        # Authenticated via the session cookie set by login
         me_response = integration_client.get("/api/v1/auth/me")
         assert me_response.status_code == 200
+        assert me_response.json()["username"] == "refresh_user"
 
-        # Refresh token
-        refresh_data = {"refresh_token": tokens["refresh_token"]}
-        refresh_response = integration_client.post("/api/v1/auth/refresh", json=refresh_data)
+        # Refresh reads the refresh-token cookie and rotates both cookies
+        refresh_response = integration_client.post("/api/v1/auth/refresh")
         assert refresh_response.status_code == 200
-        new_tokens = refresh_response.json()
-        assert "access_token" in new_tokens
-        assert "refresh_token" in new_tokens
+        refresh_body = refresh_response.json()
+        assert "access_token" not in refresh_body
+        assert "refresh_token" not in refresh_body
+        assert "message" in refresh_body
 
-        # Use new access token
-        integration_client.headers["Authorization"] = f"Bearer {new_tokens['access_token']}"
+        # Rotated cookies still authenticate
         me_response2 = integration_client.get("/api/v1/auth/me")
         assert me_response2.status_code == 200
         assert me_response2.json()["username"] == "refresh_user"
 
     def test_refresh_invalid_token(self, integration_client):
-        """Test refresh fails with invalid token."""
-        refresh_data = {"refresh_token": "invalid-token"}
-        response = integration_client.post("/api/v1/auth/refresh", json=refresh_data)
+        """Test refresh fails with an invalid refresh-token cookie."""
+        integration_client.cookies["rt_refresh_token"] = "invalid-token"
+        response = integration_client.post("/api/v1/auth/refresh")
         assert response.status_code == 401
 
 
@@ -325,23 +357,17 @@ class TestAuthFlowTokenRevocation:
 
         login_data = {"username": "revoke_user", "password": "SecurePass123!"}
         login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
+        assert login_response.status_code == 200
 
-        # Use the access token first to verify it works
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        # Use the session cookie set by login
         me_response = integration_client.get("/api/v1/auth/me")
         assert me_response.status_code == 200
 
-        # Revoke the access token (the endpoint revokes the token from the Authorization header)
+        # Revoke the session: the endpoint blacklists the cookie token and clears cookies
         revoke_response = integration_client.post("/api/v1/auth/revoke", json={"reason": "logout"})
         assert revoke_response.status_code == 200
-
-        # Try to use the revoked access token - should fail (blacklisted)
-        # Note: This depends on whether the auth middleware checks the blacklist
-        integration_client.get("/api/v1/auth/me")
-        # The token should be blacklisted, but implementation may vary
-        # For now, just verify the revoke endpoint works
-        assert revoke_response.status_code == 200
+        assert "rt_access_token" not in integration_client.cookies
+        assert "rt_refresh_token" not in integration_client.cookies
 
     def test_revoke_all_tokens(self, integration_client):
         """Test revoking all tokens logs out from all sessions."""
@@ -355,22 +381,20 @@ class TestAuthFlowTokenRevocation:
 
         login_data = {"username": "revoke_all_user", "password": "SecurePass123!"}
         login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
+        assert login_response.status_code == 200
 
-        # Revoke all tokens
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        # Revoke all of the user's sessions
         revoke_all_response = integration_client.post(
             "/api/v1/auth/revoke-all", json={"reason": "security"}
         )
         assert revoke_all_response.status_code == 200
 
         # The revoke-all should blacklist all refresh tokens for the user
-        # Try to use refresh token after revocation
-        refresh_data = {"refresh_token": tokens["refresh_token"]}
-        refresh_response = integration_client.post("/api/v1/auth/refresh", json=refresh_data)
-        # Refresh should fail if blacklist is checked during refresh
-        # Note: Implementation may vary - some systems don't blacklist refresh tokens
-        assert refresh_response.status_code in (200, 401)  # Depends on blacklist implementation
+        # Attempt a refresh using the revoked session cookie
+        refresh_response = integration_client.post("/api/v1/auth/refresh")
+        # Refresh may be accepted or rejected depending on whether the blacklist
+        # is consulted during refresh - tolerate either.
+        assert refresh_response.status_code in (200, 401)
 
 
 class TestAuthorizationPermissions:
@@ -385,11 +409,7 @@ class TestAuthorizationPermissions:
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
-
-        login_data = {"username": "viewer_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        _login_with_csrf(integration_client, "viewer_user", "SecurePass123!")
 
         # Create a colony (this auto-members the user as OWNER)
         create_data = {
@@ -411,17 +431,14 @@ class TestAuthorizationPermissions:
         integration_client.post("/api/v1/auth/register", json=register_data2)
 
         # Login as viewer_member to get their user ID
-        login_data2 = {"username": "viewer_member", "password": "SecurePass123!"}
-        login_response2 = integration_client.post("/api/v1/auth/login", json=login_data2)
-        tokens2 = login_response2.json()
+        _login_with_csrf(integration_client, "viewer_member", "SecurePass123!")
         
         # Get viewer's user ID from /me endpoint
-        integration_client.headers["Authorization"] = f"Bearer {tokens2['access_token']}"
         me_response = integration_client.get("/api/v1/auth/me")
         viewer_id = me_response.json()["id"]
 
         # Switch back to owner to add member
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+        _login_with_csrf(integration_client, "viewer_user", "SecurePass123!")
         add_member_data = {"user_id": viewer_id, "role": "viewer"}
         add_response = integration_client.post(
             f"/api/v1/colonies/{colony_id}/members", json=add_member_data
@@ -429,7 +446,7 @@ class TestAuthorizationPermissions:
         assert add_response.status_code == 201
 
         # Now login as viewer and try to edit colony
-        integration_client.headers["Authorization"] = f"Bearer {tokens2['access_token']}"
+        _login_with_csrf(integration_client, "viewer_member", "SecurePass123!")
         edit_data = {"name": "Hacked Colony Name"}
         edit_response = integration_client.put(
             f"/api/v1/colonies/{colony_id}", json=edit_data
@@ -449,12 +466,9 @@ class TestAuthorizationPermissions:
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
-        login_data = {"username": "owner_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        owner_tokens = login_response.json()
+        _login_with_csrf(integration_client, "owner_user", "SecurePass123!")
 
         # Create colony (with auth)
-        integration_client.headers["Authorization"] = f"Bearer {owner_tokens['access_token']}"
         create_data = {
             "name": "Editor Test Colony",
             "founder_name": "Test Owner",
@@ -471,17 +485,14 @@ class TestAuthorizationPermissions:
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data2)
-        login_data2 = {"username": "editor_user", "password": "SecurePass123!"}
-        login_response2 = integration_client.post("/api/v1/auth/login", json=login_data2)
-        editor_tokens = login_response2.json()
+        _login_with_csrf(integration_client, "editor_user", "SecurePass123!")
         
         # Get editor's user ID from /me endpoint
-        integration_client.headers["Authorization"] = f"Bearer {editor_tokens['access_token']}"
         me_response = integration_client.get("/api/v1/auth/me")
         editor_id = me_response.json()["id"]
 
         # Add editor to colony (switch back to owner)
-        integration_client.headers["Authorization"] = f"Bearer {owner_tokens['access_token']}"
+        _login_with_csrf(integration_client, "owner_user", "SecurePass123!")
         add_member_data = {"user_id": editor_id, "role": "editor"}
         add_response = integration_client.post(
             f"/api/v1/colonies/{colony_id}/members", json=add_member_data
@@ -489,7 +500,7 @@ class TestAuthorizationPermissions:
         assert add_response.status_code == 201
 
         # Login as editor and edit colony
-        integration_client.headers["Authorization"] = f"Bearer {editor_tokens['access_token']}"
+        _login_with_csrf(integration_client, "editor_user", "SecurePass123!")
         edit_data = {"name": "Editor Updated Colony"}
         edit_response = integration_client.put(
             f"/api/v1/colonies/{colony_id}", json=edit_data
@@ -506,12 +517,9 @@ class TestAuthorizationPermissions:
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
-        login_data = {"username": "regular_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        regular_tokens = login_response.json()
+        _login_with_csrf(integration_client, "regular_user", "SecurePass123!")
 
         # Create colony as regular user
-        integration_client.headers["Authorization"] = f"Bearer {regular_tokens['access_token']}"
         create_data = {
             "name": "Admin Access Test Colony",
             "founder_name": "Regular User",
@@ -521,8 +529,7 @@ class TestAuthorizationPermissions:
         assert colony_response.status_code == 201
         colony_id = colony_response.json()["id"]
 
-        # Register admin user (clear auth first)
-        integration_client.headers.pop("Authorization", None)
+        # Register admin user (login switches the session to admin)
         register_data2 = {
             "username": "admin_user",
             "email": "admin@example.com",
@@ -530,12 +537,9 @@ class TestAuthorizationPermissions:
             "role": "admin",
         }
         integration_client.post("/api/v1/auth/register", json=register_data2)
-        login_data2 = {"username": "admin_user", "password": "SecurePass123!"}
-        login_response2 = integration_client.post("/api/v1/auth/login", json=login_data2)
-        admin_tokens = login_response2.json()
+        _login_with_csrf(integration_client, "admin_user", "SecurePass123!")
 
         # Admin accesses colony they don't belong to
-        integration_client.headers["Authorization"] = f"Bearer {admin_tokens['access_token']}"
         view_response = integration_client.get(f"/api/v1/colonies/{colony_id}")
         assert view_response.status_code == 200
 
@@ -555,12 +559,9 @@ class TestAuthorizationPermissions:
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data1)
-        login_data1 = {"username": "user_alice", "password": "SecurePass123!"}
-        login_response1 = integration_client.post("/api/v1/auth/login", json=login_data1)
-        alice_tokens = login_response1.json()
+        _login_with_csrf(integration_client, "user_alice", "SecurePass123!")
 
         # Alice creates colony
-        integration_client.headers["Authorization"] = f"Bearer {alice_tokens['access_token']}"
         create_data = {
             "name": "Alice's Colony",
             "founder_name": "Alice",
@@ -570,20 +571,16 @@ class TestAuthorizationPermissions:
         assert colony_response.status_code == 201
         alice_colony_id = colony_response.json()["id"]
 
-        # Register Bob (clear auth first)
-        integration_client.headers.pop("Authorization", None)
+        # Register Bob (login switches the session to Bob)
         register_data2 = {
             "username": "user_bob",
             "email": "bob@example.com",
             "password": "SecurePass123!",
         }
         integration_client.post("/api/v1/auth/register", json=register_data2)
-        login_data2 = {"username": "user_bob", "password": "SecurePass123!"}
-        login_response2 = integration_client.post("/api/v1/auth/login", json=login_data2)
-        bob_tokens = login_response2.json()
+        _login_with_csrf(integration_client, "user_bob", "SecurePass123!")
 
         # Bob tries to access Alice's colony
-        integration_client.headers["Authorization"] = f"Bearer {bob_tokens['access_token']}"
         view_response = integration_client.get(f"/api/v1/colonies/{alice_colony_id}")
         assert view_response.status_code == 403
         assert "not a member" in view_response.json()["detail"]
@@ -598,12 +595,9 @@ class TestAuthorizationPermissions:
             "role": "colony_manager",
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
-        login_data = {"username": "manager_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
+        _login_with_csrf(integration_client, "manager_user", "SecurePass123!")
 
         # Try to access admin-only endpoint (list all users)
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
         users_response = integration_client.get("/api/v1/users")
         assert users_response.status_code == 403
         assert "Admin access required" in users_response.json()["detail"]
@@ -618,9 +612,7 @@ class TestAuthorizationPermissions:
             "role": "admin",
         }
         integration_client.post("/api/v1/auth/register", json=register_data)
-        login_data = {"username": "admin_delete_user", "password": "SecurePass123!"}
-        login_response = integration_client.post("/api/v1/auth/login", json=login_data)
-        tokens = login_response.json()
+        _login_with_csrf(integration_client, "admin_delete_user", "SecurePass123!")
 
         # Create a user to delete
         register_data2 = {
@@ -632,6 +624,5 @@ class TestAuthorizationPermissions:
         temp_user_id = create_response.json()["id"]
 
         # Admin deletes the user
-        integration_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
         delete_response = integration_client.delete(f"/api/v1/users/{temp_user_id}")
         assert delete_response.status_code == 204  # No Content on success

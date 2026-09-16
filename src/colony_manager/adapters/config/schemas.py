@@ -40,6 +40,22 @@ class ColonyTypeConfig(BaseModel):
     special_effects: list[ColonySpecialEffect] = Field(default_factory=list)
 
 
+class ColonyTypeInfoConfig(BaseModel):
+    """API-facing colony type payload for the ``/config/colony-types`` endpoint.
+
+    Deliberately omits ``initial_investment_pf`` from ``ColonyTypeConfig``: the
+    colony-type preview shows starting stats and benefits only, so the field is
+    kept out of the public contract. Kept as a separate model so the YAML config
+    shape and the API response shape can diverge independently.
+    """
+
+    id: str
+    name: str
+    description: str
+    base_stats: ColonyBaseStats
+    special_effects: list[ColonySpecialEffect] = Field(default_factory=list)
+
+
 # =============================================================================
 # Infrastructure Types
 # =============================================================================

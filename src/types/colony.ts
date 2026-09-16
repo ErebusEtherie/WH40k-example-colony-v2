@@ -4,6 +4,36 @@ export type ColonyType =
   | "ecclesiastical"
   | "agricultural";
 
+export interface ColonyTypeBaseStats {
+  size: number;
+  complacency: number;
+  productivity: number;
+  order: number;
+  piety: number;
+}
+
+export interface ColonyTypeSpecialEffect {
+  name: string;
+  description: string;
+  resource_types?: string[];
+  productivity_bonus?: number;
+  additional_pf?: number;
+  starts_with_upgrade?: boolean;
+  upgrade_choices?: string[];
+  upgrade_type?: string;
+  order_piety_swap?: boolean;
+  famine_resilience_roll?: number;
+}
+
+export interface ColonyTypeInfo {
+  id: ColonyType;
+  name: string;
+  description: string;
+  base_stats: ColonyTypeBaseStats;
+  special_effects: ColonyTypeSpecialEffect[];
+}
+
+
 export type ModifierStat =
   | "size"
   | "complacency"

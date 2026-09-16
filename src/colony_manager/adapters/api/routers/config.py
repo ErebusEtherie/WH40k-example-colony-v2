@@ -5,21 +5,30 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from colony_manager.adapters.api.dependencies import get_rule_config_provider
+from colony_manager.adapters.config.schemas import ColonyTypeInfoConfig
 from colony_manager.domain.ports.rule_config_provider import RuleConfigProvider
 
 router = APIRouter(prefix="/config", tags=["config"])
 
 
-@router.get("/colony-types", responses={})
+@router.get("/colony-types", response_model=list[ColonyTypeInfoConfig])
 def get_colony_types(
     provider: RuleConfigProvider = Depends(get_rule_config_provider),
-) -> list[dict[str, str]]:
+) -> list[ColonyTypeInfoConfig]:
     """Get list of available colony types.
 
-    Returns data suitable for populating dropdown menus in the frontend.
+    Returns payloads for populating dropdown menus and the colony-type preview
+    panel (starting stats, starting benefits, conditional bonuses). The API is
+    the single source of truth for this data; the frontend does not duplicate it.
     """
     return [
-        {"id": ct.name, "name": ct.display_name, "description": ct.description}
+        ColonyTypeInfoConfig(
+            id=ct.name,
+            name=ct.display_name,
+            description=ct.description,
+            base_stats=ct.base_stats,
+            special_effects=ct.special_effects,
+        )
         for ct in provider.colony_types
     ]
 

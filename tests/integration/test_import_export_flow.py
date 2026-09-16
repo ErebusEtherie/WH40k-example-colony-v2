@@ -34,9 +34,12 @@ def auth_client(tmp_path: Path):
     }
     client.post("/api/v1/auth/register", json=register_data)
     login_data = {"username": "export_user", "password": "SecurePass123!"}
-    login_response = client.post("/api/v1/auth/login", json=login_data)
-    tokens = login_response.json()
-    client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+    client.post("/api/v1/auth/login", json=login_data)
+
+    # Fetch CSRF token for state-changing requests (double-submit pattern)
+    csrf_response = client.get("/api/v1/auth/csrf-token")
+    assert csrf_response.status_code == 200
+    client.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
 
     yield client
 

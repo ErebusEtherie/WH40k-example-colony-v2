@@ -33,6 +33,38 @@ def test_create_and_get_colony(auth_client):
     assert "id" in colony
 
 
+def test_create_colony_with_custom_base_size(auth_client):
+    """Test that an explicit base_size founds an advanced-stage colony at that size."""
+    create_data = {
+        "name": "Advanced Colony",
+        "founder_name": "Owner",
+        "colony_type": "mining_and_industry",
+        "base_size": 4,
+    }
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony = response.json()
+    assert colony["base_size"] == 4
+
+    # Current size reflects the advanced starting size.
+    state_response = auth_client.get(f"/api/v1/colonies/{colony['id']}/state")
+    assert state_response.status_code == 200
+    assert state_response.json()["size"]["current"] == 4
+
+
+def test_create_colony_defaults_base_size_to_type(auth_client):
+    """Test that omitting base_size defaults to the colony type's base size (1)."""
+    create_data = {
+        "name": "Standard Colony",
+        "founder_name": "Owner",
+        "colony_type": "mining_and_industry",
+    }
+    response = auth_client.post("/api/v1/colonies", json=create_data)
+    assert response.status_code == 201
+    colony = response.json()
+    assert colony["base_size"] == 1
+
+
 def test_colony_state_nested(auth_client):
     """Test that state is returned in nested format."""
     create_data = {"name": "State Test", "founder_name": "Owner", "colony_type": "mining_and_industry"}

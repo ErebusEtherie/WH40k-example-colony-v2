@@ -2,13 +2,40 @@
   "openapi": "3.1.0",
   "info": {
     "title": "WH40k Colony Manager API",
-    "description": "REST API for managing Warhammer 40k Rogue Trader colonies",
+    "description": "\n## REST API for Warhammer 40k Rogue Trader Colony Manager\n\nThis API provides complete management of your Rogue Trader colony, including:\n\n* **Colony Management** - Track colony stats, infrastructure, and upgrades\n* **Authentication** - JWT-based user authentication with role-based access control\n* **Events & Modifiers** - Manage game events and custom modifiers\n* **Representatives** - Assign and manage colony representatives\n* **Resources** - Track colony resources and abundance\n* **Audit Logs** - Full audit trail of all changes\n\n## Authentication\n\nClick the **Authorize** button in Swagger UI to login with your credentials.\nThe system uses JWT tokens for authentication. After logging in, all protected\nendpoints will automatically use your token.\n\n### Quick Start\n1. Click **Authorize** button\n2. Enter your username and password\n3. Click **Login** to get your token\n4. Click **Authorize** again to confirm\n5. All protected endpoints are now accessible!\n\n### Token Endpoints\n* **POST /api/v1/auth/login** - Login to get access token\n* **POST /api/v1/auth/register** - Register a new user account\n* **POST /api/v1/auth/refresh** - Refresh your access token\n* **POST /api/v1/auth/revoke** - Logout (revoke current token)\n        ",
     "version": "0.1.0"
   },
   "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Check if the API is running and healthy.\n\nReturns:\n    Simple status response indicating the API is operational.",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Api V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": [
+          "authentication",
           "authentication"
         ],
         "summary": "Register",
@@ -26,11 +53,28 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "User registered successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__auth__UserResponse"
+                },
+                "example": {
+                  "id": 1,
+                  "username": "rogue_trader",
+                  "email": "trader@voidship.com",
+                  "role": "viewer",
+                  "is_active": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input (username/email exists, weak password)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Username already exists"
                 }
               }
             }
@@ -52,6 +96,7 @@
     "/api/v1/auth/login": {
       "post": {
         "tags": [
+          "authentication",
           "authentication"
         ],
         "summary": "Login",
@@ -69,14 +114,21 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Login successful. Tokens are set as HttpOnly cookies, never returned in the body.",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
+                "schema": {},
+                "example": {
+                  "message": "Login successful"
                 }
               }
             }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "423": {
+            "description": "Account locked due to too many failed attempts"
           },
           "422": {
             "description": "Validation Error",
@@ -92,44 +144,46 @@
         "security": []
       }
     },
+    "/api/v1/auth/csrf-token": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Get Csrf Token",
+        "description": "Generate and return a CSRF token for the current session.\n\nThe CSRF token is stored in a non-HttpOnly cookie so JavaScript can read it\nand include it in the X-CSRF-Token header for state-changing requests.\n\nThis endpoint is public and does not require authentication.",
+        "operationId": "get_csrf_token_api_v1_auth_csrf_token_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
           "authentication"
         ],
         "summary": "Refresh Token Endpoint",
-        "description": "Refresh access token using refresh token.\n\nThis endpoint is public and does not require authentication.\n\nSecurity: Implements refresh token rotation - old refresh token is\ninvalidated when a new one is issued. If an old token is reused,\nall sessions for that user should be invalidated (future enhancement).",
+        "description": "Refresh access token using refresh token from cookie.\n\nThe refresh token is automatically sent via HttpOnly cookie.\nReturns new access/refresh tokens as HttpOnly cookies.\n\nThis endpoint is public and does not require authentication.\n\nSecurity: Implements refresh token rotation - old refresh token is\ninvalidated when a new one is issued. If an old token is reused,\nall sessions for that user should be invalidated (future enhancement).",
         "operationId": "refresh_token_endpoint_api_v1_auth_refresh_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
-                }
+                "schema": {}
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "401": {
+            "description": "Invalid token"
           }
         },
         "security": []
@@ -154,12 +208,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/auth/change-password": {
@@ -205,12 +254,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/auth/revoke": {
@@ -219,7 +263,7 @@
           "authentication"
         ],
         "summary": "Revoke Token",
-        "description": "Revoke current access token (logout).\n\nThis endpoint adds the current token to the blacklist, preventing\nfurther use even if the token hasn't expired yet.\n\nNote: The client should discard the token after calling this endpoint.\nThe token used to make this request will still be valid for this request\nbut will be blacklisted for future requests.",
+        "description": "Revoke current access token (logout).\n\nThis endpoint adds the current token to the blacklist, preventing\nfurther use even if the token hasn't expired yet.\n\nUses cookie-based authentication for frontend compatibility.\nThe client should discard the token after calling this endpoint.",
         "operationId": "revoke_token_api_v1_auth_revoke_post",
         "requestBody": {
           "content": {
@@ -242,6 +286,9 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid token"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -252,12 +299,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/auth/revoke-all": {
@@ -289,6 +331,12 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -299,12 +347,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/colonies": {
@@ -315,11 +358,6 @@
         "summary": "List Colonies",
         "description": "List all colonies with pagination.\n\nReturns a paginated list of colonies. Use offset/limit for pagination.",
         "operationId": "list_colonies_api_v1_colonies_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "offset",
@@ -379,11 +417,6 @@
         "summary": "Create Colony",
         "description": "Create a new colony.",
         "operationId": "create_colony_api_v1_colonies_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -424,13 +457,8 @@
           "colonies"
         ],
         "summary": "Get Colony",
-        "description": "Get a colony by ID.",
+        "description": "Get a colony by ID.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "get_colony_api_v1_colonies__colony_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -453,6 +481,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -470,13 +501,8 @@
           "colonies"
         ],
         "summary": "Update Colony",
-        "description": "Update a colony (partial update).",
+        "description": "Update a colony (partial update).\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "update_colony_api_v1_colonies__colony_id__put",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -509,6 +535,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -526,13 +555,8 @@
           "colonies"
         ],
         "summary": "Delete Colony",
-        "description": "Delete a colony.",
+        "description": "Delete a colony.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "delete_colony_api_v1_colonies__colony_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -547,6 +571,9 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "Colony not found"
           },
           "422": {
             "description": "Validation Error",
@@ -567,13 +594,8 @@
           "colonies"
         ],
         "summary": "Get Colony State",
-        "description": "Get computed state for a colony.",
+        "description": "Get computed state for a colony.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "get_colony_state_api_v1_colonies__colony_id__state_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -596,6 +618,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -614,14 +639,9 @@
         "tags": [
           "colonies"
         ],
-        "summary": "Advance Colony Age",
-        "description": "Advance colony age.",
-        "operationId": "advance_colony_age_api_v1_colonies__colony_id__age_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "summary": "Manage Colony Age",
+        "description": "Manage colony age.\n\nSupports three operations:\n- add: Add days to current age (use negative values to decrease)\n- set: Set age to a specific value\n- subtract: Subtract days from current age\n\nArgs:\n    colony_id: The ID of the colony to update.\n    age_request: Request body containing the age operation.\n    \nRaises:\n    HTTPException: 404 if colony not found, 400 if invalid operation.",
+        "operationId": "manage_colony_age_api_v1_colonies__colony_id__age_post",
         "parameters": [
           {
             "name": "colony_id",
@@ -631,17 +651,18 @@
               "type": "integer",
               "title": "Colony Id"
             }
-          },
-          {
-            "name": "age_days",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Age Days"
-            }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColonyAgeAdvance"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -652,6 +673,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Colony not found"
+          },
+          "400": {
+            "description": "Invalid age operation"
           },
           "422": {
             "description": "Validation Error",
@@ -672,13 +699,8 @@
           "colonies"
         ],
         "summary": "List Colony Modifiers",
-        "description": "List all modifiers for a colony with pagination.",
+        "description": "List all modifiers for a colony with pagination.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "list_colony_modifiers_api_v1_colonies__colony_id__modifiers_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -728,6 +750,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -745,13 +770,8 @@
           "colonies"
         ],
         "summary": "Add Colony Modifier",
-        "description": "Add a modifier to a colony.",
+        "description": "Add a modifier to a colony.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "add_colony_modifier_api_v1_colonies__colony_id__modifiers_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -784,6 +804,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -803,13 +826,8 @@
           "colonies"
         ],
         "summary": "Remove Colony Modifier",
-        "description": "Remove a modifier from a colony.",
+        "description": "Remove a modifier from a colony.\n\nRaises:\n    HTTPException: 404 if modifier not found.",
         "operationId": "remove_colony_modifier_api_v1_colonies__colony_id__modifiers__modifier_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -834,6 +852,9 @@
           "204": {
             "description": "Successful Response"
           },
+          "404": {
+            "description": "Modifier not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -851,13 +872,8 @@
           "colonies"
         ],
         "summary": "Update Colony Modifier",
-        "description": "Update a modifier (partial update).\n\nTypically used to toggle is_active status without deleting and re-adding.",
+        "description": "Update a modifier (partial update).\n\nTypically used to toggle is_active status without deleting and re-adding.\n\nRaises:\n    HTTPException: 404 if modifier not found, 500 if update fails.",
         "operationId": "update_colony_modifier_api_v1_colonies__colony_id__modifiers__modifier_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -899,6 +915,12 @@
               }
             }
           },
+          "404": {
+            "description": "Modifier not found"
+          },
+          "500": {
+            "description": "Failed to update modifier"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -918,13 +940,8 @@
           "colonies"
         ],
         "summary": "Get Colony Roll Status",
-        "description": "Get the roll status for a colony.\n\nReturns information about when the next event and development rolls are due.\nEvent rolls occur every 60 days, development rolls every 90 days.",
+        "description": "Get the roll status for a colony.\n\nReturns information about when the next event and development rolls are due.\nEvent rolls occur every 60 days, development rolls every 90 days.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "get_colony_roll_status_api_v1_colonies__colony_id__roll_status_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -947,6 +964,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -966,13 +986,8 @@
           "colonies"
         ],
         "summary": "Get Colony Modifier Breakdown",
-        "description": "Get detailed modifier breakdown grouped by stat for a colony.\n\nReturns a comprehensive breakdown showing:\n- Each stat's base value (before modifiers)\n- All active modifiers affecting that stat (source, value, description)\n- Total modifier sum per stat\n- Current calculated value per stat (includes conditional bonuses)\n- Leadership modifier and Profit Factor\n\nNote: Only active modifiers are included. Inactive or expired modifiers are excluded.\n\nThis is useful for UI panels that need to display exactly how each stat\nis calculated and what modifiers are contributing to it.",
+        "description": "Get detailed modifier breakdown grouped by stat for a colony.\n\nReturns a comprehensive breakdown showing:\n- Each stat's base value (before modifiers)\n- All active modifiers affecting that stat (source, value, description)\n- Total modifier sum per stat\n- Current calculated value per stat (includes conditional bonuses)\n- Leadership modifier and Profit Factor\n\nNote: Only active modifiers are included. Inactive or expired modifiers are excluded.\n\nThis is useful for UI panels that need to display exactly how each stat\nis calculated and what modifiers are contributing to it.\n\nRaises:\n    HTTPException: 404 if colony not found.",
         "operationId": "get_colony_modifier_breakdown_api_v1_colonies__colony_id__modifier_breakdown_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -995,6 +1010,117 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/colonies/{colony_id}/representative": {
+      "put": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Assign Representative To Colony",
+        "description": "Assign a representative to a colony.\n\nThis endpoint atomically updates both the colony's representative_id and\nthe representative's assigned_to_colony_id. If the colony already has a\nrepresentative, they are automatically unassigned.\n\nArgs:\n    colony_id: ID of the colony to assign to.\n    representative_id: ID of the representative to assign.\n    current_user: Authenticated user with edit permission.\n    colony_service: Colony service for colony operations.\n    representative_service: Representative service for assignment.\n\nReturns:\n    RepresentativeResponse with the updated representative and change tracking info.\n\nRaises:\n    HTTPException: 404 if colony or representative not found, 400 for assignment errors.",
+        "operationId": "assign_representative_to_colony_api_v1_colonies__colony_id__representative_put",
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          },
+          {
+            "name": "representative_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Representative Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colony or representative not found"
+          },
+          "400": {
+            "description": "Assignment error"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "colonies"
+        ],
+        "summary": "Unassign Representative From Colony",
+        "description": "Unassign the current representative from a colony.\n\nThis endpoint atomically clears both the colony's representative_id and\nthe representative's assigned_to_colony_id.\n\nArgs:\n    colony_id: ID of the colony to unassign from.\n    current_user: Authenticated user with edit permission.\n    representative_service: Representative service for unassignment.\n\nReturns:\n    RepresentativeResponse with the unassigned representative and change tracking info.\n\nRaises:\n    HTTPException: 404 if no representative is assigned to the colony, 400 for unassignment errors.",
+        "operationId": "unassign_representative_from_colony_api_v1_colonies__colony_id__representative_delete",
+        "parameters": [
+          {
+            "name": "colony_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Colony Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentativeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No representative assigned"
+          },
+          "400": {
+            "description": "Unassignment error"
+          },
+          "500": {
+            "description": "Internal server error - Representative has no ID"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1016,11 +1142,6 @@
         "summary": "Create Event",
         "description": "Create a new event for a colony.\n\nEvents are GM-created occurrences that affect colony stats.\nRequires colony_manager role or higher.",
         "operationId": "create_event_api_v1_events_colonies__colony_id__post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1053,6 +1174,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1072,11 +1196,6 @@
         "summary": "Get Events By Colony",
         "description": "List all events for a colony with pagination and filtering.\n\nFilters:\n- active_only: If True, only return active events\n- search: Search by name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 events,\nconsider adding filtered query methods to the repository layer.",
         "operationId": "get_events_by_colony_api_v1_events_colonies__colony_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1160,6 +1279,12 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden - User not a member of colony"
+          },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1181,11 +1306,6 @@
         "summary": "Get Event",
         "description": "Get an event by ID.",
         "operationId": "get_event_api_v1_events__event_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "event_id",
@@ -1208,6 +1328,9 @@
               }
             }
           },
+          "404": {
+            "description": "Event not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1227,11 +1350,6 @@
         "summary": "Update Event",
         "description": "Update an event. Requires colony_manager role or higher.",
         "operationId": "update_event_api_v1_events__event_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "event_id",
@@ -1264,6 +1382,9 @@
               }
             }
           },
+          "404": {
+            "description": "Event not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1283,11 +1404,6 @@
         "summary": "Delete Event",
         "description": "Delete (soft delete) an event. Requires colony_manager role or higher.",
         "operationId": "delete_event_api_v1_events__event_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "event_id",
@@ -1302,6 +1418,9 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "Event not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1324,11 +1443,6 @@
         "summary": "Create Development Plan",
         "description": "Create a new development plan for a colony.\n\nDevelopment plans track long-term colony development goals.\nRequires colony_manager role or higher.",
         "operationId": "create_development_plan_api_v1_development_plans_colonies__colony_id__post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1361,6 +1475,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1380,11 +1497,6 @@
         "summary": "Get Development Plans By Colony",
         "description": "Get all development plans for a colony with pagination and filtering.\n\nFilters:\n- status: Filter by plan status (planned, in_progress, acquired, delivered)\n- upgrade_type: Filter by upgrade type (infrastructure or support_upgrade)\n- priority: Filter by priority level (1-5)\n- search: Search by target name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 development plans). For colonies with >1000 plans,\nconsider adding filtered query methods to the repository layer to push filtering\nto the database.",
         "operationId": "get_development_plans_by_colony_api_v1_development_plans_colonies__colony_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1522,6 +1634,9 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden - User not a member of colony"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1543,11 +1658,6 @@
         "summary": "Get Development Plan",
         "description": "Get a development plan by ID.",
         "operationId": "get_development_plan_api_v1_development_plans__plan_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "plan_id",
@@ -1570,6 +1680,9 @@
               }
             }
           },
+          "404": {
+            "description": "Plan not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1589,11 +1702,6 @@
         "summary": "Update Development Plan",
         "description": "Update a development plan. Requires colony_manager role or higher.",
         "operationId": "update_development_plan_api_v1_development_plans__plan_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "plan_id",
@@ -1626,6 +1734,9 @@
               }
             }
           },
+          "404": {
+            "description": "Plan not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1645,11 +1756,6 @@
         "summary": "Delete Development Plan",
         "description": "Delete a development plan. Requires colony_manager role or higher.",
         "operationId": "delete_development_plan_api_v1_development_plans__plan_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "plan_id",
@@ -1664,6 +1770,9 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "Plan not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1686,11 +1795,6 @@
         "summary": "Install Development Plan",
         "description": "Install a development plan as an Infrastructure or Support Upgrade.\n\nOnly plans in DELIVERED status can be installed. This creates the actual\nInfrastructure or SupportUpgrade entity and deletes the development plan.\nRequires colony_manager role or higher.",
         "operationId": "install_development_plan_api_v1_development_plans__plan_id__install_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "plan_id",
@@ -1713,6 +1817,12 @@
               }
             }
           },
+          "400": {
+            "description": "Plan not in DELIVERED status"
+          },
+          "404": {
+            "description": "Plan not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1734,11 +1844,6 @@
         "summary": "Get Audit Logs By Colony",
         "description": "Get audit logs for a colony with pagination.\n\nReturns a chronological history of changes made to the colony.\nRequires colony owner role.",
         "operationId": "get_audit_logs_by_colony_api_v1_colonies__colony_id__audit_logs_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1825,13 +1930,8 @@
           "audit_logs"
         ],
         "summary": "Get Audit Log",
-        "description": "Get a specific audit log entry by ID.\n\nRequires colony owner role.",
+        "description": "Get a specific audit log entry by ID.\n\nRequires colony owner role.\n\nRaises:\n    HTTPException: 404 if audit log entry not found or belongs to different colony.",
         "operationId": "get_audit_log_api_v1_colonies__colony_id__audit_logs__log_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "log_id",
@@ -1863,6 +1963,12 @@
               }
             }
           },
+          "404": {
+            "description": "Audit log entry not found"
+          },
+          "500": {
+            "description": "Internal server error - Audit log data is incomplete"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1884,11 +1990,6 @@
         "summary": "Get Colony Members",
         "description": "Get all members of a colony with pagination.\n\nNote: Pagination is applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 members). For colonies with >1000 members,\nconsider adding paginated query methods to the repository layer.",
         "operationId": "get_colony_members_api_v1_colonies__colony_id__members_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1957,11 +2058,6 @@
         "summary": "Add Colony Member",
         "description": "Add a user to a colony.\n\nRequires appropriate permissions (typically owner or editor role).",
         "operationId": "add_colony_member_api_v1_colonies__colony_id__members_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -1994,6 +2090,12 @@
               }
             }
           },
+          "400": {
+            "description": "User already member"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2015,11 +2117,6 @@
         "summary": "Get Colony Member",
         "description": "Get a specific user's membership in a colony.",
         "operationId": "get_colony_member_api_v1_colonies__colony_id__members__user_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2051,6 +2148,9 @@
               }
             }
           },
+          "404": {
+            "description": "Member not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2070,11 +2170,6 @@
         "summary": "Update Colony Member Role",
         "description": "Update a member's role in the colony.\n\nRequires appropriate permissions (typically owner role).",
         "operationId": "update_colony_member_role_api_v1_colonies__colony_id__members__user_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2116,6 +2211,9 @@
               }
             }
           },
+          "404": {
+            "description": "Member not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2135,11 +2233,6 @@
         "summary": "Remove Colony Member",
         "description": "Remove a user from a colony.\n\nRequires appropriate permissions (typically owner role).",
         "operationId": "remove_colony_member_api_v1_colonies__colony_id__members__user_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2164,6 +2257,9 @@
           "204": {
             "description": "Successful Response"
           },
+          "404": {
+            "description": "Member not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2185,11 +2281,6 @@
         "summary": "Transfer Colony Ownership",
         "description": "Transfer colony ownership to another user.\n\nRequires owner-level permissions. The current owner is demoted to editor\nby default (can be disabled with demote_current=False).\n\nReturns:\n    Dictionary with new_owner and previous_owner user IDs.",
         "operationId": "transfer_colony_ownership_api_v1_colonies__colony_id__members_transfer_ownership_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2224,6 +2315,15 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid transfer"
+          },
+          "403": {
+            "description": "Not owner"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2245,11 +2345,6 @@
         "summary": "Export Colony",
         "description": "Export a colony and all its related data to a JSON file.\n\nRequires edit permission in the colony. Returns a JSON file with:\n- Colony base data and modifiers\n- Representative (if assigned)\n- All events\n- All development plans\n- All colony users\n\nThe exported file can be imported later to restore the colony state.",
         "operationId": "export_colony_api_v1_colonies__colony_id__export_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2264,6 +2359,9 @@
         "responses": {
           "200": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "Colony not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2284,7 +2382,7 @@
           "export_import"
         ],
         "summary": "Import Colony",
-        "description": "Import a colony from a previously exported JSON file.\n\nThe JSON content should be provided in the request body.\nCreates a new colony with all related data (representative, events, development plans, users).\n\nReturns the ID of the newly created colony.",
+        "description": "Import a colony from a previously exported JSON file.\n\nThe JSON content should be provided in the request body.\nCreates a new colony with all related data (representative, events, development plans, users).\n\nMulti-user support:\n- Current user is automatically added as owner\n- Other users from the import are looked up by username\n- If a user exists, they are added to the colony with their original role\n- If a user doesn't exist, a warning is returned (user is skipped)\n\nReturns:\n    Dictionary with colony ID, name, and any warnings about skipped users",
         "operationId": "import_colony_api_v1_colonies_import_post",
         "requestBody": {
           "content": {
@@ -2311,6 +2409,12 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid import data"
+          },
+          "404": {
+            "description": "Referenced resources not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2321,12 +2425,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/notifications/stream": {
@@ -2346,12 +2445,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/colonies/{colony_id}/infrastructure": {
@@ -2362,11 +2456,6 @@
         "summary": "List Infrastructure",
         "description": "List all infrastructure for a colony with pagination and filtering.\n\nFilters:\n- state: Filter by operational state (working, planned, in_progress, needed, not_working)\n- type: Filter by infrastructure type (transport, power, housing, etc.)\n- search: Search by name (case-insensitive substring match)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 infrastructure\nitems, consider adding filtered query methods to the repository layer to push\nfiltering to the database.",
         "operationId": "list_infrastructure_api_v1_colonies__colony_id__infrastructure_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2489,6 +2578,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2508,11 +2600,6 @@
         "summary": "Create Infrastructure",
         "description": "Add new infrastructure to a colony.",
         "operationId": "create_infrastructure_api_v1_colonies__colony_id__infrastructure_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2545,6 +2632,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2566,11 +2656,6 @@
         "summary": "Get Infrastructure",
         "description": "Get a specific infrastructure by ID.",
         "operationId": "get_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2602,6 +2687,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony or infrastructure not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2621,11 +2709,6 @@
         "summary": "Update infrastructure",
         "description": "Update infrastructure name, notes, or state. Use `validate_only=true` to preview effects without applying.",
         "operationId": "update_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2687,6 +2770,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony or infrastructure not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2706,11 +2792,6 @@
         "summary": "Delete Infrastructure",
         "description": "Remove infrastructure from a colony.",
         "operationId": "delete_infrastructure_api_v1_colonies__colony_id__infrastructure__infrastructure_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -2735,6 +2816,9 @@
           "204": {
             "description": "Successful Response"
           },
+          "404": {
+            "description": "Colony or infrastructure not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2756,11 +2840,6 @@
         "summary": "List Representatives",
         "description": "List all representatives with pagination and filtering.\n\nReturns a paginated list of representatives. Use offset/limit for pagination.",
         "operationId": "list_representatives_api_v1_representatives_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "available_only",
@@ -2877,11 +2956,6 @@
         "summary": "Create Representative",
         "description": "Create a new representative.",
         "operationId": "create_representative_api_v1_representatives_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2924,11 +2998,6 @@
         "summary": "Get Representative",
         "description": "Get a representative by ID.",
         "operationId": "get_representative_api_v1_representatives__rep_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "rep_id",
@@ -2951,6 +3020,9 @@
               }
             }
           },
+          "404": {
+            "description": "Representative not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2970,11 +3042,6 @@
         "summary": "Update Representative",
         "description": "Update a representative (partial update).",
         "operationId": "update_representative_api_v1_representatives__rep_id__put",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "rep_id",
@@ -3007,6 +3074,9 @@
               }
             }
           },
+          "404": {
+            "description": "Representative not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3026,11 +3096,6 @@
         "summary": "Delete Representative",
         "description": "Delete a representative.",
         "operationId": "delete_representative_api_v1_representatives__rep_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "rep_id",
@@ -3045,6 +3110,9 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "Representative not found"
           },
           "422": {
             "description": "Validation Error",
@@ -3067,11 +3135,6 @@
         "summary": "Assign To Colony",
         "description": "Assign a representative to a colony.",
         "operationId": "assign_to_colony_api_v1_representatives__rep_id__assign_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "rep_id",
@@ -3103,6 +3166,12 @@
               }
             }
           },
+          "404": {
+            "description": "Representative or colony not found"
+          },
+          "400": {
+            "description": "Invalid request or assignment conflict"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3124,11 +3193,6 @@
         "summary": "Unassign From Colony",
         "description": "Unassign a representative from their colony.",
         "operationId": "unassign_from_colony_api_v1_representatives__rep_id__unassign_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "rep_id",
@@ -3151,6 +3215,18 @@
               }
             }
           },
+          "404": {
+            "description": "Representative not found or not assigned"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Forbidden - User not a member of colony"
+          },
+          "500": {
+            "description": "Internal server error - Authenticated user has no ID"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3172,11 +3248,6 @@
         "summary": "List All Modifiers",
         "description": "List all modifiers across all colonies with pagination.\n\nOptional filters:\n- colony_id: Filter modifiers by specific colony\n- is_active: Filter by active status (true/false)\n\nNote: This endpoint loads all modifiers into memory before applying pagination.\nFor large datasets, consider implementing repository-level pagination in the future.",
         "operationId": "list_all_modifiers_api_v1_modifiers_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "offset",
@@ -3274,11 +3345,6 @@
         "summary": "Get Modifier",
         "description": "Get a specific modifier by ID (searches across all colonies).",
         "operationId": "get_modifier_api_v1_modifiers__modifier_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "modifier_id",
@@ -3301,6 +3367,9 @@
               }
             }
           },
+          "404": {
+            "description": "Modifier not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3322,11 +3391,6 @@
         "summary": "List Resources",
         "description": "List all planetary resources for a colony with pagination.",
         "operationId": "list_resources_api_v1_colonies__colony_id__resources_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3376,6 +3440,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3395,11 +3462,6 @@
         "summary": "Create Resource",
         "description": "Add a new planetary resource to a colony.",
         "operationId": "create_resource_api_v1_colonies__colony_id__resources_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3432,6 +3494,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3453,11 +3518,6 @@
         "summary": "Get Resource",
         "description": "Get a specific planetary resource by ID.",
         "operationId": "get_resource_api_v1_colonies__colony_id__resources__resource_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3489,6 +3549,9 @@
               }
             }
           },
+          "404": {
+            "description": "Resource not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3508,11 +3571,6 @@
         "summary": "Update Resource",
         "description": "Update a planetary resource's abundance or notes.",
         "operationId": "update_resource_api_v1_colonies__colony_id__resources__resource_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3554,6 +3612,9 @@
               }
             }
           },
+          "404": {
+            "description": "Resource not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3573,11 +3634,6 @@
         "summary": "Delete Resource",
         "description": "Remove a planetary resource from a colony.",
         "operationId": "delete_resource_api_v1_colonies__colony_id__resources__resource_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3602,6 +3658,9 @@
           "204": {
             "description": "Successful Response"
           },
+          "404": {
+            "description": "Resource not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3623,11 +3682,6 @@
         "summary": "List Upgrades",
         "description": "List all support upgrades for a colony with pagination and filtering.\n\nFilters:\n- type: Filter by upgrade type (arbites_precinct, ecclesioarchy_mission, etc.)\n- search: Search by name (case-insensitive substring match)\n- affiliated_group: Filter by affiliated group (for Contacts upgrades)\n\nNote: Filters are applied in-memory after loading all items. This is acceptable\nfor typical colony sizes (<100 items). For colonies with >1000 support upgrades,\nconsider adding filtered query methods to the repository layer to push filtering\nto the database.",
         "operationId": "list_upgrades_api_v1_colonies__colony_id__upgrades_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3751,6 +3805,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3770,11 +3827,6 @@
         "summary": "Create Upgrade",
         "description": "Add new support upgrade to a colony.",
         "operationId": "create_upgrade_api_v1_colonies__colony_id__upgrades_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3807,6 +3859,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3828,11 +3883,6 @@
         "summary": "Get Upgrade",
         "description": "Get a specific support upgrade by ID.",
         "operationId": "get_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3864,6 +3914,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony or support upgrade not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3883,11 +3936,6 @@
         "summary": "Update support upgrade",
         "description": "Update support upgrade name, notes, or type-specific fields. Use `validate_only=true` to preview effects without applying.",
         "operationId": "update_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3949,6 +3997,9 @@
               }
             }
           },
+          "404": {
+            "description": "Colony or support upgrade not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3968,11 +4019,6 @@
         "summary": "Delete Upgrade",
         "description": "Remove support upgrade from a colony.",
         "operationId": "delete_upgrade_api_v1_colonies__colony_id__upgrades__upgrade_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "colony_id",
@@ -3997,6 +4043,9 @@
           "204": {
             "description": "Successful Response"
           },
+          "404": {
+            "description": "Colony or support upgrade not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -4018,11 +4067,6 @@
         "summary": "List Users",
         "description": "List all users with pagination.\n\nRequires admin privileges. Returns paginated list of users.\n\nRaises:\n    HTTPException: 403 if user is not an admin.",
         "operationId": "list_users_api_v1_users_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "limit",
@@ -4058,10 +4102,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedResponse_UserListItem_"
+                  "$ref": "#/components/schemas/PaginatedResponse_UserResponse_"
                 }
               }
             }
+          },
+          "403": {
+            "description": "Forbidden - Admin only"
           },
           "422": {
             "description": "Validation Error",
@@ -4082,11 +4129,6 @@
         "summary": "Create User",
         "description": "Create a new user.\n\nRequires admin privileges. Creates a new user account with the provided details.\nUsername and email are immutable after creation.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 400 if username or email already exists.",
         "operationId": "create_user_api_v1_users_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -4107,6 +4149,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Username/email exists"
+          },
+          "403": {
+            "description": "Forbidden - Admin only"
           },
           "422": {
             "description": "Validation Error",
@@ -4129,11 +4177,6 @@
         "summary": "Get User",
         "description": "Get a specific user by ID.\n\nRequires admin privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin.\n    HTTPException: 404 if user not found.",
         "operationId": "get_user_api_v1_users__user_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "user_id",
@@ -4156,6 +4199,12 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden - Admin only"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -4175,11 +4224,6 @@
         "summary": "Update User",
         "description": "Update a user.\n\nRequires admin privileges. Username and email are immutable.\nAdmins cannot modify other admins, and users cannot escalate their own privileges.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.\n    HTTPException: 400 if validation fails.",
         "operationId": "update_user_api_v1_users__user_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "user_id",
@@ -4212,6 +4256,15 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -4231,11 +4284,6 @@
         "summary": "Delete User",
         "description": "Delete a user (soft delete).\n\nRequires admin privileges. Sets is_active to False instead of hard deleting.\nAdmins cannot delete other admins.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
         "operationId": "delete_user_api_v1_users__user_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "user_id",
@@ -4250,6 +4298,12 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
           },
           "422": {
             "description": "Validation Error",
@@ -4272,11 +4326,6 @@
         "summary": "Reset Password",
         "description": "Reset a user's password.\n\nRequires admin privileges. Sets a temporary password that the user\nmust change on next login.\n\nRaises:\n    HTTPException: 403 if user is not an admin or lacks permission.\n    HTTPException: 404 if user not found.",
         "operationId": "reset_password_api_v1_users__user_id__reset_password_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "user_id",
@@ -4309,6 +4358,15 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -4328,7 +4386,7 @@
           "config"
         ],
         "summary": "Get Colony Types",
-        "description": "Get list of available colony types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "description": "Get list of available colony types.\n\nReturns payloads for populating dropdown menus and the colony-type preview\npanel (starting stats, starting benefits, conditional bonuses). The API is\nthe single source of truth for this data; the frontend does not duplicate it.",
         "operationId": "get_colony_types_api_v1_config_colony_types_get",
         "responses": {
           "200": {
@@ -4337,10 +4395,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "additionalProperties": {
-                      "type": "string"
-                    },
-                    "type": "object"
+                    "$ref": "#/components/schemas/ColonyTypeInfoConfig"
                   },
                   "type": "array",
                   "title": "Response Get Colony Types Api V1 Config Colony Types Get"
@@ -4754,6 +4809,84 @@
         "title": "ChangePasswordRequest",
         "description": "Request schema for changing password."
       },
+      "ColonyAgeAdvance": {
+        "properties": {
+          "add": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add",
+            "description": "Days to add (can be negative to decrease)"
+          },
+          "set": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set",
+            "description": "Set age to specific value"
+          },
+          "subtract": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtract",
+            "description": "Days to subtract from current age"
+          }
+        },
+        "type": "object",
+        "title": "ColonyAgeAdvance",
+        "description": "Schema for advancing colony age.\n\nSupports three operations:\n- 'add': Add days to current age (positive or negative)\n- 'set': Set age to specific value\n- 'subtract': Subtract days from current age\n\nUse 'add' for both increasing and decreasing age."
+      },
+      "ColonyBaseStats": {
+        "properties": {
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "complacency": {
+            "type": "integer",
+            "title": "Complacency"
+          },
+          "productivity": {
+            "type": "integer",
+            "title": "Productivity"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          },
+          "piety": {
+            "type": "integer",
+            "title": "Piety"
+          }
+        },
+        "type": "object",
+        "required": [
+          "size",
+          "complacency",
+          "productivity",
+          "order",
+          "piety"
+        ],
+        "title": "ColonyBaseStats"
+      },
       "ColonyCreate": {
         "properties": {
           "name": {
@@ -4783,6 +4916,20 @@
           },
           "colony_type": {
             "$ref": "#/components/schemas/ColonyType"
+          },
+          "base_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Size",
+            "description": "Initial settlement size; defaults to the colony type's base size."
           }
         },
         "type": "object",
@@ -5092,6 +5239,118 @@
         "title": "ColonyRollStatus",
         "description": "Response schema for colony roll status."
       },
+      "ColonySpecialEffect": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "resource_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Types"
+          },
+          "productivity_bonus": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Productivity Bonus"
+          },
+          "additional_pf": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Pf"
+          },
+          "starts_with_upgrade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts With Upgrade"
+          },
+          "upgrade_choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Choices"
+          },
+          "upgrade_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Type"
+          },
+          "order_piety_swap": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Piety Swap"
+          },
+          "famine_resilience_roll": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Famine Resilience Roll"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "ColonySpecialEffect"
+      },
       "ColonyStateNested": {
         "properties": {
           "size": {
@@ -5173,6 +5432,41 @@
         ],
         "title": "ColonyType",
         "description": "Colony archetypes defining starting characteristics and specializations.\n\nPer colony_types.yaml - note that MINING and INDUSTRY were merged into\nMINING_AND_INDUSTRY per GM ruling."
+      },
+      "ColonyTypeInfoConfig": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "base_stats": {
+            "$ref": "#/components/schemas/ColonyBaseStats"
+          },
+          "special_effects": {
+            "items": {
+              "$ref": "#/components/schemas/ColonySpecialEffect"
+            },
+            "type": "array",
+            "title": "Special Effects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "base_stats"
+        ],
+        "title": "ColonyTypeInfoConfig",
+        "description": "API-facing colony type payload for the ``/config/colony-types`` endpoint.\n\nDeliberately omits ``initial_investment_pf`` from ``ColonyTypeConfig``: the\ncolony-type preview shows starting stats and benefits only, so the field is\nkept out of the public contract. Kept as a separate model so the YAML config\nshape and the API response shape can diverge independently."
       },
       "ColonyUpdate": {
         "properties": {
@@ -6137,13 +6431,21 @@
             "type": "string",
             "maxLength": 50,
             "minLength": 3,
-            "title": "Username"
+            "title": "Username",
+            "description": "Your username",
+            "examples": [
+              "rogue_trader"
+            ]
           },
           "password": {
             "type": "string",
             "maxLength": 128,
             "minLength": 8,
-            "title": "Password"
+            "title": "Password",
+            "description": "Your password",
+            "examples": [
+              "SecureP@ss123"
+            ]
           }
         },
         "type": "object",
@@ -6677,11 +6979,11 @@
         ],
         "title": "PaginatedResponse[SupportUpgradeListItem]"
       },
-      "PaginatedResponse_UserListItem_": {
+      "PaginatedResponse_UserResponse_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/UserListItem"
+              "$ref": "#/components/schemas/colony_manager__adapters__api__schemas__user__UserResponse"
             },
             "type": "array",
             "title": "Items"
@@ -6695,7 +6997,7 @@
           "items",
           "meta"
         ],
-        "title": "PaginatedResponse[UserListItem]"
+        "title": "PaginatedResponse[UserResponse]"
       },
       "PaginationMeta": {
         "properties": {
@@ -6892,38 +7194,36 @@
         "title": "PersonalityEffect",
         "description": "A single stat effect from a personality."
       },
-      "RefreshTokenRequest": {
-        "properties": {
-          "refresh_token": {
-            "type": "string",
-            "title": "Refresh Token"
-          }
-        },
-        "type": "object",
-        "required": [
-          "refresh_token"
-        ],
-        "title": "RefreshTokenRequest",
-        "description": "Request schema for refreshing access token."
-      },
       "RegisterRequest": {
         "properties": {
           "username": {
             "type": "string",
             "maxLength": 50,
             "minLength": 3,
-            "title": "Username"
+            "title": "Username",
+            "description": "Desired username",
+            "examples": [
+              "rogue_trader"
+            ]
           },
           "email": {
             "type": "string",
             "format": "email",
-            "title": "Email"
+            "title": "Email",
+            "description": "Your email address",
+            "examples": [
+              "trader@voidship.com"
+            ]
           },
           "password": {
             "type": "string",
             "maxLength": 128,
             "minLength": 8,
-            "title": "Password"
+            "title": "Password",
+            "description": "Password (min 8 chars, must contain uppercase, lowercase, number, and special char)",
+            "examples": [
+              "SecureP@ss123"
+            ]
           },
           "role": {
             "anyOf": [
@@ -6934,7 +7234,11 @@
                 "type": "null"
               }
             ],
-            "title": "Role"
+            "title": "Role",
+            "description": "Optional role for testing (defaults to VIEWER). Options: viewer, colony_manager, admin",
+            "examples": [
+              "viewer"
+            ]
           }
         },
         "type": "object",
@@ -7851,35 +8155,6 @@
         ],
         "title": "Talent"
       },
-      "TokenResponse": {
-        "properties": {
-          "access_token": {
-            "type": "string",
-            "title": "Access Token"
-          },
-          "refresh_token": {
-            "type": "string",
-            "title": "Refresh Token"
-          },
-          "token_type": {
-            "type": "string",
-            "title": "Token Type",
-            "default": "bearer"
-          },
-          "expires_in": {
-            "type": "integer",
-            "title": "Expires In",
-            "default": 1800
-          }
-        },
-        "type": "object",
-        "required": [
-          "access_token",
-          "refresh_token"
-        ],
-        "title": "TokenResponse",
-        "description": "Response schema for token endpoints."
-      },
       "TokenRevokeAllRequest": {
         "properties": {
           "user_id": {
@@ -7995,40 +8270,6 @@
         ],
         "title": "UserCreate",
         "description": "Request schema for creating a new user (admin only)."
-      },
-      "UserListItem": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "username": {
-            "type": "string",
-            "title": "Username"
-          },
-          "email": {
-            "type": "string",
-            "title": "Email"
-          },
-          "role": {
-            "type": "string",
-            "title": "Role"
-          },
-          "is_active": {
-            "type": "boolean",
-            "title": "Is Active"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "username",
-          "email",
-          "role",
-          "is_active"
-        ],
-        "title": "UserListItem",
-        "description": "Lightweight schema for user list items (excludes timestamps)."
       },
       "UserPasswordReset": {
         "properties": {
@@ -8210,19 +8451,6 @@
         "title": "UserResponse",
         "description": "Response schema for user information (excludes sensitive data)."
       }
-    },
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Enter your JWT token (do not include 'Bearer' prefix in the value)"
-      }
     }
-  },
-  "security": [
-    {
-      "BearerAuth": []
-    }
-  ]
+  }
 }

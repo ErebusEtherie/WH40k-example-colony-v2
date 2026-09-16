@@ -57,6 +57,16 @@ class ColonyCreate(BaseModel):
     founder_name: str = Field(..., min_length=1, max_length=100)
     patron_name: str | None = Field(None, min_length=1, max_length=100)
     colony_type: ColonyType
+    # Optional starting settlement size. When omitted the colony is founded at the
+    # colony type's base size (usually 1); supplying a larger value allows founding
+    # advanced-stage colonies (pre-grown settlements). This is a deliberate override
+    # of the type's base_stats.size, so defaults and auth/audit semantics are explicit.
+    base_size: int | None = Field(
+        None,
+        ge=0,
+        le=10,
+        description="Initial settlement size; defaults to the colony type's base size.",
+    )
 
 
 class ColonyUpdate(BaseModel):

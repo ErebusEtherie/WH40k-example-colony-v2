@@ -2,91 +2,34 @@ export interface ColonyTypeConfig {
   name: string;
   display_name: string;
   description: string;
-  initial_investment_pf: string;
-  base_stats: {
-    size: number;
-    complacency: number;
-    productivity: number;
-    order: number;
-    piety: number;
-  };
-  special_effects: {
-    name: string;
-    description: string;
-    starts_with_upgrade?: boolean;
-    upgrade_type?: string;
-    resource_types?: string[];
-    productivity_bonus?: number;
-    additional_pf?: number;
-    order_piety_swap?: boolean;
-  }[];
 }
 
+// Selection identities only. Starting stats and special effects are served from
+// the backend (config/colony_types.yaml via GET /config/colony-types) — the FE
+// must not duplicate that derived data (see 02-domain-modeling.md / 07-frontend-architecture.md).
 export const COLONY_TYPES: ColonyTypeConfig[] = [
   {
     name: "research_mission",
     display_name: "Research Mission",
     description: "Founded to study notable flora, fauna, or ancient ruins. Often established by Rogue Traders entangled with the Adeptus Mechanicus.",
-    initial_investment_pf: "1d5+2",
-    base_stats: { size: 1, complacency: 2, productivity: 1, order: 1, piety: 1 },
-    special_effects: [
-      {
-        name: "resource_experts",
-        description: "When exploiting Organic Compounds, Archeotech, or Xenos Ruins, Productivity increases by 2 and it generates +1 additional Profit Factor.",
-        resource_types: ["organic_compounds", "archeotech", "xenos_ruins"],
-        productivity_bonus: 2,
-        additional_pf: 1,
-      },
-    ],
   },
   {
     name: "mining_and_industry",
     display_name: "Mining and Industry",
     description: "The economic backbone of many dynasties. Mining colonies extract raw ores, while Industrial colonies manufacture finished goods.",
-    initial_investment_pf: "1d5+5",
-    base_stats: { size: 1, complacency: 1, productivity: 2, order: 1, piety: 1 },
-    special_effects: [
-      {
-        name: "industrial_powerhouse",
-        description: "Begins with a free Industrial Facility Upgrade. When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor.",
-        starts_with_upgrade: true,
-        upgrade_type: "industrial_facility",
-        resource_types: ["mineral_resources"],
-        productivity_bonus: 2,
-        additional_pf: 2,
-      },
-    ],
   },
   {
     name: "ecclesiastical",
     display_name: "Ecclesiastical",
     description: "Founded solely to spread the word of the God-Emperor. Popular among pious Rogue Traders looking to gain favor with the Ecclesiarchy.",
-    initial_investment_pf: "1d5+3",
-    base_stats: { size: 1, complacency: 1, productivity: 1, order: 2, piety: 2 },
-    special_effects: [
-      {
-        name: "shield_of_faith",
-        description: "Begins with a free Cultural Improvement Upgrade. If Order would decrease, the owner can choose to decrease Piety instead.",
-        starts_with_upgrade: true,
-        upgrade_type: "cultural_improvement",
-        order_piety_swap: true,
-      },
-    ],
   },
   {
     name: "agricultural",
     display_name: "Agricultural",
     description: "Vital for feeding the billions of the Imperium. Vast fields, hydroponic domes, or algae basins sustain entire star systems.",
-    initial_investment_pf: "1d5+2",
-    base_stats: { size: 1, complacency: 2, productivity: 1, order: 1, piety: 1 },
-    special_effects: [
-      {
-        name: "fertile_soil",
-        description: "Agricultural resilience: on size reduction rolls, a 1d10 roll of 8+ prevents the size reduction.",
-      },
-    ],
   },
 ];
+
 
 export interface InfrastructureConfig {
   name: string;

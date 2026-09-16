@@ -114,17 +114,12 @@
         },
         "responses": {
           "200": {
-            "description": "Login successful",
+            "description": "Login successful. Tokens are set as HttpOnly cookies, never returned in the body.",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
-                },
+                "schema": {},
                 "example": {
-                  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                  "token_type": "bearer",
-                  "expires_in": 1800
+                  "message": "Login successful"
                 }
               }
             }
@@ -183,9 +178,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
-                }
+                "schema": {}
               }
             }
           },
@@ -4393,7 +4386,7 @@
           "config"
         ],
         "summary": "Get Colony Types",
-        "description": "Get list of available colony types.\n\nReturns data suitable for populating dropdown menus in the frontend.",
+        "description": "Get list of available colony types.\n\nReturns payloads for populating dropdown menus and the colony-type preview\npanel (starting stats, starting benefits, conditional bonuses). The API is\nthe single source of truth for this data; the frontend does not duplicate it.",
         "operationId": "get_colony_types_api_v1_config_colony_types_get",
         "responses": {
           "200": {
@@ -4402,10 +4395,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "additionalProperties": {
-                      "type": "string"
-                    },
-                    "type": "object"
+                    "$ref": "#/components/schemas/ColonyTypeInfoConfig"
                   },
                   "type": "array",
                   "title": "Response Get Colony Types Api V1 Config Colony Types Get"
@@ -4864,6 +4854,39 @@
         "title": "ColonyAgeAdvance",
         "description": "Schema for advancing colony age.\n\nSupports three operations:\n- 'add': Add days to current age (positive or negative)\n- 'set': Set age to specific value\n- 'subtract': Subtract days from current age\n\nUse 'add' for both increasing and decreasing age."
       },
+      "ColonyBaseStats": {
+        "properties": {
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "complacency": {
+            "type": "integer",
+            "title": "Complacency"
+          },
+          "productivity": {
+            "type": "integer",
+            "title": "Productivity"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          },
+          "piety": {
+            "type": "integer",
+            "title": "Piety"
+          }
+        },
+        "type": "object",
+        "required": [
+          "size",
+          "complacency",
+          "productivity",
+          "order",
+          "piety"
+        ],
+        "title": "ColonyBaseStats"
+      },
       "ColonyCreate": {
         "properties": {
           "name": {
@@ -4893,6 +4916,20 @@
           },
           "colony_type": {
             "$ref": "#/components/schemas/ColonyType"
+          },
+          "base_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Size",
+            "description": "Initial settlement size; defaults to the colony type's base size."
           }
         },
         "type": "object",
@@ -5202,6 +5239,118 @@
         "title": "ColonyRollStatus",
         "description": "Response schema for colony roll status."
       },
+      "ColonySpecialEffect": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "resource_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Types"
+          },
+          "productivity_bonus": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Productivity Bonus"
+          },
+          "additional_pf": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Pf"
+          },
+          "starts_with_upgrade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts With Upgrade"
+          },
+          "upgrade_choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Choices"
+          },
+          "upgrade_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Type"
+          },
+          "order_piety_swap": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Piety Swap"
+          },
+          "famine_resilience_roll": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Famine Resilience Roll"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "ColonySpecialEffect"
+      },
       "ColonyStateNested": {
         "properties": {
           "size": {
@@ -5283,6 +5432,41 @@
         ],
         "title": "ColonyType",
         "description": "Colony archetypes defining starting characteristics and specializations.\n\nPer colony_types.yaml - note that MINING and INDUSTRY were merged into\nMINING_AND_INDUSTRY per GM ruling."
+      },
+      "ColonyTypeInfoConfig": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "base_stats": {
+            "$ref": "#/components/schemas/ColonyBaseStats"
+          },
+          "special_effects": {
+            "items": {
+              "$ref": "#/components/schemas/ColonySpecialEffect"
+            },
+            "type": "array",
+            "title": "Special Effects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "base_stats"
+        ],
+        "title": "ColonyTypeInfoConfig",
+        "description": "API-facing colony type payload for the ``/config/colony-types`` endpoint.\n\nDeliberately omits ``initial_investment_pf`` from ``ColonyTypeConfig``: the\ncolony-type preview shows starting stats and benefits only, so the field is\nkept out of the public contract. Kept as a separate model so the YAML config\nshape and the API response shape can diverge independently."
       },
       "ColonyUpdate": {
         "properties": {
@@ -7971,39 +8155,6 @@
         ],
         "title": "Talent"
       },
-      "TokenResponse": {
-        "properties": {
-          "access_token": {
-            "type": "string",
-            "title": "Access Token",
-            "description": "JWT access token for authenticated requests"
-          },
-          "refresh_token": {
-            "type": "string",
-            "title": "Refresh Token",
-            "description": "JWT refresh token for obtaining new access tokens"
-          },
-          "token_type": {
-            "type": "string",
-            "title": "Token Type",
-            "description": "Token type (always 'bearer')",
-            "default": "bearer"
-          },
-          "expires_in": {
-            "type": "integer",
-            "title": "Expires In",
-            "description": "Token expiration time in seconds (default: 1800 = 30 minutes)",
-            "default": 1800
-          }
-        },
-        "type": "object",
-        "required": [
-          "access_token",
-          "refresh_token"
-        ],
-        "title": "TokenResponse",
-        "description": "Response schema for token endpoints."
-      },
       "TokenRevokeAllRequest": {
         "properties": {
           "user_id": {
@@ -8300,19 +8451,6 @@
         "title": "UserResponse",
         "description": "Response schema for user information (excludes sensitive data)."
       }
-    },
-    "securitySchemes": {
-      "HTTPBearer": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Enter your JWT access token (obtained from /auth/login endpoint). Do not include 'Bearer' prefix."
-      }
     }
-  },
-  "security": [
-    {
-      "HTTPBearer": []
-    }
-  ]
+  }
 }

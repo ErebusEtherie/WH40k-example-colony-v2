@@ -29,21 +29,6 @@ class RegisterRequest(BaseModel):
     )
 
 
-class TokenResponse(BaseModel):
-    """Response schema for token endpoints."""
-
-    access_token: str = Field(..., description="JWT access token for authenticated requests")
-    refresh_token: str = Field(..., description="JWT refresh token for obtaining new access tokens")
-    token_type: str = Field(default="bearer", description="Token type (always 'bearer')")
-    expires_in: int = Field(default=1800, description="Token expiration time in seconds (default: 1800 = 30 minutes)")
-
-
-class RefreshTokenRequest(BaseModel):
-    """Request schema for refreshing access token."""
-
-    refresh_token: str
-
-
 class UserResponse(BaseModel):
     """Response schema for user information (excludes sensitive data)."""
 

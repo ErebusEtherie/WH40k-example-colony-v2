@@ -31,7 +31,6 @@ from colony_manager.adapters.api.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
     RegisterRequest,
-    TokenResponse,
     TokenRevokeAllRequest,
     TokenRevokeRequest,
     TokenRevokeResponse,
@@ -164,19 +163,13 @@ def register(
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
     openapi_extra={"security": []},
     responses={
         200: {
-            "description": "Login successful",
+            "description": "Login successful. Tokens are set as HttpOnly cookies, never returned in the body.",
             "content": {
                 "application/json": {
-                    "example": {
-                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "token_type": "bearer",
-                        "expires_in": 1800,
-                    }
+                    "example": {"message": "Login successful"},
                 }
             },
         },
@@ -284,15 +277,11 @@ def login(
     # Get cookie settings
     settings = get_security_settings()
 
-    # Create response with user info
-    response = JSONResponse(
-        content={
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "expires_in": settings.access_token_expire_minutes * 60,
-        }
-    )
+    # Tokens are delivered exclusively as HttpOnly cookies below; never echo
+    # them in the response body (that would re-expose them to any JS that can
+    # read the response, defeating the point of HttpOnly storage).
+    # Refresh flow relies on the rotation behavior documented on /refresh.
+    response = JSONResponse(content={"message": "Login successful"})
 
     # Set httpOnly cookies for secure token storage
     response.set_cookie(
@@ -345,7 +334,7 @@ async def get_csrf_token(request: Request) -> JSONResponse:
     return response
 
 
-@router.post("/refresh", response_model=TokenResponse, openapi_extra={"security": []}, responses={401: {"description": "Invalid token"}})
+@router.post("/refresh", openapi_extra={"security": []}, responses={401: {"description": "Invalid token"}})
 @limiter.limit(refresh_token_rate_limit())
 def refresh_token_endpoint(
     request: Request,
@@ -398,15 +387,9 @@ def refresh_token_endpoint(
     new_access_token = create_access_token(user, secret_key)
     new_refresh_token = create_refresh_token(user, secret_key)
     
-    # Create response with new tokens
-    response = JSONResponse(
-        content={
-            "access_token": new_access_token,
-            "refresh_token": new_refresh_token,
-            "token_type": "bearer",
-            "expires_in": settings.access_token_expire_minutes * 60,
-        }
-    )
+    # Rotated tokens are delivered exclusively as HttpOnly cookies; never echo
+    # them in the response body (same reasoning as on /login).
+    response = JSONResponse(content={"message": "Token refreshed successfully"})
     
     # Set httpOnly cookies for secure token storage (token rotation)
     response.set_cookie(

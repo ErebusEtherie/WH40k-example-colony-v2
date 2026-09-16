@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ColonyType } from "../../types/colony";
-import { COLONY_TYPES } from "../../data/rulesData";
-import { X, Landmark, Check } from "lucide-react";
+import { useColonyTypes } from "../../lib/api";
+import { normalizeApiError } from "../../lib/error";
+import { X, Landmark, Check, Loader2 } from "lucide-react";
 
 interface NewColonyModalProps {
   isOpen: boolean;
@@ -16,6 +17,27 @@ interface NewColonyModalProps {
   }) => void;
 }
 
+function StatCell({
+  label,
+  value,
+  testId,
+}: {
+  label: string;
+  value: number;
+  testId: string;
+}) {
+  return (
+    <div className="bg-[#070a12] border border-[#252f44] rounded p-2 text-center">
+      <div className="text-[10px] uppercase tracking-wider text-[#94a3b8] mb-1">
+        {label}
+      </div>
+      <div data-testid={testId} className="text-lg font-gothic text-[#f8fafc]">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export const NewColonyModal: React.FC<NewColonyModalProps> = ({
   isOpen,
   onClose,
@@ -28,6 +50,17 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
   const [founderName, setFounderName] = useState("Von Valancius Dynasty");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Backend is the single source of truth for colony-type data (stats and
+  // special effects) — the modal renders what /config/colony-types returns.
+  const {
+    data: colonyTypes,
+    isLoading: colonyTypesLoading,
+    isError: colonyTypesError,
+    error: colonyTypesErrorInfo,
+  } = useColonyTypes();
+
+  const selectedType = colonyTypes?.find((t) => t.id === colonyType);
 
   if (!isOpen) return null;
 
@@ -49,6 +82,24 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
 
     onClose();
   };
+
+  // A colony type may both begin with a free upgrade AND grant a conditional
+  // resource-exploit bonus (e.g. Mining and Industry), so a single effect can
+  // legitimately appear in both sections below.
+  const startingBenefits = (selectedType?.special_effects ?? []).filter(
+    (effect) => effect.starts_with_upgrade
+  );
+  const conditionalBonuses = (selectedType?.special_effects ?? []).filter(
+    (effect) =>
+      (effect.resource_types?.length ?? 0) > 0 ||
+      effect.productivity_bonus != null ||
+      effect.additional_pf != null ||
+      effect.famine_resilience_roll != null
+  );
+
+  const loadError = colonyTypesError
+    ? normalizeApiError(colonyTypesErrorInfo)
+    : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
@@ -122,38 +173,131 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Colony Type Selector */}
+          {/* Row 2: Colony Type Selector + persistent preview panel */}
           <div>
             <div className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-semibold">
               Colony Type
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {COLONY_TYPES.map((type) => {
-                const isSelected = colonyType === type.name;
-                return (
-                  <button
-                    key={type.name}
-                    type="button"
-                    onClick={() => setColonyType(type.name as ColonyType)}
-                    className={`p-2.5 rounded border text-left transition ${
-                      isSelected
-                        ? "bg-[#f59e0b]/20 border-[#f59e0b] text-[#fef08a]"
-                        : "bg-[#0d121f] border-[#222e46] text-[#cbd5e1] hover:border-[#38bdf8]/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-gothic font-bold text-xs uppercase block">
-                        {type.display_name}
-                      </span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-[#f59e0b]" />}
+
+            {colonyTypesLoading ? (
+              <div
+                data-testid="colony-types-loading"
+                className="flex items-center gap-2 p-4 bg-[#0d121f] border border-[#222e46] rounded-lg text-xs text-[#94a3b8]"
+              >
+                <Loader2 className="w-4 h-4 animate-spin text-[#f59e0b]" />
+                Establishing vox-link to colony directory...
+              </div>
+            ) : colonyTypesError ? (
+              <div
+                data-testid="colony-types-error"
+                className="p-4 bg-[#ef4444]/10 border border-[#ef4444]/40 rounded-lg text-xs font-mono-slate text-[#fca5a5]"
+              >
+                Failed to load colony types: {loadError?.message}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {(colonyTypes ?? []).map((type) => {
+                  const isSelected = colonyType === type.id;
+                  return (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setColonyType(type.id)}
+                      className={`p-4 rounded-lg border text-left transition ${
+                        isSelected
+                          ? "bg-[#f59e0b]/20 border-[#f59e0b] text-[#fef08a]"
+                          : "bg-[#0d121f] border-[#222e46] text-[#cbd5e1] hover:border-[#38bdf8]/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-gothic font-bold text-sm uppercase block">
+                          {type.name}
+                        </span>
+                        {isSelected && <Check className="w-4 h-4 text-[#f59e0b]" />}
+                      </div>
+                      <p className="text-xs text-[#94a3b8] mt-2 leading-snug">
+                        {type.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedType && (
+              <div className="mt-4 space-y-4 bg-[#0d121f] border border-[#222e46] rounded-lg p-4">
+                {/* Starting base stats (Size omitted per project decision) */}
+                <div>
+                  <div className="text-[#cbd5e1] uppercase tracking-wider text-[11px] font-semibold mb-2">
+                    Starting Base Stats
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <StatCell
+                      label="Productivity"
+                      value={selectedType.base_stats.productivity}
+                      testId="stat-productivity"
+                    />
+                    <StatCell
+                      label="Piety"
+                      value={selectedType.base_stats.piety}
+                      testId="stat-piety"
+                    />
+                    <StatCell
+                      label="Order"
+                      value={selectedType.base_stats.order}
+                      testId="stat-order"
+                    />
+                    <StatCell
+                      label="Complacency"
+                      value={selectedType.base_stats.complacency}
+                      testId="stat-complacency"
+                    />
+                  </div>
+                </div>
+
+                {startingBenefits.length > 0 && (
+                  <div data-testid="starting-benefits">
+                    <div className="text-[#fef08a] uppercase tracking-wider text-[11px] font-semibold mb-1.5">
+                      Starting Benefits
                     </div>
-                    <p className="text-[10px] text-[#94a3b8] mt-1 leading-snug">
-                      {type.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+                    <ul className="space-y-1.5">
+                      {startingBenefits.map((effect) => (
+                        <li
+                          key={effect.name}
+                          className="text-xs text-[#cbd5e1] leading-snug"
+                        >
+                          {effect.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {conditionalBonuses.length > 0 && (
+                  <div data-testid="conditional-bonuses">
+                    <div className="text-[#38bdf8] uppercase tracking-wider text-[11px] font-semibold mb-1.5">
+                      Conditional Bonuses
+                    </div>
+                    <ul className="space-y-1.5">
+                      {conditionalBonuses.map((effect) => (
+                        <li
+                          key={effect.name}
+                          className="text-xs text-[#cbd5e1] leading-snug"
+                        >
+                          <span
+                            data-testid="conditional-badge"
+                            className="inline-block mr-2 px-1.5 py-0.5 rounded bg-[#38bdf8]/15 border border-[#38bdf8]/40 text-[#7dd3fc] text-[10px] uppercase tracking-wider font-semibold"
+                          >
+                            Conditional
+                          </span>
+                          {effect.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Row 3: Initial Size & Founder */}

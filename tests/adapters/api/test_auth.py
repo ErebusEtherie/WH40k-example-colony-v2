@@ -90,14 +90,19 @@ class TestUserLogin:
     """Tests for user login endpoint."""
 
     def test_login_success(self, test_client_with_auth, registered_user):
-        """Test successful login returns tokens."""
+        """Test successful login sets cookies and returns no tokens in body."""
         login_data = {"username": "testuser", "password": "TestPass123!"}
         response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 200
         data = response.json()
-        assert "access_token" in data
-        assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
+        # Tokens must never be returned in the body - only via HttpOnly cookies
+        assert "access_token" not in data
+        assert "refresh_token" not in data
+        assert "token_type" not in data
+        assert "message" in data
+        # Session cookies must be set
+        assert "rt_access_token" in test_client_with_auth.cookies
+        assert "rt_refresh_token" in test_client_with_auth.cookies
 
     def test_login_wrong_password(self, test_client_with_auth, registered_user):
         """Test login fails with wrong password."""
@@ -121,26 +126,21 @@ class TestProtectedEndpoints:
         response = test_client_with_auth.get("/api/v1/auth/me")
         assert response.status_code == 401
 
-    def test_get_current_user_with_valid_token(self, test_client_with_auth, registered_user):
-        """Test accessing protected endpoint with valid token succeeds."""
+    def test_get_current_user_with_valid_cookie(self, test_client_with_auth, registered_user):
+        """Test accessing protected endpoint with authenticated cookie session succeeds."""
         login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        assert login_response.status_code == 200
 
-        response = test_client_with_auth.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        # Authenticated via the HttpOnly cookie set by login, no Bearer header
+        response = test_client_with_auth.get("/api/v1/auth/me")
         assert response.status_code == 200
         data = response.json()
         assert data["username"] == "testuser"
 
-    def test_get_current_user_with_invalid_token(self, test_client_with_auth):
-        """Test accessing protected endpoint with invalid token fails."""
-        response = test_client_with_auth.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": "Bearer invalid-token"},
-        )
+    def test_get_current_user_unauthenticated(self, test_client_with_auth):
+        """Test accessing protected endpoint without an authenticated session fails."""
+        response = test_client_with_auth.get("/api/v1/auth/me")
         assert response.status_code == 401
 
 
@@ -148,19 +148,21 @@ class TestTokenRefresh:
     """Tests for token refresh endpoint."""
 
     def test_refresh_token_success(self, test_client_with_auth, registered_user):
-        """Test successful token refresh."""
+        """Test successful token refresh using the refresh-token cookie."""
         login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        refresh_token = login_response.json()["refresh_token"]
+        assert login_response.status_code == 200
 
-        refresh_data = {"refresh_token": refresh_token}
-        response = test_client_with_auth.post("/api/v1/auth/refresh", json=refresh_data)
-
+        # Refresh reads the refresh token from the HttpOnly cookie set by login
+        response = test_client_with_auth.post("/api/v1/auth/refresh")
         assert response.status_code == 200
         data = response.json()
-        assert "access_token" in data
-        assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
+        # No tokens in the body - only rotated cookies
+        assert "access_token" not in data
+        assert "refresh_token" not in data
+        assert "message" in data
+        assert "rt_access_token" in test_client_with_auth.cookies
+        assert "rt_refresh_token" in test_client_with_auth.cookies
 
     def test_refresh_token_invalid(self, test_client_with_auth):
         """Test refresh with invalid token fails."""
@@ -168,7 +170,7 @@ class TestTokenRefresh:
         # Note: Using cookies parameter due to TestClient cookie handling
         response = test_client_with_auth.post(
             "/api/v1/auth/refresh",
-            cookies={"refresh_token": "invalid-refresh-token"},
+            cookies={"rt_refresh_token": "invalid-refresh-token"},
         )
 
         assert response.status_code == 401
@@ -183,14 +185,13 @@ class TestTokenRefresh:
         # in the test fixture. Instead, we verify the error message format.
         login_data = {"username": "testuser", "password": "TestPass123!"}
         login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        refresh_token = login_response.json()["refresh_token"]
+        assert login_response.status_code == 200
 
-        # Just verify the refresh works for active user
-        refresh_data = {"refresh_token": refresh_token}
-        response = test_client_with_auth.post("/api/v1/auth/refresh", json=refresh_data)
+        # Just verify the refresh works for active user (via cookie)
+        response = test_client_with_auth.post("/api/v1/auth/refresh")
 
         assert response.status_code == 200
-        assert "access_token" in response.json()
+        assert "message" in response.json()
 
 
 class TestChangePassword:
@@ -199,8 +200,7 @@ class TestChangePassword:
     def test_change_password_success(self, test_client_with_auth, registered_user):
         """Test successful password change."""
         login_data = {"username": "testuser", "password": "TestPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
         change_data = {
             "current_password": "TestPass123!",
@@ -209,7 +209,6 @@ class TestChangePassword:
         response = test_client_with_auth.post(
             "/api/v1/auth/change-password",
             json=change_data,
-            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert response.status_code == 200
@@ -223,8 +222,7 @@ class TestChangePassword:
     def test_change_password_wrong_current(self, test_client_with_auth, registered_user):
         """Test change password with wrong current password fails."""
         login_data = {"username": "testuser", "password": "TestPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
         change_data = {
             "current_password": "WrongPass123!",
@@ -233,7 +231,6 @@ class TestChangePassword:
         response = test_client_with_auth.post(
             "/api/v1/auth/change-password",
             json=change_data,
-            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert response.status_code == 400
@@ -267,16 +264,12 @@ class TestRoleBasedAuthorization:
         response = test_client_with_auth.post("/api/v1/auth/register", json=register_data)
         assert response.status_code == 201
 
-        # Login and check role
+        # Login and check role (authenticates via HttpOnly cookie)
         login_data = {"username": "adminuser", "password": "AdminPass123!"}
-        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
-        access_token = login_response.json()["access_token"]
+        test_client_with_auth.post("/api/v1/auth/login", json=login_data)
 
         # Get user info
-        me_response = test_client_with_auth.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        me_response = test_client_with_auth.get("/api/v1/auth/me")
         assert me_response.status_code == 200
         # Default role is viewer
         assert me_response.json()["role"] == "viewer"
