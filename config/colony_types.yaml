@@ -53,9 +53,11 @@
       # entry, Productivity +1, cumulative). This is a confirmed GM interpretation,
       # not a rulebook-literal implementation — see project principle "GM
       # interpretation takes precedence where confirmed."
-      description: "Begins with a free Industrial Facility Upgrade (GM ruling; see comment). When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor."
+      description: "Begins with a free Industrial Facility Upgrade (GM ruling; see comment)."
       starts_with_upgrade: true
       upgrade_type: "industrial_facility"
+    - name: "mineral_exploitation"
+      description: "When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor."
       resource_types: ["mineral_resources"]
       productivity_bonus: 2
       additional_pf: 2

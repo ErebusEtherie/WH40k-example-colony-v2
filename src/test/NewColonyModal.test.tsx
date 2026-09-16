@@ -61,16 +61,23 @@ describe("NewColonyModal colony-type preview", () => {
     expect(screen.getByTestId("stat-order")).toHaveTextContent("1");
     expect(screen.getByTestId("stat-complacency")).toHaveTextContent("1");
 
-    // Starting benefit ("free … Upgrade").
+    // Starting benefit ("free … Upgrade") — must not contain the conditional
+    // exploit text, which belongs only in the Conditional Bonuses section.
     const starting = within(screen.getByTestId("starting-benefits"));
-    expect(starting.getByText(/free .* Upgrade/i)).toBeInTheDocument();
+    expect(
+      starting.getByText(/Begins with a free Industrial Facility Upgrade/i)
+    ).toBeInTheDocument();
+    expect(
+      starting.queryByText(/when exploiting Mineral Resources/i)
+    ).not.toBeInTheDocument();
 
-    // Conditional bonus, explicitly labeled as conditional.
+    // Conditional bonus — the sections are already split into Starting /
+    // Conditional headings, so no per-item "Conditional" badge is rendered.
     const conditional = within(screen.getByTestId("conditional-bonuses"));
     expect(
       conditional.getByText(/when exploiting Mineral Resources/i)
     ).toBeInTheDocument();
-    expect(conditional.getAllByTestId("conditional-badge").length).toBeGreaterThan(0);
+    expect(conditional.queryByTestId("conditional-badge")).not.toBeInTheDocument();
   });
 
   it("updates the preview panel when a different colony type is selected", async () => {

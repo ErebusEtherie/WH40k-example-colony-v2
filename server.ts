@@ -68,10 +68,14 @@ const COLONY_TYPE_CONFIGS: ColonyTypeInfo[] = [
     special_effects: [
       {
         name: "industrial_powerhouse",
-        description:
-          "Begins with a free Industrial Facility Upgrade. When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor.",
+        description: "Begins with a free Industrial Facility Upgrade.",
         starts_with_upgrade: true,
         upgrade_type: "industrial_facility",
+      },
+      {
+        name: "mineral_exploitation",
+        description:
+          "When exploiting Mineral Resources, Productivity increases by 2 and it generates +2 additional Profit Factor.",
         resource_types: ["mineral_resources"],
         productivity_bonus: 2,
         additional_pf: 2,

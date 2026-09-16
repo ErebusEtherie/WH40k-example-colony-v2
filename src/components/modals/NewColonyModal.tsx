@@ -83,9 +83,11 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
     onClose();
   };
 
-  // A colony type may both begin with a free upgrade AND grant a conditional
-  // resource-exploit bonus (e.g. Mining and Industry), so a single effect can
-  // legitimately appear in both sections below.
+  // Colony-type effects are sorted into the Starting Benefits and Conditional
+  // Bonuses sections by their flags: an upgrade-granting effect goes under
+  // Starting Benefits, while a resource-exploit/bonus effect goes under
+  // Conditional Bonuses. Because each effect carries only its own section's
+  // full description, no per-item label is needed inside either section.
   const startingBenefits = (selectedType?.special_effects ?? []).filter(
     (effect) => effect.starts_with_upgrade
   );
@@ -284,12 +286,6 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
                           key={effect.name}
                           className="text-xs text-[#cbd5e1] leading-snug"
                         >
-                          <span
-                            data-testid="conditional-badge"
-                            className="inline-block mr-2 px-1.5 py-0.5 rounded bg-[#38bdf8]/15 border border-[#38bdf8]/40 text-[#7dd3fc] text-[10px] uppercase tracking-wider font-semibold"
-                          >
-                            Conditional
-                          </span>
                           {effect.description}
                         </li>
                       ))}

@@ -34,7 +34,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!username.trim()) {
-      setError("Please provide a valid Dynasty Cipher / Scribe ID");
+      setError("Please provide a valid Rogue Trader ID/ Cogitator ID");
       return;
     }
     performLogin(username.trim(), password);
@@ -86,7 +86,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4 font-mono-slate text-xs">
             <div>
               <label htmlFor="login-username" className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
-                Dynasty Cipher / Cogitator ID
+                Rogue Trader ID/ Cogitator ID
               </label>
               <input
                 id="login-username"
@@ -101,7 +101,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
             <div>
               <label htmlFor="login-password" className="block text-[#cbd5e1] uppercase tracking-wider mb-1.5 font-medium">
-                Inquisitorial Seal / Password
+                Authentication Key
               </label>
               <input
                 id="login-password"
@@ -128,7 +128,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               ) : (
                 <>
                   <Key className="w-4 h-4 text-[#06080e]" />
-                  <span>Authenticate Warrant Token</span>
+                  <span>Access Colonial Registry</span>
                 </>
               )}
             </button>
