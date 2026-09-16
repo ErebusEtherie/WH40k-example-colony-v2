@@ -119,6 +119,10 @@ describe("NewColonyModal founding size", () => {
     fireEvent.change(screen.getByLabelText(/Colony Name/i), {
       target: { value: "Castellax Secundus" },
     });
+    fireEvent.change(
+      screen.getByLabelText(/Founding Dynasty \/ Founder/i),
+      { target: { value: "House Vheiler" } }
+    );
     fireEvent.click(
       screen.getByRole("button", { name: /Establish New Colony/i })
     );
@@ -126,5 +130,36 @@ describe("NewColonyModal founding size", () => {
     expect(onCreateColony).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Castellax Secundus", base_size: 4 })
     );
+  });
+
+  it("does not prefill star system or founder with campaign defaults", async () => {
+    renderModal();
+    await screen.findByText("Mining and Industry");
+
+    expect(
+      (screen.getByLabelText(/Star System/i) as HTMLInputElement).value
+    ).toBe("");
+    expect(
+      (
+        screen.getByLabelText(/Founding Dynasty \/ Founder/i) as HTMLInputElement
+      ).value
+    ).toBe("");
+  });
+
+  it("requires a founding dynasty/founder before creating (no dynasty default)", async () => {
+    const { onCreateColony } = renderModal();
+    await screen.findByText("Mining and Industry");
+
+    fireEvent.change(screen.getByLabelText(/Colony Name/i), {
+      target: { value: "Castellax Secundus" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Establish New Colony/i })
+    );
+
+    expect(onCreateColony).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/Please specify a founding dynasty or founder/i)
+    ).toBeInTheDocument();
   });
 });

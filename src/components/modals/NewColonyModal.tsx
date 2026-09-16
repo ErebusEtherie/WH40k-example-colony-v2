@@ -44,10 +44,10 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
   onCreateColony,
 }) => {
   const [name, setName] = useState("");
-  const [starSystem, setStarSystem] = useState("Mundus Valancius");
+  const [starSystem, setStarSystem] = useState("");
   const [colonyType, setColonyType] = useState<ColonyType>("mining_and_industry");
   const [baseSize, setBaseSize] = useState(1);
-  const [founderName, setFounderName] = useState("Von Valancius Dynasty");
+  const [founderName, setFounderName] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -70,13 +70,20 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
       setError("Please specify a valid colony designation.");
       return;
     }
+    // founder_name is a required, non-empty field on the backend (ColonyCreate
+    // enforces min_length=1), so collect it from the GM rather than defaulting
+    // to a dynasty placeholder.
+    if (!founderName.trim()) {
+      setError("Please specify a founding dynasty or founder.");
+      return;
+    }
 
     onCreateColony({
       name: name.trim(),
-      star_system: starSystem.trim() || "Mundus Valancius",
+      star_system: starSystem.trim(),
       colony_type: colonyType,
       base_size: baseSize,
-      founder_name: founderName.trim() || "Von Valancius Dynasty",
+      founder_name: founderName.trim(),
       notes: notes.trim(),
     });
 
@@ -328,7 +335,7 @@ export const NewColonyModal: React.FC<NewColonyModalProps> = ({
                 type="text"
                 value={founderName}
                 onChange={(e) => setFounderName(e.target.value)}
-                placeholder="Von Valancius Dynasty"
+                placeholder="e.g. Von Valancius Dynasty"
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>

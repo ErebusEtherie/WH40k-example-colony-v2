@@ -177,7 +177,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               SECTOR / SYSTEM
             </span>
             <span className="font-semibold text-[#38bdf8] text-sm block">
-              {colony.star_system || "Mundus Valancius"}
+              {colony.star_system || "Uncharted System"}
             </span>
           </div>
 
@@ -186,7 +186,7 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
               FOUNDING DYNASTY / FOUNDER
             </span>
             <span className="font-semibold text-[#e2e8f0] text-sm block">
-              {colony.founder_name || "Von Valancius Dynasty"}
+              {colony.founder_name}
             </span>
           </div>
 
@@ -210,11 +210,11 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
           </p>
         </div>
 
-        {/* Founding Chronometer */}
+        {/* Founding Age */}
         <div className="p-3.5 bg-[#0f1523] border border-[#23314d] rounded flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-mono-slate text-xs">
           <div>
             <span className="text-[10px] text-[#f59e0b] tracking-wider uppercase block font-bold">
-              FOUNDING CHRONOMETER
+              FOUNDING AGE
             </span>
             <div className="flex items-center space-x-2 mt-0.5">
               <span className="text-sm font-bold text-[#f8fafc]">

@@ -226,10 +226,21 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 
 ### Create Colony Example
 
+Authentication is cookie-based: log in to establish a session cookie, then send it with your request along with a CSRF token for state-changing calls.
+
 ```bash
-curl -X POST http://localhost:8000/api/v1/colonies \
+# 1. Log in — stores the session cookie in cookies.txt
+curl -c cookies.txt -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"username": "commander", "password": "SecureP@ssw0rd!"}'
+
+# 2. Fetch the CSRF token (also sets the JS-readable CSRF cookie)
+curl -b cookies.txt -c cookies.txt http://localhost:8000/api/v1/auth/csrf-token
+
+# 3. Create a colony — send the session cookie and echo the CSRF token
+curl -b cookies.txt -X POST http://localhost:8000/api/v1/colonies \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: <token_from_step_2>" \
   -d '{"name": "New Terra", "colony_type": "forge_world", "base_size": 5}'
 ```
 

@@ -48,7 +48,7 @@ Subtracts days from the current age (result must be ≥ 0).
 
 ## Examples
 
-### Advance by 1 Quarter (90 days)
+### Advance by 90 Days
 
 ```bash
 curl -X POST http://localhost:8001/api/v1/colonies/1/age \
@@ -126,7 +126,7 @@ Returns the updated colony with full state:
 ## Frontend Usage
 
 ```typescript
-// Advance age by 90 days (1 quarter)
+// Advance age by 90 days
 await apiFetch(`/api/v1/colonies/${colonyId}/age`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },

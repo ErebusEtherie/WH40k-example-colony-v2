@@ -39,11 +39,7 @@ http://localhost:8000/api/v1
 
 ### Authentication
 
-Most endpoints require authentication via JWT Bearer token. Include the token in the Authorization header:
-
-```http
-Authorization: Bearer <your_access_token>
-```
+Most endpoints require authentication via a session cookie. After logging in (`POST /api/v1/auth/login`), the browser holds an HttpOnly session cookie that it sends automatically on subsequent requests (`credentials: 'include'` in the frontend). State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) must also echo the CSRF token obtained from `GET /api/v1/auth/csrf-token` via the `X-CSRF-Token` header. There is no Bearer token to attach manually.
 
 ### Response Format
 
@@ -127,7 +123,7 @@ Register a new user account. No authentication required.
 
 **POST** `/auth/login`
 
-Authenticate and receive access/refresh tokens.
+Authenticate and establish a session. On success the server sets an HttpOnly session cookie (plus a JS-readable CSRF cookie via `/auth/csrf-token`). No access/refresh tokens are returned in the body.
 
 **Request Body:**
 
@@ -138,16 +134,7 @@ Authenticate and receive access/refresh tokens.
 }
 ```
 
-**Response (200 OK):**
-
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer",
-  "expires_in": 1800
-}
-```
+**Response (200 OK):** Sets the session cookie; the body contains no token material.
 
 ---
 
@@ -155,15 +142,7 @@ Authenticate and receive access/refresh tokens.
 
 **POST** `/auth/refresh`
 
-Get a new access token using a refresh token.
-
-**Request Body:**
-
-```json
-{
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
+Rotate the session cookie. Called automatically by the shared frontend interceptor on a 401; it uses the existing session cookie, so no request body or token is required.
 
 ---
 

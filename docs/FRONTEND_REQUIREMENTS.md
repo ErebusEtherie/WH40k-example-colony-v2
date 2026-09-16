@@ -41,30 +41,19 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+**Response:** Authentication is cookie-based — `/auth/login` sets an HttpOnly session cookie; no token is returned in the body. The browser attaches the cookie automatically on subsequent requests.
 
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
-}
-```
-
-**Using the Token:**
+**Authenticated Requests:**
 
 ```http
 GET /api/v1/colonies
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-### Token Refresh
+The frontend sends the session cookie with every request via `credentials: 'include'`. State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) additionally echo the CSRF token fetched from `GET /api/v1/auth/csrf-token` in the `X-CSRF-Token` header.
 
-Tokens expire after 30 minutes. Use the refresh endpoint to get a new token:
+### Session Refresh
 
-```http
-POST /api/v1/auth/refresh
-Authorization: Bearer <current_token>
-```
+On a 401, the shared request interceptor calls `POST /api/v1/auth/refresh` once (rotating the session cookie) and retries the original request. This lives in a shared module — never attach a Bearer token.
 
 ### Role-Based Access
 
@@ -214,7 +203,7 @@ const loadPage = async (page: number) => {
 | 201 | Created | Resource created successfully |
 | 204 | No Content | Success, no response body (e.g., delete) |
 | 400 | Bad Request | Display validation error from `detail` |
-| 401 | Unauthorized | Redirect to login, clear stored token |
+| 401 | Unauthorized | Shared interceptor attempts one refresh, then redirects to login |
 | 403 | Forbidden | Show "access denied" message |
 | 404 | Not Found | Show "not found" message |
 | 409 | Conflict | Display conflict error (duplicate, etc.) |
@@ -230,8 +219,7 @@ async function handleApiError(error: AxiosError) {
     
     switch (status) {
       case 401:
-        // Clear token and redirect to login
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        // Session expired — the shared interceptor attempts one refresh, then redirects
         window.location.href = "/login";
         break;
       case 403:
@@ -600,39 +588,21 @@ interface User {
 
 ## Best Practices
 
-### 1. Token Management
+### 1. Session & CSRF Handling
+
+Authentication is cookie-based — frontend code never reads, stores, or attaches a token.
+
+- `POST /api/v1/auth/login` sets an HttpOnly session cookie; the browser sends it automatically when requests use `credentials: 'include'`.
+- `GET /api/v1/auth/csrf-token` sets a JS-readable CSRF cookie. State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) must echo its value in an `X-CSRF-Token` header.
+- On a 401, a shared interceptor calls `POST /auth/refresh` once (a single shared promise, so concurrent 401s don't race), then retries the original request. If refresh fails, redirect to `/login`.
 
 ```typescript
-// Store token securely
-const setAuthToken = (token: string) => {
-  localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  window.authToken = token;
-};
-
-const getAuthToken = () => localStorage.getItem(TOKEN_STORAGE_KEY);
-
-const clearAuthToken = () => {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-  delete window.authToken;
-};
-
-// Auto-refresh token before expiry
-const scheduleTokenRefresh = (expiryTime: number) => {
-  const refreshTime = expiryTime - TOKEN_REFRESH_THRESHOLD_MS;
-  const delay = refreshTime - Date.now();
-  
-  if (delay > 0) {
-    setTimeout(async () => {
-      try {
-        const response = await api.post("/auth/refresh");
-        setAuthToken(response.access_token);
-      } catch (error) {
-        clearAuthToken();
-        window.location.href = "/login";
-      }
-    }, delay);
-  }
-};
+// Attach the CSRF token to state-changing requests (fetched via GET /auth/csrf-token)
+function withCsrf(config: ApiRequestConfig): ApiRequestConfig {
+  const csrf = readCookie("csrf_token");
+  if (csrf) config.headers["X-CSRF-Token"] = csrf;
+  return config;
+}
 ```
 
 ### 2. API Client Setup (Axios Example)
@@ -642,26 +612,33 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // send the HttpOnly session cookie
   headers: { "Content-Type": "application/json" },
 });
 
-// Add auth token to requests
+// Echo CSRF token on state-changing requests
 api.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const csrf = readCookie("csrf_token");
+  if (csrf) config.headers["X-CSRF-Token"] = csrf;
   return config;
 });
 
-// Handle auth errors
+// A single shared refresh promise prevents a concurrent-401 race (all waiting
+// requests retry once the one refresh resolves)
+let refreshing: Promise<unknown> | null = null;
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      clearAuthToken();
-      window.location.href = "/login";
+  async (error) => {
+    const { response, config } = error;
+    if (response?.status === 401 && !config?._retried) {
+      config._retried = true;
+      refreshing = refreshing || api.post("/auth/refresh").catch(() => null);
+      await refreshing;
+      refreshing = null;
+      return api(config);
     }
+    window.location.href = "/login";
     return Promise.reject(error);
   }
 );

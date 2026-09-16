@@ -34,13 +34,6 @@ interface ColonyOverviewProps {
   modifiers: Modifier[];
   resources: ColonyResource[];
   plans?: DevelopmentPlan[];
-  currentYear?: number;
-  currentQuarter?: number;
-  isChronometerRunning?: boolean;
-  chronometerSpeed?: number;
-  onToggleChronometer?: () => void;
-  onChangeSpeed?: (speed: number) => void;
-  onAdvanceAge?: () => void;
   onOpenEditCharter?: () => void;
   onOpenCommissionRepresentative?: () => void;
   onOpenReassignRepresentative?: () => void;
@@ -60,13 +53,6 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
   modifiers,
   resources,
   plans = [],
-  currentYear,
-  currentQuarter,
-  isChronometerRunning,
-  chronometerSpeed,
-  onToggleChronometer,
-  onChangeSpeed,
-  onAdvanceAge,
   onOpenEditCharter,
   onOpenCommissionRepresentative,
   onOpenReassignRepresentative,
@@ -134,7 +120,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
               </span>
               <span className="text-xs text-[#64748b]">•</span>
               <span className="text-xs font-mono-slate text-[#38bdf8] uppercase">
-                {colony.star_system || "Mundus Valancius"} System
+                {colony.star_system ? `${colony.star_system} System` : "Uncharted System"}
               </span>
             </div>
             <h1 className="font-gothic font-bold text-2xl sm:text-3xl text-[#fef08a] tracking-wide uppercase">
@@ -163,7 +149,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
               FOUNDING DYNASTY
             </span>
             <span className="text-[#f8fafc] font-semibold">
-              {colony.founder_name || "Von Valancius Dynasty"}
+              {colony.founder_name}
             </span>
           </div>
 

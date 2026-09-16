@@ -85,7 +85,10 @@ export const SelectColonyDropdown: React.FC<SelectColonyDropdownProps> = ({
                       {colony.name}
                     </span>
                     <span className="text-[11px] text-[#94a3b8] font-mono-slate">
-                      {colony.colony_type.replace(/_/g, " ")} • {colony.star_system || "Mundus Valancius"}
+                      {colony.colony_type.replace(/_/g, " ")}
+                      {colony.star_system
+                        ? ` • ${colony.star_system}`
+                        : " • Uncharted System"}
                     </span>
                   </div>
                   {isSelected && <Check className="w-4 h-4 text-[#f59e0b]" />}

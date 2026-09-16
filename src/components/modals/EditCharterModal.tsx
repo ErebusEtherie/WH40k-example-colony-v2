@@ -16,8 +16,8 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
   onSaveCharter,
 }) => {
   const [name, setName] = useState(colony.name);
-  const [starSystem, setStarSystem] = useState(colony.star_system || "Mundus Valancius");
-  const [founderName, setFounderName] = useState(colony.founder_name || "Von Valancius Dynasty");
+  const [starSystem, setStarSystem] = useState(colony.star_system ?? "");
+  const [founderName, setFounderName] = useState(colony.founder_name ?? "");
   const [quote, setQuote] = useState(colony.quote || colony.notes || "");
 
   if (!isOpen) return null;
@@ -91,6 +91,7 @@ export const EditCharterModal: React.FC<EditCharterModalProps> = ({
                 type="text"
                 value={starSystem}
                 onChange={(e) => setStarSystem(e.target.value)}
+                placeholder="Uncharted System"
                 className="w-full bg-[#070a12] border border-[#252f44] focus:border-[#f59e0b] text-[#f8fafc] px-3 py-2 rounded focus:outline-none"
               />
             </div>

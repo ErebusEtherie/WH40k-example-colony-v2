@@ -68,12 +68,6 @@ export function App() {
   const [resources, setResources] = useState<ColonyResource[]>([]);
   const [plans, setPlans] = useState<DevelopmentPlan[]>([]);
 
-  // Chronometer & Turn System
-  const [currentTurnYear, setCurrentTurnYear] = useState(814);
-  const [currentTurnQuarter, setCurrentTurnQuarter] = useState(1);
-  const [isChronometerRunning, setIsChronometerRunning] = useState(false);
-  const [chronometerSpeed, setChronometerSpeed] = useState(1);
-
   // Visual Theme & Accessibility
   const [theme, setTheme] = useState<
     "theme-grimdark" | "theme-mechanicus" | "theme-inquisition"
@@ -199,19 +193,6 @@ export function App() {
     loadInitialData();
   }, [isLoggedIn]);
 
-  // Chronometer timer
-  useEffect(() => {
-    let interval: any = null;
-    if (isChronometerRunning) {
-      interval = setInterval(() => {
-        handleAdvanceQuarter();
-      }, 5000 / chronometerSpeed);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isChronometerRunning, chronometerSpeed, currentTurnQuarter, currentTurnYear]);
-
   // Active Colony (null when the backend has no colonies yet — the dashboard
   // renders an empty-charter prompt in that case, see below).
   const currentColony =
@@ -233,36 +214,6 @@ export function App() {
   const colonyModifiers = modifiers.filter((m) => m.colony_id === currentColony?.id);
   const colonyResources = resources.filter((r) => r.colony_id === currentColony?.id);
   const colonyPlans = plans.filter((p) => p.colony_id === currentColony?.id);
-
-  // Turn Advance Handler
-  const handleAdvanceQuarter = () => {
-    let nextQuarter = currentTurnQuarter + 1;
-    let nextYear = currentTurnYear;
-    if (nextQuarter > 4) {
-      nextQuarter = 1;
-      nextYear += 1;
-    }
-    setCurrentTurnQuarter(nextQuarter);
-    setCurrentTurnYear(nextYear);
-
-    // Call backend endpoint to increment age for all colonies
-    if (currentColony) {
-      apiFetch(`/api/v1/colonies/${currentColony.id}/age`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ add: 90 }), // 1 quarter = 90 days
-      })
-        .then((res) => res.json())
-        .then((updated) => {
-          if (updated?.id) {
-            setColonies((prev) =>
-              prev.map((c) => (c.id === updated.id ? updated : c))
-            );
-          }
-        })
-        .catch((err) => console.log("Advance age error:", err));
-    }
-  };
 
   const handleAdvanceDays = (days: number) => {
     if (!currentColony) return;
@@ -313,8 +264,6 @@ export function App() {
         setPlans(INITIAL_PLANS);
         setSelectedColonyId(INITIAL_COLONIES[0].id);
         setSelectedRepId(INITIAL_REPRESENTATIVES[0].id);
-        setCurrentTurnYear(814);
-        setCurrentTurnQuarter(1);
       }
     } catch (err) {
       console.log("Reset error:", err);
@@ -331,8 +280,6 @@ export function App() {
       modifiers,
       resources,
       plans,
-      currentTurnYear,
-      currentTurnQuarter,
     };
     const blob = new Blob([JSON.stringify(backupData, null, 2)], {
       type: "application/json",
@@ -355,8 +302,6 @@ export function App() {
       if (parsed.modifiers) setModifiers(parsed.modifiers);
       if (parsed.resources) setResources(parsed.resources);
       if (parsed.plans) setPlans(parsed.plans);
-      if (parsed.currentTurnYear) setCurrentTurnYear(parsed.currentTurnYear);
-      if (parsed.currentTurnQuarter) setCurrentTurnQuarter(parsed.currentTurnQuarter);
     } catch (err) {
       console.error("Invalid import JSON:", err);
     }
@@ -386,7 +331,7 @@ export function App() {
       base_order: colonyData.base_order || 0,
       base_productivity: colonyData.base_productivity || 0,
       base_piety: colonyData.base_piety || 0,
-      founder_name: colonyData.founder_name || "Von Valancius Dynasty",
+      founder_name: colonyData.founder_name,
       founding_days: 0,
       notes: colonyData.notes,
       quote: colonyData.notes,
@@ -1055,13 +1000,6 @@ export function App() {
               modifiers={colonyModifiers}
               resources={colonyResources}
               plans={colonyPlans}
-              currentYear={currentTurnYear}
-              currentQuarter={currentTurnQuarter}
-              isChronometerRunning={isChronometerRunning}
-              chronometerSpeed={chronometerSpeed}
-              onToggleChronometer={() => setIsChronometerRunning((prev) => !prev)}
-              onChangeSpeed={(spd) => setChronometerSpeed(spd)}
-              onAdvanceAge={handleAdvanceQuarter}
               onOpenEditCharter={() => setIsEditCharterOpen(true)}
               onOpenCommissionRepresentative={() => setIsCommissionRepOpen(true)}
               onOpenReassignRepresentative={() => setIsReassignRepOpen(true)}

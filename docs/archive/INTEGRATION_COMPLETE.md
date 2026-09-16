@@ -27,7 +27,7 @@
 ### 4. Calculator Modules
 - **statCalculator.ts**: Frontend stub (returns ColonyStatsBreakdown)
 - **domainCalculator.ts**: Backend domain logic (stub implementation)
-- **chronometer.ts**: Enhanced time formatting
+- **chronometer.ts**: Founding-age formatting (days → years/months/days)
 
 ## Build Output
 ```

@@ -45,7 +45,7 @@ You'll see the Swagger UI interface with all available API endpoints.
 
 ---
 
-### Step 3: Login to Get Your JWT Token
+### Step 3: Log In to Establish the Session
 
 1. Click on **POST /api/v1/auth/login**
 2. Click **"Try it out"**
@@ -59,41 +59,19 @@ You'll see the Swagger UI interface with all available API endpoints.
    ```
 
 4. Click **"Execute"**
-5. You'll receive a response like:
-
-   ```json
-   {
-     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-     "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-     "token_type": "bearer",
-     "expires_in": 3600
-   }
-   ```
-
-6. **Copy the `access_token` value**
+5. The response sets an HttpOnly session cookie in your browser. Because auth is cookie-based, there is no token to copy — the browser sends the session cookie automatically on subsequent requests.
 
 ---
 
-### Step 4: Authorize All Endpoints
+### Step 4: Using Protected Endpoints
 
-1. Click the **"Authorize"** button at the top-right of the page
-2. In the **Value** field, paste your access token (just the token, no "Bearer" prefix)
+Because authentication is cookie-based, there is **no "Authorize" button** to fill in — the session cookie from Step 3 is sent automatically by the browser. Protected endpoints are now accessible directly.
 
-   ```
-   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   ```
-
-3. Click **"Authorize"**
-4. Click **"Close"**
-
-✅ **Done!** All protected endpoints are now accessible with your token.
-
-**Verification:** After authorizing, you can verify the token is being sent correctly:
+**Verification:**
 
 1. Click on **GET /api/v1/auth/me**
 2. Click **"Try it out"** then **"Execute"**
 3. You should see your user info (not a 401 error)
-4. Check the request headers in the curl command shown - it should include `Authorization: Bearer eyJ...`
 
 ---
 
@@ -135,34 +113,22 @@ A test admin account has been created for you:
 
 ---
 
-## Token Management
+## Session Management
 
-### Token Expiration
+### Session Expiration
 
-- **Access Token:** Expires in 60 minutes (3600 seconds)
-- **Refresh Token:** Expires in 7 days
+Authentication is cookie-based, so there are no access/refresh tokens to manage manually. The backend sets session/refresh cookies on login.
 
-### Refresh Your Token
+### Refresh the Session
 
-Before your access token expires:
+The frontend refreshes the session automatically via `POST /api/v1/auth/refresh` (using the existing session cookie). In Swagger UI, if a protected request returns 401, simply re-establish the session:
 
-1. Go to **POST /api/v1/auth/refresh**
-2. Click **"Try it out"**
-3. Enter your refresh token:
-
-   ```json
-   {
-     "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-   }
-   ```
-
-4. Click **"Execute"**
-5. Copy the new access token
-6. Re-authorize with the new token
+1. Re-run **POST /api/v1/auth/login** (Step 3)
+2. Retry the protected request
 
 ### Logout (Revoke Token)
 
-To logout and revoke your current token:
+To log out and revoke the current session:
 
 1. Go to **POST /api/v1/auth/revoke**
 2. Click **"Try it out"**
@@ -175,7 +141,7 @@ To logout and revoke your current token:
    ```
 
 4. Click **"Execute"**
-5. Your token is now blacklisted
+5. Your session cookie is now revoked on the server
 
 ### Revoke All Sessions
 
@@ -218,14 +184,12 @@ To logout from all devices/sessions:
 
 ### 401 Unauthorized
 
-**Cause:** Token is missing, expired, or invalid
+**Cause:** No valid session cookie (not logged in, or the session expired)
 
 **Solution:**
 
-1. Check if you're logged in (click "Authorize" button - should show "Logout")
-2. If token expired, use refresh endpoint to get a new one
-3. Re-authorize with the new token
-4. **Verify Authorization header:** After executing a request, expand the curl command shown and verify it includes `Authorization: Bearer <token>`. If missing, refresh the page and re-authorize.
+1. Re-run **POST /api/v1/auth/login** (Step 3) to set a fresh session cookie
+2. Try the protected request again
 
 ### 403 Forbidden
 

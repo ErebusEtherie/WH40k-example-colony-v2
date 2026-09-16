@@ -32,8 +32,8 @@ src/
 │   ├── RepresentativesManager.tsx   # Retinue stats, characteristics, skills, talents
 │   └── ThemeDropdown.tsx            # Visual theme selector
 ├── lib/
-│   ├── api.ts                       # Typed fetch client with Bearer token injection
-│   ├── chronometer.ts               # In-game calendar & day advance math
+│   ├── api.ts                       # Typed fetch client (cookie + CSRF auth)
+│   ├── chronometer.ts               # Colony founding-age formatting (days → years/months/days)
 │   └── calculations.ts              # Client-side mirror of Koronus rule engine
 ├── types/
 │   ├── api.ts                       # Backend DTOs & response schemas
@@ -80,7 +80,7 @@ Where appropriate, disable buttons directly for Servitors and display an explana
 
 ```tsx
 <button
-  id="btn-advance-chronometer"
+  id="btn-advance-age"
   disabled={currentUser?.role === "viewer"}
   onClick={handleAdvanceDays}
   className={`px-3 py-1.5 rounded font-mono-slate text-xs transition ${
@@ -91,7 +91,7 @@ Where appropriate, disable buttons directly for Servitors and display an explana
   title={
     currentUser?.role === "viewer"
       ? "Clearance Denied: Servitor clearance is read-only"
-      : "Advance planetary chronometer"
+      : "Advance colony age"
   }
 >
   Advance 30 Days
@@ -102,12 +102,9 @@ Where appropriate, disable buttons directly for Servitors and display an explana
 
 ## 3. API Communication & Optimistic UI
 
-1. **Authentication Token**: All API requests must include the JWT token retrieved during login:
+1. **Authentication**: Cookie-based. The browser sends the HttpOnly session cookie automatically (`credentials: 'include'`); state-changing requests echo the CSRF token from `GET /api/v1/auth/csrf-token` via the `X-CSRF-Token` header. Both are handled once by the shared API client (`src/lib/api.ts`) — never read or store tokens in component code:
    ```typescript
-   const headers = {
-     "Content-Type": "application/json",
-     Authorization: `Bearer ${localStorage.getItem("wh40k_access_token")}`,
-   };
+   // Handled centrally in api.ts — components never attach an auth header.
    ```
 2. **Optimistic Updates**: For instantaneous user feedback, update local React state immediately, then fire the asynchronous API call. If the request fails, revert the state and notify the user:
    ```typescript

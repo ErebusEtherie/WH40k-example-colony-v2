@@ -43,7 +43,7 @@ colony-frontend   Up (healthy)    0.0.0.0:3000->80/tcp
 To enable the build, created minimal stubs:
 - `src/lib/api.ts` - API integration stubs
 - `src/lib/statCalculator.ts` - Stat calculation stub
-- `src/lib/chronometer.ts` - Time tracking stubs
+- `src/lib/chronometer.ts` - Founding-age formatting stubs
 - `public/favicon.svg` - WH40k-themed favicon
 
 ### 4. Documentation

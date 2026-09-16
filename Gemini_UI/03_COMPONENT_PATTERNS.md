@@ -43,8 +43,8 @@ The flagship container for Imperial colony summaries, dashboards, and tactical r
   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono-slate">
     {/* Key-Value Pair Item */}
     <div>
-      <span className="text-[#64748b] uppercase block text-[10px] tracking-wider">FOUNDING DATE</span>
-      <span className="text-[#cbd5e1] font-semibold">41st Millennium</span>
+      <span className="text-[#64748b] uppercase block text-[10px] tracking-wider">FOUNDING AGE</span>
+      <span className="text-[#cbd5e1] font-semibold">127y 8m 12d</span>
     </div>
   </div>
 </div>

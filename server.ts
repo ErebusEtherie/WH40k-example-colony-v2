@@ -467,9 +467,9 @@ async function startAppServer() {
       id: `log-${Date.now()}`,
       colony_id: colony.id,
       timestamp: new Date().toISOString(),
-      action: "ADVANCE_TIME",
+      action: "ADVANCE_AGE",
       actor: "Overseer",
-      details: `Chronometer advanced by ${days} standard solar days. Total age: ${colony.founding_days} days.`,
+      details: `Colony age advanced by ${days} standard solar days. Total age: ${colony.founding_days} days.`,
     });
 
     res.json(colony);

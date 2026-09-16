@@ -18,23 +18,23 @@ This document defines how the frontend integrates with the backend API, includin
 
 ### Token Storage
 
+Authentication is cookie-based. The session lives in an HttpOnly cookie set by `/auth/login`; there is no access token held in a JavaScript variable.
+
 | Token | Storage | Security |
 |-------|---------|----------|
-| Access Token | Memory (JavaScript variable) | Lost on refresh |
-| Refresh Token | httpOnly cookie | Secure, HttpOnly |
+| Session | httpOnly cookie | Secure, HttpOnly, auto-sent |
+| CSRF | JS-readable cookie (`/auth/csrf-token`) | Double-submit protection |
 
-### Auth Header
+### Auth Headers
 
-```
-Authorization: Bearer <access_token>
-```
+No `Authorization` header is needed — the browser sends the session cookie automatically (`credentials: 'include'`). State-changing requests (POST/PUT/PATCH/DELETE) echo the CSRF token via the `X-CSRF-Token` header.
 
 ### Token Refresh Flow
 
 1. API call fails with 401
-2. Intercept 401 in HTTP client
-3. Call POST /api/auth/refresh (with cookie)
-4. If successful: Update token, retry original request
+2. Shared interceptor triggers `/auth/refresh` (a single shared promise, avoiding a concurrent-401 race)
+3. Refresh rotates the session cookie
+4. If successful: retry original request once
 5. If failed: Clear auth state, redirect to /login
 
 ---
@@ -52,7 +52,7 @@ Authorization: Bearer <access_token>
 
 ### Interceptors
 
-- **Request:** Add Authorization header with access token
+- **Request:** Add `X-CSRF-Token` header; rely on the session cookie for auth
 - **Response:** Handle 401 (refresh), 403 (permission denied), 500 (server error)
 
 ---

@@ -18,7 +18,7 @@ The application pairs three distinct font families imported via Google Fonts:
 | :--- | :--- | :--- | :--- |
 | **Cinzel** | `h1`, `h2`, `h3`, `.font-gothic` | 600, 700, 900 | Imperial titles, colony names, modal headers, major numerical stat values. Evokes ecclesiastical Imperial inscriptions. |
 | **Rajdhani** | `body`, default sans-serif | 500, 600, 700 | Technical body text, descriptions, table contents, and form field values. Crisp, readable, and slightly squared. |
-| **Share Tech Mono** | `.font-mono-slate` | 400 | Data-slate readouts, status labels, timestamps, Imperial dates, code badges, and system identifiers. |
+| **Share Tech Mono** | `.font-mono-slate` | 400 | Data-slate readouts, status labels, timestamps, code badges, and system identifiers. |
 | **Lexend** | `body.optics-dyslexic *` | 400, 500, 600 | Dynamically applied when the user activates the Dyslexia-Optimized Optics setting. Maximizes glyph distinction. |
 
 ### Typography Rules
@@ -76,7 +76,7 @@ All UI colors follow the grimdark palette of the Imperium of Man, balancing abys
 | Semantic State | Tailwind Utility Reference | Hex Code | Visual Meaning in Imperial Lore |
 | :--- | :--- | :--- | :--- |
 | **Imperial Gold** | `text-[#f59e0b]`, `border-[#f59e0b]/40`, `bg-[#f59e0b]/15` | `#f59e0b` | Warrant of Trade authority, Arch Magos, active colonies, primary actions. |
-| **Plasma Cyan** | `text-[#38bdf8]`, `border-[#38bdf8]/40`, `bg-[#38bdf8]/15` | `#38bdf8` / `#00d4ff` | Lord Captain clearance, technical infrastructure, chronometer ticks. |
+| **Plasma Cyan** | `text-[#38bdf8]`, `border-[#38bdf8]/40`, `bg-[#38bdf8]/15` | `#38bdf8` / `#00d4ff` | Lord Captain clearance, technical infrastructure, and telemetry readouts. |
 | **Auspex Emerald** | `text-[#34d399]`, `border-[#10b981]/40`, `bg-[#10b981]/15` | `#10b981` / `#34d399` | Working machinery, stable/pious lore state, healthy resource deposits. |
 | **Inquisition Crimson** | `text-[#f87171]`, `border-[#ef4444]/40`, `bg-[#ef4444]/15` | `#ef4444` / `#f87171` | Riots, anarchy, disrupted infrastructure, heretical status, dangerous events. |
 | **Sanctum Violet** | `text-[#c084fc]`, `border-[#a855f7]/40`, `bg-[#a855f7]/15` | `#a855f7` | Imperial Order stat, Psyker telemetry, ecclesiarchy authority. |
