@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Colony } from "../types/colony";
 import { Download, Upload, Copy, Check, FileText } from "lucide-react";
+import { apiFetch } from "../lib/api";
 
 interface ExportImportModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const handleFetchExport = async () => {
     if (!selectedColony) return;
     try {
-      const res = await fetch(`/api/v1/colonies/${selectedColony.id}/export`);
+      const res = await apiFetch(`/api/v1/colonies/${selectedColony.id}/export`);
       const data = await res.json();
       setExportText(JSON.stringify(data, null, 2));
     } catch {

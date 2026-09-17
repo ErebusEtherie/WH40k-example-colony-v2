@@ -33,6 +33,26 @@ def test_client_with_auth(tmp_path):
 
 
 @pytest.fixture
+def reuse_detection_enabled(monkeypatch):
+    """Enable refresh-token reuse detection for the auth-service dependency.
+
+    ``AuthService`` is built by ``dependencies.get_auth_service``, which reads
+    ``refresh_reuse_detection_enabled`` from the security settings. Patching that
+    module's ``get_security_settings`` reference switches the flag on only for
+    service construction, without disturbing the (cached) settings the rest of
+    the app uses.
+    """
+    from colony_manager.adapters.api import dependencies as deps
+    from colony_manager.config import settings as settings_module
+
+    def _settings_with_reuse_detection():
+        real = settings_module.get_security_settings()
+        return real.model_copy(update={"refresh_reuse_detection_enabled": True})
+
+    monkeypatch.setattr(deps, "get_security_settings", _settings_with_reuse_detection)
+
+
+@pytest.fixture
 def registered_user(test_client_with_auth):
     """Create a registered test user."""
     register_data = {
@@ -208,6 +228,90 @@ class TestTokenRefresh:
 
         assert response.status_code == 200
         assert "message" in response.json()
+
+    def test_refresh_rotation_rejects_reused_refresh_token(self, test_client_with_auth, registered_user):
+        """Test that a consumed refresh token cannot be replayed after rotation.
+
+        The refresh endpoint revokes the refresh token it consumes and issues a
+        new one, so a captured pre-rotation cookie value must be rejected on
+        reuse — rotation is what makes a stolen refresh token useless.
+        """
+        login_data = {"username": "testuser", "password": "TestPass123!"}
+        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+        assert login_response.status_code == 200
+
+        # Capture the pre-rotation refresh cookie value.
+        old_refresh = test_client_with_auth.cookies.get("rt_refresh_token")
+
+        # First refresh succeeds and rotates the refresh token.
+        response = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert response.status_code == 200
+
+        # Replaying the now-consumed (rotated) refresh token must be rejected.
+        test_client_with_auth.cookies["rt_refresh_token"] = old_refresh
+        replayed = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert replayed.status_code == 401
+
+    def test_refresh_reuse_detection_revokes_session_family(
+        self, test_client_with_auth, registered_user, reuse_detection_enabled
+    ):
+        """Test that replaying a rotated refresh token revokes the whole family.
+
+        With reuse detection on, a rotated-token replay is treated as theft: the
+        user's remaining (freshly rotated) refresh cookie stops working, so an
+        attacker can't keep refreshing while the legitimate client is locked out
+        of a single rotated token.
+        """
+        login_data = {"username": "testuser", "password": "TestPass123!"}
+        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+        assert login_response.status_code == 200
+
+        # Capture pre-rotation cookie, then rotate.
+        old_refresh = test_client_with_auth.cookies.get("rt_refresh_token")
+        response = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert response.status_code == 200
+        rotated_refresh = test_client_with_auth.cookies.get("rt_refresh_token")
+        assert rotated_refresh != old_refresh
+
+        # Replay the consumed pre-rotation cookie: rejected...
+        test_client_with_auth.cookies["rt_refresh_token"] = old_refresh
+        replayed = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert replayed.status_code == 401
+
+        # ...and the whole session family is revoked, so the legitimate client's
+        # freshly rotated cookie is dead too.
+        test_client_with_auth.cookies["rt_refresh_token"] = rotated_refresh
+        second = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert second.status_code == 401
+
+    def test_logout_revokes_refresh_token(self, test_client_with_auth, registered_user):
+        """Test that logout revokes the refresh token server-side.
+
+        /auth/revoke blacklists the refresh token in addition to the access
+        token, so restoring the pre-logout refresh cookie cannot resurrect the
+        session via /auth/refresh.
+        """
+        login_data = {"username": "testuser", "password": "TestPass123!"}
+        login_response = test_client_with_auth.post("/api/v1/auth/login", json=login_data)
+        assert login_response.status_code == 200
+
+        # Capture the refresh cookie value before logout clears it.
+        refresh_before_logout = test_client_with_auth.cookies.get("rt_refresh_token")
+
+        # revoke is an authenticated state-changer → CSRF header required.
+        csrf_response = test_client_with_auth.get("/api/v1/auth/csrf-token")
+        test_client_with_auth.headers["X-CSRF-Token"] = csrf_response.json()["csrf_token"]
+
+        revoke_response = test_client_with_auth.post(
+            "/api/v1/auth/revoke", json={"reason": "logout"}
+        )
+        assert revoke_response.status_code == 200
+
+        # Even if the (now deleted) refresh cookie is restored, refreshing must
+        # fail because the token was revoked server-side.
+        test_client_with_auth.cookies["rt_refresh_token"] = refresh_before_logout
+        refresh_after_logout = test_client_with_auth.post("/api/v1/auth/refresh")
+        assert refresh_after_logout.status_code == 401
 
 
 class TestChangePassword:

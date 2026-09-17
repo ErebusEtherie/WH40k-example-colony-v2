@@ -40,6 +40,7 @@ from colony_manager.adapters.persistence.support_upgrade_repository_impl import 
     SqlAlchemySupportUpgradeRepository,
 )
 from colony_manager.adapters.persistence.user_repository_impl import SqlAlchemyUserRepository
+from colony_manager.config.settings import get_security_settings
 from colony_manager.application.services.auth_service import AuthService
 from colony_manager.application.services.colony_service import ColonyService
 from colony_manager.application.services.colony_user_service import ColonyUserService
@@ -275,11 +276,13 @@ def get_auth_service(
     ],
 ) -> AuthService:
     """Get auth service instance with dependencies."""
+    settings = get_security_settings()
     return AuthService(
         token_blacklist_repository,
         user_repository,
         login_attempt_repository,
         token_issuance_repository,
+        refresh_reuse_detection_enabled=settings.refresh_reuse_detection_enabled,
     )
 
 

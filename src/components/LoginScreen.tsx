@@ -7,9 +7,14 @@ interface LoginScreenProps {
   onLogin: (user: User) => void;
 }
 
+// Hardcoded dev/demo credentials (bypass-login buttons and the prefilled
+// form) are only shown/used when VITE_DEV_MODE=true. In production they are
+// absent so no one can sign in with credentials shipped in the client source.
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === "true";
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState("LordCaptain");
-  const [password, setPassword] = useState("TestP@ss123");
+  const [username, setUsername] = useState(DEV_MODE ? "LordCaptain" : "");
+  const [password, setPassword] = useState(DEV_MODE ? "TestP@ss123" : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,6 +140,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           </form>
 
           {/* Preset Clearance Identities */}
+          {DEV_MODE && (
           <div className="pt-4 border-t border-[#1e293b] space-y-2.5">
             <div className="text-center text-[10px] text-[#64748b] font-mono-slate tracking-wider uppercase">
               — SELECT AUTHORIZATION CLEARANCE TIER —
@@ -205,6 +211,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               </button>
             </div>
           </div>
+          )}
         </div>
 
         {/* Footer Quote */}

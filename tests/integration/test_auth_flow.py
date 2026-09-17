@@ -33,6 +33,26 @@ def integration_client(tmp_path: Path):
         del os.environ["JWT_SECRET_KEY"]
 
 
+@pytest.fixture
+def reuse_detection_enabled(monkeypatch):
+    """Enable refresh-token reuse detection for the auth-service dependency.
+
+    ``AuthService`` is built by ``dependencies.get_auth_service``, which reads
+    ``refresh_reuse_detection_enabled`` from the security settings. Patching that
+    module's ``get_security_settings`` reference switches the flag on only for
+    service construction, without disturbing the (cached) settings the rest of
+    the app uses.
+    """
+    from colony_manager.adapters.api import dependencies as deps
+    from colony_manager.config import settings as settings_module
+
+    def _settings_with_reuse_detection():
+        real = settings_module.get_security_settings()
+        return real.model_copy(update={"refresh_reuse_detection_enabled": True})
+
+    monkeypatch.setattr(deps, "get_security_settings", _settings_with_reuse_detection)
+
+
 def _login_with_csrf(client: TestClient, username: str, password: str) -> dict:
     """Log in via cookie-based auth and set up the double-submit CSRF token.
 
@@ -341,6 +361,65 @@ class TestAuthFlowTokenRefresh:
         response = integration_client.post("/api/v1/auth/refresh")
         assert response.status_code == 401
 
+    def test_refresh_rotation_rejects_reused_refresh_token(self, integration_client):
+        """Test that a rotated (consumed) refresh token is rejected if replayed."""
+        register_data = {
+            "username": "rotation_user",
+            "email": "rotation@example.com",
+            "password": "SecurePass123!",
+        }
+        integration_client.post("/api/v1/auth/register", json=register_data)
+
+        login_response = integration_client.post(
+            "/api/v1/auth/login",
+            json={"username": "rotation_user", "password": "SecurePass123!"},
+        )
+        assert login_response.status_code == 200
+
+        old_refresh = integration_client.cookies.get("rt_refresh_token")
+
+        refreshed = integration_client.post("/api/v1/auth/refresh")
+        assert refreshed.status_code == 200
+
+        # Replaying the consumed refresh token must be rejected as revoked.
+        integration_client.cookies["rt_refresh_token"] = old_refresh
+        replayed = integration_client.post("/api/v1/auth/refresh")
+        assert replayed.status_code == 401
+
+    def test_refresh_reuse_detection_revokes_session_family(
+        self, integration_client, reuse_detection_enabled
+    ):
+        """Test that replaying a rotated refresh token revokes the whole family."""
+        register_data = {
+            "username": "reuse_detection_user",
+            "email": "reuse_detection@example.com",
+            "password": "SecurePass123!",
+        }
+        integration_client.post("/api/v1/auth/register", json=register_data)
+
+        login_response = integration_client.post(
+            "/api/v1/auth/login",
+            json={"username": "reuse_detection_user", "password": "SecurePass123!"},
+        )
+        assert login_response.status_code == 200
+
+        old_refresh = integration_client.cookies.get("rt_refresh_token")
+        refreshed = integration_client.post("/api/v1/auth/refresh")
+        assert refreshed.status_code == 200
+        rotated_refresh = integration_client.cookies.get("rt_refresh_token")
+        assert rotated_refresh != old_refresh
+
+        # Replaying the consumed pre-rotation cookie is rejected...
+        integration_client.cookies["rt_refresh_token"] = old_refresh
+        replayed = integration_client.post("/api/v1/auth/refresh")
+        assert replayed.status_code == 401
+
+        # ...and the whole session family is revoked: the legitimate client's
+        # freshly rotated cookie is dead too.
+        integration_client.cookies["rt_refresh_token"] = rotated_refresh
+        second = integration_client.post("/api/v1/auth/refresh")
+        assert second.status_code == 401
+
 
 class TestAuthFlowTokenRevocation:
     """Tests for token revocation."""
@@ -368,6 +447,33 @@ class TestAuthFlowTokenRevocation:
         assert revoke_response.status_code == 200
         assert "rt_access_token" not in integration_client.cookies
         assert "rt_refresh_token" not in integration_client.cookies
+
+    def test_logout_revokes_refresh_token(self, integration_client):
+        """Test that logout revokes the refresh token server-side.
+
+        After logout the refresh cookie is deleted client-side AND the token is
+        revoked server-side, so restoring the captured cookie cannot resurrect
+        the session via /auth/refresh.
+        """
+        register_data = {
+            "username": "logout_refresh_user",
+            "email": "logout_refresh@example.com",
+            "password": "SecurePass123!",
+        }
+        integration_client.post("/api/v1/auth/register", json=register_data)
+        _login_with_csrf(integration_client, "logout_refresh_user", "SecurePass123!")
+
+        refresh_before_logout = integration_client.cookies.get("rt_refresh_token")
+
+        revoke_response = integration_client.post("/api/v1/auth/revoke", json={"reason": "logout"})
+        assert revoke_response.status_code == 200
+        assert "rt_refresh_token" not in integration_client.cookies
+
+        # Restore the captured refresh cookie: the token is revoked server-side,
+        # so refreshing must fail.
+        integration_client.cookies["rt_refresh_token"] = refresh_before_logout
+        refresh_after_logout = integration_client.post("/api/v1/auth/refresh")
+        assert refresh_after_logout.status_code == 401
 
     def test_revoke_all_tokens(self, integration_client):
         """Test revoking all tokens logs out from all sessions."""

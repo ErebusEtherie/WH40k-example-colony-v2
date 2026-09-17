@@ -39,11 +39,13 @@ class AuthService:
         user_repository: UserRepository,
         login_attempt_repository: LoginAttemptRepository | None = None,
         token_issuance_repository: TokenIssuanceRepository | None = None,
+        refresh_reuse_detection_enabled: bool = False,
     ) -> None:
         self._token_blacklist_repository = token_blacklist_repository
         self._user_repository = user_repository
         self._login_attempt_repository = login_attempt_repository
         self._token_issuance_repository = token_issuance_repository
+        self._refresh_reuse_detection_enabled = refresh_reuse_detection_enabled
 
     def revoke_token(
         self,
@@ -81,6 +83,99 @@ class AuthService:
             user_id=user_id,
             expires_at=expires_at,
             revoked_at=datetime.now(UTC),
+            reason=reason,
+        )
+
+        return self._token_blacklist_repository.create(blacklist_entry)
+
+    def refresh_token_is_usable(self, token_jti: str, user_id: int) -> bool:
+        """Report whether a presented refresh token may be used, revoking the
+        user's whole session family when it was consumed by rotation.
+
+        The refresh endpoint already revokes the token it consumes
+        (``reason="rotation"``), so a *replay* of that token means either a
+        legitimate retry that raced the rotation or - much more likely - a
+        stolen token being replayed. To contain the damage, a replay triggers
+        revoke-all ("reuse detected") so the attacker cannot keep refreshing
+        the session family while the legitimate client is locked out of a
+        single rotated token.
+
+        Only rotation-cause entries trigger the family revoke: a token revoked
+        by the owner (logout / admin / password change) must not escalate into
+        revoking unrelated sessions.
+
+        Args:
+            token_jti: The JTI of the presented refresh token.
+            user_id: The user the token claims to belong to.
+
+        Returns:
+            True if the token may be used, False if it should be rejected. When
+            False is returned because of a rotation replay, the user's session
+            family has been revoked beforehand.
+        """
+        if not self._refresh_reuse_detection_enabled:
+            return not self._token_blacklist_repository.is_blacklisted(token_jti)
+
+        entry = self._token_blacklist_repository.get(token_jti)
+        if entry is None:
+            # Not blacklisted, or its blacklist entry has expired (an expired
+            # token would have been rejected before this check anyway) - usable.
+            return True
+        if entry.reason == "rotation":
+            # An already-consumed refresh token is being presented again.
+            self.revoke_all_user_tokens(user_id, reason="reuse_detected")
+        return False
+
+    def revoke_refresh_token(
+        self,
+        token: str,
+        secret_key: str,
+        reason: str | None = None,
+    ) -> TokenBlacklist:
+        """Revoke a refresh token by marking its issuance revoked and blacklisting it.
+
+        Mirrors ``revoke_token`` for access tokens, plus marks the issuance
+        record revoked so the session no longer counts as active. Used by:
+
+        - Refresh-token rotation: the consumed refresh token is invalidated
+          when a new pair is issued (see ``/auth/refresh``).
+        - Logout: the refresh cookie's token must not survive the session, so
+          it cannot be used to mint a fresh access token after revoke.
+
+        Args:
+            token: The JWT refresh token string to revoke.
+            secret_key: Secret key for decoding the token.
+            reason: Reason for revocation (e.g., "rotation", "logout").
+
+        Returns:
+            Created blacklist entry.
+
+        Raises:
+            ValueError: If token is invalid or cannot be decoded as a refresh token.
+        """
+        try:
+            payload = verify_token(token, secret_key, token_type="refresh")
+        except Exception as e:
+            raise ValueError(f"Invalid token: {e}") from e
+
+        token_id = payload.get("jti")
+        if not token_id:
+            raise ValueError("Token does not contain jti claim")
+
+        user_id = int(payload["sub"])
+        expires_at = datetime.fromtimestamp(payload["exp"], tz=UTC)
+        now = datetime.now(UTC)
+
+        # Mark the issuance record revoked (if tracking is configured) so the
+        # token no longer counts as an active session.
+        if self._token_issuance_repository is not None:
+            self._token_issuance_repository.revoke_token(token_id, now)
+
+        blacklist_entry = TokenBlacklist(
+            token_id=token_id,
+            user_id=user_id,
+            expires_at=expires_at,
+            revoked_at=now,
             reason=reason,
         )
 
@@ -175,8 +270,11 @@ class AuthService:
         """Revoke all tokens for a user.
 
         This method revokes all active tokens by:
-        1. Marking all token issuances as revoked
-        2. Adding all token IDs to the blacklist
+        1. Adding all active token IDs to the blacklist
+        2. Marking all token issuances as revoked
+
+        Order matters - see the comment in the body about why the blacklist
+        step runs first.
 
         Args:
             user_id: ID of the user whose tokens to revoke.
@@ -185,16 +283,20 @@ class AuthService:
         Returns:
             Number of tokens revoked.
         """
-        revoked_count = 0
-        now = datetime.now(UTC)
-
-        # First, revoke all token issuances
-        if self._token_issuance_repository is not None:
-            revoked_count = self._token_issuance_repository.revoke_all_user_tokens(user_id, now)
-
-        # Also call the blacklist repository for backward compatibility
-        # (in case there are tokens not tracked in issuance table)
+        # Blacklist the user's active token IDs BEFORE marking the issuance
+        # records revoked. The blacklist implementation discovers active tokens
+        # by reading the issuance table (``revoked_at IS NULL``) - if we revoked
+        # the records first it would find nothing and no token IDs would be
+        # blacklisted, leaving access tokens and refresh replays usable at the
+        # JTI-checking endpoints despite the revoke-all. Marking the issuance
+        # records revoked afterwards is still done for session accounting.
         blacklist_count = self._token_blacklist_repository.revoke_all_user_tokens(user_id, reason)
+
+        revoked_count = 0
+        if self._token_issuance_repository is not None:
+            revoked_count = self._token_issuance_repository.revoke_all_user_tokens(
+                user_id, datetime.now(UTC)
+            )
 
         return max(revoked_count, blacklist_count)
 

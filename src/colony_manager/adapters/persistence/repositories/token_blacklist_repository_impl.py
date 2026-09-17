@@ -63,6 +63,25 @@ class SqlAlchemyTokenBlacklistRepository(TokenBlacklistRepository):
             result = session.execute(query)
             return result.scalar_one_or_none() is not None
 
+    def get(self, token_id: str) -> TokenBlacklist | None:
+        """Fetch a live blacklist entry by token ID (see port docstring)."""
+        with self._get_session() as session:
+            now = datetime.now(UTC)
+            query = select(TokenBlacklistORM).where(
+                TokenBlacklistORM.token_id == token_id,
+                TokenBlacklistORM.expires_at > now,
+            )
+            result = session.execute(query).scalar_one_or_none()
+            if result is None:
+                return None
+            return TokenBlacklist(
+                token_id=result.token_id,
+                user_id=result.user_id,
+                expires_at=result.expires_at,
+                revoked_at=result.revoked_at,
+                reason=result.reason,
+            )
+
     def revoke_all_user_tokens(self, user_id: int, reason: str | None = None) -> int:
         """Revoke all tokens for a user by adding them to blacklist.
 

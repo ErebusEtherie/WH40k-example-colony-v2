@@ -15,7 +15,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from colony_manager.adapters.api.dependencies import get_auth_service, get_user_repository
+from colony_manager.adapters.api.dependencies import (
+    get_auth_service,
+    get_user_repository,
+)
 from colony_manager.adapters.api.middleware.auth import (
     get_current_user_from_cookie,
     get_jwt_secret_key,
@@ -48,8 +51,6 @@ from colony_manager.domain.util.auth import (
 )
 from colony_manager.domain.util.token import (
     TokenError,
-    create_access_token,
-    create_refresh_token,
     verify_token,
 )
 
@@ -337,17 +338,23 @@ async def get_csrf_token(request: Request) -> JSONResponse:
 def refresh_token_endpoint(
     request: Request,
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> JSONResponse:
     """Refresh access token using refresh token from cookie.
-    
+
     The refresh token is automatically sent via HttpOnly cookie.
     Returns new access/refresh tokens as HttpOnly cookies.
-    
+
     This endpoint is public and does not require authentication.
-    
-    Security: Implements refresh token rotation - old refresh token is
-    invalidated when a new one is issued. If an old token is reused,
-    all sessions for that user should be invalidated (future enhancement).
+
+    Security: Implements refresh token rotation - the consumed refresh token is
+    revoked (blacklisted) when a new one is issued, so a stolen pre-rotation
+    cookie value is useless and the new pair is issuance-tracked
+    (``create_tokens_with_tracking``). When reuse detection is enabled
+    (``REFRESH_REUSE_DETECTION_ENABLED``), replaying an already-rotated token
+    additionally revokes the user's whole session family (see
+    ``AuthService.refresh_token_is_usable``); otherwise the replayed token is
+    rejected as revoked without escalating.
     """
     settings = get_security_settings()
     secret_key = get_jwt_secret_key()
@@ -364,6 +371,18 @@ def refresh_token_endpoint(
     try:
         payload = verify_token(refresh_token, secret_key, token_type="refresh")
         user_id = int(payload["sub"])
+        token_jti = payload.get("jti")
+
+        # Reject refresh tokens already revoked by rotation or logout, so a
+        # captured (rotated/revoked) cookie value can't mint a new session.
+        # ``refresh_token_is_usable`` also triggers reuse detection (revoking
+        # the user's whole session family) when a rotated token is replayed and
+        # the feature flag is on.
+        if token_jti and not auth_service.refresh_token_is_usable(token_jti, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has been revoked",
+            )
     except TokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -378,10 +397,15 @@ def refresh_token_endpoint(
             detail="User not found or deactivated",
         )
     
-    # Token rotation: issue new refresh token along with new access token
-    # This provides security by invalidating old refresh tokens after use
-    new_access_token = create_access_token(user, secret_key)
-    new_refresh_token = create_refresh_token(user, secret_key)
+    # Rotate: revoke the consumed refresh token so it can't be reused, then
+    # issue a new pair with issuance tracking (same as /login).
+    auth_service.revoke_refresh_token(refresh_token, secret_key, reason="rotation")
+    new_access_token, new_refresh_token = auth_service.create_tokens_with_tracking(
+        user=user,
+        secret_key=secret_key,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
     
     # Rotated tokens are delivered exclusively as HttpOnly cookies; never echo
     # them in the response body (same reasoning as on /login).
@@ -461,13 +485,14 @@ def revoke_token(
     current_user: Annotated[User, Depends(get_current_user_from_cookie)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> JSONResponse:
-    """Revoke current access token (logout).
+    """Revoke current session tokens (logout).
 
-    This endpoint adds the current token to the blacklist, preventing
-    further use even if the token hasn't expired yet.
+    This endpoint blacklists the current access token and the refresh token,
+    so the session cannot be resurrected via /auth/refresh after logout. Both
+    session cookies are cleared from the response.
 
     Uses cookie-based authentication for frontend compatibility.
-    The client should discard the token after calling this endpoint.
+    The client should discard the tokens after calling this endpoint.
     """
     # Get token from cookie (cookie-based auth for frontend)
     settings = get_security_settings()
@@ -488,6 +513,19 @@ def revoke_token(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         ) from e
+
+    # Revoke the refresh token server-side too, so the session can't be
+    # resurrected via /auth/refresh even if the cookie value was captured.
+    # Best-effort: an already-invalid/expired refresh token is fine — the
+    # access-token revocation above is the authoritative logout step.
+    refresh_token = request.cookies.get(settings.cookie_refresh_token_name)
+    if refresh_token:
+        try:
+            auth_service.revoke_refresh_token(
+                refresh_token, secret_key, reason=revoke_request.reason or "logout"
+            )
+        except ValueError:
+            pass
 
     # Create response
     response = JSONResponse(

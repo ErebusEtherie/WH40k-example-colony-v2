@@ -26,7 +26,7 @@ from colony_manager.domain.models.token_blacklist import TokenBlacklist
 from colony_manager.domain.models.token_issuance import TokenIssuance
 from colony_manager.domain.models.user import User, UserRole
 from colony_manager.domain.util.auth import hash_password
-from colony_manager.domain.util.token import create_access_token
+from colony_manager.domain.util.token import create_access_token, create_refresh_token
 
 
 def _create_db_url(tmp_path):
@@ -89,6 +89,86 @@ class TestAuthTokenRevocation:
             )
 
 
+class TestRefreshTokenRevocation:
+    """Tests for refresh-token revocation (rotation + logout)."""
+
+    def test_revoke_refresh_token_blacklists_it(self, tmp_path):
+        """Test that revoking a refresh token adds it to the blacklist."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="rotate_user")
+        token = create_refresh_token(user, secret_key=secret_key)
+
+        result = auth_service.revoke_refresh_token(token, secret_key, reason="rotation")
+
+        assert result is not None
+        assert result.user_id == user.id
+        assert result.reason == "rotation"
+
+        import jwt
+
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        assert blacklist_repo.is_blacklisted(payload["jti"]) is True
+
+    def test_revoke_refresh_token_marks_issuance_revoked(self, tmp_path):
+        """Test that revoking a refresh token marks its issuance record revoked."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        issuance_repo = SqlAlchemyTokenIssuanceRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+            token_issuance_repository=issuance_repo,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="rotate_tracked")
+        assert user.id is not None
+        token = create_refresh_token(user, secret_key=secret_key)
+
+        import jwt
+
+        token_id = jwt.decode(token, secret_key, algorithms=["HS256"])["jti"]
+        issuance_repo.create(
+            TokenIssuance(
+                user_id=user.id,
+                token_id=token_id,
+                token_type="refresh",
+                issued_at=datetime.now(UTC),
+                expires_at=datetime.now(UTC) + timedelta(days=7),
+                revoked_at=None,
+            )
+        )
+
+        auth_service.revoke_refresh_token(token, secret_key, reason="rotation")
+
+        active = issuance_repo.get_active_tokens(user.id)
+        assert all(t.token_id != token_id for t in active)
+
+    def test_revoke_invalid_refresh_token(self, tmp_path):
+        """Test that revoking an invalid refresh token raises an error."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+        )
+
+        with pytest.raises(ValueError, match="(?i)invalid"):
+            auth_service.revoke_refresh_token(
+                "invalid-token", secret_key="test-secret-key-for-testing-minimum-32-bytes"
+            )
+
+
 class TestBulkTokenRevocation:
     """Tests for bulk token revocation."""
 
@@ -139,6 +219,162 @@ class TestBulkTokenRevocation:
 
         count = auth_service.revoke_all_user_tokens(99999, reason="test")
         assert count == 0
+
+
+class TestRefreshReuseDetection:
+    """Tests for refresh-token reuse detection (family revocation on rotation replay).
+
+    When enabled, replaying a refresh token that was already consumed by rotation
+    is treated as a theft/replay and revokes the user's whole session family.
+    Reasons other than rotation (logout / admin / password change) are
+    intentional revocations and must never escalate into revoking other sessions.
+    """
+
+    def test_rotation_replay_revokes_whole_family(self, tmp_path):
+        """A rotated-then-replayed refresh token revokes the entire family."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        issuance_repo = SqlAlchemyTokenIssuanceRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+            token_issuance_repository=issuance_repo,
+            refresh_reuse_detection_enabled=True,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="reuse_user")
+        assert user.id is not None
+
+        # Three other live refresh sessions for the same user.
+        for i in range(3):
+            issuance_repo.create(
+                TokenIssuance(
+                    user_id=user.id,
+                    token_id=f"live-refresh-{i}",
+                    token_type="refresh",
+                    issued_at=datetime.now(UTC),
+                    expires_at=datetime.now(UTC) + timedelta(days=1),
+                    revoked_at=None,
+                    ip_address="192.168.1.1",
+                    user_agent="TestAgent/1.0",
+                )
+            )
+
+        # A refresh token that was already consumed by rotation (the replay).
+        stolen = create_refresh_token(user, secret_key=secret_key)
+        auth_service.revoke_refresh_token(stolen, secret_key, reason="rotation")
+        import jwt
+
+        stolen_jti = jwt.decode(stolen, secret_key, algorithms=["HS256"])["jti"]
+
+        # The replay is rejected AND the whole family is revoked.
+        assert auth_service.refresh_token_is_usable(stolen_jti, user.id) is False
+        for i in range(3):
+            assert blacklist_repo.is_blacklisted(f"live-refresh-{i}") is True
+        assert blacklist_repo.is_blacklisted(stolen_jti) is True
+
+    def test_logout_entry_rejected_without_family_revoke(self, tmp_path):
+        """An owner-revoked token (logout) is rejected without escalating."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        issuance_repo = SqlAlchemyTokenIssuanceRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+            token_issuance_repository=issuance_repo,
+            refresh_reuse_detection_enabled=True,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="logout_reuse_user")
+        assert user.id is not None
+
+        issuance_repo.create(
+            TokenIssuance(
+                user_id=user.id,
+                token_id="live-refresh-0",
+                token_type="refresh",
+                issued_at=datetime.now(UTC),
+                expires_at=datetime.now(UTC) + timedelta(days=1),
+                revoked_at=None,
+                ip_address="192.168.1.1",
+                user_agent="TestAgent/1.0",
+            )
+        )
+
+        revoked = create_refresh_token(user, secret_key=secret_key)
+        auth_service.revoke_refresh_token(revoked, secret_key, reason="logout")
+        import jwt
+
+        revoked_jti = jwt.decode(revoked, secret_key, algorithms=["HS256"])["jti"]
+
+        assert auth_service.refresh_token_is_usable(revoked_jti, user.id) is False
+        # Logout is intentional: the family must survive.
+        assert blacklist_repo.is_blacklisted("live-refresh-0") is False
+
+
+    def test_non_blacklisted_token_is_usable(self, tmp_path):
+        """A token with no blacklist entry remains usable."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+            refresh_reuse_detection_enabled=True,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="fresh_refresh_user")
+        token = create_refresh_token(user, secret_key=secret_key)
+        import jwt
+
+        token_jti = jwt.decode(token, secret_key, algorithms=["HS256"])["jti"]
+
+        assert auth_service.refresh_token_is_usable(token_jti, user.id) is True
+
+    def test_disabled_detection_does_not_revoke_family(self, tmp_path):
+        """With the flag off, a replayed rotated token is rejected but the family survives."""
+        db_url = _create_db_url(tmp_path)
+        user_repo = SqlAlchemyUserRepository(db_url)
+        blacklist_repo = SqlAlchemyTokenBlacklistRepository(db_url)
+        issuance_repo = SqlAlchemyTokenIssuanceRepository(db_url)
+        auth_service = AuthService(
+            token_blacklist_repository=blacklist_repo,
+            user_repository=user_repo,
+            token_issuance_repository=issuance_repo,
+            refresh_reuse_detection_enabled=False,
+        )
+        secret_key = "test-secret-key-for-testing-minimum-32-bytes"
+
+        user = _create_user(user_repo, username="legacy_reuse_user")
+        assert user.id is not None
+
+        issuance_repo.create(
+            TokenIssuance(
+                user_id=user.id,
+                token_id="live-refresh-0",
+                token_type="refresh",
+                issued_at=datetime.now(UTC),
+                expires_at=datetime.now(UTC) + timedelta(days=1),
+                revoked_at=None,
+                ip_address="192.168.1.1",
+                user_agent="TestAgent/1.0",
+            )
+        )
+
+        stolen = create_refresh_token(user, secret_key=secret_key)
+        auth_service.revoke_refresh_token(stolen, secret_key, reason="rotation")
+        import jwt
+
+        stolen_jti = jwt.decode(stolen, secret_key, algorithms=["HS256"])["jti"]
+
+        # Rejected (still revoked), but no family escalation.
+        assert auth_service.refresh_token_is_usable(stolen_jti, user.id) is False
+        assert blacklist_repo.is_blacklisted("live-refresh-0") is False
 
 
 class TestAccountLockout:

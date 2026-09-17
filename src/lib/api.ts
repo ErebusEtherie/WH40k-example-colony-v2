@@ -26,14 +26,13 @@ import type {
   ColonyTypeInfo,
   ModifierStat,
   InfrastructureState,
-  UserRole,
 } from '../types/colony';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1';
 
 // ============================================================================
 // Types (Backend API Schemas)
@@ -57,7 +56,6 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  role?: UserRole;
 }
 
 export interface ColonyCreate {
@@ -239,13 +237,33 @@ async function ensureCsrfToken(): Promise<string> {
 }
 
 /**
- * Internal fetch wrapper with authentication and error handling.
- * Uses HttpOnly cookies for authentication and CSRF tokens for state-changing requests.
+ * Normalize a request path to an absolute API URL.
+ *
+ * The API base URL already includes `/api/v1`, so a leading `/api/v1` passed
+ * by callers is stripped to avoid doubling it. Absolute http(s) URLs pass
+ * through untouched.
  */
-async function fetchApi<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+function toApiUrl(url: string): string {
+  if (url.startsWith('http')) {
+    return url;
+  }
+  let path = url;
+  if (path.startsWith('/api/v1')) {
+    path = path.slice('/api/v1'.length);
+  }
+  if (!path.startsWith('/')) {
+    path = `/${path}`;
+  }
+  return `${API_BASE_URL}${path}`;
+}
+
+/**
+ * Single shared request core used by fetchApi (the TanStack Query hooks) and
+ * apiFetch (legacy callers). Attaches credentials, the CSRF header on
+ * state-changing methods, and the 401 → refresh → retry-once flow — so all
+ * request plumbing lives in exactly one place.
+ */
+async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(options.headers as HeadersInit),
@@ -257,31 +275,47 @@ async function fetchApi<T>(
     (headers as Record<string, string>)['X-CSRF-Token'] = await ensureCsrfToken();
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(toApiUrl(endpoint), {
     ...options,
     headers,
     credentials: 'include', // Send cookies automatically for authentication
   });
 
+  // 401 → the access token may have expired. Attempt a single shared refresh
+  // (all concurrent 401s coalesce onto one in-flight /auth/refresh — required
+  // because the backend rotates the refresh cookie), then retry the request
+  // once with the fresh cookies.
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return apiRequest(endpoint, options);
+    }
+  }
+
+  return response;
+}
+
+/**
+ * Typed fetch wrapper with authentication and error handling.
+ * Uses HttpOnly cookies for authentication and CSRF tokens for state-changing requests.
+ */
+async function fetchApi<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const response = await apiRequest(endpoint, options);
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    
-    // Handle 401 - token expired, attempt refresh
+
     if (response.status === 401) {
-      try {
-        const refreshed = await refreshAccessToken();
-        if (refreshed) {
-          // Retry original request with refreshed cookies
-          return fetchApi<T>(endpoint, options);
-        }
-      } catch {
-        // Refresh failed - will be handled by caller (redirect to login)
-        throw new ApiError(
-          response.status,
-          'Session expired. Please log in again.',
-          errorData
-        );
-      }
+      // Refresh already failed inside apiRequest — surface a session-expired
+      // error so the shared 401 handling (clear session, redirect) can run.
+      throw new ApiError(
+        response.status,
+        'Session expired. Please log in again.',
+        errorData
+      );
     }
 
     throw new ApiError(
@@ -299,69 +333,48 @@ async function fetchApi<T>(
   return response.json();
 }
 
-// Session State Management
-// ============================================================================
-
-/**
- * Session storage key to track if user has authenticated in this session.
- * Used to distinguish between "never logged in" vs "session expired".
- */
-const SESSION_AUTH_FLAG = 'rt_session_auth';
-
-/**
- * Check if user has authenticated in this browser session.
- * @returns true if user has logged in during this session
- */
-function hasAuthenticatedThisSession(): boolean {
-  return sessionStorage.getItem(SESSION_AUTH_FLAG) === 'true';
-}
-
-/**
- * Mark that user has authenticated in this session.
- * Called after successful login.
- */
-function markAuthenticatedThisSession(): void {
-  sessionStorage.setItem(SESSION_AUTH_FLAG, 'true');
-}
-
-/**
- * Clear the authentication flag for this session.
- * Called on logout.
- */
-function clearSessionAuthFlag(): void {
-  sessionStorage.removeItem(SESSION_AUTH_FLAG);
-}
 // ============================================================================
 // Authentication Functions
 // ============================================================================
 
 /**
- * Refresh access token using refresh token cookie.
- * @returns true if successful, false otherwise
+ * In-flight refresh promise shared by concurrent 401 handlers. The backend
+ * rotates the refresh cookie on every /auth/refresh, so independent concurrent
+ * refreshes would race — the first succeeds and the rest fail on the
+ * already-rotated token. Coalescing onto one promise avoids that (per
+ * 07-frontend-architecture.md).
  */
-async function refreshAccessToken(): Promise<boolean> {
-  // Only attempt refresh if user has authenticated in this session
-  // Prevents unnecessary refresh calls on fresh sessions (never logged in)
-  if (!hasAuthenticatedThisSession()) {
-    return false;
-  }
+let refreshTokenPromise: Promise<boolean> | null = null;
 
+/**
+ * Perform the actual POST /auth/refresh round-trip.
+ * @returns true if refresh succeeded
+ */
+async function performRefresh(): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Send refresh token cookie
     });
-
-    if (!response.ok) {
-      throw new Error('Token refresh failed');
-    }
-
-    // New access/refresh tokens are set via HttpOnly cookies by the backend
-    return true;
+    return response.ok;
   } catch {
     return false;
   }
+}
+
+/**
+ * Refresh access token using refresh token cookie.
+ * Concurrent callers share a single in-flight refresh promise.
+ * @returns true if successful, false otherwise
+ */
+async function refreshAccessToken(): Promise<boolean> {
+  if (!refreshTokenPromise) {
+    refreshTokenPromise = performRefresh().finally(() => {
+      refreshTokenPromise = null;
+    });
+  }
+  return refreshTokenPromise;
 }
 
 /**
@@ -382,10 +395,6 @@ export async function loginApi(username: string, password: string): Promise<Auth
   // Fetch CSRF token for state-changing requests
   const csrfResponse = await fetchApi<{ csrf_token: string }>('/auth/csrf-token');
   setCsrfToken(csrfResponse.csrf_token);
-
-  // Mark that user has authenticated in this session
-  // This enables automatic token refresh on 401 for future requests
-  markAuthenticatedThisSession();
 
   // Authentication is carried by HttpOnly cookies; the FE only needs the user.
   return { user };
@@ -428,7 +437,6 @@ export async function logoutApi(): Promise<void> {
     // Ignore errors on logout - still clear local state
   }
   clearCsrfToken();
-  clearSessionAuthFlag();
 }
 
 // ============================================================================
@@ -1001,57 +1009,11 @@ export function useRepresentativeTypes() {
 }
 
 // ============================================================================
-// Legacy API Fetch (for backward compatibility during migration)
-// Returns Response object for compatibility with existing code
-// New code should use TanStack Query hooks instead
+// Legacy API Fetch
+// Returns a Response for existing callers. Shares the same request core
+// (apiRequest) as fetchApi, so credentials/CSRF/401-refresh are identical.
+// New code should use the TanStack Query hooks instead.
 // ============================================================================
 
-export const apiFetch = async (url: string, options?: RequestInit): Promise<Response> => {
-  // Determine if this is a full URL or just a path
-  // API_BASE_URL already includes '/api/v1', so we need to avoid duplicating it
-  let normalizedUrl = url;
-  
-  // Remove leading '/api/v1' if present, since API_BASE_URL already includes it
-  if (normalizedUrl.startsWith('/api/v1')) {
-    normalizedUrl = normalizedUrl.substring(8); // Remove '/api/v1'
-  }
-  
-  // Ensure the path starts with '/'
-  if (!normalizedUrl.startsWith('/')) {
-    normalizedUrl = '/' + normalizedUrl;
-  }
-  
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${normalizedUrl}`;
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(options?.headers as HeadersInit),
-  };
-
-  // Add CSRF token to state-changing requests
-  const method = (options?.method || 'GET').toUpperCase();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    (headers as Record<string, string>)['X-CSRF-Token'] = await ensureCsrfToken();
-  }
-
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers,
-    credentials: 'include', // Send cookies automatically for authentication
-  });
-
-  // Handle 401 - token expired, attempt refresh
-  if (!response.ok && response.status === 401) {
-    try {
-      const refreshed = await refreshAccessToken();
-      if (refreshed) {
-        // Retry original request with refreshed cookies
-        return apiFetch(url, options);
-      }
-    } catch {
-      // Refresh failed - will be handled by caller
-      clearCsrfToken();
-    }
-  }
-
-  return response;
-};
+export const apiFetch = async (url: string, options?: RequestInit): Promise<Response> =>
+  apiRequest(url, options);

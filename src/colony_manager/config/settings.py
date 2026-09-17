@@ -67,6 +67,17 @@ class SecuritySettings(BaseSettings):
         default="rt_refresh_token", description="Cookie name for refresh token"
     )
 
+    # Refresh-token reuse detection: when a refresh token that was already
+    # consumed by rotation is presented again (a plausible theft/replay), revoke
+    # the user's entire session family instead of just rejecting the one token.
+    # Off by default because it is an escalation decision - enable after
+    # confirming the behavior is wanted. See
+    # ``AuthService.refresh_token_is_usable``.
+    refresh_reuse_detection_enabled: bool = Field(
+        default=False,
+        description="Revoke the whole session family when a rotated refresh token is replayed",
+    )
+
     @field_validator("jwt_secret_key")
     @classmethod
     def validate_jwt_secret(cls, v: str) -> str:

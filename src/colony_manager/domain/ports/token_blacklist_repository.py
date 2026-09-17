@@ -39,6 +39,22 @@ class TokenBlacklistRepository(Protocol):
         """
         ...
 
+    def get(self, token_id: str) -> TokenBlacklist | None:
+        """Fetch a live blacklist entry by token ID.
+
+        Unlike ``is_blacklisted``, this exposes the entry itself (notably its
+        ``reason``), which the refresh endpoint uses to distinguish a token
+        revoked by rotation (replay → revoke the whole session family) from a
+        deliberate logout/revocation.
+
+        Args:
+            token_id: The JWT 'jti' claim value to look up.
+
+        Returns:
+            The non-expired blacklist entry, or None if there is none.
+        """
+        ...
+
     def revoke_all_user_tokens(self, user_id: int, reason: str | None = None) -> int:
         """Revoke all tokens for a user.
 

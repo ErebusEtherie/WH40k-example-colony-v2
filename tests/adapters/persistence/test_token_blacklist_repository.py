@@ -191,6 +191,60 @@ class TestTokenBlacklistRevokeAll:
         assert count == 0
 
 
+class TestTokenBlacklistGet:
+    """Tests for fetching a blacklist entry by token id."""
+
+    def test_get_existing_token(self, tmp_path):
+        """Test retrieving an existing non-expired blacklist entry."""
+        db_url = _create_db_url(tmp_path)
+        repo = SqlAlchemyTokenBlacklistRepository(db_url)
+
+        now = datetime.now(UTC)
+        entry = TokenBlacklist(
+            token_id="get-existing",
+            user_id=1,
+            expires_at=now + timedelta(hours=1),
+            revoked_at=now,
+            reason="rotation",
+        )
+        repo.create(entry)
+
+        found = repo.get("get-existing")
+
+        assert found is not None
+        assert found.token_id == "get-existing"
+        assert found.user_id == 1
+        assert found.reason == "rotation"
+
+    def test_get_nonexistent_token(self, tmp_path):
+        """Test retrieving a token with no blacklist entry returns None."""
+        db_url = _create_db_url(tmp_path)
+        repo = SqlAlchemyTokenBlacklistRepository(db_url)
+
+        assert repo.get("no-such-token") is None
+
+    def test_get_expired_token_returns_none(self, tmp_path):
+        """Test retrieving an expired blacklist entry returns None.
+
+        Mirrors ``is_blacklisted``: an expired entry no longer counts as a
+        live revocation, so it must not be reported as one.
+        """
+        db_url = _create_db_url(tmp_path)
+        repo = SqlAlchemyTokenBlacklistRepository(db_url)
+
+        now = datetime.now(UTC)
+        entry = TokenBlacklist(
+            token_id="get-expired",
+            user_id=1,
+            expires_at=now - timedelta(days=1),
+            revoked_at=now - timedelta(days=2),
+            reason="rotation",
+        )
+        repo.create(entry)
+
+        assert repo.get("get-expired") is None
+
+
 class TestTokenBlacklistCleanup:
     """Tests for cleaning up expired blacklist entries."""
 
