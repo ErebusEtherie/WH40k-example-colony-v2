@@ -307,6 +307,11 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+# Local cookie jar created by documented curl auth-testing workflow (README)
+# Contains live session tokens — must never be committed.
+cookies.txt
+dy
+
 # Test artifacts (keep test code, not outputs)
 # Note: coverage/, .coverage, htmlcov/ already ignored in Python section above
 test_*.txt
