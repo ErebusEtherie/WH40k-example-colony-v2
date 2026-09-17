@@ -136,4 +136,43 @@ describe("LoginScreen without VITE_DEV_MODE", () => {
     ).toBeInTheDocument();
     expect(onLogin).not.toHaveBeenCalled();
   });
+
+  it("shows the credential error, not a session-expired message, on a login 401", async () => {
+    // With login 401s treated as credential rejections in the shared layer
+    // (skipAuthRefresh), a wrong password surfaces the backend's real message
+    // and never enters the refresh-retry machinery — so this mapping is safely
+    // testable here via MSW rather than only in the real-browser E2E suite.
+    let refreshCalls = 0;
+    server.use(
+      http.post("*/api/v1/auth/login", () =>
+        HttpResponse.json(
+          { detail: "Invalid username or password" },
+          { status: 401 }
+        )
+      ),
+      http.post("*/api/v1/auth/refresh", () => {
+        refreshCalls += 1;
+        return HttpResponse.json({ message: "refreshed" });
+      })
+    );
+
+    const onLogin = vi.fn();
+    render(<LoginScreen onLogin={onLogin} />);
+    fireEvent.change(screen.getByLabelText(/Rogue Trader ID/i), {
+      target: { value: "LordCaptain" },
+    });
+    fireEvent.change(screen.getByLabelText(/Authentication Key/i), {
+      target: { value: "wrongpassword" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Access Colonial Registry/i })
+    );
+
+    expect(
+      await screen.findByText("Invalid username or password")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Session expired/i)).not.toBeInTheDocument();
+    expect(onLogin).not.toHaveBeenCalled();
+    expect(refreshCalls).toBe(0);
+  });
 });

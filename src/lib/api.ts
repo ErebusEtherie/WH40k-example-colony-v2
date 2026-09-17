@@ -258,25 +258,45 @@ function toApiUrl(url: string): string {
 }
 
 /**
+ * Options for the shared request core. Extends fetch's RequestInit with one
+ * internal flag consumed by the 401-refresh logic (never spread into fetch).
+ */
+type ApiRequestOptions = RequestInit & {
+  /**
+   * True for requests that carry no established session to refresh (login /
+   * register). A 401 on those means "credentials rejected", not "session
+   * expired": skip the refresh-retry and surface the backend's real message.
+   */
+  skipAuthRefresh?: boolean;
+};
+
+
+/**
  * Single shared request core used by fetchApi (the TanStack Query hooks) and
  * apiFetch (legacy callers). Attaches credentials, the CSRF header on
  * state-changing methods, and the 401 → refresh → retry-once flow — so all
  * request plumbing lives in exactly one place.
  */
-async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
+async function apiRequest(
+  endpoint: string,
+  options: ApiRequestOptions = {}
+): Promise<Response> {
+  // skipAuthRefresh is consumed here and never spread into fetch.
+  const { skipAuthRefresh = false, ...fetchOptions } = options;
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(options.headers as HeadersInit),
+    ...(fetchOptions.headers as HeadersInit),
   };
 
   // Add CSRF token to state-changing requests
-  const method = (options.method || 'GET').toUpperCase();
+  const method = (fetchOptions.method || 'GET').toUpperCase();
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     (headers as Record<string, string>)['X-CSRF-Token'] = await ensureCsrfToken();
   }
 
   const response = await fetch(toApiUrl(endpoint), {
-    ...options,
+    ...fetchOptions,
     headers,
     credentials: 'include', // Send cookies automatically for authentication
   });
@@ -285,7 +305,11 @@ async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<
   // (all concurrent 401s coalesce onto one in-flight /auth/refresh — required
   // because the backend rotates the refresh cookie), then retry the request
   // once with the fresh cookies.
-  if (response.status === 401) {
+  //
+  // Requests flagged skipAuthRefresh (login/register) are exempt: a 401 there
+  // is a credential rejection, not an expiry, so refreshing would be wasteful
+  // and would mislabel the real error (see the 401 branch in fetchApi).
+  if (response.status === 401 && !skipAuthRefresh) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       return apiRequest(endpoint, options);
@@ -301,16 +325,21 @@ async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<
  */
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: ApiRequestOptions = {}
 ): Promise<T> {
   const response = await apiRequest(endpoint, options);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
 
-    if (response.status === 401) {
-      // Refresh already failed inside apiRequest — surface a session-expired
-      // error so the shared 401 handling (clear session, redirect) can run.
+    // For session-carrying requests, a 401 that already failed refresh is an
+    // expired session — surface a standardized message so the shared 401
+    // handling (clear session, redirect) can run.
+    // Requests flagged skipAuthRefresh (login/register) fall through instead:
+    // their 401 is a credential rejection, so the backend's real message
+    // (e.g. "Invalid username or password") is preserved rather than
+    // mislabeled as a session expiry.
+    if (response.status === 401 && !options.skipAuthRefresh) {
       throw new ApiError(
         response.status,
         'Session expired. Please log in again.',
@@ -383,10 +412,14 @@ async function refreshAccessToken(): Promise<boolean> {
  */
 export async function loginApi(username: string, password: string): Promise<AuthSession> {
   // Login sets HttpOnly cookies on the response; the body only carries a
-  // success message (no tokens returned, per cookie-only auth).
+  // success message (no tokens returned, per cookie-only auth). Login carries
+  // no established session, so a 401 here is a credential rejection, not an
+  // expiry — skip the refresh-retry and surface the backend's real message
+  // (skipAuthRefresh).
   await fetchApi<{ message: string }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
+    skipAuthRefresh: true,
   });
 
   // Fetch current user info (authentication via cookies)
@@ -406,10 +439,13 @@ export async function loginApi(username: string, password: string): Promise<Auth
  */
 export async function registerApi(data: RegisterRequest): Promise<AuthSession> {
   // Register returns the created user (UserResponse); auth is cookie-based and
-  // no tokens are ever returned in the body.
+  // no tokens are ever returned in the body. Same rationale as login:
+  // registration has no session yet, so a 401 there is a rejection (e.g. a
+  // duplicate/invalid account), not an expiry.
   const created = await fetchApi<User>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
+    skipAuthRefresh: true,
   });
 
   // Fetch current user info (authentication via cookies)

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "./msw/server";
-import { apiFetch } from "../lib/api";
+import { apiFetch, loginApi } from "../lib/api";
 
 /**
  * Request-layer tests for the shared API core in src/lib/api.ts.
@@ -68,6 +68,34 @@ describe("API request core - 401 refresh handling", () => {
 
     expect(response.status).toBe(401);
     expect(refreshCalls).toBe(1);
+  });
+
+  it("surfaces the real credential error on a login 401 and never refreshes", async () => {
+    let refreshCalls = 0;
+
+    server.use(
+      http.post("*/api/v1/auth/login", () =>
+        HttpResponse.json(
+          { detail: "Invalid username or password" },
+          { status: 401 }
+        )
+      ),
+      http.post("*/api/v1/auth/refresh", () => {
+        refreshCalls += 1;
+        return HttpResponse.json({ message: "refreshed" });
+      })
+    );
+
+    // A login 401 is a credential rejection (skipAuthRefresh), not a session
+    // expiry: it must surface the backend's message and never enter the
+    // refresh-retry machinery (there is no session to refresh yet).
+    await expect(loginApi("LordCaptain", "wrongpassword")).rejects.toMatchObject(
+      {
+        status: 401,
+        message: "Invalid username or password",
+      }
+    );
+    expect(refreshCalls).toBe(0);
   });
 
   it("strips a redundant /api/v1 prefix from legacy apiFetch paths", async () => {
