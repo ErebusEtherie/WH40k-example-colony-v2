@@ -1015,16 +1015,7 @@ export function App() {
               representative={currentRep}
               infrastructures={colonyInfrastructures}
               upgrades={colonyUpgrades}
-              modifiers={colonyModifiers}
               resources={colonyResources}
-              plans={colonyPlans}
-              onOpenEditCharter={() => setIsEditCharterOpen(true)}
-              onOpenCommissionRepresentative={() => setIsCommissionRepOpen(true)}
-              onOpenReassignRepresentative={() => setIsReassignRepOpen(true)}
-              onOpenAddPlan={() => setIsAddBlueprintOpen(true)}
-              onOpenAddModifier={() => setIsAddModifierOpen(true)}
-              onOpenLogResource={() => setIsLogResourceOpen(true)}
-              onToggleModifier={handleToggleModifier}
               onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
@@ -1033,15 +1024,11 @@ export function App() {
             <ColonyDetailsView
               colony={currentColony}
               stats={colonyStats}
-              infrastructures={colonyInfrastructures}
-              upgrades={colonyUpgrades}
               modifiers={colonyModifiers}
               resources={colonyResources}
-              plans={colonyPlans}
               representative={currentRep}
               onOpenAddModifier={() => setIsAddModifierOpen(true)}
               onOpenLogResource={() => setIsLogResourceOpen(true)}
-              onOpenAddBlueprint={() => setIsAddBlueprintOpen(true)}
               onToggleModifier={handleToggleModifier}
               onDeleteModifier={handleDeleteModifier}
               onDeleteResource={handleDeleteResource}
@@ -1052,7 +1039,6 @@ export function App() {
 
           {activeTab === "infrastructure" && (
             <InfrastructurePlansView
-              colony={currentColony}
               stats={colonyStats}
               infrastructures={colonyInfrastructures}
               upgrades={colonyUpgrades}

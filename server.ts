@@ -230,21 +230,6 @@ function authenticateToken(req: Request, res: Response, next: NextFunction): voi
   }
 }
 
-function parseTokenUser(req: Request): { sub: string; username: string; role: string } | null {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader?.split(" ")[1];
-  if (!token || db.tokenBlacklist.has(token)) return null;
-  try {
-    return jwt.verify(token, JWT_SECRET) as any;
-  } catch {
-    return null;
-  }
-}
-
-function getActor(req: Request, fallback: string = "Commander"): string {
-  const user = parseTokenUser(req);
-  return user?.username || fallback;
-}
 
 // Log audit trail
 function logAudit(

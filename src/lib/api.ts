@@ -684,7 +684,7 @@ export function useDeleteInfrastructure() {
       fetchApi<void>(`/infrastructure/${infrastructureId}`, {
         method: 'DELETE',
       }),
-    onSuccess: (_, infrastructureId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['infrastructure'] });
     },
   });
@@ -747,7 +747,7 @@ export function useDeleteSupportUpgrade() {
       fetchApi<void>(`/upgrades/${upgradeId}`, {
         method: 'DELETE',
       }),
-    onSuccess: (_, upgradeId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['upgrades'] });
     },
   });
@@ -810,7 +810,7 @@ export function useDeleteModifier() {
       fetchApi<void>(`/modifiers/${modifierId}`, {
         method: 'DELETE',
       }),
-    onSuccess: (_, modifierId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['modifiers'] });
     },
   });
@@ -870,7 +870,7 @@ export function useDeleteResource() {
       fetchApi<void>(`/resources/${resourceId}`, {
         method: 'DELETE',
       }),
-    onSuccess: (_, resourceId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
     },
   });

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
   Colony,
-  Infrastructure,
-  SupportUpgrade,
   Representative,
   Modifier,
   ColonyResource,
@@ -21,9 +19,6 @@ import {
 interface ColonyDetailsViewProps {
   colony: Colony;
   stats: ColonyStatsBreakdown;
-  infrastructures?: Infrastructure[];
-  upgrades?: SupportUpgrade[];
-  plans?: any[];
   representative: Representative | null;
   modifiers: Modifier[];
   resources: ColonyResource[];
@@ -32,7 +27,6 @@ interface ColonyDetailsViewProps {
   onOpenReassignRep?: () => void;
   onOpenAddModifier: () => void;
   onOpenLogResource: () => void;
-  onOpenAddBlueprint?: () => void;
   onDeleteModifier: (id: string) => void;
   onToggleModifier: (id: string, active: boolean) => void;
   onDeleteResource: (id: string) => void;
@@ -45,9 +39,6 @@ interface ColonyDetailsViewProps {
 export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
   colony,
   stats,
-  infrastructures = [],
-  upgrades = [],
-  plans = [],
   representative,
   modifiers,
   resources,
@@ -56,7 +47,6 @@ export const ColonyDetailsView: React.FC<ColonyDetailsViewProps> = ({
   onOpenReassignRep,
   onOpenAddModifier,
   onOpenLogResource,
-  onOpenAddBlueprint,
   onDeleteModifier,
   onToggleModifier,
   onDeleteResource,

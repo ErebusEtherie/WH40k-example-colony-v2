@@ -6,7 +6,6 @@ import {
   Modifier,
   ColonyResource,
   DevelopmentPlan,
-  ColonyEvent,
 } from "../types/colony";
 
 export const INITIAL_COLONIES: Colony[] = [

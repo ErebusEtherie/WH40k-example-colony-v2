@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Terminal, Play, CheckCircle2, AlertCircle, Shield, Key } from "lucide-react";
+import { Terminal, Play, CheckCircle2, AlertCircle } from "lucide-react";
 import { apiFetch } from "../lib/api";
 
 export const ApiExplorer: React.FC = () => {

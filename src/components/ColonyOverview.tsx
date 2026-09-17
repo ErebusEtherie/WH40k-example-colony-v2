@@ -4,9 +4,7 @@ import {
   Infrastructure,
   SupportUpgrade,
   Representative,
-  Modifier,
   ColonyResource,
-  DevelopmentPlan,
   ColonyStatsBreakdown,
 } from "../types/colony";
 import { formatFoundingAge } from "../lib/chronometer";
@@ -31,16 +29,7 @@ interface ColonyOverviewProps {
   infrastructures: Infrastructure[];
   upgrades: SupportUpgrade[];
   representative: Representative | null;
-  modifiers: Modifier[];
   resources: ColonyResource[];
-  plans?: DevelopmentPlan[];
-  onOpenEditCharter?: () => void;
-  onOpenCommissionRepresentative?: () => void;
-  onOpenReassignRepresentative?: () => void;
-  onOpenAddPlan?: () => void;
-  onOpenAddModifier?: () => void;
-  onOpenLogResource?: () => void;
-  onToggleModifier?: (id: string, active: boolean) => void;
   onNavigateTab: (tab: any) => void;
 }
 type ColonyStateFlags = ColonyStatsBreakdown["states"];
@@ -66,16 +55,7 @@ export const ColonyOverview: React.FC<ColonyOverviewProps> = ({
   infrastructures,
   upgrades,
   representative,
-  modifiers,
   resources,
-  plans = [],
-  onOpenEditCharter,
-  onOpenCommissionRepresentative,
-  onOpenReassignRepresentative,
-  onOpenAddPlan,
-  onOpenAddModifier,
-  onOpenLogResource,
-  onToggleModifier,
   onNavigateTab,
 }) => {
   const age = formatFoundingAge(colony.founding_days || 0);

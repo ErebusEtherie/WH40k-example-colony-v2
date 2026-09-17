@@ -56,8 +56,8 @@ export const calculateColonyState = (
   infrastructures: Infrastructure[],
   upgrades: SupportUpgrade[],
   representative: Representative | null,
-  modifiers: Modifier[],
-  resources: ColonyResource[]
+  _modifiers: Modifier[],
+  _resources: ColonyResource[]
 ): ColonyStatsBreakdown => {
   // STUB IMPLEMENTATION
   // TODO: Implement full rule engine per config/rule_tables.yaml

@@ -171,7 +171,7 @@
           "authentication"
         ],
         "summary": "Refresh Token Endpoint",
-        "description": "Refresh access token using refresh token from cookie.\n\nThe refresh token is automatically sent via HttpOnly cookie.\nReturns new access/refresh tokens as HttpOnly cookies.\n\nThis endpoint is public and does not require authentication.\n\nSecurity: Implements refresh token rotation - old refresh token is\ninvalidated when a new one is issued. If an old token is reused,\nall sessions for that user should be invalidated (future enhancement).",
+        "description": "Refresh access token using refresh token from cookie.\n\nThe refresh token is automatically sent via HttpOnly cookie.\nReturns new access/refresh tokens as HttpOnly cookies.\n\nThis endpoint is public and does not require authentication.\n\nSecurity: Implements refresh token rotation - the consumed refresh token is\nrevoked (blacklisted) when a new one is issued, so a stolen pre-rotation\ncookie value is useless and the new pair is issuance-tracked\n(``create_tokens_with_tracking``). When reuse detection is enabled\n(``REFRESH_REUSE_DETECTION_ENABLED``), replaying an already-rotated token\nadditionally revokes the user's whole session family (see\n``AuthService.refresh_token_is_usable``); otherwise the replayed token is\nrejected as revoked without escalating.",
         "operationId": "refresh_token_endpoint_api_v1_auth_refresh_post",
         "responses": {
           "200": {
@@ -263,7 +263,7 @@
           "authentication"
         ],
         "summary": "Revoke Token",
-        "description": "Revoke current access token (logout).\n\nThis endpoint adds the current token to the blacklist, preventing\nfurther use even if the token hasn't expired yet.\n\nUses cookie-based authentication for frontend compatibility.\nThe client should discard the token after calling this endpoint.",
+        "description": "Revoke current session tokens (logout).\n\nThis endpoint blacklists the current access token and the refresh token,\nso the session cannot be resurrected via /auth/refresh after logout. Both\nsession cookies are cleared from the response.\n\nUses cookie-based authentication for frontend compatibility.\nThe client should discard the tokens after calling this endpoint.",
         "operationId": "revoke_token_api_v1_auth_revoke_post",
         "requestBody": {
           "content": {
@@ -7223,21 +7223,6 @@
             "description": "Password (min 8 chars, must contain uppercase, lowercase, number, and special char)",
             "examples": [
               "SecureP@ss123"
-            ]
-          },
-          "role": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role",
-            "description": "Optional role for testing (defaults to VIEWER). Options: viewer, colony_manager, admin",
-            "examples": [
-              "viewer"
             ]
           }
         },

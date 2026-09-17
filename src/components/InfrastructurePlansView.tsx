@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Colony,
   Infrastructure,
   SupportUpgrade,
   DevelopmentPlan,
@@ -9,20 +8,11 @@ import {
 import {
   Layers,
   Plus,
-  Edit2,
   Trash2,
-  AlertTriangle,
-  CheckCircle2,
   ArrowUpRight,
-  TrendingUp,
-  Flame,
-  Shield,
-  Smile,
-  ShieldCheck,
 } from "lucide-react";
 
 interface InfrastructurePlansViewProps {
-  colony: Colony;
   stats: ColonyStatsBreakdown;
   infrastructures: Infrastructure[];
   upgrades: SupportUpgrade[];
@@ -39,7 +29,6 @@ interface InfrastructurePlansViewProps {
 }
 
 export const InfrastructurePlansView: React.FC<InfrastructurePlansViewProps> = ({
-  colony,
   stats,
   infrastructures,
   upgrades,

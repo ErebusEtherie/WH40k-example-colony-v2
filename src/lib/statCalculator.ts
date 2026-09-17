@@ -30,9 +30,9 @@ const createStubStatBreakdown = (baseValue: number, sourceName: string): StatBre
 export const calculateColonyStats = (
   colony: Colony,
   representatives: Representative[],
-  infrastructures: Infrastructure[],
-  upgrades: SupportUpgrade[],
-  modifiers: Modifier[]
+  _infrastructures: Infrastructure[],
+  _upgrades: SupportUpgrade[],
+  _modifiers: Modifier[]
 ): ColonyStatsBreakdown => {
   // STUB IMPLEMENTATION - returns base colony stats with minimal breakdown
   // Real implementation should call backend API endpoint /colonies/{id}/state

@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "generate:types": "openapi-typescript http://localhost:8000/openapi.json -o src/types/api.d.ts"
+    "generate:types": "openapi-typescript docs/api/openapi.json -o src/types/api.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
@@ -50,7 +50,7 @@
     "oxlint": "^1.83.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2",
+    "typescript": "~5.9.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
   }
