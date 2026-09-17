@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import type { ColonyTypeInfo } from "../../types/colony";
+import type { ColonyTypeInfo, User } from "../../types/colony";
 
 /**
  * Colony-type payload fixtures for the New Colony modal tests.
@@ -87,4 +87,39 @@ export const COLONY_TYPE_FIXTURES: ColonyTypeInfo[] = [
 export const colonyTypesHandler = http.get(
   "*/api/v1/config/colony-types",
   () => HttpResponse.json(COLONY_TYPE_FIXTURES)
+);
+
+/**
+ * Authenticated-user payload for the LoginScreen tests. Mirrors the shape served
+ * by GET /auth/me so the login flow exercises the real loginApi round-trip
+ * (login → me → csrf-token) through MSW rather than mocking the hook.
+ */
+export const AUTH_USER_FIXTURE: User = {
+  id: "user-lord-captain",
+  username: "LordCaptain",
+  email: "lordcaptain@vheiler.example",
+  role: "colony_manager",
+  created_at: "2026-01-01T00:00:00Z",
+};
+
+/**
+ * POST /auth/login. loginApi only inspects the 2xx status; the body is
+ * informational. Tests that need to capture the request payload or simulate
+ * failure override this with server.use().
+ */
+export const authLoginHandler = http.post(
+  "*/api/v1/auth/login",
+  () => HttpResponse.json({ message: "Login successful" })
+);
+
+/** GET /auth/me — the session handshake that follows a successful login. */
+export const authMeHandler = http.get(
+  "*/api/v1/auth/me",
+  () => HttpResponse.json(AUTH_USER_FIXTURE)
+);
+
+/** GET /auth/csrf-token — fetched by loginApi immediately after /auth/me. */
+export const authCsrfTokenHandler = http.get(
+  "*/api/v1/auth/csrf-token",
+  () => HttpResponse.json({ csrf_token: "test-csrf-token" })
 );
