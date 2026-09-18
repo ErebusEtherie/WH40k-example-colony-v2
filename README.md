@@ -7,7 +7,7 @@
 [![Tests](https://img.shields.io/badge/tests-772%20passing-green.svg)](TESTING_TODO.md)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-black.svg)](https://github.com/astral-sh/ruff)
 [![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docs/QUICK_DEPLOYMENT.md)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docs/deployment.md)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-github%20actions-orange.svg)](.github/workflows/ci-cd.yml)
 
 ---
@@ -143,8 +143,8 @@ npm install
 uv run uvicorn colony_manager.adapters.api.app:create_app --factory --reload
 ```
 
-- Backend API: http://localhost:8000
-- API docs (Swagger UI, cookie-based auth): http://localhost:8000/docs
+- Backend API: <http://localhost:8000>
+- API docs (Swagger UI, cookie-based auth): <http://localhost:8000/docs>
 
 The SQLite database is created at `./colony_manager.sqlite` on first startup.
 
@@ -168,7 +168,7 @@ The SQLite database is created at `./colony_manager.sqlite` on first startup.
 npm run dev:app
 ```
 
-- Frontend: http://localhost:3000 (Vite dev server)
+- Frontend: <http://localhost:3000> (Vite dev server)
 
 > **Which dev script is which**
 >
@@ -246,7 +246,7 @@ creation). Which you need depends on what you want to test:
 4. **Add infrastructure**: `POST /api/v1/colonies/{id}/infrastructure`
 5. **Assign a representative**: `POST /api/v1/representatives/{id}/assign`
 
-See the [API Reference](docs/api_reference.md) for detailed examples.
+See the [API Guide](docs/api.md) for detailed examples.
 
 ---
 
@@ -342,51 +342,41 @@ Interactive API documentation is available at:
 - **Swagger UI**: <http://localhost:8000/docs>
 - **ReDoc**: <http://localhost:8000/redoc>
 
-Complete API reference: [API Reference](docs/api_reference.md)
+Complete API reference: [`docs/api.md`](docs/api.md) (authoritative schema: `docs/api/openapi.json`)
 
 ---
 
 ## Documentation
 
-### Core Documentation
+Full index: [`docs/README.md`](docs/README.md). Key documents:
 
 | Document | Description |
 |----------|-------------|
-| [Business Analysis](docs/business_analysis.md) | Domain rules and game mechanics (single source of truth) |
+| [Business Analysis](docs/business_analysis.md) | Game rules & calculations (single source of truth) |
+| [Rules Reference](docs/colony-manager-rules-reference.md) | Rulebook reference |
 | [Architecture](docs/architecture.md) | System architecture and design decisions |
-| [API Reference](docs/api_reference.md) | Complete API reference with examples |
-| [UI Design System](docs/UI_DESIGN_SYSTEM.md) | Frontend design system and component library |
-| [Frontend Requirements](docs/FRONTEND_REQUIREMENTS.md) | Frontend integration guide |
-
-### Deployment & Operations
-
-| Document | Description |
-|----------|-------------|
-| [Quick Deployment](docs/QUICK_DEPLOYMENT.md) | **START HERE** — One-page deployment reference |
-| [CI/CD Infrastructure](docs/CICD_INFRASTRUCTURE.md) | Complete Docker, Portainer, GitHub Actions guide |
-| [Mini-PC Checklist](docs/DEPLOYMENT_CHECKLIST_MINI_PC.md) | Mini-PC/Portainer deployment checklist |
-| [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md) | Traditional deployment guide |
-| [Deployment Status](docs/DEPLOYMENT_STATUS.md) | Current deployment readiness |
+| [Domain Model](docs/domain-model.md) | Entities, stats, lore states, Profit Factor |
+| [API Guide](docs/api.md) | Compact endpoint map (authoritative: `docs/api/openapi.json`) |
+| [Frontend Architecture](docs/frontend-architecture.md) | Frontend stack and API integration |
+| [Configuration](docs/configuration.md) | YAML rule tables + environment variables |
+| [Deployment](docs/deployment.md) | Docker / bare deployment guide |
 | [Security Configuration](docs/SECURITY_CONFIGURATION.md) | Security hardening guide |
-| [Configuration](docs/configuration.md) | Environment and app configuration |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
+| [UI Design System](docs/UI_DESIGN_SYSTEM.md) | Mechanicum design system and components |
+| [Testing](docs/testing.md) | Backend + frontend test strategy |
 
 ### Project Management
 
 | Document | Description |
 |----------|-------------|
-| [Roadmap](docs/ROADMAP.md) | Project roadmap and future phases |
 | [Testing TODO](TESTING_TODO.md) | Test coverage and strategy |
-| [API TODO](docs/API_TODO.md) | API development tracking |
 | [Scope Clarifications](docs/SCOPE_CLARIFICATIONS.md) | Important scope boundaries |
-| [Quality Report](docs/SONARQUBE_REPORT.md) | Code quality metrics |
 
 ### Archived Documents
 
-Historical documents moved to [`docs/archive/`](docs/archive/):
-
-- UI Visualization Prompt (external mockup reference)
-- Agent Briefing (AI onboarding — see `.clinerules/` for current guidelines)
+Historical documents moved to [`docs/archive/`](docs/archive/) — including the
+former API / deployment / planning docs. Kept for history; see
+`docs/README.md` for the current set.
 
 ---
 

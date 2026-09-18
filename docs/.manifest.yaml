@@ -1,0 +1,158 @@
+# docs/.manifest.yaml
+# AI-readable index of the documentation tree.
+#
+# Paths are relative to docs/ unless written as ../. Read this file (or a
+# single matching section) before reading any doc in full; it maps each doc
+# to what it covers and when it is relevant. This is the first stop for
+# "where do I look?" questions — see .clinerules/10-context-budget.md.
+
+project:
+  name: WH40k Colony Manager
+  type: web-application
+  primary_language: python
+  backend_framework: fastapi
+  frontend_framework: react
+  docs_index: README.md
+  engineering_rules: .clinerules/
+
+sections:
+  - id: index
+    path: README.md
+    summary: "Single index of docs/; sources of truth and per-topic pointers"
+    relevance: ["navigation", "onboarding"]
+    estimated_read_time: 3
+
+  - id: project-overview
+    path: project-overview.md
+    summary: "What it is, scope (tracking, not automation), stack, architecture at a glance"
+    relevance: ["new-contributors", "onboarding"]
+    estimated_read_time: 8
+
+  - id: scope
+    path: SCOPE_CLARIFICATIONS.md
+    summary: "Scope and non-goals; what the tool explicitly does not do"
+    relevance: ["scope-decisions", "feature-proposals"]
+    estimated_read_time: 5
+
+  - id: architecture
+    path: architecture.md
+    summary: "Layering (adapters -> application -> domain), dependency direction, three model families, rule engine"
+    relevance: ["backend-work", "refactoring", "new-features"]
+    estimated_read_time: 10
+
+  - id: domain
+    path: domain-model.md
+    summary: "Entities, stat system, lore states, Profit Factor, rule tables as implemented"
+    relevance: ["domain-changes", "stat-calculations", "modifiers"]
+    estimated_read_time: 12
+    children:
+      - id: game-rules-authoritative
+        path: business_analysis.md
+        summary: "AUTHORITATIVE game rules; wins any disagreement"
+        relevance: ["rule-verification", "domain-changes"]
+      - id: rulebook-reference
+        path: colony-manager-rules-reference.md
+        summary: "Rogue Trader rulebook reference data"
+        relevance: ["rule-lookup"]
+      - id: configuration
+        path: configuration.md
+        summary: "YAML rule tables (config/) and environment variables"
+        relevance: ["balance-changes", "config-changes"]
+
+  - id: api
+    path: api.md
+    summary: "Compact endpoint map; details in openapi.json / Swagger"
+    relevance: ["api-changes", "frontend-integration"]
+    estimated_read_time: 8
+    children:
+      - id: openapi-spec
+        path: api/openapi.json
+        summary: "Complete generated API specification (do not hand-edit)"
+        format: openapi
+
+  - id: persistence
+    path: persistence.md
+    summary: "SQLite schema, repositories, mappers, Alembic migrations, import/export"
+    relevance: ["storage", "migrations", "repositories"]
+    estimated_read_time: 12
+
+  - id: frontend
+    path: frontend-architecture.md
+    summary: "Frontend stack, API client, auth/CSRF/SSE, state, styling"
+    relevance: ["frontend-work", "ui-integration"]
+    estimated_read_time: 12
+    children:
+      - id: frontend-testing
+        path: frontend-testing.md
+        summary: "Vitest / React Testing Library / MSW / Playwright details"
+        relevance: ["frontend-tests"]
+
+  - id: testing
+    path: testing.md
+    summary: "Backend + frontend test strategy, contract testing, property-based tests"
+    relevance: ["testing", "test-creation"]
+    estimated_read_time: 8
+
+  - id: ui
+    path: UI_DESIGN_SYSTEM.md
+    summary: "Mechanicum design system (--mech-* variables, components, fonts)"
+    relevance: ["ui-styling", "frontend-work"]
+    estimated_read_time: 10
+    children:
+      - id: ui-requirements
+        path: UI_REQ/SUMMARY.md
+        summary: "Per-screen UI requirements; quick-reference index of UI_REQ/"
+        relevance: ["ui-feature-work"]
+
+  - id: deployment
+    path: deployment.md
+    summary: "Docker/bare deployment, images, proxy, update/rollback"
+    relevance: ["deployment", "operations"]
+    estimated_read_time: 10
+
+  - id: security
+    path: SECURITY_CONFIGURATION.md
+    summary: "Security hardening: cookie sessions, CSRF, CORS, rate limiting"
+    relevance: ["security", "auth"]
+    estimated_read_time: 10
+
+  - id: troubleshooting
+    path: troubleshooting.md
+    summary: "Common problems and fixes"
+    relevance: ["support", "bug-hunting"]
+    estimated_read_time: 6
+
+# Common tasks -> docs to read first (shortest path to relevant context).
+task_index:
+  "add new stat":
+    - domain-model.md
+    - business_analysis.md
+    - configuration.md
+    - api.md
+    - .clinerules/02-domain.md
+  "change modifier or calculation rules":
+    - domain-model.md
+    - business_analysis.md
+    - configuration.md
+    - .clinerules/02-domain.md
+  "add new endpoint":
+    - architecture.md
+    - api.md
+    - api/openapi.json
+    - .clinerules/contexts/new-endpoint.md
+  "database migration":
+    - persistence.md
+    - .clinerules/contexts/database-migration.md
+  "frontend screen or UI change":
+    - UI_REQ/SUMMARY.md
+    - frontend-architecture.md
+    - UI_DESIGN_SYSTEM.md
+    - api.md
+  "deployment or infrastructure":
+    - deployment.md
+    - SECURITY_CONFIGURATION.md
+    - troubleshooting.md
+  "auth or security review":
+    - SECURITY_CONFIGURATION.md
+    - architecture.md
+    - .clinerules/06-collaboration.md
