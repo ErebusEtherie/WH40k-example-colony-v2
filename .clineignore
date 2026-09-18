@@ -127,3 +127,13 @@ Gemini_UI/
 ## is only consumed by `npm run generate:types`; regen it instead of reading it
 
 /docs/api/
+
+## --- Superseded Cline rules (old rule set, auto-load excluded) ---
+
+## .clinerules/old_rules.clinerules/ is the pre-consolidation rule set kept
+## for reference/history only. It contains guidance that contradicts the
+## current rules -- e.g. Bearer-era frontend auth in 07-frontend-architecture.md
+## that the live rules explicitly deprecate. Excluded so Cline never auto-
+## loads stale rules; authoritative guidance is the top-level .clinerules/*.md,
+## .clinerules/workflows/, and .clinerules/contexts/. See its DEPRECATED.md.
+.clinerules/old_rules.clinerules/
