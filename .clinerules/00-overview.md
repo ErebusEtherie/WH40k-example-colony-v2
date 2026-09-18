@@ -74,12 +74,11 @@ simultaneously — they are not alternatives.
 | `06-collaboration-and-uncertainty.md` | When Cline must stop and ask instead of assuming |
 | `07-frontend-architecture.md` | React/TanStack Query stack, API contract & types, data fetching, cookie-based auth |
 | `08-frontend-testing.md` | Vitest/RTL/MSW strategy, contract-drift risk |
+| `09-ai-agent-behavior.md` | AI behaviour and workflow rules |
 
-Files `01`–`06` describe the backend engine; `07`–`08` describe the
-frontend. Both sets are binding simultaneously for their respective code —
-frontend files build on domain concepts defined in `02`, they don't
-redefine them (e.g. the system-role/colony-role distinction is defined once
-in `02-domain-modeling.md` and referenced, not restated, in `07`).
+Files `01`–`06` describe backend rules.
+Files `07`–`08` describe frontend rules.
+File `09` describes AI agent behaviour.
 
 ## Cline execution environment — hard constraints
 
