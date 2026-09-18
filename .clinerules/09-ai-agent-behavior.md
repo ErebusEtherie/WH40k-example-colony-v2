@@ -271,6 +271,94 @@ Purpose:
 Security findings directly related to the implemented change should be addressed before considering work complete.
 
 ---
+## Change Classification
+
+Before starting work, classify the change.
+
+### Small Bugfix
+
+Examples:
+
+- typo fixes
+- documentation fixes
+- import corrections
+- missing type annotations
+- failing test fixes that do not change behaviour
+- linting fixes
+- straightforward bug fixes isolated to a single module
+
+Characteristics:
+
+- limited scope
+- no architectural impact
+- no API contract changes
+- no schema changes
+- no security impact
+
+Required:
+
+1. Inspect existing code.
+2. Implement the change.
+3. Run validation tools.
+4. Report results.
+
+Optional:
+
+- codex-grade-coding
+- review-team
+
+Not required:
+
+- security-first (unless security-related)
+
+---
+
+### Standard Change
+
+Examples:
+
+- new features
+- behaviour changes
+- API modifications
+- database model changes
+- non-trivial refactoring approved by the user
+
+Required:
+
+1. Inspect existing code.
+2. Use codex-grade-coding.
+3. Implement the change.
+4. Run validation tools.
+5. Run review-team.
+6. Report results.
+
+---
+
+### Security Sensitive Change
+
+Examples:
+
+- authentication
+- authorization
+- JWT handling
+- cookies
+- CSRF
+- session management
+- audit logging
+- permissions
+- ownership transfer
+
+Required:
+
+1. Inspect existing code.
+2. Use codex-grade-coding.
+3. Implement the change.
+4. Run validation tools.
+5. Run review-team.
+6. Run security-first.
+7. Report results.
+
+---
 
 ## Development Workflow
 
