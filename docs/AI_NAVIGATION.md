@@ -38,6 +38,9 @@ All backend paths are under `src/colony_manager/`.
 - **Change persistence** → `adapters/persistence/orm_models.py` +
   `mappers.py` + a new migration in `alembic/versions/`. See
   `.clinerules/contexts/database-migration.md`.
+- **Audit / verify docs, rules, or config** → narrow-scan discipline,
+  claims-as-hypotheses, and secrets hygiene. See
+  `.clinerules/contexts/investigation-audit.md`.
 - **UI work** → frontend `src/` (below) + `docs/UI_REQ/SUMMARY.md`.
 
 ## Domain layer

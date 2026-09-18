@@ -30,6 +30,15 @@ If a task needs more than this, it is likely too large for one pass.
   scanning files line by line.
 - Check the layer's `__init__.py` docstring or `docs/AI_NAVIGATION.md`
   before diving into its modules.
+- Locate canonical config/settings paths up front and read them by direct
+  path; do not breadth-first scan (`-Recurse`) for a location that is
+  already knowable — broad scans pull large irrelevant payloads into
+  context.
+- Filter-then-read structured files (JSON, logs, config): grep for the
+  keys you need before dumping the raw content.
+- Secrets hygiene: when a file may hold tokens (MCP config, env files, CI
+  settings), inspect structure and presence — "a secret exists and looks
+  well-formed" — never the secret value itself.
 
 ## Documentation retrieval
 

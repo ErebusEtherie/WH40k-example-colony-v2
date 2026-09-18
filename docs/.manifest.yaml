@@ -143,6 +143,9 @@ task_index:
   "database migration":
     - persistence.md
     - .clinerules/contexts/database-migration.md
+  "audit or investigation task":
+    - .clinerules/10-context-budget.md
+    - .clinerules/contexts/investigation-audit.md
   "frontend screen or UI change":
     - UI_REQ/SUMMARY.md
     - frontend-architecture.md

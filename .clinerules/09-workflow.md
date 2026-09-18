@@ -121,6 +121,10 @@ Distinguish between:
 Do not present assumptions as verified facts. Explicitly state what was
 not verified.
 
+"Resolved"/"verified" markers in rules and docs are claims, not facts.
+Spot-check them cheaply when you pass through, and report drift rather
+than silently believing or silently fixing it.
+
 ## Task State Markers
 
 For long or multi-session work, keep a lightweight task-state file under
@@ -146,3 +150,9 @@ context is expensive, not for small fixes.
 - TypeScript checks pass
 - Relevant tests pass
 - No unrelated changes introduced
+
+**Reporting** (all change types):
+
+- Final summaries note any docs/rule files that should change but were out
+  of scope, with `file:line` anchors so the follow-up is actionable in one
+  pass.

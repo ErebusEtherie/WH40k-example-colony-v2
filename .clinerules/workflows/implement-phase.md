@@ -14,6 +14,10 @@ Before changing any code:
 4. Inspect applicable project rules and instructions.
 5. Run `git status` and record the current working-tree state.
 6. If the user supplied a task or goal, treat it as the initial scope.
+7. Record assumptions as you establish context: `fact` (established by
+   inspection), `verified-by-inspection` (confirmed by a cheap check), or
+   `guess` (unverified). Investigation/audit tasks follow the same
+   discipline as code changes, not a looser one.
 
 Do not modify files during this phase.
 
@@ -30,7 +34,10 @@ The plan must include:
 * Required implementation changes
 * Tests that should be added or modified
 * Validation/testing approach
-* Important assumptions
+* Assumption ledger: each important assumption tagged `fact` |
+  `verified-by-inspection` | `guess`; every `guess` names the one cheap
+  check that would resolve it; unresolvable guesses are elevated to the
+  Decision Gate as user questions.
 * Decisions that require user input
 
 Distinguish between:
