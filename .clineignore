@@ -1,0 +1,129 @@
+# WH40k Colony Manager — .clineignore
+
+## Purpose: keep Cline's auto-loaded context focused on what matters
+
+## Everything listed here is generated, derived, binary, local-only, or
+
+## superseded — Cline should not spend context reading it, and none of it is
+
+## needed to understand or edit the project's source. (Follows
+
+## 10-context-budget.md: targeted reads, not whole-tree scanning.)
+
+##
+
+## NOTE: this only affects which files Cline loads into context automatically
+
+## It does not prevent Cline from running git commands, builds, or tests
+
+## --- Dependencies & interpreters (large vendor trees, never read directly) ---
+
+node_modules/
+.venv/
+venv/
+
+## --- Build & test output (regenerated on demand) ---
+
+dist/
+build/
+coverage/
+htmlcov/
+.vite/
+*.tsbuildinfo
+
+## --- Python bytecode & tool caches ---
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+## --- Lockfiles (machine-generated; pyproject.toml / package.json are the
+
+## readable source-of-truth manifests) ---
+
+uv.lock
+package-lock.json
+bun.lock
+
+## --- Secrets & local environment files — never pull into context ---
+
+## (.env.example stays visible: it is the committed, non-secret template.)
+
+.env
+.env.local
+.env.production
+.env.staging
+secrets.json
+secrets.yaml
+secrets.yml
+*.key
+*.pem
+cookies.txt
+
+## --- Local databases & runtime state (binary, low value for code context) ---
+
+*.sqlite
+*.sqlite3
+*.db
+/data/          # root data/ holds only colony_manager.sqlite; anchored so the
+                # active frontend src/data/ (rulesData.ts etc.) is NOT ignored
+backups/
+exports/
+
+## --- Generated packaging metadata ---
+
+*.egg-info/
+
+## --- Git object store (Cline works via git commands, not raw object files) ---
+
+.git/
+
+## --- Local editor settings ---
+
+.vscode/
+.idea/
+
+## --- Binary source material (spreadsheet cannot be parsed for context) ---
+
+[WH40k_RT] [Team RT6] Colony Sheet.xlsx
+*.xlsx
+*.xls
+
+## --- Superseded documentation ---
+
+## docs/archive/ holds ~30 wrap-ups of completed migrations. Live guidance is
+
+## docs/.manifest.yaml + top-level docs/*.md (+ docs/UI_REQ/), used as the
+
+## targeted-read index per 10-context-budget.md
+
+/docs/archive/
+
+## --- Redundant design docs (maintained for other AI tooling) ---
+
+## Gemini_UI/ duplicates docs/UI_DESIGN_SYSTEM.md + docs/UI_REQ/; Cline should
+
+## use the project's own docs/ copies instead of this parallel set
+
+Gemini_UI/
+
+## --- Legacy archived rule tables ---
+
+## Root config_archive/ holds the superseded rule_tables_legacy.yaml; active
+
+## rules live in config/. Anchored to root so the ACTIVE Python package
+
+## src/colony_manager/config_archive/ (loader.py, models.py) is NOT ignored
+
+/config_archive/
+
+## --- Generated OpenAPI snapshot (251 KB machine-generated JSON) ---
+
+## The source of truth for API shapes is adapters/api/.../*.py. This snapshot
+
+## is only consumed by `npm run generate:types`; regen it instead of reading it
+
+/docs/api/
