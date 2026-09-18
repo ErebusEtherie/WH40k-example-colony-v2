@@ -362,20 +362,26 @@ Required:
 
 ## Development Workflow
 
-For non-trivial work, follow this sequence:
+Determine the change classification first.
+
+Follow the workflow associated with that classification.
+
+In all cases:
 
 1. Read relevant rule files.
 2. Inspect existing code.
 3. Search for an existing implementation.
-4. Use applicable skills.
-5. Implement the requested change.
-6. Run validation tools.
-7. Run review skills.
-8. Report results.
+4. Apply the appropriate workflow.
+5. Run required validation.
+6. Report results.
 
 Skills complement validation.
 
-They do not replace validation.
+Skills do not replace validation.
+
+When uncertain whether a change is a Small Bugfix or a Standard Change:
+
+treat it as a Standard Change.
 
 ---
 
