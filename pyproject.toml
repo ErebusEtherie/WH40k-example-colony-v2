@@ -31,16 +31,6 @@ dependencies = [
   "pymarkdownlnt>=0.9.39",
 ]
 
-[project.optional-dependencies]
-dev = [
-  "pytest>=8.0,<9",
-  "hypothesis>=6.0,<8",
-  "ruff>=0.0,<1",
-  "mypy>=1.9,<2",
-  "httpx2>=0.28",
-  "pre-commit>=4.0,<5",
-]
-
 [project.scripts]
 wh40k-colony-manager = "colony_manager.adapters.cli.main:cli"
 
@@ -56,12 +46,28 @@ target-version = "py312"
 exclude = ["build", "dist", ".venv", "venv", ".mypy_cache", ".pytest_cache"]
 
 [tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+    "N",
+    "DTZ",
+]
 ignore = [
     "B008",  # FastAPI Depends() pattern in function defaults is standard
     "DTZ011",  # date.today() is acceptable for date-only operations
     "SIM102",  # Nested if statements sometimes improve readability
     "LOG014",  # exc_info in logger.error is acceptable
 ]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.12"
@@ -70,7 +76,38 @@ ignore_missing_imports = true
 files = ["src"]
 disable_error_code = ["import-untyped"]
 
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.pydantic-mypy]
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.taskipy.tasks]
+lint = "ruff check src tests"
+format = "ruff format src tests"
+typecheck = "mypy src"
+test = "pytest"
+quality = "ruff check src tests && mypy src && pytest"
+
 [dependency-groups]
 dev = [
+    "pytest>=8.0,<9",
+    "hypothesis>=6.0,<8",
+    "ruff>=0.9,<1",
+    "mypy>=1.9,<2",
+    "httpx>=0.28,<1",
+    "pre-commit>=4.0,<5",
     "freezegun>=1.5.5",
 ]
