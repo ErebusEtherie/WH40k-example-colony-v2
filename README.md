@@ -109,7 +109,14 @@ docker compose up -d --build
 
 For detailed Docker deployment instructions, see [DOCKER_GUIDE.md](DOCKER_GUIDE.md).
 
-### Option 2: Local Development
+### Option 2: Local Development (no containers)
+
+Docker (`docker compose up -d --build`) and local development run the **same**
+real backend + real frontend — the mock Express server is *not* involved in
+either. Docker wraps both in containers (frontend nginx on `:3000`, backend
+exposed on `:8001`); local development starts them as two plain processes
+(backend on `:8000`, frontend on `:3000`). Use whichever suits you: Docker
+for a single-command environment, local for faster feedback loops.
 
 #### Prerequisites
 
@@ -120,32 +127,116 @@ For detailed Docker deployment instructions, see [DOCKER_GUIDE.md](DOCKER_GUIDE.
 #### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/WH40k_Colony_Manager.git
 cd WH40k_Colony_Manager
 
 # Install backend dependencies
 uv sync --no-build --extra dev
 
-# Run the API server
-uv run uvicorn colony_manager.adapters.api.app:create_app --factory --reload
-
-# Access the API documentation
-# Open http://localhost:8000/docs in your browser
-```
-
-#### Frontend Development
-
-```bash
 # Install frontend dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Access the frontend
-# Open http://localhost:5173 in your browser
 ```
+
+#### Run the backend (terminal 1)
+
+```bash
+uv run uvicorn colony_manager.adapters.api.app:create_app --factory --reload
+```
+
+- Backend API: http://localhost:8000
+- API docs (Swagger UI, cookie-based auth): http://localhost:8000/docs
+
+The SQLite database is created at `./colony_manager.sqlite` on first startup.
+
+> **Stale database note:** if you have a `colony_manager.sqlite` created by an
+> older schema (e.g. API returns 500 on `POST /colonies` with
+> `table colonies has no column named founder_name`), either delete the file
+> so the current schema is recreated, or apply migrations with
+> `alembic upgrade head` (`init_db()` only *creates* tables, it never alters
+> existing ones — see `src/colony_manager/adapters/persistence/db.py`).
+
+#### Run the frontend against the real backend (terminal 2)
+
+```bash
+# Point the frontend at the real backend once. This file is gitignored
+# (`.env.local`). The one variable that matters:
+#   VITE_API_BASE_URL=http://localhost:8000/api/v1
+# Optional: VITE_DEV_MODE=true shows the one-click demo-login panel. Leave it
+# unset unless you want that — it also flips LoginScreen's unit tests to
+# dev-mode expectations, so run `npm test` with it off.
+
+npm run dev:app
+```
+
+- Frontend: http://localhost:3000 (Vite dev server)
+
+> **Which dev script is which**
+>
+> - `npm run dev:app` — the real frontend talking to the **real backend**
+>   (`:8000`). Use this for Option A local development, and for manual / E2E
+>   testing against the real API.
+> - `npm run dev:mock` (alias of `npm run dev`) — the real frontend served
+>   together with the **mock Express backend** (`server.ts`, port `:8001`) that
+>   simulates the API for UI work when you don't want the Python backend
+>   running. The demo users (LordCaptain, ArchMagos, Servitor) exist *only* in
+>   this mock.
+
+#### Creating users
+
+The backend seeds **no** users, and `/auth/register` only ever creates
+`viewer` accounts (a viewer can log in and view, but the app blocks colony
+creation). Which you need depends on what you want to test:
+
+1. **A viewer (any role test / login check)** — register over the API:
+
+   ```bash
+   curl -X POST http://localhost:8000/api/v1/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"Trader","email":"trader@example.com","password":"TestP@ss123"}'
+   ```
+
+2. **An elevated user (`colony_manager` / `admin`)** — needed to charter
+   colonies and manage users. Self-service can't do this (privileged roles are
+   admin-only), so create the user directly in the backend's SQLite database.
+   Save the snippet below as `create_local_user.py` (a one-time debug script —
+   it's covered by the Debug-scripts ignore rules in `.gitignore`, but still
+   delete it after use), then with the **backend stopped** run:
+
+   ```bash
+   uv run python create_local_user.py
+   ```
+
+   ```python
+   """create_local_user.py — one-off local helper (delete after use).
+
+   Mirrors tests/conftest.py::_bootstrap_user: creates an elevated user in the
+   same SQLite database the backend uses (./colony_manager.sqlite), bypassing
+   self-service registration which is locked to the viewer role.
+   """
+   from pathlib import Path
+
+   from colony_manager.adapters.persistence.db import build_database_url, init_db
+   from colony_manager.adapters.persistence.user_repository_impl import (
+       SqlAlchemyUserRepository,
+   )
+   from colony_manager.domain.models.user import User, UserRole
+   from colony_manager.domain.util.auth import hash_password
+
+   if __name__ == "__main__":
+       db_path = Path("colony_manager.sqlite").resolve()
+       init_db(db_path)
+       repo = SqlAlchemyUserRepository(build_database_url(db_path))
+       repo.create(
+           User(
+               username="LordCaptain",
+               email="lordcaptain@example.com",
+               password_hash=hash_password("TestP@ss123"),
+               role=UserRole.COLONY_MANAGER,
+               is_active=True,
+           )
+       )
+       print(f"Created user 'LordCaptain' (colony_manager) in {db_path}")
+   ```
 
 ### First Steps
 

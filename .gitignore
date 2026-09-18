@@ -324,6 +324,7 @@ test_*.txt
 test_debug.py
 tmp_debug.py
 *_debug.py
+create_local_user.py
 
 # PDF extraction artifacts (data already in config/)
 extract_pdf.py

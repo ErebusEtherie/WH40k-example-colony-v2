@@ -238,12 +238,21 @@ export interface Colony {
   notes?: string;
 }
 
+/**
+ * Authenticated user as returned by the backend. Mirrors the backend's
+ * UserResponse contract (src/colony_manager/adapters/api/schemas/auth.py):
+ * id is an integer and is_active is always present. created_at / updated_at
+ * are only surfaced (optionally) by the user-management schema, never by
+ * /auth/me, so they stay optional here.
+ */
 export interface User {
-  id: string;
+  id: number;
   username: string;
   email: string;
   role: UserRole;
-  created_at: string;
+  is_active: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export type ThemeId =

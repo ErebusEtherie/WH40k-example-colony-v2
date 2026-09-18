@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "node:path";
+import { randomBytes, randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { createServer as createViteServer } from "vite";
@@ -120,10 +121,37 @@ const COLONY_TYPE_CONFIGS: ColonyTypeInfo[] = [
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "wh40k-mechanicus-sacred-key-2026";
 const PORT = 3000;
 
+// Cookie-based session auth mirroring the real backend. Cookie names match
+// SecuritySettings in src/colony_manager/config/settings.py; tokens travel
+// exclusively as HttpOnly cookies, never in a response body or an
+// Authorization header (Bearer auth is gone, per 07-frontend-architecture.md).
+const ACCESS_TOKEN_COOKIE = "rt_access_token";
+const REFRESH_TOKEN_COOKIE = "rt_refresh_token";
+const CSRF_COOKIE = "csrf_token";
+
+// Same cookie attributes the backend uses in development: HttpOnly,
+// SameSite=Lax, Secure off (Secure would only be set over HTTPS).
+const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax" as const,
+  path: "/",
+} as const;
+
+// Pre-auth auth endpoints that legitimately run before a session/CSRF token
+// exists — mirrors CSRFProtectionMiddleware in
+// src/colony_manager/adapters/api/middleware/csrf.py.
+const CSRF_EXEMPT_PATHS = new Set([
+  "/api/v1/auth/login",
+  "/api/v1/auth/register",
+  "/api/v1/auth/refresh",
+  "/api/v1/auth/csrf-token",
+]);
+
 // In-memory data store for the application
 interface AppDataStore {
   users: User[];
-  userPasswords: Map<string, string>; // userId -> hashedPassword
+  userPasswords: Map<number, string>; // userId -> hashedPassword (user ids are integers, like the backend)
   tokenBlacklist: Set<string>;
   colonies: Colony[];
   infrastructures: Infrastructure[];
@@ -139,38 +167,43 @@ interface AppDataStore {
 const db: AppDataStore = {
   users: [
     {
-      id: "usr-admin-1",
+      id: 1,
       username: "ArchMagos",
       email: "archmagos@omnissiah.koronus",
       role: "admin",
+      is_active: true,
       created_at: new Date().toISOString(),
     },
     {
-      id: "usr-manager-1",
+      id: 2,
       username: "LordCaptain",
       email: "lordcaptain@valancius.koronus",
       role: "colony_manager",
+      is_active: true,
       created_at: new Date().toISOString(),
     },
     {
-      id: "usr-viewer-1",
+      id: 3,
       username: "Servitor",
       email: "servitor@astropath.koronus",
       role: "viewer",
+      is_active: true,
       created_at: new Date().toISOString(),
     },
     {
-      id: "usr-legacy-gm",
+      id: 4,
       username: "GameMaster",
       email: "gm@astropath.koronus",
       role: "admin",
+      is_active: true,
       created_at: new Date().toISOString(),
     },
     {
-      id: "usr-legacy-scribe",
+      id: 5,
       username: "ScribeServitor",
       email: "scribe@astropath.koronus",
       role: "viewer",
+      is_active: true,
       created_at: new Date().toISOString(),
     },
   ],
@@ -196,38 +229,62 @@ const db: AppDataStore = {
   ],
 };
 
-// Seed default password hash (password: "TestP@ss123" or "TestP@ss123")
+// Seed default password hash (password: "TestP@ss123")
 const defaultHash = bcrypt.hashSync("TestP@ss123", 10);
-db.userPasswords.set("usr-admin-1", defaultHash);
-db.userPasswords.set("usr-manager-1", defaultHash);
-db.userPasswords.set("usr-viewer-1", defaultHash);
-db.userPasswords.set("usr-legacy-gm", defaultHash);
-db.userPasswords.set("usr-legacy-scribe", defaultHash);
+db.userPasswords.set(1, defaultHash);
+db.userPasswords.set(2, defaultHash);
+db.userPasswords.set(3, defaultHash);
+db.userPasswords.set(4, defaultHash);
+db.userPasswords.set(5, defaultHash);
 
 
-// Authentication Middleware
-function authenticateToken(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader?.split(" ")[1];
+// Parse a raw Cookie header into a name -> value map. The mock deliberately
+// avoids a cookie-parser dependency (Express leaves req.cookies empty without it).
+function parseCookies(header: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
+
+// Reads the current user from the HttpOnly access-token cookie, mirroring the
+// backend's get_current_user_from_cookie. There is no Authorization-header /
+// Bearer path anymore (07-frontend-architecture.md).
+function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  const token = req.headers.cookie
+    ? parseCookies(req.headers.cookie)[ACCESS_TOKEN_COOKIE]
+    : undefined;
 
   if (!token) {
-    res.status(401).json({ error: "Missing authorization bearer token" });
+    res.status(401).json({ detail: "Authentication required" });
     return;
   }
 
   if (db.tokenBlacklist.has(token)) {
-    res.status(401).json({ error: "Token has been revoked" });
+    res.status(401).json({ detail: "Token has been revoked" });
     return;
   }
 
+  let user: User | undefined;
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    (req as any).user = payload;
-    next();
+    const payload = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
+    user = db.users.find((u) => u.id === Number(payload.sub));
   } catch {
     // Any verification failure (expired, malformed, wrong-signature) maps to the same 401.
-    res.status(401).json({ error: "Invalid or expired token" });
+    res.status(401).json({ detail: "Invalid or expired token" });
+    return;
   }
+
+  if (!user) {
+    res.status(401).json({ detail: "User not found" });
+    return;
+  }
+
+  (req as any).user = user;
+  next();
 }
 
 
@@ -261,6 +318,36 @@ async function startAppServer() {
 
   app.use(cors());
   app.use(express.json({ limit: "10mb" }));
+
+  // CSRF protection mirroring the backend's CSRFProtectionMiddleware: every
+  // state-changing request (except the pre-auth auth endpoints) must echo the
+  // JS-readable csrf_token cookie in the X-CSRF-Token header. The FE's shared
+  // request layer does this automatically (ensureCsrfToken in src/lib/api.ts).
+  app.use((req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+      return next();
+    }
+    if (CSRF_EXEMPT_PATHS.has(req.path)) {
+      return next();
+    }
+
+    const headerToken = req.headers["x-csrf-token"];
+    const cookieToken = req.headers.cookie
+      ? parseCookies(req.headers.cookie)[CSRF_COOKIE]
+      : undefined;
+
+    if (!headerToken || !cookieToken) {
+      return res
+        .status(403)
+        .json({ detail: "CSRF token missing. Please refresh the page.", path: req.path });
+    }
+    if (headerToken !== cookieToken) {
+      return res
+        .status(403)
+        .json({ detail: "CSRF token invalid. Please refresh the page.", path: req.path });
+    }
+    return next();
+  });
 
   // ==========================================
   // API ROUTES
@@ -304,22 +391,39 @@ async function startAppServer() {
   });
 
   // Authentication routes
+  app.get("/api/v1/auth/csrf-token", (_req, res) => {
+    const csrfToken = randomBytes(32).toString("base64url");
+    // JS-readable cookie so the FE can echo it as X-CSRF-Token (double-submit
+    // pattern), exactly like the backend /auth/csrf-token endpoint.
+    res.cookie(CSRF_COOKIE, csrfToken, {
+      httpOnly: false,
+      secure: false,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 1000, // 1h, matching the backend
+    });
+    res.json({ csrf_token: csrfToken });
+  });
+
   app.post("/api/v1/auth/register", (req, res) => {
     const { username, email, password, role = "viewer" } = req.body;
     if (!username || !email || !password) {
-      return res.status(400).json({ error: "Username, email, and password required" });
+      return res.status(400).json({ detail: "Username, email, and password required" });
     }
 
     const existing = db.users.some((u) => u.username === username || u.email === email);
     if (existing) {
-      return res.status(400).json({ error: "Username or email already registered" });
+      return res.status(400).json({ detail: "Username or email already registered" });
     }
 
+    // Ids are integers, matching the backend. Public registration always
+    // creates a viewer; elevated roles go through the privileged user path.
     const newUser: User = {
-      id: `usr-${Date.now()}`,
+      id: Math.max(...db.users.map((u) => u.id), 0) + 1,
       username,
       email,
-      role: (["admin", "colony_manager", "viewer"].includes(role) ? role : "viewer") as any,
+      role: (["admin", "colony_manager", "viewer"].includes(role) ? role : "viewer") as User["role"],
+      is_active: true,
       created_at: new Date().toISOString(),
     };
 
@@ -333,7 +437,7 @@ async function startAppServer() {
   app.post("/api/v1/auth/login", (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(400).json({ error: "Username and password required" });
+      return res.status(400).json({ detail: "Username and password required" });
     }
 
     const user = db.users.find(
@@ -342,83 +446,115 @@ async function startAppServer() {
         u.email.toLowerCase() === username.toLowerCase()
     );
     if (!user) {
-      return res.status(401).json({ error: "Invalid username or password" });
+      return res.status(401).json({ detail: "Invalid username or password" });
     }
 
     const storedHash = db.userPasswords.get(user.id);
     const isValidPass =
       (storedHash && bcrypt.compareSync(password, storedHash)) ||
-      password === "TestP@ss123" ||
       password === "TestP@ss123";
 
     if (!isValidPass) {
-      return res.status(401).json({ error: "Invalid username or password" });
+      return res.status(401).json({ detail: "Invalid username or password" });
     }
 
     const accessToken = jwt.sign(
-      { sub: user.id, username: user.username, role: user.role },
+      { sub: user.id, username: user.username, role: user.role, jti: randomUUID() },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
     const refreshToken = jwt.sign(
-      { sub: user.id, username: user.username },
+      { sub: user.id, username: user.username, jti: randomUUID() },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
 
+    // Tokens travel only as HttpOnly cookies; the body carries no token fields
+    // and never echoes them (mirrors the backend's cookie-only auth).
+    res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
+      ...SESSION_COOKIE_OPTIONS,
+      maxAge: 60 * 60 * 1000, // 1h, matching backend access_token_expire_minutes
+    });
+    res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
+      ...SESSION_COOKIE_OPTIONS,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d, matching backend refresh_token_expire_days
+    });
+
+    res.json({ message: "Login successful" });
+  });
+
+  app.get("/api/v1/auth/me", requireAuth, (req, res) => {
+    const user = (req as any).user as User;
+    // Same UserResponse shape as the backend /auth/me
+    // (id/username/email/role/is_active; timestamps are not surfaced).
     res.json({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      token_type: "bearer",
-      expires_in: 3600,
-      user,
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_active: user.is_active,
     });
   });
 
-  app.get("/api/v1/auth/me", authenticateToken, (req, res) => {
-    const userPayload = (req as any).user;
-    const user = db.users.find((u) => u.id === userPayload.sub);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.json(user);
-  });
-
   app.post("/api/v1/auth/refresh", (req, res) => {
-    const { refresh_token } = req.body;
-    if (!refresh_token) {
-      return res.status(400).json({ error: "Missing refresh_token" });
+    const refreshToken = req.headers.cookie
+      ? parseCookies(req.headers.cookie)[REFRESH_TOKEN_COOKIE]
+      : undefined;
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .json({ detail: "Refresh token not found. Please log in again." });
     }
 
     try {
-      const payload = jwt.verify(refresh_token, JWT_SECRET) as any;
-      const user = db.users.find((u) => u.id === payload.sub);
+      const payload = jwt.verify(refreshToken, JWT_SECRET) as jwt.JwtPayload;
+      const user = db.users.find((u) => u.id === Number(payload.sub));
       if (!user) {
-        return res.status(401).json({ error: "User not found" });
+        return res.status(401).json({ detail: "User not found" });
       }
 
+      // Rotate: blacklist the consumed refresh token so a captured pre-rotation
+      // cookie value can't mint a new session (mirrors the backend rotation).
+      db.tokenBlacklist.add(refreshToken);
+
       const newAccessToken = jwt.sign(
-        { sub: user.id, username: user.username, role: user.role },
+        { sub: user.id, username: user.username, role: user.role, jti: randomUUID() },
         JWT_SECRET,
         { expiresIn: "1h" }
       );
-      res.json({
-        access_token: newAccessToken,
-        token_type: "bearer",
-        expires_in: 3600,
+      const newRefreshToken = jwt.sign(
+        { sub: user.id, username: user.username, jti: randomUUID() },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.cookie(ACCESS_TOKEN_COOKIE, newAccessToken, {
+        ...SESSION_COOKIE_OPTIONS,
+        maxAge: 60 * 60 * 1000,
       });
+      res.cookie(REFRESH_TOKEN_COOKIE, newRefreshToken, {
+        ...SESSION_COOKIE_OPTIONS,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.json({ message: "Token refreshed successfully" });
     } catch {
-      res.status(401).json({ error: "Invalid refresh token" });
+      res.status(401).json({ detail: "Invalid or expired refresh token" });
     }
   });
 
-  app.post("/api/v1/auth/revoke", (req, res) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.split(" ")[1];
-    if (token) {
-      db.tokenBlacklist.add(token);
-    }
-    res.json({ message: "Token revoked successfully" });
+  app.post("/api/v1/auth/revoke", requireAuth, (req, res) => {
+    const cookies = parseCookies(req.headers.cookie || "");
+    const accessToken = cookies[ACCESS_TOKEN_COOKIE];
+    const refreshToken = cookies[REFRESH_TOKEN_COOKIE];
+    if (accessToken) db.tokenBlacklist.add(accessToken);
+    if (refreshToken) db.tokenBlacklist.add(refreshToken);
+
+    // Clear the session cookies (mirrors backend /auth/revoke).
+    res.clearCookie(ACCESS_TOKEN_COOKIE, { path: "/" });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+
+    res.json({ message: "Token revoked successfully", tokens_revoked: 1 });
   });
 
   app.post("/api/v1/reset-seed", (_req, res) => {

@@ -233,25 +233,30 @@ any FE code that reads, stores, or attaches a Bearer token — no
 one-off scripts, debug tooling, or Swagger-style manual testing helpers
 committed to the repo.
 
-**Backend follow-up this depends on, flagged for whoever owns `auth.py`
-and the OpenAPI schema (not something the frontend rules can enforce on
-their own):** as of the last reviewed `openapi.json`, protected endpoints
-still declare a global `HTTPBearer` security requirement, and `auth.py`
-still defines `get_current_user` (Bearer-only) and `get_current_user_unified`
-(Bearer-or-cookie fallback) alongside the cookie-only path. For "Bearer
-removed" to actually be true rather than aspirational:
-- `get_current_user` and `get_current_user_unified` should be deleted, not
-  just unused — a live Bearer-accepting code path is a live attack surface
-  even if nothing currently calls it intentionally.
-- The `HTTPBearer` security scheme and the global `security: [{"HTTPBearer": []}]`
-  requirement should come out of the OpenAPI schema once no route actually
-  depends on it, so the documented contract matches reality.
-- Confirm (this is currently unverified) whether `/auth/login` and
-  `/auth/refresh` still return `access_token`/`refresh_token` in the JSON
-  response body in addition to setting cookies. If they do, that's a
-  residual Bearer-shaped attack surface even after the header path is
-  removed — anything in the body is JS-reachable the instant the FE reads
-  the response, regardless of what the FE chooses to do with it.
+**Backend follow-up — RESOLVED as of 2026-09-18 (previously flagged as an
+open item; do not re-flag without new evidence).** The legacy Bearer surface
+is gone from the current source, verified across all three items previously
+listed:
+- `get_current_user` (Bearer-only) and `get_current_user_unified`
+  (Bearer-or-cookie fallback) are deleted from
+  `adapters/api/middleware/auth.py`; only the cookie-based
+  `get_current_user_from_cookie` and `require_role` remain, and no
+  `src/colony_manager` code reads an `Authorization` header at all.
+- The OpenAPI schema no longer declares an `HTTPBearer` security scheme or a
+  global `security: [{"HTTPBearer": []}]` requirement: `app.py`'s
+  `custom_openapi()` intentionally adds no security schemes, and
+  `tests/adapters/api/test_auth.py` asserts `"HTTPBearer" not in
+  security_schemes` as a regression guard. The checked-in
+  `docs/api/openapi.json` snapshot (the `npm run generate:types` source) is
+  likewise free of `bearer` / `securitySchemes`.
+- `/auth/login` and `/auth/refresh` return only a success message in the JSON
+  body (`{"message": "Login successful"}` / `{"message": "Token refreshed
+  successfully"}`); tokens are set exclusively as HttpOnly cookies via
+  `set_cookie` and never appear in a response body, so there is no
+  JS-reachable Bearer-shaped surface.
+
+Standing rule: never reintroduce a Bearer token path in the backend (header or
+body), and keep the `HTTPBearer`-absent OpenAPI test in place.
 
 ### Why cookie-based is the safer choice here
 

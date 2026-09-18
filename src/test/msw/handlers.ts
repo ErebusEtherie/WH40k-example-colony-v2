@@ -95,11 +95,14 @@ export const colonyTypesHandler = http.get(
  * (login → me → csrf-token) through MSW rather than mocking the hook.
  */
 export const AUTH_USER_FIXTURE: User = {
-  id: "user-lord-captain",
+  // Mirrors the backend /auth/me UserResponse exactly: integer id, is_active
+  // always present, and no created_at/updated_at (the session endpoint does
+  // not return them).
+  id: 1,
   username: "LordCaptain",
   email: "lordcaptain@vheiler.example",
   role: "colony_manager",
-  created_at: "2026-01-01T00:00:00Z",
+  is_active: true,
 };
 
 /**
