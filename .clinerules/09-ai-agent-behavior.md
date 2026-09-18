@@ -360,10 +360,14 @@ Examples:
 Required:
 
 1. Inspect existing code.
-2. Use codex-grade-coding.
+2. Use codex-grade-coding as the up-front classification/scope/verification
+   gate (see "Confirmed Invocation Defaults" below).
 3. Implement the change.
 4. Run validation tools.
-5. Run review-team.
+5. Run review-team only when the change ticks the review-team trigger list
+   (medium/large change, architectural modification, public API change, or
+   change affecting multiple modules) — see "Confirmed Invocation Defaults"
+   below; it is not an unconditional step for every Standard change.
 6. Report results.
 
 ### Security Sensitive Change
@@ -390,6 +394,54 @@ Required:
 5. Run review-team.
 6. Run security-first.
 7. Report results.
+
+## Confirmed Invocation Defaults
+
+User-confirmed operating defaults for skill invocation (agreed with the
+project owner). They operationalize Required Skills / Change Classification
+above; where they set the agreed default for a class, they take precedence
+for routine work.
+
+### Security Sensitive Change — Option A (full pipeline)
+
+1. Inspect existing code.
+2. Use codex-grade-coding — classified `risky`: surface assumptions and
+   alternate interpretations up front, minimize the change surface, choose
+   a strong verification level, and note residual risk / rollback concerns.
+3. Implement the change.
+4. Run validation tools (Ruff, Mypy, relevant tests).
+5. Run review-team.
+6. Run security-first.
+7. Report results with explicit evidence boundaries (objective, assumptions,
+   changes made, verification performed, residual risk).
+
+### Routine Standard Change — Option B (lean gate)
+
+1. Inspect existing code.
+2. Use codex-grade-coding as the up-front classification/scope/verification
+   gate — classified `standard`: smallest correct change, targeted
+   verification. Do not defer codex invocation to the end of the work.
+3. Implement the change.
+4. Run validation tools (Ruff, Mypy, relevant tests).
+5. Report results concisely.
+6. Run review-team only when the change actually ticks the review-team
+   trigger list (medium/large change, architectural modification, public
+   API change, or change affecting multiple modules) — not for every
+   Standard change.
+
+### Small Bugfix
+
+- codex-grade-coding is optional; keep the path short (no ceremony on
+  trivial work, per the skill's own guidance).
+- security-first is not required unless the bug is security related.
+
+### Boundary handling
+
+- A change on the Small Bugfix / Standard line is flagged to the user and
+  treated as Standard (codex required) unless the user says otherwise —
+  consistent with the change-classification tie-break above.
+- The user can always explicitly request the full path (codex-grade-coding,
+  review-team, security-first) on any task, overriding these defaults.
 
 ---
 
