@@ -172,7 +172,7 @@ Default preference is to avoid adding dependencies.
 
 ## Skill Usage
 
-Project-provided skills should be used when applicable.
+Installed project skills should be used when applicable.
 
 Skills provide specialized expertise.
 
@@ -271,6 +271,7 @@ Purpose:
 Security findings directly related to the implemented change should be addressed before considering work complete.
 
 ---
+
 ## Change Classification
 
 Before starting work, classify the change.
@@ -283,8 +284,8 @@ Examples:
 - documentation fixes
 - import corrections
 - missing type annotations
-- failing test fixes that do not change behaviour
 - linting fixes
+- failing tests that do not change behaviour
 - straightforward bug fixes isolated to a single module
 
 Characteristics:
@@ -309,7 +310,9 @@ Optional:
 
 Not required:
 
-- security-first (unless security-related)
+- security-first
+
+unless the bug is security related.
 
 ---
 
@@ -321,7 +324,8 @@ Examples:
 - behaviour changes
 - API modifications
 - database model changes
-- non-trivial refactoring approved by the user
+- approved refactorings
+- changes affecting multiple modules
 
 Required:
 
@@ -340,13 +344,14 @@ Examples:
 
 - authentication
 - authorization
-- JWT handling
+- JWT
 - cookies
 - CSRF
-- session management
-- audit logging
-- permissions
+- permission systems
+- roles
 - ownership transfer
+- audit logging
+- security-sensitive endpoints
 
 Required:
 
@@ -407,7 +412,7 @@ If validation was not performed, explicitly state that it was not performed.
 
 ## Definition of Done
 
-Backend task:
+### Backend Task
 
 - requested change implemented
 - Ruff passes
@@ -415,7 +420,7 @@ Backend task:
 - relevant tests pass
 - no unrelated changes introduced
 
-Frontend task:
+### Frontend Task
 
 - requested change implemented
 - Oxlint passes
