@@ -10,6 +10,28 @@ This document describes how the AI should behave while building it.
 
 ---
 
+## Rule Priority
+
+When multiple sources provide guidance, use the following priority order:
+
+1. User request
+2. Project rule files
+3. Project configuration files
+4. Installed skills
+5. General model knowledge
+
+Skills provide expert recommendations.
+
+Skills must never override project rules.
+
+If a conflict is detected:
+
+1. Follow project rules.
+2. Report the conflict.
+3. Do not silently choose the skill recommendation.
+
+---
+
 ## Existing Code First
 
 Before creating:
@@ -82,11 +104,11 @@ Unrelated improvements should not be bundled into the requested work.
 
 This rule also applies to findings from:
 
+- codex-grade-coding
 - review-team
 - security-first
-- codex-grade-coding
 
-Issues identified by review skills are not automatically authorized for implementation.
+Issues identified by skills are not automatically authorized for implementation.
 
 ---
 
@@ -215,8 +237,6 @@ Purpose:
 - identify design issues
 - identify unnecessary complexity
 
----
-
 ### review-team
 
 Use for:
@@ -239,8 +259,6 @@ Purpose:
 Review findings are recommendations.
 
 They do not automatically authorize additional code changes.
-
----
 
 ### security-first
 
@@ -269,6 +287,20 @@ Purpose:
 - identify session management issues
 
 Security findings directly related to the implemented change should be addressed before considering work complete.
+
+---
+
+## Task Classification Mapping
+
+Project classifications map to skill classifications as follows:
+
+| Project Classification | codex-grade-coding Classification |
+|-----------------------|-----------------------------------|
+| Small Bugfix | Trivial |
+| Standard Change | Standard |
+| Security Sensitive Change | Risky |
+
+Review requests should use Review mode.
 
 ---
 
@@ -314,8 +346,6 @@ Not required:
 
 unless the bug is security related.
 
----
-
 ### Standard Change
 
 Examples:
@@ -335,8 +365,6 @@ Required:
 4. Run validation tools.
 5. Run review-team.
 6. Report results.
-
----
 
 ### Security Sensitive Change
 
@@ -362,6 +390,58 @@ Required:
 5. Run review-team.
 6. Run security-first.
 7. Report results.
+
+---
+
+## Verification Floor
+
+The minimum required verification depends on change classification.
+
+### Small Bugfix
+
+Required:
+
+- Ruff
+- Mypy if affected
+- relevant local tests if available
+
+### Standard Change
+
+Required:
+
+- Ruff
+- Mypy
+- relevant tests
+
+### Security Sensitive Change
+
+Required:
+
+- Ruff
+- Mypy
+- relevant tests
+- security-first review
+
+If verification cannot be performed:
+
+- explain why
+- report what was and was not verified
+
+---
+
+## Evidence Boundaries
+
+Clearly distinguish between:
+
+- verified facts
+- reasonable inferences
+- unknown information
+
+Do not present assumptions as verified facts.
+
+If something was not verified:
+
+explicitly state that it was not verified.
 
 ---
 
