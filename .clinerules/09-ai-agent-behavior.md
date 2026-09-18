@@ -46,7 +46,7 @@ Do not replace existing patterns simply because another approach is cleaner.
 
 ## Minimal Scope Changes
 
-Modify only what was requested.
+Modify only what was explicitly requested.
 
 Do not expand scope without approval.
 
@@ -79,6 +79,14 @@ Unless explicitly requested:
 - do not fix them
 
 Unrelated improvements should not be bundled into the requested work.
+
+This rule also applies to findings from:
+
+- review-team
+- security-first
+- codex-grade-coding
+
+Issues identified by review skills are not automatically authorized for implementation.
 
 ---
 
@@ -162,6 +170,127 @@ Default preference is to avoid adding dependencies.
 
 ---
 
+## Skill Usage
+
+Project-provided skills should be used when applicable.
+
+Skills provide specialized expertise.
+
+Project rules remain authoritative.
+
+Skills must not override:
+
+- architecture rules
+- domain modelling rules
+- testing strategy
+- code style
+- security requirements
+- dependency decisions
+- AI behaviour rules
+
+If a skill recommendation conflicts with project rules:
+
+1. Follow project rules.
+2. Report the conflict.
+
+---
+
+## Required Skills
+
+### codex-grade-coding
+
+Use for:
+
+- implementation of new features
+- non-trivial code changes
+- code quality review
+- maintainability review
+
+Run before considering implementation complete.
+
+Purpose:
+
+- improve implementation quality
+- identify maintainability concerns
+- identify design issues
+- identify unnecessary complexity
+
+---
+
+### review-team
+
+Use for:
+
+- medium-sized changes
+- large changes
+- architectural modifications
+- public API changes
+- changes affecting multiple modules
+
+Run after implementation and before considering work complete.
+
+Purpose:
+
+- peer review simulation
+- identify risks
+- identify edge cases
+- identify overlooked design concerns
+
+Review findings are recommendations.
+
+They do not automatically authorize additional code changes.
+
+---
+
+### security-first
+
+Use whenever changes affect:
+
+- authentication
+- authorization
+- JWT handling
+- cookies
+- CSRF
+- permissions
+- roles
+- ownership transfer
+- audit logging
+- user management
+- session management
+- security-sensitive API endpoints
+
+Run before considering work complete.
+
+Purpose:
+
+- identify security risks
+- identify authorization gaps
+- identify privilege escalation risks
+- identify session management issues
+
+Security findings directly related to the implemented change should be addressed before considering work complete.
+
+---
+
+## Development Workflow
+
+For non-trivial work, follow this sequence:
+
+1. Read relevant rule files.
+2. Inspect existing code.
+3. Search for an existing implementation.
+4. Use applicable skills.
+5. Implement the requested change.
+6. Run validation tools.
+7. Run review skills.
+8. Report results.
+
+Skills complement validation.
+
+They do not replace validation.
+
+---
+
 ## Verify Before Claiming Success
 
 Do not claim work is complete until validation has been performed.
@@ -179,6 +308,26 @@ Frontend changes:
 - relevant tests pass
 
 If validation was not performed, explicitly state that it was not performed.
+
+---
+
+## Definition of Done
+
+Backend task:
+
+- requested change implemented
+- Ruff passes
+- Mypy passes
+- relevant tests pass
+- no unrelated changes introduced
+
+Frontend task:
+
+- requested change implemented
+- Oxlint passes
+- TypeScript checks pass
+- relevant tests pass
+- no unrelated changes introduced
 
 ---
 
@@ -219,19 +368,3 @@ verify:
 3. Does it improve readability?
 
 If not, prefer the simpler solution.
-
-## Skill Usage
-
-Skills are encouraged when available.
-
-Skills provide recommendations.
-
-Project rules remain authoritative.
-
-Skills must not override:
-
-- architecture rules
-- testing strategy
-- code style
-- security requirements
-- dependency decisions
