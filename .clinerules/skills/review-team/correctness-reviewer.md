@@ -34,4 +34,3 @@ Issue: What is wrong.
 Failure scenario: How this breaks in practice.
 Suggested fix: The smallest practical correction.
 ```
-

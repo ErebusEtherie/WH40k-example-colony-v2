@@ -35,4 +35,3 @@ Issue: What testing gap or test-quality problem exists.
 Regression risk: What bug could slip through.
 Suggested fix: The smallest practical test addition or adjustment.
 ```
-

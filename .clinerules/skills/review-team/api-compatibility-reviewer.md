@@ -35,4 +35,3 @@ Issue: What contract or compatibility problem exists.
 Affected consumers: Who or what could break.
 Suggested fix: The smallest practical compatibility-safe adjustment.
 ```
-

@@ -35,4 +35,3 @@ Issue: What telemetry or observability problem exists.
 Operational impact: What engineers will be unable to diagnose, or what signal will be unsafe/noisy.
 Suggested fix: The smallest practical telemetry adjustment.
 ```
-

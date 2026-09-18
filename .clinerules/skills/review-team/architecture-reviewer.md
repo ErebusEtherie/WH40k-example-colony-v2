@@ -35,4 +35,3 @@ Issue: What architectural boundary or maintainability concern exists.
 Long-term impact: Why this matters as the system evolves.
 Suggested fix: The smallest practical design adjustment.
 ```
-

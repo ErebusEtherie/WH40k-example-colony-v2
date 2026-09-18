@@ -35,4 +35,3 @@ Issue: What quality or convention problem exists.
 Maintenance impact: Why this will matter to future readers or editors.
 Suggested fix: The smallest practical cleanup.
 ```
-

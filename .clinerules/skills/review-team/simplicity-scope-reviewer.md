@@ -35,4 +35,3 @@ Issue: What is unnecessarily complex or out of scope.
 Cost: Why this extra complexity or scope matters.
 Suggested fix: The smallest practical reduction.
 ```
-

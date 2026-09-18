@@ -35,4 +35,3 @@ Issue: What documentation or developer experience gap exists.
 Developer impact: Who gets stuck and why.
 Suggested fix: The smallest practical doc, message, or example update.
 ```
-

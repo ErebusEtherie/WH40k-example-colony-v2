@@ -35,4 +35,3 @@ Issue: What performance or reliability risk exists.
 Production scenario: How this fails or degrades under realistic conditions.
 Suggested fix: The smallest practical hardening.
 ```
-

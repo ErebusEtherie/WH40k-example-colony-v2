@@ -35,4 +35,3 @@ Issue: What user-facing or accessibility problem exists.
 User impact: How this affects a real user workflow.
 Suggested fix: The smallest practical improvement.
 ```
-

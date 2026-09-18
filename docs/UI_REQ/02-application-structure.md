@@ -78,8 +78,6 @@ Application Root
 
 ### Sidebar Navigation Items
 
-### Sidebar Navigation Items
-
 | Item | Icon | Route | Permission | Description |
 |------|------|-------|------------|-------------|
 | Dashboard | 📊 | `/dashboard` | All | Colony list / home |

@@ -102,10 +102,6 @@ Allow existing users to authenticate and access the application.
 
 ---
 
-### API Integration
-
----
-
 ## 3.2 Registration Screen
 
 ### Purpose

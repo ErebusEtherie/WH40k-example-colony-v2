@@ -49,6 +49,7 @@ As a project inspired by Games Workshop's Warhammer 40,000 universe, we acknowle
 - Warhammer 40,000, Rogue Trader, and all related marks are trademarks of Games Workshop Limited
 - This is a **fan-made, non-commercial project** for educational and hobby purposes
 - We respect Games Workshop's intellectual property and do not claim ownership
+
 ---
 
 ## Enforcement Responsibilities
@@ -124,6 +125,7 @@ Yes. While rules debates are expected and welcome, they must be conducted respec
 Thank you to all contributors who help maintain a welcoming and productive community.
 
 **The Emperor Protects** — and so do we, by fostering a community where everyone can contribute.
+
 - Do not use official GW logos or claim official endorsement
 
 ### Community Spirit

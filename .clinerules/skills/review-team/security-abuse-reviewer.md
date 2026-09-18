@@ -36,4 +36,3 @@ Issue: What security or abuse risk exists.
 Attack or leak scenario: How an attacker or unauthorized user could trigger it.
 Suggested fix: The smallest practical mitigation.
 ```
-

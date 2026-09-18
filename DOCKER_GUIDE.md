@@ -24,10 +24,10 @@ docker compose down
 
 Once running, access the application at:
 
-- **Frontend Application**: http://localhost:3000
-- **Backend API**: http://localhost:8001
-- **API Documentation (Swagger)**: http://localhost:8001/docs
-- **Alternative API Docs**: http://localhost:3000/docs (via proxy)
+- **Frontend Application**: <http://localhost:3000>
+- **Backend API**: <http://localhost:8001>
+- **API Documentation (Swagger)**: <http://localhost:8001/docs>
+- **Alternative API Docs**: <http://localhost:3000/docs> (via proxy)
 
 ## Architecture
 
@@ -220,12 +220,13 @@ Adjust in `docker-compose.yml` under `deploy.resources` as needed.
 
 ## Next Steps
 
-1. Access http://localhost:3000 to use the application
-2. Visit http://localhost:8001/docs to explore the API
+1. Access <http://localhost:3000> to use the application
+2. Visit <http://localhost:8001/docs> to explore the API
 3. Configure your colony settings via the UI or API
 4. Set up regular backups of the database volume
 
 For more information, see:
+
 - `README.md` - Project overview
 - `docs/` - Detailed documentation
 - `CONTRIBUTING.md` - Development guidelines

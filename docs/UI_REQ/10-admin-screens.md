@@ -87,6 +87,7 @@ Admin screens are restricted to users with Admin permission. These screens manag
 | Audit Log | ❌ | ❌ | ✅ (Colony Owner) |
 
 **Notes:**
+
 - "Admin" in colony context means the colony OWNER role, not system admin
 - System admin role can access all colonies regardless of membership
 - Colony Access, Export/Import, and Audit Log require colony OWNER role
