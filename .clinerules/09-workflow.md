@@ -26,11 +26,15 @@ When uncertain between Small Bugfix and Standard: treat as Standard.
 
 ## Required Skills
 
-| Change Type | codex-grade-coding | review-team | security-first |
-|-------------|-------------------|-------------|----------------|
-| Small Bugfix | Optional | No | Only if security-related |
-| Standard | Required (up-front gate) | Only if medium+/architectural/public API/multi-module | No |
-| Security Sensitive | Required (risky mode) | Required | Required |
+| Change Type | codex-grade-coding | code-reviewer | review-team | security-first |
+|-------------|-------------------|--------------|-------------|----------------|
+| Small Bugfix | Optional | Optional (short path) | No | Only if security-related |
+| Standard | Required (up-front gate) | Required (via implement-phase) | Only if medium+/architectural/public API/multi-module | No |
+| Security Sensitive | Required (risky mode) | Required (via implement-phase) | Required | Required |
+
+`code-reviewer` runs for implemented changes inside the implement-phase
+workflow (steps 7 and 10) — this column is where that gate shows up in the
+per-change-type matrix.
 
 ## Invocation Defaults
 

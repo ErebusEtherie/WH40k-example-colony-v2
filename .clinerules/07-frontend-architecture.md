@@ -20,58 +20,44 @@ installs, custom modifiers) back to it.
 
 ## Layering
 
+Actual layout — the FE is a root-level Vite SPA (no `frontend/` subdir); the
+Python backend sits beside it under `src/colony_manager/`:
+
 ```text
-frontend/src/
-  components/     # presentational UI, minimal logic
-  features/        # (or equivalent) feature-scoped containers that wire
-                    # components to queries/mutations
-  api/             # TanStack Query hooks, one module per backend resource
-                    # (colonies, representatives, modifiers, ...)
-  types/           # generated API types (see "API Contract & Type Safety")
-  hooks/           # shared non-API hooks (UI-only state, effects)
-  data/            # static config for the FE itself (themes.ts, etc.) —
-                    # NOT game rule tables; those stay server-side
-  assets/          # mechanicum-design-system.css, fonts
+src/
+  components/     # presentational UI + feature-scoped containers
+  lib/            # shared request/error layer (api.ts, error.ts) + calculators
+  types/          # API types (colony.ts, generated api.d.ts)
+  data/           # static FE config (rulesData.ts, seedData.ts) — NOT game
+                    # rule tables; those stay server-side
+  assets/         # mechanicum-design-system.css, fonts
 ```
 
-**Open item — exact `components/` vs `features/` split**: not yet confirmed
-against the actual current folder layout. If the codebase already has an
-established pattern, this section should be corrected to match it rather
-than imposed from here — flag the mismatch rather than silently picking one.
+There is no separate `features/`, `api/`, or `hooks/` directory yet — those
+belong to the aspirational layout, not the current tree. TanStack Query hooks
+live in `lib/api.ts`; feature-scoped containers live in `components/`. Follow
+the established pattern and flag (don't silently restructure) if a real
+`features/` split starts to emerge: this section should be corrected to match
+the actual layout rather than imposed from here.
 
 ## API Contract & Type Safety
 
 **Confirmed: `openapi-typescript`, types only — no runtime client
-generation.** Chosen specifically for the security/safety priority: it
-keeps every request's actual behavior (attaching credentials, the CSRF
-header, the shared error-normalizer) in code that's hand-written and
-auditable, rather than trusting a generator's mutator config to have
-applied that consistently across every generated hook. The single most
-common source of FE↔BE breakage otherwise is hand-maintained TypeScript
-interfaces silently drifting from the backend's Pydantic schemas — this
-project avoids that by generating the *types*, while keeping the
-request-sending code itself explicit.
+generation.** Rationale: request-sending behavior (credentials, CSRF header,
+error-normalizer) stays hand-written and auditable; only the *types* are
+generated, so FE↔BE drift from hand-maintained interfaces is eliminated.
 
 - Backend FastAPI app exposes its OpenAPI schema (`/openapi.json`) as usual
   — no extra work required there.
-- Frontend generates TypeScript types via:
-
-  ```
-  npx openapi-typescript http://localhost:8000/api/v1/openapi.json -o frontend/src/types/api.d.ts
-  ```
-
-  (adjust the schema URL/path to match the actual dev server; a static
-  `openapi.json` file path also works as the source if preferred over
-  hitting a running server). Wire this as an `npm run generate:types`
-  script rather than a one-off command someone has to remember the flags
-  for.
-- This is a checked-in generated file, run manually or in CI when the
-  backend schema changes — not on every dev save.
-- **Status: not yet implemented as of this rule set's last update** — this
-  section describes the target setup, not a working pipeline to assume
-  exists. Confirm the script and generated file are actually in place
-  before relying on them (e.g. before wiring MSW handlers to the generated
-  types per `08-frontend-testing.md`).
+- Generation runs via the `generate:types` npm script — already wired in the
+  root `package.json` to `openapi-typescript docs/api/openapi.json -o
+  src/types/api.d.ts`. Run it manually or in CI when the backend schema
+  changes — not on every dev save; a live schema URL can substitute for the
+  static `openapi.json` path.
+- The generated `src/types/api.d.ts` is a checked-in file, but is **not yet
+  generated** in this repo at present — confirm it exists before relying on
+  it (e.g. before wiring MSW handlers to the generated types per
+  `08-frontend-testing.md`).
 - `api/` hooks (TanStack Query) import from the generated types for request
   and response shapes. Do not hand-write a parallel interface for a
   request/response body that already has a generated type.
@@ -129,30 +115,25 @@ per-query. Given the ~5–15 minute backend data refresh cadence, a
 with a stated reason (e.g. a resource known to change far more or less
 often than the norm).
 
-**Correction — the backend exposes a real-time channel; prefer it over
-polling where it covers the resource.** `GET /api/v1/notifications/stream`
-(Server-Sent Events) pushes colony, event, development-plan, and
-colony-membership changes as they happen. Where a resource is covered by
-this stream:
+**Prefer the real-time channel over polling where it covers the resource.**
+`GET /api/v1/notifications/stream` (SSE) pushes colony, event,
+development-plan, and colony-membership changes as they happen:
 
-- Subscribe to the stream once (e.g. in a top-level provider), and on a
-  relevant notification, call `queryClient.invalidateQueries` for the
-  affected query key — the same invalidate-and-refetch pattern already
-  used after mutations, just triggered by the server instead of by a local
-  mutation.
-- Don't also poll that same resource with `refetchInterval` — that's
-  redundant network traffic and a second source of "when does this
-  update," fighting the stream instead of relying on it.
-- `staleTime`/interval-based refetching remains the right default for
-  anything the stream doesn't cover (config/reference data, resources not
-  listed in the stream's description) — the correction above narrows where
-  polling applies, it doesn't remove it everywhere.
-- The stream requires the auth cookie like any other request (per "Auth &
-  Session" below) — implement reconnection with backoff, per the API's own
-  documented expectation that "clients should implement automatic
-  reconnection logic," and treat a dropped/reconnecting stream as a reason
-  to fall back to a one-off refetch of affected queries, not as a silent
-  gap in freshness.
+- Subscribe once (e.g. in a top-level provider); on a relevant notification,
+  call `queryClient.invalidateQueries` for the affected query key — the same
+  invalidate-and-refetch pattern used after mutations, now server-triggered
+  instead of local.
+- Don't also poll that resource with `refetchInterval` — redundant network
+  traffic and a second source of "when does this update," fighting the
+  stream instead of relying on it.
+- `staleTime`/interval refetching stays the right default for anything the
+  stream doesn't cover (config/reference data) — this narrows polling, it
+  doesn't remove it everywhere.
+- The stream needs the auth cookie like any other request (see "Auth &
+  Session" below) — implement reconnection with backoff (the API documents
+  that clients should auto-reconnect), and treat a dropped/reconnecting
+  stream as a reason to one-off refetch affected queries, not a silent
+  freshness gap.
 
 ### Loading vs. background refetch
 
@@ -211,7 +192,7 @@ that happens rather than silently picking a pagination strategy then.
 
 Domain validation (e.g. `Order`/`Complacency` can't go below 0,
 conditional-required fields tied to Representative personality) lives in
-the backend, per `02-domain-modeling.md`. The frontend does not reimplement
+the backend, per `02-domain.md`. The frontend does not reimplement
 those rules in a client-side schema (Zod/Yup/etc.) — that would create the
 same drift risk described in "API Contract & Type Safety," at the form
 layer instead.
@@ -221,10 +202,10 @@ layer instead.
 - Domain-rule violations are surfaced from the backend's 422 response (see
   "Error Handling Contract") and rendered inline against the relevant
   field.
-- This trades a slightly less instant validation UX for a single source of
-  truth on business rules. If that UX gap becomes a real problem for a
-  specific form, raise it explicitly rather than quietly duplicating the
-  rule client-side.
+- Trades a slightly less instant validation UX for a single source of truth
+  on business rules; if that UX gap becomes a real problem for a specific
+  form, raise it explicitly rather than quietly duplicating the rule
+  client-side.
 
 ## Auth & Session
 
@@ -235,46 +216,24 @@ any FE code that reads, stores, or attaches a Bearer token — no
 one-off scripts, debug tooling, or Swagger-style manual testing helpers
 committed to the repo.
 
-**Backend follow-up — RESOLVED as of 2026-09-18 (previously flagged as an
-open item; do not re-flag without new evidence).** The legacy Bearer surface
-is gone from the current source, verified across all three items previously
-listed:
-
-- `get_current_user` (Bearer-only) and `get_current_user_unified`
-  (Bearer-or-cookie fallback) are deleted from
-  `adapters/api/middleware/auth.py`; only the cookie-based
-  `get_current_user_from_cookie` and `require_role` remain, and no
-  `src/colony_manager` code reads an `Authorization` header at all.
-- The OpenAPI schema no longer declares an `HTTPBearer` security scheme or a
-  global `security: [{"HTTPBearer": []}]` requirement: `app.py`'s
-  `custom_openapi()` intentionally adds no security schemes, and
-  `tests/adapters/api/test_auth.py` asserts `"HTTPBearer" not in
-  security_schemes` as a regression guard. The checked-in
-  `docs/api/openapi.json` snapshot (the `npm run generate:types` source) is
-  likewise free of `bearer` / `securitySchemes`.
-- `/auth/login` and `/auth/refresh` return only a success message in the JSON
-  body (`{"message": "Login successful"}` / `{"message": "Token refreshed
-  successfully"}`); tokens are set exclusively as HttpOnly cookies via
-  `set_cookie` and never appear in a response body, so there is no
-  JS-reachable Bearer-shaped surface.
+**Backend follow-up — RESOLVED as of 2026-09-18 (do not re-flag without new
+evidence).** The legacy Bearer surface is fully gone from the current source:
+Bearer-only auth helpers were deleted from `adapters/api/middleware/auth.py`;
+the OpenAPI schema (checked-in snapshot included) declares no `HTTPBearer`
+scheme, guarded by a regression test in `tests/adapters/api/test_auth.py`;
+and `/auth/login`/`/auth/refresh` set tokens exclusively as HttpOnly cookies,
+never in the response body.
 
 Standing rule: never reintroduce a Bearer token path in the backend (header or
 body), and keep the `HTTPBearer`-absent OpenAPI test in place.
 
 ### Why cookie-based is the safer choice here
 
-An HttpOnly cookie is never readable by JavaScript, so there is no token
-value for an XSS payload to steal. A Bearer token stored anywhere JS can
-reach it — `localStorage`, `sessionStorage`, or a JS-held variable that a
-compromised dependency could read — is exfiltratable the moment an XSS
-vector exists anywhere in the app (including third-party UI libs). Given
-PrimeNG-adjacent* data-heavy UIs pull in a lot of third-party components,
-minimizing what's reachable from JS is the higher-value trade here, at the
-cost of needing explicit CSRF handling (below) — a well-understood, well-
-mitigated problem, unlike token exfiltration.
-
-*(noting this in case the PrimeNG stack context from other tooling in this
-workspace applies to this project too — ignore if not relevant here.)
+An HttpOnly cookie is never readable by JavaScript, so an XSS payload has no
+token value to steal — unlike a Bearer token held anywhere JS can reach
+(`localStorage`, `sessionStorage`, a JS variable), which is exfiltratable
+the moment an XSS vector exists anywhere in the app. The trade-off cost is
+explicit CSRF handling (below), a well-understood problem.
 
 ### Frontend rules
 
@@ -344,7 +303,7 @@ token. Frontend rule:
 ### Two separate role concepts — don't conflate them
 
 The system role vs. colony role distinction is a domain concept, defined
-once in `02-domain-modeling.md` ("Auth & authorization domain") — this
+once in `02-domain.md` — this
 section doesn't restate the definitions, only the FE-specific
 consequence: name the two distinctly in FE code (e.g. `systemRole` vs.
 `colonyRole`) rather than a single ambiguous `role` variable that could be
@@ -393,8 +352,8 @@ working around it FE-side.
 - No separate global state library (Redux/Zustand/Context-as-store) unless a
   concrete cross-cutting need emerges that server state + local state can't
   cover (e.g. active theme, current user session) — ask before introducing
-  one. Theme selection is the one confirmed exception (see below); session
-  is a second, pending the Auth & Session decision above.
+  one. Theme selection and the current-user session are the two confirmed
+  exceptions (see "Auth & Session" above).
 
 ## Styling
 
@@ -425,13 +384,13 @@ Rules:
 
 - `oxlint` is the linter of record; there is no ESLint config to keep in
   sync with it.
-- Same principle as `05-code-style-and-documentation.md`'s stance on
+- Same principle as `05-style.md`'s stance on
   ruff/mypy: don't silently add or change lint rule configuration
   (`.oxlintrc.json` or equivalent) without confirmation — propose the
   change and wait.
 - Don't add inline disable comments to suppress a rule without a comment
   explaining why (mirrors the backend's "comments explain why" rule in
-  `05-code-style-and-documentation.md`).
+  `05-style.md`).
 
 ## When to introduce an abstraction (React-specific application of `01-architecture.md`)
 
@@ -453,7 +412,7 @@ isn't earning its abstraction yet.
 If a screen's behavior isn't explicitly specified by the GM/Erebus (in a
 shared spec, a prior conversation, or an existing reference screen), don't
 guess a plausible-looking interaction, validation rule, or copy string —
-this is the same principle as `02-domain-modeling.md`'s "do not invent
+this is the same principle as `02-domain.md`'s "do not invent
 game rules," applied to the UI layer. Ask, or flag the gap explicitly,
 rather than filling it in silently.
 

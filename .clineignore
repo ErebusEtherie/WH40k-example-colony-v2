@@ -130,10 +130,16 @@ Gemini_UI/
 
 ## --- Superseded Cline rules (old rule set, auto-load excluded) ---
 
-## .clinerules/old_rules.clinerules/ is the pre-consolidation rule set kept
-## for reference/history only. It contains guidance that contradicts the
-## current rules -- e.g. Bearer-era frontend auth in 07-frontend-architecture.md
-## that the live rules explicitly deprecate. Excluded so Cline never auto-
-## loads stale rules; authoritative guidance is the top-level .clinerules/*.md,
-## .clinerules/workflows/, and .clinerules/contexts/. See its DEPRECATED.md.
-.clinerules/old_rules.clinerules/
+## The pre-consolidation rule set lives at docs/archive/old_rules.clinerules/
+
+## (already covered by the /docs/archive/ ignore above). It is kept for
+
+## reference/history only -- e.g. the Bearer-era frontend auth in its
+
+## 07-frontend-architecture.md that the live rules explicitly deprecate
+
+## Excluded so Cline never auto-loads stale rules; authoritative guidance is
+
+## the top-level .clinerules/*.md, .clinerules/workflows/, and
+
+## .clinerules/contexts/

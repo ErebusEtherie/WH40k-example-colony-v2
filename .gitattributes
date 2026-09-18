@@ -1,0 +1,12 @@
+# Repository line-ending policy.
+#
+# All tracked text is stored LF-normalized in the repository so the object
+# store is identical on every platform regardless of a machine's
+# core.autocrlf/core.eol settings.
+*   text=auto
+
+# Docs and rule files (edited by humans and AI agents alike) checkout as LF
+# on every platform so they never flip-flop between LF and CRLF in the
+# working tree. Git-for-Windows sets core.autocrlf=true at the system level
+# and would otherwise re-inject CRLF into these files on every checkout.
+*.md text eol=lf
