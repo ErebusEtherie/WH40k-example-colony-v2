@@ -219,3 +219,19 @@ verify:
 3. Does it improve readability?
 
 If not, prefer the simpler solution.
+
+## Skill Usage
+
+Skills are encouraged when available.
+
+Skills provide recommendations.
+
+Project rules remain authoritative.
+
+Skills must not override:
+
+- architecture rules
+- testing strategy
+- code style
+- security requirements
+- dependency decisions
