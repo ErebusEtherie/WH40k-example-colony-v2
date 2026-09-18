@@ -1,76 +1,150 @@
 # Collaboration & Handling Uncertainty
 
-## The core rule: if unsure, ask — don't assume
+## Core Rule
 
-This applies especially to:
+If uncertain about a requirement, ask.
 
-1. **Game rules and numbers.** If a calculation, threshold, bonus value, or
-   interaction isn't clearly present in the reference material (the colony
-   sheet, its Data/Calculations tabs, or something the user has explicitly
-   stated), do not invent a plausible-sounding value. Ask for the source
-   rule or the intended behavior.
-2. **Architectural decisions not covered by these rules.** If a new piece
-   of work doesn't clearly fit the existing layering (e.g. "where does dice
-   rolling for events live?", "does this need its own service or belongs in
-   an existing one?"), ask rather than picking silently.
-3. **Ambiguous scope.** If a request could reasonably mean two different
-   things (e.g. "add upgrade support" — one upgrade type or the general
-   mechanism?), ask which is intended before writing code.
-4. **Conflicts with these rules.** If a request seems to conflict with
-   something in this rule set (e.g. asks for logic to live somewhere these
-   rules say it shouldn't), say so explicitly and ask how to proceed rather
-   than silently overriding the rules or silently overriding the request.
-
-## What "ask" looks like in practice
-
-- Ask a specific, answerable question — not "what do you want me to do?"
-  State the interpretations you're considering and let the user pick.
-- It's fine to state a recommendation alongside the question (as with the
-  architecture/tooling suggestions in these files) — but the recommendation
-  is not permission to proceed without confirmation on anything
-  non-trivial.
-- Don't ask about things these rules already answer. Re-reading the
-  relevant rule file first is expected before asking.
-
-## Suggesting vs. doing
-
-- Cline should surface suggestions for improvement (refactors, missing
-  tests, a cleaner abstraction) but should not apply them unprompted.
-  Propose, then wait for confirmation — this includes changes to files that
-  weren't part of the original request.
-- Don't modify code beyond what was explicitly asked for. If a fix
-  incidentally reveals a related problem, mention it rather than fixing it
-  inline.
-
-## Keep the guardrails from `01-architecture.md` in view
-
-Before proposing a new abstraction, interface, or pattern, apply the
-two-or-more-uses / real-duplication-harm / readability test from
-`01-architecture.md`. If it fails that test, say so and propose the
-simpler direct version instead — don't propose the abstraction "just in
-case" and wait to be told no.
+Do not invent behaviour, business rules or technical requirements.
 
 ---
 
-## Game Automation vs. Tracking — Critical Distinction
+## When To Ask
 
-**This application is a tracking/organization tool, NOT a game automation system.**
+Ask when uncertainty affects:
 
-Before proposing any feature, check:
+- game rules
+- numeric values
+- thresholds
+- modifier behaviour
+- authorization rules
+- architectural decisions
+- API behaviour
+- ambiguous scope
 
-1. **Does this automate a game mechanic?**
-   - Dice rolling → ❌ NO (GM rolls at table, enters result)
-   - Event resolution → ❌ NO (GM decides outcomes)
-   - Time-based cycles → ❌ NO (GM tracks game time)
-   - Stat adjustments → ❌ NO (GM orders changes)
+If multiple reasonable interpretations exist, ask the user to choose.
 
-2. **Does this help track or organize information?**
-   - Recording modifiers → ✅ YES
-   - Calculating derived stats → ✅ YES
-   - Audit logging → ✅ YES
-   - Export/import → ✅ YES
+---
 
-**If a feature would automate gameplay, do not propose it.** Instead, suggest
-a tracking mechanism that lets the GM record what happened at the table.
+## What "Ask" Means
 
-See docs/SCOPE_CLARIFICATIONS.md for detailed examples.
+Ask a specific question.
+
+Good:
+
+> Should assigning a Representative automatically unassign them from another colony?
+
+Bad:
+
+> What should I do?
+
+Provide:
+
+- identified ambiguity
+- possible interpretations
+- preferred recommendation if relevant
+
+Do not continue with a guess after identifying ambiguity.
+
+---
+
+## Use Reasonable Judgment
+
+Before asking:
+
+1. Read relevant rule files.
+2. Inspect the existing codebase.
+3. Follow existing project patterns.
+
+Ask only when multiple reasonable interpretations still exist.
+
+Do not ask about information that is:
+
+- already defined in the rule files
+- already present in the codebase
+- directly implied by existing project conventions
+
+First investigate.
+
+Ask only when uncertainty remains.
+
+---
+
+## Conflicts
+
+If:
+
+- a user request
+- existing code
+- project rules
+
+appear to conflict, stop and explain the conflict.
+
+Do not silently choose one side.
+
+Explain:
+
+- what conflicts
+- why it conflicts
+- available options
+
+Then ask how to proceed.
+
+---
+
+## Architectural Decisions
+
+If a piece of work does not clearly fit the existing architecture:
+
+- identify the uncertainty
+- explain the options
+- ask before introducing new patterns
+
+Do not solve uncertainty by introducing new abstractions.
+
+---
+
+## Game Automation vs Tracking
+
+This application is a tracking and organization tool.
+
+It is not a gameplay automation system.
+
+Do not propose features that automate gameplay.
+
+Examples:
+
+Not allowed:
+
+- automatic dice rolling
+- automatic event resolution
+- automatic gameplay decisions
+- automatic game progression
+
+Allowed:
+
+- recording results
+- storing modifiers
+- calculating derived values
+- tracking historical changes
+- audit logging
+- import/export functionality
+
+When in doubt:
+
+prefer tracking over automation.
+
+---
+
+## Scope Expansion
+
+Identifying a possible improvement does not authorize implementing it.
+
+Suggestions are welcome.
+
+Implementation requires explicit approval.
+
+If additional improvements are found:
+
+- describe them
+- explain their impact
+- leave them unchanged unless requested
